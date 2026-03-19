@@ -7,7 +7,11 @@ namespace Paddy
     public class AppSettings
     {
         public int InputDeviceIndex { get; set; } = 0;
+        public int CaptureSourceMode { get; set; } = 0; // 0 = microphone, 1 = output loopback
+        public string LoopbackDeviceId { get; set; } = string.Empty;
         public int OutputDeviceIndex { get; set; } = 0;
+        public bool ListenOutputEnabled { get; set; } = false;
+        public int ListenOutputDeviceIndex { get; set; } = 0; // 0 = default, 1..N = devices 0..N-1
         public double Sensitivity { get; set; } = 30.0;        // RMS threshold 0-100
         public double SilenceTimeoutMs { get; set; } = 700.0;  // ms of silence before stopping
         public string SaveFolder { get; set; } = string.Empty;

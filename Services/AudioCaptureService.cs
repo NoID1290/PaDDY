@@ -1,11 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using Paddy.Models;
 
 namespace Paddy.Services
 {
+    public enum CaptureSourceMode
+    {
+        Microphone = 0,
+        OutputLoopback = 1
+    }
+
     /// <summary>
     /// Core voice-activity detection and recording engine.
     /// Uses a ring pre-buffer so the first syllables are never clipped.
@@ -27,7 +35,8 @@ namespace Paddy.Services
         public string SaveFolder { get; set; } = "recordings";
 
         // ── Internal state ────────────────────────────────────────────────────
-        private WaveInEvent? _waveIn;
+        private IWaveIn? _captureIn;
+        private WaveFormat? _captureFormat;
         private readonly WaveFileRecorder _recorder = new();
         private bool _isRecording;
         private DateTime _lastVoiceTime;
@@ -52,31 +61,51 @@ namespace Paddy.Services
             return devices;
         }
 
+        public static List<(string Id, string Name)> GetLoopbackDevices()
+        {
+            using var enumerator = new MMDeviceEnumerator();
+            return enumerator
+                .EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
+                .Select(d => (d.ID, d.FriendlyName))
+                .ToList();
+        }
+
         // ── Start / Stop ──────────────────────────────────────────────────────
         public void Start(int deviceIndex)
         {
-            if (_waveIn != null) Stop();
+            Start(deviceIndex, CaptureSourceMode.Microphone, null);
+        }
 
-            var format = new WaveFormat(16000, 16, 1); // 16kHz, 16-bit, mono
-            _preBufferCapacity = (format.AverageBytesPerSecond * PreBufferMs) / 1000;
+        public void Start(int microphoneDeviceIndex, CaptureSourceMode sourceMode, string? loopbackDeviceId)
+        {
+            if (_captureIn != null) Stop();
+
+            IWaveIn capture = sourceMode switch
+            {
+                CaptureSourceMode.OutputLoopback => CreateLoopbackCapture(loopbackDeviceId),
+                _ => new WaveInEvent
+                {
+                    DeviceNumber = microphoneDeviceIndex,
+                    WaveFormat = new WaveFormat(16000, 16, 1),
+                    BufferMilliseconds = 50
+                }
+            };
+
+            _captureIn = capture;
+            _captureFormat = capture.WaveFormat;
+            _preBufferCapacity = (_captureFormat.AverageBytesPerSecond * PreBufferMs) / 1000;
             _preBuffer.Clear();
             _preBufferBytes = 0;
             _isRecording = false;
 
-            _waveIn = new WaveInEvent
-            {
-                DeviceNumber = deviceIndex,
-                WaveFormat = format,
-                BufferMilliseconds = 50
-            };
-            _waveIn.DataAvailable += OnDataAvailable;
-            _waveIn.RecordingStopped += OnRecordingStopped;
-            _waveIn.StartRecording();
+            _captureIn.DataAvailable += OnDataAvailable;
+            _captureIn.RecordingStopped += OnRecordingStopped;
+            _captureIn.StartRecording();
         }
 
         public void Stop()
         {
-            _waveIn?.StopRecording();
+            _captureIn?.StopRecording();
             // Cleanup is handled in OnRecordingStopped
         }
 
@@ -85,8 +114,7 @@ namespace Paddy.Services
         {
             if (e.BytesRecorded == 0) return;
 
-            double rms = ComputeRms(e.Buffer, e.BytesRecorded);
-            double normalised = Math.Min(100.0, rms / 32768.0 * 100.0 * 5.0); // scale to 0-100
+            double normalised = ComputeNormalisedLevel(e.Buffer, e.BytesRecorded, _captureFormat);
             RmsLevelChanged?.Invoke(normalised);
 
             bool hasVoice = normalised > Sensitivity;
@@ -139,7 +167,8 @@ namespace Paddy.Services
                 : Path.Combine(AppContext.BaseDirectory, SaveFolder);
             string filePath = Path.Combine(folder, $"Recording_{timestamp}.wav");
 
-            _recorder.BeginRecording(filePath, new WaveFormat(16000, 16, 1));
+            var format = _captureFormat ?? new WaveFormat(16000, 16, 1);
+            _recorder.BeginRecording(filePath, format);
 
             // Flush pre-buffer into the recording so onset is captured
             foreach (var chunk in _preBuffer)
@@ -178,24 +207,65 @@ namespace Paddy.Services
             if (_isRecording)
                 FinaliseClip();
 
-            _waveIn?.Dispose();
-            _waveIn = null;
+            _captureIn?.Dispose();
+            _captureIn = null;
+            _captureFormat = null;
         }
 
         // ── RMS computation ───────────────────────────────────────────────────
-        private static double ComputeRms(byte[] buffer, int count)
+        private static double ComputeNormalisedLevel(byte[] buffer, int count, WaveFormat? format)
         {
-            if (count < 2) return 0;
-            long sumSq = 0;
-            int samples = count / 2;
+            if (count <= 0 || format == null) return 0;
 
-            for (int i = 0; i < count - 1; i += 2)
+            double rmsAmplitude;
+
+            if (format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample == 32)
             {
-                short sample = (short)(buffer[i] | (buffer[i + 1] << 8));
-                sumSq += (long)sample * sample;
+                int samples = count / 4;
+                if (samples == 0) return 0;
+
+                double sumSq = 0;
+                for (int i = 0; i <= count - 4; i += 4)
+                {
+                    float sample = BitConverter.ToSingle(buffer, i);
+                    sumSq += sample * sample;
+                }
+
+                rmsAmplitude = Math.Sqrt(sumSq / samples);
+            }
+            else
+            {
+                if (count < 2) return 0;
+
+                long sumSq = 0;
+                int samples = count / 2;
+                for (int i = 0; i <= count - 2; i += 2)
+                {
+                    short sample = (short)(buffer[i] | (buffer[i + 1] << 8));
+                    sumSq += (long)sample * sample;
+                }
+
+                double rms = Math.Sqrt((double)sumSq / samples);
+                rmsAmplitude = rms / short.MaxValue;
             }
 
-            return Math.Sqrt((double)sumSq / samples);
+            // Keep the existing sensitivity UX: amplify low RMS so speech sits in mid-range.
+            return Math.Min(100.0, rmsAmplitude * 500.0);
+        }
+
+        private static WasapiLoopbackCapture CreateLoopbackCapture(string? loopbackDeviceId)
+        {
+            using var enumerator = new MMDeviceEnumerator();
+
+            MMDevice? device = null;
+            if (!string.IsNullOrWhiteSpace(loopbackDeviceId))
+            {
+                try { device = enumerator.GetDevice(loopbackDeviceId); }
+                catch { device = null; }
+            }
+
+            device ??= enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            return new WasapiLoopbackCapture(device);
         }
 
         public void Dispose()

@@ -16,8 +16,13 @@ namespace Paddy.Controls
         // Output device index injected from MainWindow
         public int OutputDeviceIndex { get; set; } = 0;
 
+        // Listen device index: -2 = disabled, -1 = default, 0..N = specific device
+        public int ListenDeviceIndex { get; set; } = -2;
+
         private WaveOutEvent? _player;
         private AudioFileReader? _reader;
+        private WaveOutEvent? _listenPlayer;
+        private AudioFileReader? _listenReader;
         private bool _isPlaying;
 
         public event EventHandler? DeleteRequested;
@@ -62,6 +67,16 @@ namespace Paddy.Controls
                     Dispatcher.Invoke(StopPlayback);
                 };
                 _player.Play();
+
+                // Also play on the listen device if enabled
+                if (ListenDeviceIndex >= -1)
+                {
+                    _listenReader = new AudioFileReader(Entry.FilePath);
+                    _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
+                    _listenPlayer.Init(_listenReader);
+                    _listenPlayer.Play();
+                }
+
                 _isPlaying = true;
                 IconText.Text = "⏹";
 
@@ -83,6 +98,11 @@ namespace Paddy.Controls
             _player = null;
             _reader?.Dispose();
             _reader = null;
+            _listenPlayer?.Stop();
+            _listenPlayer?.Dispose();
+            _listenPlayer = null;
+            _listenReader?.Dispose();
+            _listenReader = null;
             _isPlaying = false;
             IconText.Text = "🎤";
 

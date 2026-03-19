@@ -15,6 +15,7 @@ namespace Paddy
     {
         private readonly AudioCaptureService _captureService = new();
         private AppSettings _settings = AppSettings.Load();
+        private List<(string Id, string Name)> _loopbackDevices = new();
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
 
@@ -29,14 +30,24 @@ namespace Paddy
         // ── Startup ────────────────────────────────────────────────────────────
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            PopulateCaptureSourceModes();
             PopulateInputDevices();
+            PopulateLoopbackDevices();
             PopulateOutputDevices();
+            PopulateListenOutputDevices();
             ApplySettings();
             _suppressSelectionEvents = false;
 
             _captureService.RmsLevelChanged += OnRmsChanged;
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
+        }
+
+        private void PopulateCaptureSourceModes()
+        {
+            CaptureSourceCombo.Items.Clear();
+            CaptureSourceCombo.Items.Add("Microphone");
+            CaptureSourceCombo.Items.Add("Output loopback");
         }
 
         private void PopulateInputDevices()
@@ -73,8 +84,49 @@ namespace Paddy
             _outputDeviceIndex = clampedOut - 1; // -1 = default device in WaveOutEvent
         }
 
+        private void PopulateListenOutputDevices()
+        {
+            ListenOutputDeviceCombo.Items.Clear();
+            ListenOutputDeviceCombo.Items.Add("Default Output");
+
+            for (int i = 0; i < WaveOut.DeviceCount; i++)
+            {
+                var caps = WaveOut.GetCapabilities(i);
+                ListenOutputDeviceCombo.Items.Add(caps.ProductName);
+            }
+
+            int clamped = Math.Clamp(_settings.ListenOutputDeviceIndex, 0,
+                ListenOutputDeviceCombo.Items.Count - 1);
+            ListenOutputDeviceCombo.SelectedIndex = clamped;
+            ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
+        }
+
+        private void PopulateLoopbackDevices()
+        {
+            _loopbackDevices = AudioCaptureService.GetLoopbackDevices();
+            LoopbackDeviceCombo.Items.Clear();
+
+            foreach (var d in _loopbackDevices)
+                LoopbackDeviceCombo.Items.Add(d.Name);
+
+            if (_loopbackDevices.Count > 0)
+            {
+                int idx = _loopbackDevices.FindIndex(d => d.Id == _settings.LoopbackDeviceId);
+                LoopbackDeviceCombo.SelectedIndex = idx >= 0 ? idx : 0;
+            }
+            else
+            {
+                LoopbackDeviceCombo.Items.Add("No output devices found");
+                LoopbackDeviceCombo.SelectedIndex = 0;
+            }
+        }
+
         private void ApplySettings()
         {
+            int sourceMode = Math.Clamp(_settings.CaptureSourceMode, 0, CaptureSourceCombo.Items.Count - 1);
+            CaptureSourceCombo.SelectedIndex = sourceMode;
+            ListenOutputEnabledCheck.IsChecked = _settings.ListenOutputEnabled;
+
             SensitivitySlider.Value = _settings.Sensitivity;
             SilenceSlider.Value = _settings.SilenceTimeoutMs;
 
@@ -86,6 +138,78 @@ namespace Paddy
 
             _captureService.Sensitivity = _settings.Sensitivity;
             _captureService.SilenceTimeoutMs = _settings.SilenceTimeoutMs;
+
+            UpdateInputControlsForSource();
+            ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
+            RefreshPadOutputRouting();
+        }
+
+        private int GetCurrentListenDeviceIndex()
+        {
+            if (ListenOutputEnabledCheck.IsChecked == true)
+                return ListenOutputDeviceCombo.SelectedIndex - 1; // -1 = default
+            return -2; // disabled
+        }
+
+        private void RefreshPadOutputRouting()
+        {
+            int listenDevice = GetCurrentListenDeviceIndex();
+            foreach (var child in PadPanel.Children)
+            {
+                if (child is RecordingPadButton pad)
+                {
+                    pad.OutputDeviceIndex = _outputDeviceIndex;
+                    pad.ListenDeviceIndex = listenDevice;
+                }
+            }
+        }
+
+        private CaptureSourceMode GetSelectedCaptureMode()
+        {
+            return CaptureSourceCombo.SelectedIndex == 1
+                ? CaptureSourceMode.OutputLoopback
+                : CaptureSourceMode.Microphone;
+        }
+
+        private string? GetSelectedLoopbackDeviceId()
+        {
+            int index = LoopbackDeviceCombo.SelectedIndex;
+            if (index < 0 || index >= _loopbackDevices.Count) return null;
+            return _loopbackDevices[index].Id;
+        }
+
+        private void UpdateInputControlsForSource()
+        {
+            bool useLoopback = GetSelectedCaptureMode() == CaptureSourceMode.OutputLoopback;
+
+            InputDeviceLabel.Visibility = useLoopback ? Visibility.Collapsed : Visibility.Visible;
+            InputDeviceCombo.Visibility = useLoopback ? Visibility.Collapsed : Visibility.Visible;
+            LoopbackDeviceLabel.Visibility = useLoopback ? Visibility.Visible : Visibility.Collapsed;
+            LoopbackDeviceCombo.Visibility = useLoopback ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void RestartMonitoringIfActive()
+        {
+            if (MonitorToggle.IsChecked != true) return;
+            _captureService.Stop();
+            StartMonitoringWithCurrentSelection();
+        }
+
+        private void StartMonitoringWithCurrentSelection()
+        {
+            var mode = GetSelectedCaptureMode();
+            if (mode == CaptureSourceMode.Microphone)
+            {
+                _captureService.Start(Math.Max(0, InputDeviceCombo.SelectedIndex), mode, null);
+                SetStatus("Listening…", "#FF4CAF50");
+                return;
+            }
+
+            if (_loopbackDevices.Count == 0)
+                throw new InvalidOperationException("No active output devices available for loopback capture.");
+
+            _captureService.Start(0, mode, GetSelectedLoopbackDeviceId());
+            SetStatus("Monitoring output loopback…", "#FF4CAF50");
         }
 
         // ── Device selection ───────────────────────────────────────────────────
@@ -94,13 +218,27 @@ namespace Paddy
             if (_suppressSelectionEvents) return;
             _settings.InputDeviceIndex = InputDeviceCombo.SelectedIndex;
             _settings.Save();
+            RestartMonitoringIfActive();
+        }
 
-            // Restart capture if monitoring is active with new device
-            if (MonitorToggle.IsChecked == true)
-            {
-                _captureService.Stop();
-                _captureService.Start(InputDeviceCombo.SelectedIndex);
-            }
+        private void CaptureSourceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+
+            _settings.CaptureSourceMode = CaptureSourceCombo.SelectedIndex;
+            _settings.Save();
+
+            UpdateInputControlsForSource();
+            RestartMonitoringIfActive();
+        }
+
+        private void LoopbackDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+
+            _settings.LoopbackDeviceId = GetSelectedLoopbackDeviceId() ?? string.Empty;
+            _settings.Save();
+            RestartMonitoringIfActive();
         }
 
         private void OutputDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -110,20 +248,55 @@ namespace Paddy
             _outputDeviceIndex = OutputDeviceCombo.SelectedIndex - 1;
             _settings.OutputDeviceIndex = OutputDeviceCombo.SelectedIndex;
             _settings.Save();
+            RefreshPadOutputRouting();
+        }
+
+        private void ListenOutputEnabledCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+            _settings.ListenOutputEnabled = ListenOutputEnabledCheck.IsChecked == true;
+            _settings.Save();
+            ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
+            RefreshPadOutputRouting();
+        }
+
+        private void ListenOutputDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+            _settings.ListenOutputDeviceIndex = ListenOutputDeviceCombo.SelectedIndex;
+            _settings.Save();
+            RefreshPadOutputRouting();
         }
 
         // ── Monitoring toggle ──────────────────────────────────────────────────
         private void MonitorToggle_Checked(object sender, RoutedEventArgs e)
         {
-            if (WaveInEvent.DeviceCount == 0)
+            if (GetSelectedCaptureMode() == CaptureSourceMode.Microphone && WaveInEvent.DeviceCount == 0)
             {
                 System.Windows.MessageBox.Show("No microphone detected.", "Paddy",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 MonitorToggle.IsChecked = false;
                 return;
             }
-            SetStatus("Listening…", "#FF4CAF50");
-            _captureService.Start(Math.Max(0, InputDeviceCombo.SelectedIndex));
+
+            if (GetSelectedCaptureMode() == CaptureSourceMode.OutputLoopback && _loopbackDevices.Count == 0)
+            {
+                System.Windows.MessageBox.Show("No active output device found for loopback capture.", "Paddy",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MonitorToggle.IsChecked = false;
+                return;
+            }
+
+            try
+            {
+                StartMonitoringWithCurrentSelection();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Unable to start monitoring:\n{ex.Message}", "Paddy",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MonitorToggle.IsChecked = false;
+            }
         }
 
         private void MonitorToggle_Unchecked(object sender, RoutedEventArgs e)
@@ -207,7 +380,8 @@ namespace Paddy
             var btn = new RecordingPadButton
             {
                 Margin = new Thickness(6),
-                OutputDeviceIndex = _outputDeviceIndex
+                OutputDeviceIndex = _outputDeviceIndex,
+                ListenDeviceIndex = GetCurrentListenDeviceIndex()
             };
             btn.SetEntry(entry);
             btn.DeleteRequested += (s, _) =>
