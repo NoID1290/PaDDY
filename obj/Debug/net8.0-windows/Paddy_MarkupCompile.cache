@@ -1,5 +1,5 @@
 ﻿Paddy
-1.0.0.0
+
 
 winexe
 C#
@@ -12,9 +12,9 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR
 C:\Users\90lec\Documents\VoicePad\App.xaml
 2176410065
 
-12-746626743
+10-1737895296
 214-1940617677
 Controls\RecordingPadButton.xaml;MainWindow.xaml;
 
-True
+False
 

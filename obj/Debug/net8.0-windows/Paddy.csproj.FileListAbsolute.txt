@@ -23,6 +23,7 @@ C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\Paddy.GeneratedMSBuil
 C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\Paddy.AssemblyInfoInputs.cache
 C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\Paddy.AssemblyInfo.cs
 C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\Paddy.csproj.CoreCompileInputs.cache
+C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\Paddy.sourcelink.json
 C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\Paddy.csproj.Up2Date
 C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\Paddy.dll
 C:\Users\90lec\Documents\VoicePad\obj\Debug\net8.0-windows\refint\Paddy.dll
