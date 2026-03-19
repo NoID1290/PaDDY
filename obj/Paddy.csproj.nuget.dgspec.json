@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\90lec\\Documents\\VoicePad\\Paddy.csproj": {}
+    "S:\\VScodeProjects\\Paddy-dev\\Paddy.csproj": {}
   },
   "projects": {
-    "C:\\Users\\90lec\\Documents\\VoicePad\\Paddy.csproj": {
+    "S:\\VScodeProjects\\Paddy-dev\\Paddy.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\90lec\\Documents\\VoicePad\\Paddy.csproj",
+        "projectUniqueName": "S:\\VScodeProjects\\Paddy-dev\\Paddy.csproj",
         "projectName": "Paddy",
-        "projectPath": "C:\\Users\\90lec\\Documents\\VoicePad\\Paddy.csproj",
+        "projectPath": "S:\\VScodeProjects\\Paddy-dev\\Paddy.csproj",
         "packagesPath": "C:\\Users\\90lec\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\90lec\\Documents\\VoicePad\\obj\\",
+        "outputPath": "S:\\VScodeProjects\\Paddy-dev\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

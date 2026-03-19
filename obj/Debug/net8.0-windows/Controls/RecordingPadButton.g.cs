@@ -84,7 +84,7 @@ namespace Paddy.Controls {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Paddy;component/controls/recordingpadbutton.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Paddy;V1.0.0.0;component/controls/recordingpadbutton.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Controls\RecordingPadButton.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

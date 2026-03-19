@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "2enGYu2QjPg=",
+  "dgSpecHash": "LcCPPYzEA4U=",
   "success": true,
-  "projectFilePath": "C:\\Users\\90lec\\Documents\\VoicePad\\Paddy.csproj",
+  "projectFilePath": "S:\\VScodeProjects\\Paddy-dev\\Paddy.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\90lec\\.nuget\\packages\\naudio\\2.3.0\\naudio.2.3.0.nupkg.sha512",
     "C:\\Users\\90lec\\.nuget\\packages\\naudio.asio\\2.3.0\\naudio.asio.2.3.0.nupkg.sha512",
