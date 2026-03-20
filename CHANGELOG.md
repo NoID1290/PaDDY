@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to Paddy will be documented in this file.
 
@@ -9,6 +9,10 @@ Version format: `a.b.c.MMDD`
 - `b` = Backend update — resets c to 0
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
+
+## [0.2.0.0320] - 2026-03-20
+
+- Version bump
 
 ## [0.1.0.0101] - 2026-01-01
 

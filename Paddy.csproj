@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -9,14 +8,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>Paddy</AssemblyName>
     <RootNamespace>Paddy</RootNamespace>
-    <Version>0.1.0.0101</Version>
-    <AssemblyVersion>0.1.0.0101</AssemblyVersion>
-    <FileVersion>0.1.0.0101</FileVersion>
+    <Version>0.2.0.0320</Version>
+    <AssemblyVersion>0.2.0.0320</AssemblyVersion>
+    <FileVersion>0.2.0.0320</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.3.0" />
   </ItemGroup>
-
 </Project>
