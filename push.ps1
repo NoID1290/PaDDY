@@ -432,7 +432,7 @@ if ($AttachAssets) {
     } else {
         Write-Host "[ASSETS] AttachAssets requested; building and uploading artifacts" -ForegroundColor Cyan
 
-        $artifactRoot = Join-Path (Split-Path -Parent $projectFilePath) "bin\artifacts"
+        $artifactRoot = Join-Path $PSScriptRoot "bin\artifacts"
         $publishDir   = Join-Path $artifactRoot "Paddy-$newVersion"
 
         # Clean previous artifacts
