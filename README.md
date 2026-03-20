@@ -1,6 +1,6 @@
-# Paddy
+﻿# Paddy
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.2-blue)](CHANGELOG.md)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -29,3 +29,4 @@ Feel free to open issues and pull requests.
 ## License
 
 © 2026 NoID Softwork
+

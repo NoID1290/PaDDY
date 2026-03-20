@@ -11,6 +11,11 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.2.2.0320] - 2026-03-20
+
+- First dev build
+- fix: update artifact path resolution to use script root
+
 ## [0.2.1.0320] - 2026-03-20
 
 - docs: Add blank line for better readability in CHANGELOG
