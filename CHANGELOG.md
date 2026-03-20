@@ -5,6 +5,7 @@ All notable changes to Paddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Version format: `a.b.c.MMDD`
+
 - `a` = Frontend (GUI) update — resets b and c to 0
 - `b` = Backend update — resets c to 0
 - `c` = Little fix / patch
