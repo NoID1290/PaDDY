@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,10 +17,14 @@ namespace Paddy
     public partial class MainWindow : Window
     {
         private readonly AudioCaptureService _captureService = new();
+        private readonly GlobalHotkeyService _hotkeyService = new();
         private AppSettings _settings = AppSettings.Load();
         private List<(string Id, string Name)> _loopbackDevices = new();
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
+
+        // Track whether the last known capture format was stereo
+        private bool _isStereoCapture = false;
 
         public MainWindow()
         {
@@ -37,12 +42,18 @@ namespace Paddy
             PopulateLoopbackDevices();
             PopulateOutputDevices();
             PopulateListenOutputDevices();
+            PopulateRecordingModes();
             ApplySettings();
+            LoadFavoritesFromSettings();
             _suppressSelectionEvents = false;
 
             _captureService.RmsLevelChanged += OnRmsChanged;
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
+
+            // Register global hotkey
+            _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
+            _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
         }
 
         private void PopulateCaptureSourceModes()
@@ -50,6 +61,13 @@ namespace Paddy
             CaptureSourceCombo.Items.Clear();
             CaptureSourceCombo.Items.Add("Microphone");
             CaptureSourceCombo.Items.Add("Output loopback");
+        }
+
+        private void PopulateRecordingModes()
+        {
+            RecordingModeCombo.Items.Clear();
+            RecordingModeCombo.Items.Add("Auto VAD");
+            RecordingModeCombo.Items.Add("Key Buffer");
         }
 
         private void PopulateInputDevices()
@@ -83,7 +101,7 @@ namespace Paddy
             int clampedOut = Math.Clamp(_settings.OutputDeviceIndex, 0,
                 OutputDeviceCombo.Items.Count - 1);
             OutputDeviceCombo.SelectedIndex = clampedOut;
-            _outputDeviceIndex = clampedOut - 1; // -1 = default device in WaveOutEvent
+            _outputDeviceIndex = clampedOut - 1;
         }
 
         private void PopulateListenOutputDevices()
@@ -132,6 +150,19 @@ namespace Paddy
             SensitivitySlider.Value = _settings.Sensitivity;
             SilenceSlider.Value = _settings.SilenceTimeoutMs;
 
+            // Recording mode combo
+            int modeIdx = Math.Clamp(_settings.RecordingMode, 0, RecordingModeCombo.Items.Count - 1);
+            RecordingModeCombo.SelectedIndex = modeIdx;
+            _captureService.RecordingMode = (AudioRecordingMode)modeIdx;
+            KeyBufferHint.Visibility = modeIdx == 1 ? Visibility.Visible : Visibility.Collapsed;
+            UpdateHotkeyLabel();
+
+            // Format settings
+            _captureService.RecordSampleRate = _settings.RecordSampleRate;
+            _captureService.RecordBitDepth = _settings.RecordBitDepth;
+            _captureService.RecordChannels = _settings.RecordChannels;
+            _captureService.PastBufferDurationMs = _settings.PastBufferDurationMs;
+
             string folder = string.IsNullOrWhiteSpace(_settings.SaveFolder)
                 ? Path.Combine(AppContext.BaseDirectory, "recordings")
                 : _settings.SaveFolder;
@@ -146,22 +177,37 @@ namespace Paddy
             RefreshPadOutputRouting();
         }
 
+        private void UpdateHotkeyLabel()
+        {
+            uint mods = _settings.BufferHotKeyModifiers;
+            uint vk = _settings.BufferHotKeyVk;
+            string modStr = "";
+            if ((mods & 0x0002) != 0) modStr += "Ctrl+";
+            if ((mods & 0x0001) != 0) modStr += "Alt+";
+            if ((mods & 0x0004) != 0) modStr += "Shift+";
+            string keyStr = vk >= 0x70 && vk <= 0x87 ? $"F{vk - 0x6F}" : $"0x{vk:X2}";
+            HotkeyLabel.Text = modStr + keyStr;
+        }
+
         private int GetCurrentListenDeviceIndex()
         {
             if (ListenOutputEnabledCheck.IsChecked == true)
-                return ListenOutputDeviceCombo.SelectedIndex - 1; // -1 = default
-            return -2; // disabled
+                return ListenOutputDeviceCombo.SelectedIndex - 1;
+            return -2;
         }
 
         private void RefreshPadOutputRouting()
         {
             int listenDevice = GetCurrentListenDeviceIndex();
-            foreach (var child in PadPanel.Children)
+            foreach (var panel in new[] { PadPanel, FavoritesPanel })
             {
-                if (child is RecordingPadButton pad)
+                foreach (var child in panel.Children)
                 {
-                    pad.OutputDeviceIndex = _outputDeviceIndex;
-                    pad.ListenDeviceIndex = listenDevice;
+                    if (child is RecordingPadButton pad)
+                    {
+                        pad.OutputDeviceIndex = _outputDeviceIndex;
+                        pad.ListenDeviceIndex = listenDevice;
+                    }
                 }
             }
         }
@@ -203,6 +249,9 @@ namespace Paddy
             if (mode == CaptureSourceMode.Microphone)
             {
                 _captureService.Start(Math.Max(0, InputDeviceCombo.SelectedIndex), mode, null);
+                // Mono mic → hide R bar
+                _isStereoCapture = _settings.RecordChannels == 2;
+                RmsMeterRRow.Visibility = _isStereoCapture ? Visibility.Visible : Visibility.Collapsed;
                 SetStatus("Listening…", "#FF4CAF50");
                 return;
             }
@@ -211,6 +260,7 @@ namespace Paddy
                 throw new InvalidOperationException("No active output devices available for loopback capture.");
 
             _captureService.Start(0, mode, GetSelectedLoopbackDeviceId());
+            // Loopback format detected lazily from first audio frame
             SetStatus("Monitoring output loopback…", "#FF4CAF50");
         }
 
@@ -246,7 +296,6 @@ namespace Paddy
         private void OutputDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_suppressSelectionEvents) return;
-            // ComboBox index 0 = default, 1..N = devices 0..N-1
             _outputDeviceIndex = OutputDeviceCombo.SelectedIndex - 1;
             _settings.OutputDeviceIndex = OutputDeviceCombo.SelectedIndex;
             _settings.Save();
@@ -268,6 +317,16 @@ namespace Paddy
             _settings.ListenOutputDeviceIndex = ListenOutputDeviceCombo.SelectedIndex;
             _settings.Save();
             RefreshPadOutputRouting();
+        }
+
+        private void RecordingModeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+            int idx = RecordingModeCombo.SelectedIndex;
+            _captureService.RecordingMode = (AudioRecordingMode)idx;
+            _settings.RecordingMode = idx;
+            _settings.Save();
+            KeyBufferHint.Visibility = idx == 1 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // ── Monitoring toggle ──────────────────────────────────────────────────
@@ -305,7 +364,8 @@ namespace Paddy
         {
             _captureService.Stop();
             SetStatus("Idle — press Start to begin", "#FF757575");
-            RmsMeter.Value = 0;
+            RmsMeterL.Value = 0;
+            RmsMeterR.Value = 0;
             RmsValueLabel.Text = "0";
         }
 
@@ -351,13 +411,68 @@ namespace Paddy
             _settings.Save();
         }
 
-        // ── Audio events (cross-thread) ────────────────────────────────────────
-        private void OnRmsChanged(double value)
+        // ── Settings / About buttons ───────────────────────────────────────────
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new SettingsWindow(_settings) { Owner = this };
+            if (win.ShowDialog() != true) return;
+
+            // Apply changes
+            _settings.RecordSampleRate = win.SelectedSampleRate;
+            _settings.RecordBitDepth = win.SelectedBitDepth;
+            _settings.RecordChannels = win.SelectedChannels;
+            _settings.SaveFolder = win.SelectedSaveFolder;
+            _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
+            _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
+            _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
+            _settings.Save();
+
+            _captureService.RecordSampleRate = win.SelectedSampleRate;
+            _captureService.RecordBitDepth = win.SelectedBitDepth;
+            _captureService.RecordChannels = win.SelectedChannels;
+            _captureService.SaveFolder = win.SelectedSaveFolder;
+            _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
+            FolderLabel.Text = win.SelectedSaveFolder;
+
+            // Re-register hotkey with new key
+            _hotkeyService.Reregister(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
+            UpdateHotkeyLabel();
+
+            // Restart monitoring to apply new format settings
+            RestartMonitoringIfActive();
+        }
+
+        private void AboutButton_Click(object sender, RoutedEventArgs e)
+        {
+            new AboutWindow { Owner = this }.ShowDialog();
+        }
+
+        // ── Global hotkey → buffer capture ────────────────────────────────────
+        private void OnBufferHotkeyPressed()
         {
             Dispatcher.InvokeAsync(() =>
             {
-                RmsMeter.Value = value;
-                RmsValueLabel.Text = value.ToString("0");
+                if (MonitorToggle.IsChecked == true && _captureService.RecordingMode == AudioRecordingMode.KeyBuffer)
+                    _captureService.TriggerBufferCapture();
+            });
+        }
+
+        // ── Audio events (cross-thread) ────────────────────────────────────────
+        private void OnRmsChanged(double left, double right)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                RmsMeterL.Value = left;
+                RmsValueLabel.Text = left.ToString("0");
+
+                // Show R bar for stereo loopback or stereo mic
+                bool stereo = Math.Abs(left - right) > 0.01 || _isStereoCapture;
+                if (stereo && RmsMeterRRow.Visibility != Visibility.Visible)
+                    RmsMeterRRow.Visibility = Visibility.Visible;
+                else if (!stereo && !_isStereoCapture && RmsMeterRRow.Visibility != Visibility.Collapsed)
+                    RmsMeterRRow.Visibility = Visibility.Collapsed;
+
+                RmsMeterR.Value = right;
             });
         }
 
@@ -374,11 +489,11 @@ namespace Paddy
 
         private void OnRecordingCompleted(RecordingEntry entry)
         {
-            Dispatcher.InvokeAsync(() => AddPadButton(entry));
+            Dispatcher.InvokeAsync(() => AddPadButton(entry, toFavorites: false));
         }
 
         // ── Pad panel ──────────────────────────────────────────────────────────
-        private void AddPadButton(RecordingEntry entry)
+        private RecordingPadButton CreatePadButton(RecordingEntry entry)
         {
             var btn = new RecordingPadButton
             {
@@ -387,16 +502,106 @@ namespace Paddy
                 ListenDeviceIndex = GetCurrentListenDeviceIndex()
             };
             btn.SetEntry(entry);
+            btn.IsFavorite = entry.IsFavorite;
+
             btn.DeleteRequested += (s, _) =>
             {
-                if (s is RecordingPadButton b) PadPanel.Children.Remove(b);
+                if (s is RecordingPadButton b)
+                {
+                    // Remove from whichever panel it's in
+                    PadPanel.Children.Remove(b);
+                    FavoritesPanel.Children.Remove(b);
+                    if (b.IsFavorite && b.Entry != null)
+                        RemoveFavoriteFromSettings(b.Entry.FilePath);
+                    UpdatePadState();
+                }
+            };
+
+            btn.FavoriteToggled += (s, _) =>
+            {
+                if (s is not RecordingPadButton b || b.Entry == null) return;
+                if (b.IsFavorite)
+                {
+                    // Move from PadPanel to FavoritesPanel
+                    PadPanel.Children.Remove(b);
+                    FavoritesPanel.Children.Insert(0, b);
+                    AddFavoriteToSettings(b.Entry.FilePath);
+                }
+                else
+                {
+                    // Move from FavoritesPanel to PadPanel
+                    FavoritesPanel.Children.Remove(b);
+                    PadPanel.Children.Insert(0, b);
+                    RemoveFavoriteFromSettings(b.Entry.FilePath);
+                }
                 UpdatePadState();
             };
 
-            PadPanel.Children.Insert(0, btn); // newest first
-            UpdatePadState();
+            return btn;
+        }
 
+        private void AddPadButton(RecordingEntry entry, bool toFavorites)
+        {
+            bool isFav = _settings.FavoriteFilePaths.Contains(entry.FilePath);
+            entry.IsFavorite = isFav || toFavorites;
+
+            var btn = CreatePadButton(entry);
+
+            if (entry.IsFavorite)
+                FavoritesPanel.Children.Insert(0, btn);
+            else
+                PadPanel.Children.Insert(0, btn);
+
+            UpdatePadState();
             SetStatus($"Saved: {Path.GetFileName(entry.FilePath)}", "#FF4CAF50");
+        }
+
+        private void LoadFavoritesFromSettings()
+        {
+            var toRemove = new List<string>();
+            foreach (var path in _settings.FavoriteFilePaths)
+            {
+                if (!File.Exists(path))
+                {
+                    toRemove.Add(path);
+                    continue;
+                }
+                try
+                {
+                    using var reader = new NAudio.Wave.AudioFileReader(path);
+                    var entry = new RecordingEntry
+                    {
+                        FilePath = path,
+                        Duration = reader.TotalTime,
+                        IsFavorite = true
+                    };
+                    var btn = CreatePadButton(entry);
+                    FavoritesPanel.Children.Add(btn);
+                }
+                catch { toRemove.Add(path); }
+            }
+
+            // Clean up missing files
+            foreach (var p in toRemove)
+                _settings.FavoriteFilePaths.Remove(p);
+            if (toRemove.Count > 0) _settings.Save();
+
+            UpdatePadState();
+        }
+
+        private void AddFavoriteToSettings(string filePath)
+        {
+            if (!_settings.FavoriteFilePaths.Contains(filePath))
+            {
+                _settings.FavoriteFilePaths.Add(filePath);
+                _settings.Save();
+            }
+        }
+
+        private void RemoveFavoriteFromSettings(string filePath)
+        {
+            _settings.FavoriteFilePaths.Remove(filePath);
+            _settings.Save();
         }
 
         private void UpdatePadState()
@@ -404,13 +609,20 @@ namespace Paddy
             int count = PadPanel.Children.Count;
             RecordingCountLabel.Text = count == 1 ? "1 clip" : $"{count} clips";
             EmptyHint.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+            int favCount = FavoritesPanel.Children.Count;
+            FavoriteCountLabel.Text = $" — {favCount}";
+            var favVis = favCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+            FavoritesHeader.Visibility = favVis;
+            FavoritesPanelBorder.Visibility = favVis;
         }
 
-        private void ClearAllButton_Click(object sender, RoutedEventArgs e)
+        // ── Clear / Delete All ─────────────────────────────────────────────────
+        private void ClearPadsButton_Click(object sender, RoutedEventArgs e)
         {
             if (PadPanel.Children.Count == 0) return;
             var result = System.Windows.MessageBox.Show(
-                "Remove all pad buttons? (Files on disk are NOT deleted.)",
+                "Remove all pad buttons from the UI? (Files on disk are NOT deleted.)",
                 "Paddy", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes) return;
 
@@ -418,11 +630,55 @@ namespace Paddy
             UpdatePadState();
         }
 
+        private void DeleteAllFilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            int total = PadPanel.Children.Count + FavoritesPanel.Children.Count;
+            if (total == 0) return;
+
+            var dlg = new DeleteAllDialog { Owner = this };
+            if (dlg.ShowDialog() != true) return;
+
+            var toDelete = new List<RecordingPadButton>();
+
+            // Always delete from PadPanel
+            foreach (var child in PadPanel.Children.OfType<RecordingPadButton>())
+                toDelete.Add(child);
+
+            // Apply to FavoritesPanel only if NOT keeping favorites
+            if (!dlg.KeepFavorites)
+            {
+                foreach (var child in FavoritesPanel.Children.OfType<RecordingPadButton>())
+                    toDelete.Add(child);
+            }
+
+            foreach (var btn in toDelete)
+            {
+                if (btn.Entry?.FilePath is string fp)
+                    try { File.Delete(fp); } catch { }
+
+                PadPanel.Children.Remove(btn);
+                if (!dlg.KeepFavorites)
+                {
+                    FavoritesPanel.Children.Remove(btn);
+                    if (btn.Entry != null)
+                        _settings.FavoriteFilePaths.Remove(btn.Entry.FilePath);
+                }
+            }
+
+            if (!dlg.KeepFavorites)
+            {
+                _settings.FavoriteFilePaths.Clear();
+                _settings.Save();
+            }
+
+            UpdatePadState();
+        }
+
         // ── Helpers ────────────────────────────────────────────────────────────
         private void SetStatus(string text, string hexColor)
         {
             StatusLabel.Text = text;
-            StatusDot.Fill = new System.Windows.Media.SolidColorBrush(
+            StatusDot.Fill = new SolidColorBrush(
                 (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
         }
 
@@ -436,10 +692,11 @@ namespace Paddy
         }
 
         // ── Shutdown ───────────────────────────────────────────────────────────
-        private void MainWindow_Closing(object? sender,
-            System.ComponentModel.CancelEventArgs e)
+        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+            _hotkeyService.Dispose();
             _captureService.Dispose();
         }
     }
 }
+

@@ -8,6 +8,7 @@ namespace Paddy.Models
         public string FileName => System.IO.Path.GetFileNameWithoutExtension(FilePath);
         public TimeSpan Duration { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool IsFavorite { get; set; } = false;
 
         public string DurationLabel =>
             Duration.TotalSeconds < 60
