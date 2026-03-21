@@ -37,7 +37,7 @@ namespace Paddy.Controls
             set
             {
                 _isFavorite = value;
-                FavBtn.Content = value ? "â˜…" : "â˜†";
+                FavBtn.Content = value ? "★" : "☆";
                 FavBtn.Foreground = value
                     ? new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07))
                     : new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA));
@@ -207,7 +207,7 @@ namespace Paddy.Controls
         private void SetPlayingVisual(bool playing)
         {
             _isPlaying = playing;
-            IconText.Text = playing ? "â¹" : "ðŸŽ¤";
+            IconText.Text = playing ? "⏹" : "🎤";
 
             try
             {
