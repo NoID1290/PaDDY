@@ -11,6 +11,11 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.3.0.0321] - 2026-03-21
+
+- Refactor XAML files for improved readability and consistency
+- feat: Add favorite functionality to recordings
+
 ## [0.2.3.0321] - 2026-03-21
 
 - feat: add SupportedOSPlatform attribute for Windows in RecordingPadButton and MainWindow
