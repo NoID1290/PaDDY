@@ -1,8 +1,9 @@
 <UserControl x:Class="Paddy.Controls.RecordingPadButton"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Width="130" Height="90"
-             Cursor="Hand">
+             Width="145" Height="90"
+             Cursor="Hand"
+             MouseRightButtonDown="OnMouseRightButtonDown">
     <UserControl.Resources>
         <!-- Playing animation: pulsing border -->
         <Storyboard x:Key="PlayingAnimation" RepeatBehavior="Forever">
@@ -11,6 +12,32 @@
                             From="#FF4CAF50" To="#FF81C784"
                             Duration="0:0:0.6" AutoReverse="True"/>
         </Storyboard>
+
+        <!-- Small overlay-button style -->
+        <Style x:Key="OverlayBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#44FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Border x:Name="TileBorder"
@@ -44,52 +71,97 @@
             </EventTrigger>
         </Border.Triggers>
 
-        <Grid Margin="8,6">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <!-- Root grid: content + overlay buttons -->
+        <Grid>
+            <!-- Main content -->
+            <Grid Margin="8,6">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <!-- Play/Stop icon -->
-            <TextBlock x:Name="IconText"
-                       Grid.Row="0"
-                       Text="🎤"
-                       FontSize="26"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
+                <!-- Play/Stop icon -->
+                <TextBlock x:Name="IconText"
+                           Grid.Row="0"
+                           Text="🎤"
+                           FontSize="26"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
 
-            <!-- Recording name -->
-            <TextBlock x:Name="NameLabel"
-                       Grid.Row="1"
-                       Text="Recording"
-                       Foreground="#FFE0E0E0"
-                       FontSize="10"
-                       FontWeight="SemiBold"
-                       HorizontalAlignment="Center"
-                       TextTrimming="CharacterEllipsis"
-                       MaxWidth="118"/>
+                <!-- Recording name -->
+                <TextBlock x:Name="NameLabel"
+                           Grid.Row="1"
+                           Text="Recording"
+                           Foreground="#FFE0E0E0"
+                           FontSize="10"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="125"/>
 
-            <!-- Duration -->
-            <TextBlock x:Name="DurationLabel"
-                       Grid.Row="2"
-                       Text="0.0s"
-                       Foreground="#FF9E9E9E"
-                       FontSize="9"
-                       HorizontalAlignment="Center"/>
+                <!-- Duration -->
+                <TextBlock x:Name="DurationLabel"
+                           Grid.Row="2"
+                           Text="0.0s"
+                           Foreground="#FF9E9E9E"
+                           FontSize="9"
+                           HorizontalAlignment="Center"/>
+            </Grid>
+
+            <!-- Overlay buttons -->
+            <Grid>
+                <!-- ⭐ Favourite — top-left -->
+                <Button x:Name="FavBtn"
+                        Style="{StaticResource OverlayBtn}"
+                        Content="☆"
+                        Foreground="#FFAAAAAA"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Margin="4,4,0,0"
+                        ToolTip="Toggle favourite"
+                        Click="FavBtn_Click"/>
+
+                <!-- ✕ Delete — top-right -->
+                <Button x:Name="DelBtn"
+                        Content="✕"
+                        Foreground="#FFAAAAAA"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,4,4,0"
+                        ToolTip="Delete"
+                        Click="DelBtn_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource OverlayBtn}">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Foreground" Value="#FFEF5350"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- ⋯ Menu — bottom-right -->
+                <Button x:Name="MenuBtn"
+                        Style="{StaticResource OverlayBtn}"
+                        Content="⋯"
+                        Foreground="#FFAAAAAA"
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                        Margin="0,0,4,4"
+                        ToolTip="More options"
+                        Click="MenuBtn_Click">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="▶  Play" Click="MenuPlay_Click"/>
+                            <MenuItem Header="⏹  Stop" Click="MenuStop_Click"/>
+                            <Separator/>
+                            <MenuItem Header="✏  Rename…" Click="MenuRename_Click"/>
+                            <MenuItem Header="📂  Open in Explorer" Click="MenuOpenExplorer_Click"/>
+                            <Separator/>
+                            <MenuItem Header="🗑  Delete" Click="MenuDelete_Click"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+            </Grid>
         </Grid>
     </Border>
-
-    <!-- Context menu -->
-    <UserControl.ContextMenu>
-        <ContextMenu>
-            <MenuItem Header="▶  Play" Click="MenuPlay_Click"/>
-            <MenuItem Header="⏹  Stop" Click="MenuStop_Click"/>
-            <Separator/>
-            <MenuItem Header="✏  Rename…" Click="MenuRename_Click"/>
-            <MenuItem Header="📂  Open in Explorer" Click="MenuOpenExplorer_Click"/>
-            <Separator/>
-            <MenuItem Header="🗑  Delete" Click="MenuDelete_Click"/>
-        </ContextMenu>
-    </UserControl.ContextMenu>
 </UserControl>

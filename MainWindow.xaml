@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Paddy.Controls"
         Title="Paddy — Auto Voice Recorder"
-        Height="650" Width="900" MinWidth="600" MinHeight="400"
+        Height="700" Width="960" MinWidth="640" MinHeight="450"
         Background="#FF1E1E1E"
         Foreground="#FFE0E0E0"
         FontFamily="Segoe UI">
@@ -181,14 +181,47 @@
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+
+        <!-- Dark Button style -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#FF353535"/>
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="BorderBrush" Value="#FF555555"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF454545"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF252525"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>   <!-- toolbar -->
-            <RowDefinition Height="Auto"/>   <!-- detection controls -->
-            <RowDefinition Height="Auto"/>   <!-- status + RMS meter -->
-            <RowDefinition Height="*"/>      <!-- pad panel -->
+            <RowDefinition Height="Auto"/>   <!-- Row 0: Device + Controls toolbar -->
+            <RowDefinition Height="Auto"/>   <!-- Row 1: Detection controls -->
+            <RowDefinition Height="Auto"/>   <!-- Row 2: Status + RMS meters -->
+            <RowDefinition Height="*"/>      <!-- Row 3: Pad panel -->
         </Grid.RowDefinitions>
 
         <!-- ───────────── Row 0: Device + Controls toolbar ───────────── -->
@@ -197,29 +230,29 @@
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
 
                 <!-- Input device -->
-                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,12,0">
                     <TextBlock Text="🎚 Source:" Style="{StaticResource SectionLabel}" Margin="0,0,6,0"/>
-                    <ComboBox x:Name="CaptureSourceCombo" Width="150"
+                    <ComboBox x:Name="CaptureSourceCombo" Width="145"
                               SelectionChanged="CaptureSourceCombo_SelectionChanged" Margin="0,0,10,0"/>
 
                     <TextBlock x:Name="InputDeviceLabel" Text="🎙 Mic:" Style="{StaticResource SectionLabel}" Margin="0,0,6,0"/>
-                    <ComboBox x:Name="InputDeviceCombo" Width="180"
+                    <ComboBox x:Name="InputDeviceCombo" Width="175"
                               SelectionChanged="InputDeviceCombo_SelectionChanged"/>
 
                     <TextBlock x:Name="LoopbackDeviceLabel" Text="🖥 Loopback:" Style="{StaticResource SectionLabel}" Margin="10,0,6,0" Visibility="Collapsed"/>
-                    <ComboBox x:Name="LoopbackDeviceCombo" Width="220" Visibility="Collapsed"
+                    <ComboBox x:Name="LoopbackDeviceCombo" Width="210" Visibility="Collapsed"
                               SelectionChanged="LoopbackDeviceCombo_SelectionChanged"/>
                 </StackPanel>
 
                 <!-- Output device -->
-                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,12,0">
                     <TextBlock Text="🔊 Output:" Style="{StaticResource SectionLabel}" Margin="0,0,6,0"/>
-                    <ComboBox x:Name="OutputDeviceCombo" Width="175"
+                    <ComboBox x:Name="OutputDeviceCombo" Width="165"
                               SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
                 </StackPanel>
 
                 <!-- Pad listen output -->
-                <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Margin="0,0,12,0" VerticalAlignment="Center">
                     <CheckBox x:Name="ListenOutputEnabledCheck"
                               Content="🔈 Pad Listen"
                               Foreground="#FFE0E0E0"
@@ -227,8 +260,17 @@
                               Margin="0,0,8,0"
                               Checked="ListenOutputEnabledCheck_Changed"
                               Unchecked="ListenOutputEnabledCheck_Changed"/>
-                    <ComboBox x:Name="ListenOutputDeviceCombo" Width="180" ToolTip="Playback device used when clicking a recording pad"
+                    <ComboBox x:Name="ListenOutputDeviceCombo" Width="170"
+                              ToolTip="Playback device used when clicking a recording pad"
                               SelectionChanged="ListenOutputDeviceCombo_SelectionChanged"/>
+                </StackPanel>
+
+                <!-- Recording mode -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock Text="⚙ Mode:" Style="{StaticResource SectionLabel}" Margin="0,0,6,0"/>
+                    <ComboBox x:Name="RecordingModeCombo" Width="120"
+                              SelectionChanged="RecordingModeCombo_SelectionChanged"
+                              ToolTip="AutoVAD: auto-detect speech. Key Buffer: save last N seconds on hotkey press."/>
                 </StackPanel>
 
                 <!-- Start/Stop toggle -->
@@ -238,7 +280,7 @@
                               Checked="MonitorToggle_Checked"
                               Unchecked="MonitorToggle_Unchecked"/>
 
-                <!-- Folder button + label -->
+                <!-- Folder -->
                 <Button Content="📁 Save Folder" Margin="0,0,6,0"
                         Click="ChangeFolderButton_Click"/>
                 <TextBlock x:Name="FolderLabel"
@@ -247,11 +289,18 @@
                            Foreground="#FF78909C"
                            FontSize="11"
                            TextTrimming="CharacterEllipsis"
-                           MaxWidth="200"/>
+                           MaxWidth="160"
+                           Margin="0,0,12,0"/>
+
+                <!-- Settings + About -->
+                <Button Content="⚙ Settings" Margin="0,0,6,0"
+                        Click="SettingsButton_Click"/>
+                <Button Content="ℹ About"
+                        Click="AboutButton_Click"/>
             </WrapPanel>
         </Border>
 
-        <!-- ───────────── Row 1: Sensitivity + Silence Timeout ───────────── -->
+        <!-- ───────────── Row 1: Sensitivity + Silence + KeyBuffer hint ───────────── -->
         <Border Grid.Row="1" Background="#FF222222" BorderBrush="#FF333333"
                 BorderThickness="0,0,0,1" Padding="12,6">
             <WrapPanel Orientation="Horizontal">
@@ -272,7 +321,7 @@
                 </StackPanel>
 
                 <!-- Silence timeout -->
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" Margin="0,0,24,0">
                     <TextBlock Text="⏱ Silence:" Style="{StaticResource SectionLabel}" Margin="0,0,8,0"/>
                     <Slider x:Name="SilenceSlider"
                             Width="130"
@@ -285,10 +334,26 @@
                                Margin="8,0,0,0"
                                Width="36"/>
                 </StackPanel>
+
+                <!-- Key Buffer hint (visible in KeyBuffer mode) -->
+                <StackPanel x:Name="KeyBufferHint"
+                            Orientation="Horizontal"
+                            Visibility="Collapsed"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="⌨ Buffer hotkey:"
+                               Style="{StaticResource SectionLabel}"
+                               Margin="0,0,6,0"/>
+                    <TextBlock x:Name="HotkeyLabel"
+                               Text="Ctrl+F9"
+                               Foreground="#FFFFC107"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
             </WrapPanel>
         </Border>
 
-        <!-- ───────────── Row 2: Status bar + RMS meter ───────────── -->
+        <!-- ───────────── Row 2: Status bar + L/R RMS meters ───────────── -->
         <Border Grid.Row="2" Background="#FF1A1A1A" Padding="12,6">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -307,26 +372,52 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- RMS meter with threshold marker -->
-                <Grid Grid.Column="1">
-                    <!-- Background track -->
-                    <ProgressBar x:Name="RmsMeter"
-                                 Height="14"
-                                 Minimum="0" Maximum="100" Value="0"
-                                 Foreground="#FF4CAF50"
-                                 Background="#FF333333"
-                                 BorderThickness="0"/>
+                <!-- L/R RMS meters -->
+                <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center">
+                    <!-- L channel (always shown) -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="L" Grid.Column="0"
+                                   Foreground="#FF9E9E9E" FontSize="9"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <Grid Grid.Column="1">
+                            <ProgressBar x:Name="RmsMeterL"
+                                         Height="11"
+                                         Minimum="0" Maximum="100" Value="0"
+                                         Foreground="#FF4CAF50"
+                                         Background="#FF333333"
+                                         BorderThickness="0"/>
+                            <Canvas x:Name="ThresholdCanvas" Height="11">
+                                <Rectangle x:Name="ThresholdLine"
+                                           Width="2" Height="11"
+                                           Fill="#FFFF9800"
+                                           Canvas.Top="0"/>
+                            </Canvas>
+                        </Grid>
+                    </Grid>
+                    <!-- R channel (shown only for stereo) -->
+                    <Grid x:Name="RmsMeterRRow" Visibility="Collapsed" Margin="0,2,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="R" Grid.Column="0"
+                                   Foreground="#FF9E9E9E" FontSize="9"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ProgressBar x:Name="RmsMeterR"
+                                     Grid.Column="1"
+                                     Height="11"
+                                     Minimum="0" Maximum="100" Value="0"
+                                     Foreground="#FF29B6F6"
+                                     Background="#FF333333"
+                                     BorderThickness="0"/>
+                    </Grid>
+                </StackPanel>
 
-                    <!-- Threshold marker line -->
-                    <Canvas x:Name="ThresholdCanvas" Height="14">
-                        <Rectangle x:Name="ThresholdLine"
-                                   Width="2" Height="14"
-                                   Fill="#FFFF9800"
-                                   Canvas.Top="0"/>
-                    </Canvas>
-                </Grid>
-
-                <!-- RMS value -->
+                <!-- RMS L value -->
                 <TextBlock x:Name="RmsValueLabel"
                            Grid.Column="2"
                            Text="0"
@@ -338,15 +429,47 @@
             </Grid>
         </Border>
 
-        <!-- ───────────── Row 3: Pad panel ───────────── -->
+        <!-- ───────────── Row 3: Favorites + Recordings pad panel ───────────── -->
         <Grid Grid.Row="3">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>   <!-- Favorites header -->
+                <RowDefinition Height="Auto"/>   <!-- Favorites panel -->
+                <RowDefinition Height="Auto"/>   <!-- Recordings header -->
+                <RowDefinition Height="*"/>      <!-- Recordings scrollable area -->
             </Grid.RowDefinitions>
 
-            <!-- Pad panel header -->
-            <Border Grid.Row="0" Background="#FF252525" Padding="12,6">
+            <!-- ── Favorites header (hidden when empty) ── -->
+            <Border x:Name="FavoritesHeader"
+                    Grid.Row="0"
+                    Background="#FF1F1C10"
+                    BorderBrush="#FF3A3010"
+                    BorderThickness="0,0,0,1"
+                    Padding="12,5"
+                    Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="★ FAVORITES"
+                               Foreground="#FFFFC107"
+                               FontSize="10" FontWeight="Bold"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="FavoriteCountLabel"
+                               Text=" — 0"
+                               Foreground="#FFAAAAAA"
+                               FontSize="10"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Favorites WrapPanel ── -->
+            <Border x:Name="FavoritesPanelBorder"
+                    Grid.Row="1"
+                    Background="#FF1A1700"
+                    Visibility="Collapsed"
+                    Padding="12,6,12,6">
+                <WrapPanel x:Name="FavoritesPanel" Orientation="Horizontal"/>
+            </Border>
+
+            <!-- ── Recordings header ── -->
+            <Border Grid.Row="2" Background="#FF252525" Padding="12,6">
                 <Grid>
                     <TextBlock Text="RECORDINGS" Foreground="#FF616161"
                                FontSize="10" FontWeight="Bold"
@@ -358,21 +481,25 @@
                                    FontSize="10"
                                    VerticalAlignment="Center"
                                    Margin="0,0,12,0"/>
-                        <Button Content="Clear All" Height="22" Padding="8,2"
-                                Click="ClearAllButton_Click"/>
+                        <Button Content="Clear Pads" Height="22" Padding="8,2"
+                                Margin="0,0,6,0"
+                                ToolTip="Remove pad buttons from the UI (files are kept on disk)"
+                                Click="ClearPadsButton_Click"/>
+                        <Button Content="🗑 Delete All Files" Height="22" Padding="8,2"
+                                ToolTip="Permanently delete recordings from disk"
+                                Click="DeleteAllFilesButton_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Scrollable pad area -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+            <!-- ── Scrollable recordings area ── -->
+            <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
                           Background="#FF1E1E1E">
                 <StackPanel>
                     <WrapPanel x:Name="PadPanel"
                                Margin="12"
                                Orientation="Horizontal"/>
-                    <!-- Empty state hint -->
                     <TextBlock x:Name="EmptyHint"
                                Text="No recordings yet.&#x0a;Press ▶ Start Monitoring and speak into your microphone."
                                HorizontalAlignment="Center"

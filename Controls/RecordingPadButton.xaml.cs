@@ -1,9 +1,13 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using WpfControl = System.Windows.Controls.UserControl;
+using WpfButton = System.Windows.Controls.Button;
+using Color = System.Windows.Media.Color;
 using System.Windows.Media.Animation;
 using NAudio.Wave;
 using Paddy.Models;
@@ -13,13 +17,34 @@ namespace Paddy.Controls
     [SupportedOSPlatform("windows")]
     public partial class RecordingPadButton : WpfControl
     {
+        private static readonly SolidColorBrush BrushNormal =
+            new(Color.FromRgb(0x55, 0x55, 0x55));
+        private static readonly SolidColorBrush BrushFavorite =
+            new(Color.FromRgb(0xFF, 0xC1, 0x07));  // amber / gold
+
         public RecordingEntry? Entry { get; private set; }
 
-        // Output device index injected from MainWindow
+        // Device routing injected from MainWindow
         public int OutputDeviceIndex { get; set; } = 0;
 
-        // Listen device index: -2 = disabled, -1 = default, 0..N = specific device
+        // Listen device: -2 = disabled, -1 = default, 0..N = specific
         public int ListenDeviceIndex { get; set; } = -2;
+
+        private bool _isFavorite;
+        public bool IsFavorite
+        {
+            get => _isFavorite;
+            set
+            {
+                _isFavorite = value;
+                FavBtn.Content = value ? "â˜…" : "â˜†";
+                FavBtn.Foreground = value
+                    ? new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07))
+                    : new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA));
+                if (!_isPlaying)
+                    TileBorder.BorderBrush = value ? BrushFavorite : BrushNormal;
+            }
+        }
 
         private WaveOutEvent? _player;
         private AudioFileReader? _reader;
@@ -27,12 +52,35 @@ namespace Paddy.Controls
         private AudioFileReader? _listenReader;
         private bool _isPlaying;
 
+        /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
         public event EventHandler? DeleteRequested;
+
+        /// <summary>Fired when the user toggles the favorite (â­) button.</summary>
+        public event EventHandler? FavoriteToggled;
 
         public RecordingPadButton()
         {
             InitializeComponent();
-            MouseLeftButtonUp += (_, _) => TogglePlay();
+            MouseLeftButtonUp += (_, e) =>
+            {
+                // Don't trigger playback if the click was on an overlay button
+                if (e.OriginalSource is not FrameworkElement fe ||
+                    (!IsOverlayButton(fe)))
+                {
+                    TogglePlay();
+                }
+            };
+        }
+
+        private static bool IsOverlayButton(FrameworkElement el)
+        {
+            DependencyObject? current = el;
+            while (current != null)
+            {
+                if (current is WpfButton) return true;
+                current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+            }
+            return false;
         }
 
         public void SetEntry(RecordingEntry entry)
@@ -45,13 +93,45 @@ namespace Paddy.Controls
             ToolTip = entry.FilePath;
         }
 
-        // ── Playback ──────────────────────────────────────────────────────────
+        // â”€â”€ Overlay button handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        private void FavBtn_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            IsFavorite = !IsFavorite;
+            if (Entry != null) Entry.IsFavorite = IsFavorite;
+            FavoriteToggled?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void DelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            MenuDelete_Click(sender, e);
+        }
+
+        private void MenuBtn_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (MenuBtn.ContextMenu != null)
+            {
+                MenuBtn.ContextMenu.PlacementTarget = MenuBtn;
+                MenuBtn.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                MenuBtn.ContextMenu.IsOpen = true;
+            }
+        }
+
+        // â”€â”€ Right-click: play on listen/monitor device only â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        private void OnMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (IsOverlayButton(e.OriginalSource as FrameworkElement ?? this)) return;
+            e.Handled = true;
+            StartPlaybackListenOnly();
+        }
+
+        // â”€â”€ Playback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         public void TogglePlay()
         {
-            if (_isPlaying)
-                StopPlayback();
-            else
-                StartPlayback();
+            if (_isPlaying) StopPlayback();
+            else StartPlayback();
         }
 
         private void StartPlayback()
@@ -64,13 +144,9 @@ namespace Paddy.Controls
                 _reader = new AudioFileReader(Entry.FilePath);
                 _player = new WaveOutEvent { DeviceNumber = OutputDeviceIndex };
                 _player.Init(_reader);
-                _player.PlaybackStopped += (_, _) =>
-                {
-                    Dispatcher.Invoke(StopPlayback);
-                };
+                _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _player.Play();
 
-                // Also play on the listen device if enabled
                 if (ListenDeviceIndex >= -1)
                 {
                     _listenReader = new AudioFileReader(Entry.FilePath);
@@ -79,11 +155,31 @@ namespace Paddy.Controls
                     _listenPlayer.Play();
                 }
 
-                _isPlaying = true;
-                IconText.Text = "⏹";
+                SetPlayingVisual(true);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "Paddy",
+                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                StopPlayback();
+            }
+        }
 
-                var anim = (Storyboard)FindResource("PlayingAnimation");
-                anim.Begin(TileBorder);
+        /// <summary>Plays audio only on the listen/monitor device (right-click behaviour).</summary>
+        private void StartPlaybackListenOnly()
+        {
+            if (Entry == null || !File.Exists(Entry.FilePath)) return;
+            if (ListenDeviceIndex < -1) return; // listen disabled
+
+            StopPlayback();
+            try
+            {
+                _listenReader = new AudioFileReader(Entry.FilePath);
+                _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
+                _listenPlayer.Init(_listenReader);
+                _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
+                _listenPlayer.Play();
+                SetPlayingVisual(true);
             }
             catch (Exception ex)
             {
@@ -105,22 +201,29 @@ namespace Paddy.Controls
             _listenPlayer = null;
             _listenReader?.Dispose();
             _listenReader = null;
-            _isPlaying = false;
-            IconText.Text = "🎤";
+            SetPlayingVisual(false);
+        }
+
+        private void SetPlayingVisual(bool playing)
+        {
+            _isPlaying = playing;
+            IconText.Text = playing ? "â¹" : "ðŸŽ¤";
 
             try
             {
                 var anim = (Storyboard)FindResource("PlayingAnimation");
-                anim.Stop(TileBorder);
+                if (playing)
+                    anim.Begin(TileBorder);
+                else
+                    anim.Stop(TileBorder);
             }
             catch { /* storyboard may not be running */ }
 
-            // Reset border colour
-            TileBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(
-                System.Windows.Media.Color.FromRgb(0x55, 0x55, 0x55));
+            if (!playing)
+                TileBorder.BorderBrush = _isFavorite ? BrushFavorite : BrushNormal;
         }
 
-        // ── Context menu handlers ─────────────────────────────────────────────
+        // â”€â”€ Context menu handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private void MenuPlay_Click(object sender, RoutedEventArgs e) => StartPlayback();
         private void MenuStop_Click(object sender, RoutedEventArgs e) => StopPlayback();
 
