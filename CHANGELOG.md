@@ -11,6 +11,10 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.3.1.0321] - 2026-03-21
+
+- fix: update favorite and playing icons for better clarity
+
 ## [0.3.0.0321] - 2026-03-21
 
 - Refactor XAML files for improved readability and consistency
