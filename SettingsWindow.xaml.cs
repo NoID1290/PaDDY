@@ -72,9 +72,9 @@ namespace Paddy
                 : _settings.SaveFolder;
 
             // Buffer duration
-            int bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000, 3, 60);
+            double bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000.0, 0.5, 60.0);
             BufferDurationSlider.Value = bufSec;
-            BufferDurationLabel.Text = $"{bufSec}s";
+            BufferDurationLabel.Text = $"{bufSec:0.#}s";
 
             // Hotkey modifiers
             ModCtrl.IsChecked = (_settings.BufferHotKeyModifiers & MOD_CONTROL) != 0;
@@ -102,7 +102,7 @@ namespace Paddy
             System.Windows.RoutedPropertyChangedEventArgs<double> e)
         {
             if (BufferDurationLabel == null) return;
-            BufferDurationLabel.Text = $"{(int)e.NewValue}s";
+            BufferDurationLabel.Text = $"{e.NewValue:0.#}s";
         }
 
         private void HotkeyKeyBox_GotFocus(object sender, RoutedEventArgs e)
@@ -154,7 +154,7 @@ namespace Paddy
             SelectedBitDepth = BitDepthCombo.SelectedIndex == 1 ? 32 : 16;
             SelectedChannels = ChannelsCombo.SelectedIndex == 1 ? 2 : 1;
             SelectedSaveFolder = SaveFolderBox.Text;
-            SelectedBufferDurationMs = (int)BufferDurationSlider.Value * 1000;
+            SelectedBufferDurationMs = (int)(BufferDurationSlider.Value * 1000);
 
             uint mods = 0;
             if (ModCtrl.IsChecked == true) mods |= MOD_CONTROL;
