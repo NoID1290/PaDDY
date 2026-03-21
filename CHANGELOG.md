@@ -11,6 +11,12 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.3.2.0321] - 2026-03-21
+
+- feat: enhance ComboBox styles and improve buffer duration handling
+- refactor: streamline GitHub Actions workflow for .NET Core desktop app
+- Add GitHub Actions workflow for .NET Core desktop app
+
 ## [0.3.1.0321] - 2026-03-21
 
 - fix: update favorite and playing icons for better clarity
