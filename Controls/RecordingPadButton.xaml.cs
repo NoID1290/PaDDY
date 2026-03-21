@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Windows;
 using WpfControl = System.Windows.Controls.UserControl;
 using System.Windows.Media.Animation;
@@ -9,6 +10,7 @@ using Paddy.Models;
 
 namespace Paddy.Controls
 {
+    [SupportedOSPlatform("windows")]
     public partial class RecordingPadButton : WpfControl
     {
         public RecordingEntry? Entry { get; private set; }
