@@ -11,6 +11,13 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.2.3.0321] - 2026-03-21
+
+- feat: add SupportedOSPlatform attribute for Windows in RecordingPadButton and MainWindow
+- Delete .vscode directory
+- Delete .vs directory
+- docs: add Visual Studio cache directories to .gitignore
+
 ## [0.2.2.0320] - 2026-03-20
 
 - First dev build
