@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -11,6 +12,7 @@ using Paddy.Services;
 
 namespace Paddy
 {
+    [SupportedOSPlatform("windows")]
     public partial class MainWindow : Window
     {
         private readonly AudioCaptureService _captureService = new();
@@ -332,6 +334,7 @@ namespace Paddy
         }
 
         // ── Folder selection ───────────────────────────────────────────────────
+        [SupportedOSPlatform("windows")]
         private void ChangeFolderButton_Click(object sender, RoutedEventArgs e)
         {
             using var dlg = new FolderBrowserDialog
