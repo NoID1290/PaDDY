@@ -504,7 +504,7 @@
                 <StackPanel Grid.Column="1"
                         Orientation="Vertical"
                         VerticalAlignment="Center">
-                    <!-- L channel (always shown) -->
+                    <!-- L channel -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="14"/>
@@ -516,15 +516,27 @@
                                 FontSize="9"
                                    VerticalAlignment="Center"
                                 HorizontalAlignment="Center"/>
-                        <Grid Grid.Column="1">
-                            <ProgressBar x:Name="RmsMeterL"
-                                         Height="11"
-                                         Minimum="0"
-                                    Maximum="100"
-                                    Value="0"
-                                         Foreground="#FF4CAF50"
-                                         Background="#FF333333"
-                                         BorderThickness="0"/>
+                        <Grid Grid.Column="1" ClipToBounds="True">
+                            <!-- dB gradient background (green → yellow → red) -->
+                            <Rectangle Height="11">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF2E7D32" Offset="0.0"/>
+                                        <GradientStop Color="#FF4CAF50" Offset="0.35"/>
+                                        <GradientStop Color="#FFFDD835" Offset="0.70"/>
+                                        <GradientStop Color="#FFFF9800" Offset="0.85"/>
+                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
+                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <!-- Dark overlay that covers the unfilled portion -->
+                            <Rectangle x:Name="MeterOverlayL"
+                                       Height="11"
+                                       Fill="#FF333333"
+                                       HorizontalAlignment="Right"
+                                       Width="1000"/>
+                            <!-- Threshold marker -->
                             <Canvas x:Name="ThresholdCanvas"
                                     Height="11">
                                 <Rectangle x:Name="ThresholdLine"
@@ -535,7 +547,7 @@
                             </Canvas>
                         </Grid>
                     </Grid>
-                    <!-- R channel (always shown) -->
+                    <!-- R channel -->
                     <Grid x:Name="RmsMeterRRow"
                             Margin="0,2,0,0">
                         <Grid.ColumnDefinitions>
@@ -548,34 +560,70 @@
                                 FontSize="9"
                                    VerticalAlignment="Center"
                                 HorizontalAlignment="Center"/>
-                        <ProgressBar x:Name="RmsMeterR"
-                                     Grid.Column="1"
-                                     Height="11"
-                                     Minimum="0"
-                                Maximum="100"
-                                Value="0"
-                                     Foreground="#FF29B6F6"
-                                     Background="#FF333333"
-                                     BorderThickness="0"/>
+                        <Grid Grid.Column="1" ClipToBounds="True">
+                            <!-- dB gradient background (green → yellow → red) -->
+                            <Rectangle Height="11">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF2E7D32" Offset="0.0"/>
+                                        <GradientStop Color="#FF4CAF50" Offset="0.35"/>
+                                        <GradientStop Color="#FFFDD835" Offset="0.70"/>
+                                        <GradientStop Color="#FFFF9800" Offset="0.85"/>
+                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
+                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <!-- Dark overlay that covers the unfilled portion -->
+                            <Rectangle x:Name="MeterOverlayR"
+                                       Height="11"
+                                       Fill="#FF333333"
+                                       HorizontalAlignment="Right"
+                                       Width="1000"/>
+                            <!-- Threshold marker -->
+                            <Canvas x:Name="ThresholdCanvasR"
+                                    Height="11">
+                                <Rectangle x:Name="ThresholdLineR"
+                                           Width="2"
+                                        Height="11"
+                                           Fill="#FFFF9800"
+                                           Canvas.Top="0"/>
+                            </Canvas>
+                        </Grid>
                     </Grid>
                 </StackPanel>
 
-                <!-- RMS L/R value -->
+                <!-- dB L/R value + peak indicators -->
                 <StackPanel Grid.Column="2"
                             Orientation="Vertical"
                             VerticalAlignment="Center"
                             Margin="8,0,0,0">
-                    <TextBlock x:Name="RmsValueLabel"
-                               Text="0"
-                               FontSize="10"
-                               Foreground="#FF9E9E9E"
-                               Width="30"/>
-                    <TextBlock x:Name="RmsValueLabelR"
-                               Text="0"
-                               FontSize="10"
-                               Foreground="#FF9E9E9E"
-                               Width="30"
-                               Margin="0,1,0,0"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="RmsValueLabel"
+                                   Text="-∞"
+                                   FontSize="10"
+                                   Foreground="#FF9E9E9E"
+                                   Width="36"/>
+                        <Border x:Name="PeakIndicatorL"
+                                Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#FF444444"
+                                VerticalAlignment="Center"
+                                ToolTip="Peak clip indicator"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                        <TextBlock x:Name="RmsValueLabelR"
+                                   Text="-∞"
+                                   FontSize="10"
+                                   Foreground="#FF9E9E9E"
+                                   Width="36"/>
+                        <Border x:Name="PeakIndicatorR"
+                                Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#FF444444"
+                                VerticalAlignment="Center"
+                                ToolTip="Peak clip indicator"/>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>
