@@ -126,6 +126,29 @@ namespace Paddy.Controls
             MenuRename_Click(sender, e);
         }
 
+        private void TrimBtn_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (Entry == null || !File.Exists(Entry.FilePath)) return;
+            StopPlayback();
+
+            var editor = new AudioEditorWindow(Entry.FilePath)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            if (editor.ShowDialog() == true)
+            {
+                // Re-read duration from the trimmed file
+                try
+                {
+                    using var reader = new AudioFileReader(Entry.FilePath);
+                    Entry.Duration = reader.TotalTime;
+                }
+                catch { }
+                SetEntry(Entry);
+            }
+        }
+
         // â”€â”€ Right-click: play on listen/monitor device only â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private void OnMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {

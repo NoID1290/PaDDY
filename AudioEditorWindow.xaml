@@ -1,0 +1,189 @@
+<Window x:Class="Paddy.AudioEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Trim Audio"
+        Width="720" Height="340"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF1E1E1E">
+
+    <Window.Resources>
+        <!-- Consistent dark button style -->
+        <Style x:Key="DarkBtn" TargetType="Button">
+            <Setter Property="Background" Value="#FF3A3A3A"/>
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="BorderBrush" Value="#FF555555"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF4A4A4A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0 — Header -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock x:Name="FileNameLabel"
+                       Text="filename.wav"
+                       Foreground="#FFE0E0E0"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+            <TextBlock x:Name="TotalDurationLabel"
+                       Text="0.0s"
+                       Foreground="#FF9E9E9E"
+                       FontSize="12"
+                       Margin="12,0,0,0"
+                       VerticalAlignment="Center"/>
+        </DockPanel>
+
+        <!-- Row 1 — Waveform area -->
+        <Border Grid.Row="1"
+                Background="#FF161616"
+                BorderBrush="#FF444444"
+                BorderThickness="1"
+                CornerRadius="4"
+                ClipToBounds="True">
+            <Grid x:Name="WaveformGrid">
+                <!-- Waveform image -->
+                <Image x:Name="WaveformImage"
+                       Stretch="Fill"
+                       RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+
+                <!-- Left excluded overlay -->
+                <Border x:Name="LeftOverlay"
+                        Background="#AA000000"
+                        HorizontalAlignment="Left"
+                        Width="0"/>
+
+                <!-- Right excluded overlay -->
+                <Border x:Name="RightOverlay"
+                        Background="#AA000000"
+                        HorizontalAlignment="Right"
+                        Width="0"/>
+
+                <!-- Playback position indicator -->
+                <Border x:Name="PlaybackLine"
+                        Background="#FFFFC107"
+                        Width="2"
+                        HorizontalAlignment="Left"
+                        Margin="0"
+                        Visibility="Collapsed">
+                    <Border.RenderTransform>
+                        <TranslateTransform x:Name="PlaybackLineTransform" X="0"/>
+                    </Border.RenderTransform>
+                </Border>
+
+                <!-- Left trim handle -->
+                <Thumb x:Name="LeftHandle"
+                       Width="10"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Stretch"
+                       Cursor="SizeWE"
+                       DragDelta="LeftHandle_DragDelta">
+                    <Thumb.Template>
+                        <ControlTemplate TargetType="Thumb">
+                            <Border Background="#CC4CAF50"
+                                    CornerRadius="2,0,0,2"
+                                    BorderBrush="#FF66BB6A"
+                                    BorderThickness="1,0,0,0"/>
+                        </ControlTemplate>
+                    </Thumb.Template>
+                </Thumb>
+
+                <!-- Right trim handle -->
+                <Thumb x:Name="RightHandle"
+                       Width="10"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Stretch"
+                       Cursor="SizeWE"
+                       DragDelta="RightHandle_DragDelta">
+                    <Thumb.Template>
+                        <ControlTemplate TargetType="Thumb">
+                            <Border Background="#CC4CAF50"
+                                    CornerRadius="0,2,2,0"
+                                    BorderBrush="#FF66BB6A"
+                                    BorderThickness="0,0,1,0"/>
+                        </ControlTemplate>
+                    </Thumb.Template>
+                </Thumb>
+            </Grid>
+        </Border>
+
+        <!-- Row 2 — Time labels -->
+        <Grid Grid.Row="2" Margin="0,6,0,0">
+            <TextBlock x:Name="StartTimeLabel"
+                       Text="0.00s"
+                       Foreground="#FF4CAF50"
+                       FontSize="11"
+                       HorizontalAlignment="Left"/>
+            <TextBlock x:Name="TrimmedDurationLabel"
+                       Text="Trimmed: 0.0s"
+                       Foreground="#FF9E9E9E"
+                       FontSize="11"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="EndTimeLabel"
+                       Text="0.00s"
+                       Foreground="#FF4CAF50"
+                       FontSize="11"
+                       HorizontalAlignment="Right"/>
+        </Grid>
+
+        <!-- Row 3 — Controls -->
+        <DockPanel Grid.Row="3" Margin="0,12,0,0" LastChildFill="False">
+            <!-- Left side: Play preview -->
+            <Button x:Name="PlayBtn"
+                    Style="{StaticResource DarkBtn}"
+                    Content="▶  Preview"
+                    DockPanel.Dock="Left"
+                    Click="PlayBtn_Click"/>
+
+            <!-- Right side: Cancel + Save -->
+            <Button x:Name="SaveBtn"
+                    Style="{StaticResource DarkBtn}"
+                    Content="✂  Save Trim"
+                    DockPanel.Dock="Right"
+                    Margin="8,0,0,0"
+                    Click="SaveBtn_Click">
+                <Button.Background>
+                    <SolidColorBrush Color="#FF2E7D32"/>
+                </Button.Background>
+            </Button>
+
+            <Button Style="{StaticResource DarkBtn}"
+                    Content="Cancel"
+                    DockPanel.Dock="Right"
+                    IsCancel="True"/>
+        </DockPanel>
+    </Grid>
+</Window>
