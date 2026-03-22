@@ -175,12 +175,8 @@
 
         <!-- Dark style for ToggleButton -->
         <Style TargetType="ToggleButton">
-            <Setter Property="Background"
-                    Value="#FF2E7D32"/>
             <Setter Property="Foreground"
                     Value="White"/>
-            <Setter Property="BorderBrush"
-                    Value="#FF388E3C"/>
             <Setter Property="BorderThickness"
                     Value="1"/>
             <Setter Property="Padding"
@@ -191,22 +187,62 @@
                     Value="Bold"/>
             <Setter Property="Cursor"
                     Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsChecked"
-                        Value="True">
-                    <Setter Property="Background"
-                            Value="#FFC62828"/>
-                    <Setter Property="BorderBrush"
-                            Value="#FFD32F2F"/>
-                    <Setter Property="Content"
-                            Value="⏹  Stop Monitoring"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver"
-                        Value="True">
-                    <Setter Property="Opacity"
-                            Value="0.9"/>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="Content"
+                    Value="▶  Start Monitoring"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bd"
+                                Background="#FF2E7D32"
+                                BorderBrush="#FF388E3C"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect ShadowDepth="0"
+                                                  BlurRadius="0"
+                                                  Color="#FFC62828"
+                                                  Opacity="0"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FFC62828"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFD32F2F"/>
+                                <Setter Property="Content" Value="Stop Monitoring"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard x:Name="GlowPulse">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="Bd"
+                                                Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                                From="4" To="18"
+                                                Duration="0:0:1.2"
+                                                AutoReverse="True"
+                                                RepeatBehavior="Forever"/>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="Bd"
+                                                Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                                From="0.4" To="0.9"
+                                                Duration="0:0:1.2"
+                                                AutoReverse="True"
+                                                RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="GlowPulse"/>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Label style -->
@@ -380,7 +416,6 @@
 
                 <!-- Start/Stop toggle -->
                 <ToggleButton x:Name="MonitorToggle"
-                              Content="▶  Start Monitoring"
                               Margin="0,0,12,0"
                               Checked="MonitorToggle_Checked"
                               Unchecked="MonitorToggle_Unchecked"/>
@@ -479,7 +514,7 @@
                 Padding="12,6">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="280"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -497,7 +532,9 @@
                     <TextBlock x:Name="StatusLabel"
                                Text="Idle — press Start to begin"
                                FontSize="12"
-                               VerticalAlignment="Center"/>
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="240"/>
                 </StackPanel>
 
                 <!-- L/R RMS meters -->
