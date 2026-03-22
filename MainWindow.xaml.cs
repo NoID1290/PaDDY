@@ -23,8 +23,7 @@ namespace Paddy
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
 
-        // Track whether the last known capture format was stereo
-        private bool _isStereoCapture = false;
+
 
         public MainWindow()
         {
@@ -249,9 +248,6 @@ namespace Paddy
             if (mode == CaptureSourceMode.Microphone)
             {
                 _captureService.Start(Math.Max(0, InputDeviceCombo.SelectedIndex), mode, null);
-                // Mono mic → hide R bar
-                _isStereoCapture = _settings.RecordChannels == 2;
-                RmsMeterRRow.Visibility = _isStereoCapture ? Visibility.Visible : Visibility.Collapsed;
                 SetStatus("Listening…", "#FF4CAF50");
                 return;
             }
@@ -425,6 +421,7 @@ namespace Paddy
             _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
             _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
             _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
+            _settings.MaxRecords = win.SelectedMaxRecords;
             _settings.Save();
 
             _captureService.RecordSampleRate = win.SelectedSampleRate;
@@ -464,15 +461,8 @@ namespace Paddy
             {
                 RmsMeterL.Value = left;
                 RmsValueLabel.Text = left.ToString("0");
-
-                // Show R bar for stereo loopback or stereo mic
-                bool stereo = Math.Abs(left - right) > 0.01 || _isStereoCapture;
-                if (stereo && RmsMeterRRow.Visibility != Visibility.Visible)
-                    RmsMeterRRow.Visibility = Visibility.Visible;
-                else if (!stereo && !_isStereoCapture && RmsMeterRRow.Visibility != Visibility.Collapsed)
-                    RmsMeterRRow.Visibility = Visibility.Collapsed;
-
                 RmsMeterR.Value = right;
+                RmsValueLabelR.Text = right.ToString("0");
             });
         }
 
@@ -552,6 +542,7 @@ namespace Paddy
             else
                 PadPanel.Children.Insert(0, btn);
 
+            EnforceMaxRecords();
             UpdatePadState();
             SetStatus($"Saved: {Path.GetFileName(entry.FilePath)}", "#FF4CAF50");
         }
@@ -617,15 +608,37 @@ namespace Paddy
             FavoritesPanelBorder.Visibility = favVis;
         }
 
+        /// <summary>
+        /// Removes the oldest non-favorite recordings from PadPanel when MaxRecords is exceeded.
+        /// </summary>
+        private void EnforceMaxRecords()
+        {
+            int max = _settings.MaxRecords;
+            if (max <= 0) return; // unlimited
+
+            while (PadPanel.Children.Count > max)
+            {
+                // Find oldest by CreatedAt among PadPanel children
+                RecordingPadButton? oldest = null;
+                foreach (var child in PadPanel.Children.OfType<RecordingPadButton>())
+                {
+                    if (child.Entry == null) continue;
+                    if (oldest == null || child.Entry.CreatedAt < oldest.Entry!.CreatedAt)
+                        oldest = child;
+                }
+                if (oldest == null) break;
+
+                oldest.StopPlayback();
+                if (oldest.Entry?.FilePath is string fp)
+                    try { File.Delete(fp); } catch { }
+                PadPanel.Children.Remove(oldest);
+            }
+        }
+
         // ── Clear / Delete All ─────────────────────────────────────────────────
         private void ClearPadsButton_Click(object sender, RoutedEventArgs e)
         {
             if (PadPanel.Children.Count == 0) return;
-            var result = System.Windows.MessageBox.Show(
-                "Remove all pad buttons from the UI? (Files on disk are NOT deleted.)",
-                "Paddy", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result != MessageBoxResult.Yes) return;
-
             PadPanel.Children.Clear();
             UpdatePadState();
         }
@@ -653,6 +666,7 @@ namespace Paddy
 
             foreach (var btn in toDelete)
             {
+                btn.StopPlayback();
                 if (btn.Entry?.FilePath is string fp)
                     try { File.Delete(fp); } catch { }
 

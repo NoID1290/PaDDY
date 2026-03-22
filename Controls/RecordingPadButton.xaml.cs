@@ -61,6 +61,18 @@ namespace Paddy.Controls
         public RecordingPadButton()
         {
             InitializeComponent();
+
+            // Play entrance animation when loaded
+            Loaded += (_, _) =>
+            {
+                try
+                {
+                    var entrance = (Storyboard)FindResource("EntranceAnimation");
+                    entrance.Begin(this);
+                }
+                catch { }
+            };
+
             MouseLeftButtonUp += (_, e) =>
             {
                 // Don't trigger playback if the click was on an overlay button
@@ -189,7 +201,7 @@ namespace Paddy.Controls
             }
         }
 
-        private void StopPlayback()
+        public void StopPlayback()
         {
             _player?.Stop();
             _player?.Dispose();
@@ -267,11 +279,6 @@ namespace Paddy.Controls
         private void MenuDelete_Click(object sender, RoutedEventArgs e)
         {
             if (Entry == null) return;
-            var result = System.Windows.MessageBox.Show(
-                $"Delete \"{Path.GetFileName(Entry.FilePath)}\"?",
-                "Paddy", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
-            if (result != System.Windows.MessageBoxResult.Yes) return;
-
             StopPlayback();
             try { File.Delete(Entry.FilePath); } catch { }
             DeleteRequested?.Invoke(this, EventArgs.Empty);
