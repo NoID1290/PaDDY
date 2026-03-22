@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Paddy.Controls"
         Title="Paddy — Auto Voice Recorder"
+        Icon="Paddy.ico"
         Height="700"
         Width="960"
         MinWidth="640"
@@ -534,9 +535,8 @@
                             </Canvas>
                         </Grid>
                     </Grid>
-                    <!-- R channel (shown only for stereo) -->
+                    <!-- R channel (always shown) -->
                     <Grid x:Name="RmsMeterRRow"
-                            Visibility="Collapsed"
                             Margin="0,2,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="14"/>
@@ -560,15 +560,23 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- RMS L value -->
-                <TextBlock x:Name="RmsValueLabel"
-                           Grid.Column="2"
-                           Text="0"
-                           FontSize="10"
-                           Foreground="#FF9E9E9E"
-                           VerticalAlignment="Center"
-                           Margin="8,0,0,0"
-                           Width="30"/>
+                <!-- RMS L/R value -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Vertical"
+                            VerticalAlignment="Center"
+                            Margin="8,0,0,0">
+                    <TextBlock x:Name="RmsValueLabel"
+                               Text="0"
+                               FontSize="10"
+                               Foreground="#FF9E9E9E"
+                               Width="30"/>
+                    <TextBlock x:Name="RmsValueLabelR"
+                               Text="0"
+                               FontSize="10"
+                               Foreground="#FF9E9E9E"
+                               Width="30"
+                               Margin="0,1,0,0"/>
+                </StackPanel>
             </Grid>
         </Border>
 

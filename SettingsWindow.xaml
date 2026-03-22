@@ -366,6 +366,40 @@
                     </Grid>
                 </Border>
 
+                <!-- ── Max Recordings ── -->
+                <TextBlock Text="AUTO-CLEANUP"
+                        Style="{StaticResource GroupHeader}"/>
+                <Border Background="#FF252525"
+                        BorderBrush="#FF383838"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,10"
+                        Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                Text="Max recordings:"/>
+                        <Slider x:Name="MaxRecordsSlider"
+                                Grid.Column="1"
+                                Minimum="0"
+                                Maximum="500"
+                                TickFrequency="5"
+                                IsSnapToTickEnabled="True"
+                                VerticalAlignment="Center"
+                                ValueChanged="MaxRecordsSlider_Changed"/>
+                        <TextBlock x:Name="MaxRecordsLabel"
+                                   Grid.Column="2"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Text="∞"
+                                   ToolTip="0 = unlimited. Favorites are never auto-deleted."/>
+                    </Grid>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
 

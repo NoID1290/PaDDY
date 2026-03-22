@@ -14,7 +14,7 @@ namespace Paddy
                 VersionLabel.Text = ver != null
                     ? $"Version {ver.Major}.{ver.Minor}.{ver.Build}"
                     : "Version —";
-                CopyrightLabel.Text = $"© {System.DateTime.Now.Year} Paddy contributors. All rights reserved.";
+                CopyrightLabel.Text = $"© {System.DateTime.Now.Year} NoID Softwork. All rights reserved.";
             };
         }
 

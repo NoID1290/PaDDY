@@ -21,6 +21,7 @@ namespace Paddy
         public int SelectedBufferDurationMs { get; private set; }
         public uint SelectedHotKeyModifiers { get; private set; }
         public uint SelectedHotKeyVk { get; private set; }
+        public int SelectedMaxRecords { get; private set; }
 
         private static readonly int[] SampleRates = { 8000, 16000, 44100, 48000 };
         private static readonly int[] BitDepths = { 16, 32 };
@@ -84,6 +85,10 @@ namespace Paddy
             // Hotkey key
             _capturedVk = _settings.BufferHotKeyVk;
             HotkeyKeyBox.Text = VkToLabel(_capturedVk);
+
+            // Max records
+            MaxRecordsSlider.Value = _settings.MaxRecords;
+            MaxRecordsLabel.Text = _settings.MaxRecords == 0 ? "∞" : _settings.MaxRecords.ToString();
         }
 
         private void BrowseFolder_Click(object sender, RoutedEventArgs e)
@@ -103,6 +108,14 @@ namespace Paddy
         {
             if (BufferDurationLabel == null) return;
             BufferDurationLabel.Text = $"{e.NewValue:0.#}s";
+        }
+
+        private void MaxRecordsSlider_Changed(object sender,
+            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (MaxRecordsLabel == null) return;
+            int val = (int)e.NewValue;
+            MaxRecordsLabel.Text = val == 0 ? "∞" : val.ToString();
         }
 
         private void HotkeyKeyBox_GotFocus(object sender, RoutedEventArgs e)
@@ -162,6 +175,7 @@ namespace Paddy
             if (ModShift.IsChecked == true) mods |= MOD_SHIFT;
             SelectedHotKeyModifiers = mods;
             SelectedHotKeyVk = _capturedVk;
+            SelectedMaxRecords = (int)MaxRecordsSlider.Value;
 
             DialogResult = true;
         }
