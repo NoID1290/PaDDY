@@ -178,8 +178,12 @@ namespace Paddy.Services
                 return;
             }
 
-            // â”€â”€ AutoVAD mode â”€â”€
-            bool hasVoice = L > Sensitivity; // use L channel (or mono) for VAD
+            // ── AutoVAD mode ──
+            // Convert the linear sensitivity (0-100) to a dB threshold that
+            // matches the dB-scaled meter.  Slider 0 → -60 dB, 100 → 0 dB.
+            double dbThreshold = (Sensitivity / 100.0) * 60.0 - 60.0;
+            double dbL = (L <= 0) ? -100.0 : 20.0 * Math.Log10(L / 100.0);
+            bool hasVoice = dbL > dbThreshold;
 
             if (hasVoice)
             {

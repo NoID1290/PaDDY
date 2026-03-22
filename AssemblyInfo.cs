@@ -4,9 +4,9 @@ using System.Reflection;
 [assembly: AssemblyVersion("0.3.2.0321")]
 [assembly: AssemblyFileVersion("0.3.2.0321")]
 [assembly: AssemblyInformationalVersion("0.3.2.0321")]
-[assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2026-2026")]
+[assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2020-2026")]
 
-[assembly:ThemeInfo(
+[assembly: ThemeInfo(
     ResourceDictionaryLocation.None,            //where theme specific resource dictionaries are located
                                                 //(used if a resource is not found in the page,
                                                 // or application resource dictionaries)

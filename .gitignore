@@ -18,3 +18,6 @@ bld/
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 .vscode/
+
+# Generated icon scripts
+gen_icon.csx

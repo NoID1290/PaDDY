@@ -31,6 +31,15 @@ namespace Paddy
         private DateTime _peakHoldTimeL = DateTime.MinValue;
         private DateTime _peakHoldTimeR = DateTime.MinValue;
 
+        // Meter decay animation
+        private System.Windows.Threading.DispatcherTimer? _meterDecayTimer;
+        private double _decayTargetL;
+        private double _decayTargetR;
+        private double _decayCurrentL;
+        private double _decayCurrentR;
+        private const int DecaySteps = 18; // ~288ms at 16ms/tick
+        private int _decayStep;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -360,12 +369,51 @@ namespace Paddy
         {
             _captureService.Stop();
             SetStatus("Idle — press Start to begin", "#FF757575");
-            MeterOverlayL.Width = 10000;
-            MeterOverlayR.Width = 10000;
             RmsValueLabel.Text = "-∞";
             RmsValueLabelR.Text = "-∞";
             PeakIndicatorL.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
             PeakIndicatorR.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+            StartMeterDecay();
+        }
+
+        private void StartMeterDecay()
+        {
+            double meterWidth = ThresholdCanvas.ActualWidth;
+            if (meterWidth <= 0) { MeterOverlayL.Width = 10000; MeterOverlayR.Width = 10000; return; }
+
+            _decayCurrentL = MeterOverlayL.Width;
+            _decayCurrentR = MeterOverlayR.Width;
+            _decayTargetL = meterWidth;
+            _decayTargetR = meterWidth;
+            _decayStep = 0;
+
+            if (_meterDecayTimer == null)
+            {
+                _meterDecayTimer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(16)
+                };
+                _meterDecayTimer.Tick += MeterDecayTick;
+            }
+            _meterDecayTimer.Start();
+        }
+
+        private void MeterDecayTick(object? sender, EventArgs e)
+        {
+            _decayStep++;
+            double t = Math.Min(1.0, (double)_decayStep / DecaySteps);
+            // Ease-out quad
+            double ease = 1.0 - (1.0 - t) * (1.0 - t);
+
+            MeterOverlayL.Width = _decayCurrentL + (_decayTargetL - _decayCurrentL) * ease;
+            MeterOverlayR.Width = _decayCurrentR + (_decayTargetR - _decayCurrentR) * ease;
+
+            if (t >= 1.0)
+            {
+                _meterDecayTimer!.Stop();
+                MeterOverlayL.Width = 10000;
+                MeterOverlayR.Width = 10000;
+            }
         }
 
         // ── Sensitivity / Silence sliders ──────────────────────────────────────
@@ -475,6 +523,9 @@ namespace Paddy
         {
             Dispatcher.InvokeAsync(() =>
             {
+                // Cancel any running decay animation — we have live data
+                _meterDecayTimer?.Stop();
+
                 double dbL = LinearToDb(left);
                 double dbR = LinearToDb(right);
 
@@ -740,9 +791,9 @@ namespace Paddy
 
         private void UpdateThresholdMarker()
         {
-            // Convert sensitivity (0-100 linear) to dB, then to meter fraction
-            double db = LinearToDb(_captureService.Sensitivity);
-            double frac = DbToMeterFraction(db);
+            // Map slider value (0-100) directly to meter fraction so the marker
+            // moves linearly across the dB-scaled bar.
+            double frac = _captureService.Sensitivity / 100.0;
 
             if (ThresholdCanvas != null && ThresholdLine != null)
             {
