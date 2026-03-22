@@ -265,6 +265,17 @@
                         Margin="0,0,4,4"
                         ToolTip="Rename"
                         Click="RenameBtn_Click"/>
+
+                <!-- ✂ Trim — bottom-left -->
+                <Button x:Name="TrimBtn"
+                        Style="{StaticResource OverlayBtn}"
+                        Content="✂"
+                        Foreground="#FFAAAAAA"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Margin="4,0,0,4"
+                        ToolTip="Trim / Edit"
+                        Click="TrimBtn_Click"/>
             </Grid>
         </Grid>
     </Border>
