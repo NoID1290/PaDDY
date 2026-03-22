@@ -11,6 +11,14 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.4.0.0322] - 2026-03-22
+
+- feat: Add PreRelease option for GitHub releases in push script
+- feat: Add MIT License file and update copyright notice in README
+- feat: Enhance audio meter functionality with decay animation and improve AutoVAD sensitivity mapping
+- feat: Implement peak hold indicators and dB meter for audio levels in MainWindow
+- feat: Add entrance animation to RecordingPadButton and enhance UI with max recordings feature
+
 ## [0.3.2.0321] - 2026-03-21
 
 - feat: enhance ComboBox styles and improve buffer duration handling

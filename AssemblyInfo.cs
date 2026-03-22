@@ -1,10 +1,10 @@
 ﻿using System.Windows;
 using System.Reflection;
 
-[assembly: AssemblyVersion("0.3.2.0321")]
-[assembly: AssemblyFileVersion("0.3.2.0321")]
-[assembly: AssemblyInformationalVersion("0.3.2.0321")]
-[assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2020-2026")]
+[assembly: AssemblyVersion("0.4.0.0322")]
+[assembly: AssemblyFileVersion("0.4.0.0322")]
+[assembly: AssemblyInformationalVersion("0.4.0.0322")]
+[assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2026-2026")]
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None,            //where theme specific resource dictionaries are located
@@ -14,6 +14,7 @@ using System.Reflection;
                                                 //(used if a resource is not found in the page,
                                                 // app, or any theme specific resource dictionaries)
 )]
+
 
 
 
