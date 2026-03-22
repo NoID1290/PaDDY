@@ -28,6 +28,5 @@ Feel free to open issues and pull requests.
 
 ## License
 
-© 2026 NoID Softwork
-
-
+This project is licensed under the MIT License.
+NoID Softwork © 2020-2026.
