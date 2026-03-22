@@ -60,6 +60,7 @@ namespace Paddy
             PopulateRecordingModes();
             ApplySettings();
             LoadFavoritesFromSettings();
+            LoadNonFavoriteRecordingsFromDisk();
             _suppressSelectionEvents = false;
 
             _captureService.RmsLevelChanged += OnRmsChanged;
@@ -458,6 +459,13 @@ namespace Paddy
             _settings.Save();
         }
 
+        private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            string folder = _captureService.SaveFolder;
+            if (Directory.Exists(folder))
+                System.Diagnostics.Process.Start("explorer.exe", folder);
+        }
+
         // ── Settings / About buttons ───────────────────────────────────────────
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -673,6 +681,43 @@ namespace Paddy
             UpdatePadState();
         }
 
+        private void LoadNonFavoriteRecordingsFromDisk()
+        {
+            string folder = _captureService.SaveFolder;
+            if (!Directory.Exists(folder)) return;
+
+            var favSet = new HashSet<string>(_settings.FavoriteFilePaths, StringComparer.OrdinalIgnoreCase);
+
+            IEnumerable<FileInfo> files = new DirectoryInfo(folder)
+                .EnumerateFiles("*.wav")
+                .Where(f => !favSet.Contains(f.FullName))
+                .OrderByDescending(f => f.CreationTime);
+
+            int max = _settings.MaxRecords;
+            if (max > 0)
+                files = files.Take(max);
+
+            foreach (var fi in files)
+            {
+                try
+                {
+                    using var reader = new NAudio.Wave.AudioFileReader(fi.FullName);
+                    var entry = new RecordingEntry
+                    {
+                        FilePath = fi.FullName,
+                        Duration = reader.TotalTime,
+                        CreatedAt = fi.CreationTime,
+                        IsFavorite = false
+                    };
+                    var btn = CreatePadButton(entry);
+                    PadPanel.Children.Add(btn);
+                }
+                catch { /* skip unreadable files */ }
+            }
+
+            UpdatePadState();
+        }
+
         private void AddFavoriteToSettings(string filePath)
         {
             if (!_settings.FavoriteFilePaths.Contains(filePath))
@@ -741,7 +786,7 @@ namespace Paddy
             int total = PadPanel.Children.Count + FavoritesPanel.Children.Count;
             if (total == 0) return;
 
-            var dlg = new DeleteAllDialog { Owner = this };
+            var dlg = new DeleteAllDialog { Owner = this, Icon = Icon };
             if (dlg.ShowDialog() != true) return;
 
             var toDelete = new List<RecordingPadButton>();
@@ -776,6 +821,21 @@ namespace Paddy
             {
                 _settings.FavoriteFilePaths.Clear();
                 _settings.Save();
+            }
+
+            // Sweep the save folder for any orphaned .wav files not represented as pads
+            string saveFolder = _captureService.SaveFolder;
+            if (Directory.Exists(saveFolder))
+            {
+                var protectedPaths = dlg.KeepFavorites
+                    ? new HashSet<string>(_settings.FavoriteFilePaths, StringComparer.OrdinalIgnoreCase)
+                    : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var wav in Directory.EnumerateFiles(saveFolder, "*.wav"))
+                {
+                    if (protectedPaths.Contains(wav)) continue;
+                    try { File.Delete(wav); } catch { }
+                }
             }
 
             UpdatePadState();

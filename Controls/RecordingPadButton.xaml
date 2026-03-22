@@ -255,33 +255,16 @@
                     </Button.Style>
                 </Button>
 
-                <!-- ⋯ Menu — bottom-right -->
-                <Button x:Name="MenuBtn"
+                <!-- ✏ Rename — bottom-right -->
+                <Button x:Name="RenameBtn"
                         Style="{StaticResource OverlayBtn}"
-                        Content="⋯"
+                        Content="✏"
                         Foreground="#FFAAAAAA"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Margin="0,0,4,4"
-                        ToolTip="More options"
-                        Click="MenuBtn_Click">
-                    <Button.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="▶  Play"
-                                    Click="MenuPlay_Click"/>
-                            <MenuItem Header="⏹  Stop"
-                                    Click="MenuStop_Click"/>
-                            <Separator/>
-                            <MenuItem Header="✏  Rename…"
-                                    Click="MenuRename_Click"/>
-                            <MenuItem Header="📂  Open in Explorer"
-                                    Click="MenuOpenExplorer_Click"/>
-                            <Separator/>
-                            <MenuItem Header="🗑  Delete"
-                                    Click="MenuDelete_Click"/>
-                        </ContextMenu>
-                    </Button.ContextMenu>
-                </Button>
+                        ToolTip="Rename"
+                        Click="RenameBtn_Click"/>
             </Grid>
         </Grid>
     </Border>

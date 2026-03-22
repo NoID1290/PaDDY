@@ -24,6 +24,7 @@ namespace Paddy.Controls
                 FontSize = 13
             };
             _textBox.SelectAll();
+            Loaded += (_, _) => { _textBox.Focus(); _textBox.SelectAll(); };
 
             var ok = new System.Windows.Controls.Button
             {
