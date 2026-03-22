@@ -22,6 +22,7 @@
 #   .\push.ps1 -Type frontend -AttachAssets           # build zip + GitHub release
 #   .\push.ps1 -SkipVersion                           # commit without bumping
 #   .\push.ps1 -NoRelease                             # push without GitHub release
+#   .\push.ps1 -PreRelease                            # mark GitHub release as pre-release
 # ============================================================================
 
 param(
@@ -42,7 +43,10 @@ param(
     [switch]$SkipVersion,
 
     [Parameter(Mandatory=$false)]
-    [switch]$NoRelease
+    [switch]$NoRelease,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$PreRelease
 )
 
 $projectFilePath  = "Paddy.csproj"
@@ -62,7 +66,7 @@ if (-not $?) {
 
 Write-Host "[START] Auto-push process..." -ForegroundColor Cyan
 Write-Host "[TYPE]  Update type: $Type"   -ForegroundColor Yellow
-Write-Host "[FLAGS] NoRelease: $NoRelease  AttachAssets: $AttachAssets  SkipVersion: $SkipVersion" -ForegroundColor Yellow
+Write-Host "[FLAGS] NoRelease: $NoRelease  AttachAssets: $AttachAssets  SkipVersion: $SkipVersion  PreRelease: $PreRelease" -ForegroundColor Yellow
 
 $trackedGitPaths = @(git ls-files --full-name)
 
@@ -346,7 +350,8 @@ $tagName    = "v$newVersion"
 $existingTag = git tag --list $tagName
 if (-not $existingTag) {
     Write-Host "[TAG] Creating annotated tag: $tagName" -ForegroundColor Cyan
-    git tag -a $tagName -m "Release $tagName"
+    $tagMessage = if ($PreRelease) { "Pre-Release $tagName" } else { "Release $tagName" }
+    git tag -a $tagName -m $tagMessage
     if ($?) {
         Write-Host "[TAG] Pushing tag $tagName to origin" -ForegroundColor Cyan
         git push origin $tagName
@@ -409,8 +414,11 @@ if ($NoRelease) {
         $ErrorActionPreference = $prevEAP
 
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "[RELEASE] Creating GitHub release for $tagName" -ForegroundColor Cyan
-            gh release create $tagName --title "$tagName" --notes $releaseNotes --target $Branch
+            $releaseType = if ($PreRelease) { "pre-release" } else { "release" }
+            Write-Host "[RELEASE] Creating GitHub $releaseType for $tagName" -ForegroundColor Cyan
+            $ghReleaseArgs = @($tagName, '--title', $tagName, '--notes', $releaseNotes, '--target', $Branch)
+            if ($PreRelease) { $ghReleaseArgs += '--prerelease' }
+            gh release create @ghReleaseArgs
             if ($?) {
                 Write-Host "[SUCCESS] GitHub release created: $tagName" -ForegroundColor Green
             } else {
@@ -418,7 +426,9 @@ if ($NoRelease) {
             }
         } else {
             Write-Host "[INFO] GitHub release $tagName already exists; updating notes" -ForegroundColor Yellow
-            gh release edit $tagName --notes $releaseNotes
+            $ghEditArgs = @($tagName, '--notes', $releaseNotes)
+            if ($PreRelease) { $ghEditArgs += '--prerelease' }
+            gh release edit @ghEditArgs
         }
     } else {
         Write-Host "[INFO] 'gh' CLI not found; skipping GitHub release creation" -ForegroundColor Yellow
