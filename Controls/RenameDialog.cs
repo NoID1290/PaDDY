@@ -28,7 +28,9 @@ namespace Paddy.Controls
 
             var ok = new System.Windows.Controls.Button
             {
-                Content = "OK", Width = 75, Height = 28,
+                Content = "OK",
+                Width = 75,
+                Height = 28,
                 Margin = new Thickness(12, 0, 6, 12),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
                 IsDefault = true
@@ -37,7 +39,9 @@ namespace Paddy.Controls
 
             var cancel = new System.Windows.Controls.Button
             {
-                Content = "Cancel", Width = 75, Height = 28,
+                Content = "Cancel",
+                Width = 75,
+                Height = 28,
                 Margin = new Thickness(0, 0, 12, 12),
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
                 IsCancel = true
