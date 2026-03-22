@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using NAudio.Wave;
 using Paddy.Controls;
+using Paddy.Helpers;
 using Paddy.Models;
 using Paddy.Services;
 
@@ -23,7 +24,12 @@ namespace Paddy
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
 
-
+        // Peak hold state
+        private const double PeakThresholdDb = -1.0;
+        private const double PeakHoldSeconds = 1.5;
+        private const double MeterMinDb = -60.0;
+        private DateTime _peakHoldTimeL = DateTime.MinValue;
+        private DateTime _peakHoldTimeR = DateTime.MinValue;
 
         public MainWindow()
         {
@@ -31,6 +37,7 @@ namespace Paddy
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
+            ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
         }
 
         // ── Startup ────────────────────────────────────────────────────────────
@@ -178,14 +185,7 @@ namespace Paddy
 
         private void UpdateHotkeyLabel()
         {
-            uint mods = _settings.BufferHotKeyModifiers;
-            uint vk = _settings.BufferHotKeyVk;
-            string modStr = "";
-            if ((mods & 0x0002) != 0) modStr += "Ctrl+";
-            if ((mods & 0x0001) != 0) modStr += "Alt+";
-            if ((mods & 0x0004) != 0) modStr += "Shift+";
-            string keyStr = vk >= 0x70 && vk <= 0x87 ? $"F{vk - 0x6F}" : $"0x{vk:X2}";
-            HotkeyLabel.Text = modStr + keyStr;
+            HotkeyLabel.Text = KeyHelper.FormatHotkey(_settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
         }
 
         private int GetCurrentListenDeviceIndex()
@@ -360,9 +360,12 @@ namespace Paddy
         {
             _captureService.Stop();
             SetStatus("Idle — press Start to begin", "#FF757575");
-            RmsMeterL.Value = 0;
-            RmsMeterR.Value = 0;
-            RmsValueLabel.Text = "0";
+            MeterOverlayL.Width = 10000;
+            MeterOverlayR.Width = 10000;
+            RmsValueLabel.Text = "-∞";
+            RmsValueLabelR.Text = "-∞";
+            PeakIndicatorL.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+            PeakIndicatorR.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
         }
 
         // ── Sensitivity / Silence sliders ──────────────────────────────────────
@@ -455,14 +458,53 @@ namespace Paddy
         }
 
         // ── Audio events (cross-thread) ────────────────────────────────────────
+        private static double LinearToDb(double linear)
+        {
+            if (linear <= 0) return -100.0;
+            return 20.0 * Math.Log10(linear / 100.0);
+        }
+
+        private static double DbToMeterFraction(double db)
+        {
+            if (db <= MeterMinDb) return 0.0;
+            if (db >= 0.0) return 1.0;
+            return (db - MeterMinDb) / (0.0 - MeterMinDb);
+        }
+
         private void OnRmsChanged(double left, double right)
         {
             Dispatcher.InvokeAsync(() =>
             {
-                RmsMeterL.Value = left;
-                RmsValueLabel.Text = left.ToString("0");
-                RmsMeterR.Value = right;
-                RmsValueLabelR.Text = right.ToString("0");
+                double dbL = LinearToDb(left);
+                double dbR = LinearToDb(right);
+
+                // Update meter overlays (cover the unfilled portion from the right)
+                double meterWidth = ThresholdCanvas.ActualWidth;
+                if (meterWidth > 0)
+                {
+                    double filledL = DbToMeterFraction(dbL) * meterWidth;
+                    double filledR = DbToMeterFraction(dbR) * meterWidth;
+                    MeterOverlayL.Width = Math.Max(0, meterWidth - filledL);
+                    MeterOverlayR.Width = Math.Max(0, meterWidth - filledR);
+                }
+
+                // Update dB labels
+                RmsValueLabel.Text = left > 0 ? $"{dbL:0}" : "-∞";
+                RmsValueLabelR.Text = right > 0 ? $"{dbR:0}" : "-∞";
+
+                // Peak hold logic
+                var now = DateTime.UtcNow;
+                if (dbL >= PeakThresholdDb)
+                    _peakHoldTimeL = now;
+                if (dbR >= PeakThresholdDb)
+                    _peakHoldTimeR = now;
+
+                PeakIndicatorL.Background = (now - _peakHoldTimeL).TotalSeconds < PeakHoldSeconds
+                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
+                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+                PeakIndicatorR.Background = (now - _peakHoldTimeR).TotalSeconds < PeakHoldSeconds
+                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
+                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
             });
         }
 
@@ -698,11 +740,23 @@ namespace Paddy
 
         private void UpdateThresholdMarker()
         {
-            if (ThresholdCanvas == null || ThresholdLine == null) return;
-            double width = ThresholdCanvas.ActualWidth;
-            if (width <= 0) return;
-            double pct = _captureService.Sensitivity / 100.0;
-            Canvas.SetLeft(ThresholdLine, pct * width - 1);
+            // Convert sensitivity (0-100 linear) to dB, then to meter fraction
+            double db = LinearToDb(_captureService.Sensitivity);
+            double frac = DbToMeterFraction(db);
+
+            if (ThresholdCanvas != null && ThresholdLine != null)
+            {
+                double widthL = ThresholdCanvas.ActualWidth;
+                if (widthL > 0)
+                    Canvas.SetLeft(ThresholdLine, frac * widthL - 1);
+            }
+
+            if (ThresholdCanvasR != null && ThresholdLineR != null)
+            {
+                double widthR = ThresholdCanvasR.ActualWidth;
+                if (widthR > 0)
+                    Canvas.SetLeft(ThresholdLineR, frac * widthR - 1);
+            }
         }
 
         // ── Shutdown ───────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using Paddy.Helpers;
 
 namespace Paddy
 {
@@ -84,7 +85,7 @@ namespace Paddy
 
             // Hotkey key
             _capturedVk = _settings.BufferHotKeyVk;
-            HotkeyKeyBox.Text = VkToLabel(_capturedVk);
+            HotkeyKeyBox.Text = KeyHelper.VkToLabel(_capturedVk);
 
             // Max records
             MaxRecordsSlider.Value = _settings.MaxRecords;
@@ -131,7 +132,7 @@ namespace Paddy
             _capturingKey = false;
             HotkeyKeyBox.Background = new System.Windows.Media.SolidColorBrush(
                 System.Windows.Media.Color.FromRgb(0x2A, 0x2A, 0x2A));
-            HotkeyKeyBox.Text = VkToLabel(_capturedVk);
+            HotkeyKeyBox.Text = KeyHelper.VkToLabel(_capturedVk);
         }
 
         private void HotkeyKeyBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -146,18 +147,8 @@ namespace Paddy
                 return;
 
             _capturedVk = (uint)KeyInterop.VirtualKeyFromKey(key);
-            HotkeyKeyBox.Text = VkToLabel(_capturedVk);
+            HotkeyKeyBox.Text = KeyHelper.VkToLabel(_capturedVk);
             Keyboard.ClearFocus();
-        }
-
-        private static string VkToLabel(uint vk)
-        {
-            if (vk == 0) return "(none)";
-            // Map common VKs
-            if (vk >= 0x70 && vk <= 0x87) return $"F{vk - 0x6F}";  // F1–F24
-            if (vk >= 0x30 && vk <= 0x39) return ((char)vk).ToString(); // 0-9
-            if (vk >= 0x41 && vk <= 0x5A) return ((char)vk).ToString(); // A-Z
-            return $"0x{vk:X2}";
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
