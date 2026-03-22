@@ -431,7 +431,11 @@
                            FontSize="11"
                            TextTrimming="CharacterEllipsis"
                            MaxWidth="160"
-                           Margin="0,0,12,0"/>
+                           Margin="0,0,6,0"/>
+                <Button Content="📂"
+                        Margin="0,0,12,0"
+                        ToolTip="Open folder in Explorer"
+                        Click="OpenFolderButton_Click"/>
 
                 <!-- Settings + About -->
                 <Button Content="⚙ Settings"

@@ -120,15 +120,10 @@ namespace Paddy.Controls
             MenuDelete_Click(sender, e);
         }
 
-        private void MenuBtn_Click(object sender, RoutedEventArgs e)
+        private void RenameBtn_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            if (MenuBtn.ContextMenu != null)
-            {
-                MenuBtn.ContextMenu.PlacementTarget = MenuBtn;
-                MenuBtn.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-                MenuBtn.ContextMenu.IsOpen = true;
-            }
+            MenuRename_Click(sender, e);
         }
 
         // â”€â”€ Right-click: play on listen/monitor device only â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -236,9 +231,6 @@ namespace Paddy.Controls
         }
 
         // â”€â”€ Context menu handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        private void MenuPlay_Click(object sender, RoutedEventArgs e) => StartPlayback();
-        private void MenuStop_Click(object sender, RoutedEventArgs e) => StopPlayback();
-
         private void MenuRename_Click(object sender, RoutedEventArgs e)
         {
             if (Entry == null) return;
@@ -267,13 +259,6 @@ namespace Paddy.Controls
                 System.Windows.MessageBox.Show($"Rename failed:\n{ex.Message}", "Paddy",
                     System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
             }
-        }
-
-        private void MenuOpenExplorer_Click(object sender, RoutedEventArgs e)
-        {
-            if (Entry == null) return;
-            if (File.Exists(Entry.FilePath))
-                Process.Start("explorer.exe", $"/select,\"{Entry.FilePath}\"");
         }
 
         private void MenuDelete_Click(object sender, RoutedEventArgs e)
