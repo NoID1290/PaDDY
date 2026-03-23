@@ -210,7 +210,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#FFC62828"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFD32F2F"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFD35E5E"/>
                                 <Setter Property="Content" Value="Stop Monitoring"/>
                                 <Trigger.EnterActions>
                                     <BeginStoryboard x:Name="GlowPulse">
@@ -757,7 +757,7 @@
                                Margin="12"
                                Orientation="Horizontal"/>
                     <TextBlock x:Name="EmptyHint"
-                               Text="No recordings yet.&#x0a;Press ▶ Start Monitoring and speak into your microphone."
+                               Text="No recordings yet :( &#x0a;Start monitoring to capture any sounds!"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Foreground="#FF424242"
