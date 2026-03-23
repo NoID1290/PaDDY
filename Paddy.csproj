@@ -8,9 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>Paddy</AssemblyName>
     <RootNamespace>Paddy</RootNamespace>
-    <Version>0.4.0.0322</Version>
-    <AssemblyVersion>0.4.0.0322</AssemblyVersion>
-    <FileVersion>0.4.0.0322</FileVersion>
+    <Version>0.5.0.0323</Version>
+    <AssemblyVersion>0.5.0.0323</AssemblyVersion>
+    <FileVersion>0.5.0.0323</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>Paddy.ico</ApplicationIcon>
   </PropertyGroup>
