@@ -11,6 +11,13 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.5.0.0323] - 2026-03-23
+
+- feat: Update window properties in AudioEditorWindow and SettingsWindow for consistency
+- feat: Add Trim functionality with AudioEditorWindow for audio file editing
+- style: Format button properties in RenameDialog for improved readability
+- feat: Refactor RecordingPadButton and RenameDialog for improved functionality and UI updates
+
 ## [0.4.0.0322] - 2026-03-22
 
 - feat: Add PreRelease option for GitHub releases in push script
