@@ -11,16 +11,26 @@ using Color = System.Windows.Media.Color;
 using System.Windows.Media.Animation;
 using NAudio.Wave;
 using Paddy.Models;
+using Paddy.Services;
 
 namespace Paddy.Controls
 {
     [SupportedOSPlatform("windows")]
     public partial class RecordingPadButton : WpfControl
     {
-        private static readonly SolidColorBrush BrushNormal =
-            new(Color.FromRgb(0x55, 0x55, 0x55));
-        private static readonly SolidColorBrush BrushFavorite =
-            new(Color.FromRgb(0xFF, 0xC1, 0x07));  // amber / gold
+        private static readonly SolidColorBrush BrushNormal;
+        private static readonly SolidColorBrush BrushFavorite;
+        private static readonly SolidColorBrush BrushPlaying;
+
+        static RecordingPadButton()
+        {
+            BrushNormal = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x55));
+            BrushNormal.Freeze();
+            BrushFavorite = new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07)); // amber / gold
+            BrushFavorite.Freeze();
+            BrushPlaying = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)); // green
+            BrushPlaying.Freeze();
+        }
 
         public RecordingEntry? Entry { get; private set; }
 
@@ -47,9 +57,9 @@ namespace Paddy.Controls
         }
 
         private WaveOutEvent? _player;
-        private AudioFileReader? _reader;
+        private IUnifiedAudioReader? _reader;
         private WaveOutEvent? _listenPlayer;
-        private AudioFileReader? _listenReader;
+        private IUnifiedAudioReader? _listenReader;
         private bool _isPlaying;
 
         /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
@@ -141,7 +151,7 @@ namespace Paddy.Controls
                 // Re-read duration from the trimmed file
                 try
                 {
-                    using var reader = new AudioFileReader(Entry.FilePath);
+                    using var reader = AudioReaderFactory.Open(Entry.FilePath);
                     Entry.Duration = reader.TotalTime;
                 }
                 catch { }
@@ -171,17 +181,17 @@ namespace Paddy.Controls
 
             try
             {
-                _reader = new AudioFileReader(Entry.FilePath);
+                _reader = AudioReaderFactory.Open(Entry.FilePath);
                 _player = new WaveOutEvent { DeviceNumber = OutputDeviceIndex };
-                _player.Init(_reader);
+                _player.Init(_reader.AsWaveProvider());
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _player.Play();
 
                 if (ListenDeviceIndex >= -1)
                 {
-                    _listenReader = new AudioFileReader(Entry.FilePath);
+                    _listenReader = AudioReaderFactory.Open(Entry.FilePath);
                     _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
-                    _listenPlayer.Init(_listenReader);
+                    _listenPlayer.Init(_listenReader.AsWaveProvider());
                     _listenPlayer.Play();
                 }
 
@@ -204,9 +214,9 @@ namespace Paddy.Controls
             StopPlayback();
             try
             {
-                _listenReader = new AudioFileReader(Entry.FilePath);
+                _listenReader = AudioReaderFactory.Open(Entry.FilePath);
                 _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
-                _listenPlayer.Init(_listenReader);
+                _listenPlayer.Init(_listenReader.AsWaveProvider());
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _listenPlayer.Play();
                 SetPlayingVisual(true);
@@ -239,18 +249,9 @@ namespace Paddy.Controls
             _isPlaying = playing;
             IconText.Text = playing ? "⏹" : "🎤";
 
-            try
-            {
-                var anim = (Storyboard)FindResource("PlayingAnimation");
-                if (playing)
-                    anim.Begin(TileBorder);
-                else
-                    anim.Stop(TileBorder);
-            }
-            catch { /* storyboard may not be running */ }
-
-            if (!playing)
-                TileBorder.BorderBrush = _isFavorite ? BrushFavorite : BrushNormal;
+            TileBorder.BorderBrush = playing
+                ? BrushPlaying
+                : (_isFavorite ? BrushFavorite : BrushNormal);
         }
 
         // â”€â”€ Context menu handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -266,8 +267,9 @@ namespace Paddy.Controls
 
             string newName = dialog.NewName.Trim();
             if (string.IsNullOrWhiteSpace(newName)) return;
-            if (!newName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
-                newName += ".wav";
+            string originalExt = Path.GetExtension(Entry.FilePath);
+            if (!Path.HasExtension(newName))
+                newName += originalExt;
 
             string newPath = Path.Combine(Path.GetDirectoryName(Entry.FilePath)!, newName);
             try

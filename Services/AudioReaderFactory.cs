@@ -126,7 +126,7 @@ namespace Paddy.Services
 
         // IWaveProvider / ISampleProvider share the same underlying decode
         WaveFormat IWaveProvider.WaveFormat => _waveFormat;
-        WaveFormat ISampleProvider.WaveFormat => new WaveFormat(_waveFormat.SampleRate, 32, _waveFormat.Channels);
+        WaveFormat ISampleProvider.WaveFormat => WaveFormat.CreateIeeeFloatWaveFormat(_waveFormat.SampleRate, _waveFormat.Channels);
 
         public int Read(byte[] buffer, int offset, int count)
         {

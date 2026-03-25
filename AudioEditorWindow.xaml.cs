@@ -7,7 +7,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using NAudio.Wave;
 using Paddy.Services;
 
@@ -23,7 +22,6 @@ namespace Paddy
 
         private WaveOutEvent? _player;
         private IUnifiedAudioReader? _reader;
-        private DispatcherTimer? _playbackTimer;
         private bool _isPreviewing;
         private bool _isStoppingPreview;
 
@@ -257,13 +255,18 @@ namespace Paddy
             {
                 _reader = AudioReaderFactory.Open(_filePath);
 
-                _player = new WaveOutEvent();
-                _player.PlaybackStopped += Player_PlaybackStopped;
-                _player.Init(_reader.AsWaveProvider());
-
                 double startSec = _trimStartFraction * _totalDurationSeconds;
                 double endSec = _trimEndFraction * _totalDurationSeconds;
-                _reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+
+                // Byte-limiting wrapper: seeks to startSec and stops feeding audio
+                // after (endSec - startSec) worth of bytes.  WaveOutEvent will
+                // naturally drain its internal buffers before firing PlaybackStopped,
+                // so the very last samples are never discarded.
+                var trimmed = new TrimmedWaveProvider(_reader, startSec, endSec);
+
+                _player = new WaveOutEvent();
+                _player.PlaybackStopped += Player_PlaybackStopped;
+                _player.Init(trimmed);
                 _player.Play();
 
                 _isPreviewing = true;
@@ -274,14 +277,6 @@ namespace Paddy
                 _playbackEndSec = endSec;
                 _playbackStartedAt = DateTime.UtcNow;
                 StartPlaybackAnimation(startSec, endSec, TimeSpan.FromSeconds(endSec - startSec));
-
-                // Timer only checks for trim-end overrun; position is driven by the animation
-                _playbackTimer = new DispatcherTimer(DispatcherPriority.Render)
-                {
-                    Interval = TimeSpan.FromMilliseconds(32)
-                };
-                _playbackTimer.Tick += PlaybackTimer_Tick;
-                _playbackTimer.Start();
             }
             catch (Exception ex)
             {
@@ -289,18 +284,6 @@ namespace Paddy
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 StopPreview();
             }
-        }
-
-        private void PlaybackTimer_Tick(object? sender, EventArgs e)
-        {
-            if (_reader == null || _player == null) return;
-
-            // Only stop detection — position is driven by the linear DoubleAnimation
-            double currentSec = _reader.CurrentTime.TotalSeconds;
-            double endSec = _trimEndFraction * _totalDurationSeconds;
-
-            if (currentSec >= endSec)
-                StopPreview();
         }
 
         private void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
@@ -345,13 +328,6 @@ namespace Paddy
 
             try
             {
-                if (_playbackTimer != null)
-                {
-                    _playbackTimer.Stop();
-                    _playbackTimer.Tick -= PlaybackTimer_Tick;
-                    _playbackTimer = null;
-                }
-
                 if (_player != null)
                 {
                     _player.PlaybackStopped -= Player_PlaybackStopped;
@@ -452,6 +428,49 @@ namespace Paddy
             return ts.TotalSeconds < 60
                 ? $"{ts.TotalSeconds:0.0}s"
                 : $"{(int)ts.TotalMinutes}m {ts.Seconds:00}s";
+        }
+
+        // ── Byte-limiting wrapper ───────────────────────────────────────────
+
+        /// <summary>
+        /// Wraps an <see cref="IUnifiedAudioReader"/> so that WaveOutEvent only
+        /// receives PCM bytes for the [startSec, endSec) range.  When the byte
+        /// budget is exhausted the wrapper returns 0, letting WaveOutEvent drain
+        /// its internal buffers naturally before firing PlaybackStopped.
+        /// </summary>
+        private sealed class TrimmedWaveProvider : IWaveProvider
+        {
+            private readonly IUnifiedAudioReader _reader;
+            private long _bytesRemaining;
+
+            public WaveFormat WaveFormat => _reader.WaveFormat;
+
+            public TrimmedWaveProvider(IUnifiedAudioReader reader, double startSec, double endSec)
+            {
+                _reader = reader;
+
+                // Only seek when we genuinely need to skip ahead.
+                // Seeking to zero on a freshly-opened Opus stream triggers
+                // SeekToGranulePosition(0) which resets decoder state and
+                // corrupts the internal packet queue, causing early EOF.
+                if (startSec > 0.001)
+                    _reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+
+                double duration = endSec - startSec;
+                long totalBytes = (long)(duration * _reader.WaveFormat.AverageBytesPerSecond);
+                int blockAlign = _reader.WaveFormat.BlockAlign;
+                _bytesRemaining = totalBytes / blockAlign * blockAlign;
+            }
+
+            public int Read(byte[] buffer, int offset, int count)
+            {
+                if (_bytesRemaining <= 0) return 0;
+
+                int toRead = (int)Math.Min(count, _bytesRemaining);
+                int read = _reader.Read(buffer, offset, toRead);
+                _bytesRemaining -= read;
+                return read;
+            }
         }
     }
 }
