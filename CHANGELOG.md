@@ -11,6 +11,10 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.5.2.0325] - 2026-03-25
+
+- fix: Correct copyright year in AssemblyInfo and ensure proper assembly attributes are set
+
 ## [0.5.1.0325] - 2026-03-25
 
 - style: Refactor code formatting for consistency in AudioEditorWindow and Services
