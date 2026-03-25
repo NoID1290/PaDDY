@@ -10,17 +10,6 @@
         <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1"/>
     </UserControl.RenderTransform>
     <UserControl.Resources>
-        <!-- Playing animation: pulsing border -->
-        <Storyboard x:Key="PlayingAnimation"
-                RepeatBehavior="Forever">
-            <ColorAnimation Storyboard.TargetName="TileBorder"
-                            Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                            From="#FF4CAF50"
-                    To="#FF81C784"
-                            Duration="0:0:0.6"
-                    AutoReverse="True"/>
-        </Storyboard>
-
         <!-- Entrance animation: fade + slide up -->
         <Storyboard x:Key="EntranceAnimation">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"

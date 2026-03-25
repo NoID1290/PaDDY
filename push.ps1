@@ -191,7 +191,7 @@ if (-not $SkipVersion) {
         # Update copyright year dynamically (keep start year, update end year to current)
         $currentYear = (Get-Date).Year
         $assemblyInfoContent = $assemblyInfoContent -replace '\[assembly: AssemblyCopyright\("Copyright \(c\) NoID Softwork \d{4}-\d{4}"\)\]',
-            "[assembly: AssemblyCopyright(""Copyright (c) NoID Softwork 2026-$currentYear"")]"
+            "[assembly: AssemblyCopyright(""Copyright (c) NoID Softwork 2020-$currentYear"")]"
 
         # Append any missing attributes
         if ($assemblyInfoContent -notmatch 'AssemblyVersion') {
