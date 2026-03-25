@@ -18,9 +18,9 @@ namespace Paddy.Services
             string ext = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
             return ext switch
             {
-                "ogg"  => new VorbisReaderAdapter(filePath),
+                "ogg" => new VorbisReaderAdapter(filePath),
                 "opus" => new OpusReaderAdapter(filePath),
-                _      => new WavMp3ReaderAdapter(filePath)   // wav, mp3
+                _ => new WavMp3ReaderAdapter(filePath)   // wav, mp3
             };
         }
     }
@@ -33,11 +33,11 @@ namespace Paddy.Services
 
         public WavMp3ReaderAdapter(string filePath) => _reader = new AudioFileReader(filePath);
 
-        public WaveFormat WaveFormat  => _reader.WaveFormat;
-        public TimeSpan   TotalTime   => _reader.TotalTime;
-        public TimeSpan   CurrentTime { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
+        public WaveFormat WaveFormat => _reader.WaveFormat;
+        public TimeSpan TotalTime => _reader.TotalTime;
+        public TimeSpan CurrentTime { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
 
-        public IWaveProvider   AsWaveProvider()   => _reader;
+        public IWaveProvider AsWaveProvider() => _reader;
         public ISampleProvider AsSampleProvider() => _reader;
         public int Read(byte[] buffer, int offset, int count) => _reader.Read(buffer, offset, count);
 
@@ -52,11 +52,11 @@ namespace Paddy.Services
 
         public VorbisReaderAdapter(string filePath) => _reader = new VorbisWaveReader(filePath);
 
-        public WaveFormat WaveFormat  => _reader.WaveFormat;
-        public TimeSpan   TotalTime   => _reader.TotalTime;
-        public TimeSpan   CurrentTime { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
+        public WaveFormat WaveFormat => _reader.WaveFormat;
+        public TimeSpan TotalTime => _reader.TotalTime;
+        public TimeSpan CurrentTime { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
 
-        public IWaveProvider   AsWaveProvider()   => _reader;
+        public IWaveProvider AsWaveProvider() => _reader;
 
         public ISampleProvider AsSampleProvider()
         {
@@ -86,24 +86,24 @@ namespace Paddy.Services
 
         // Standard Opus output: 48 kHz, stereo, 16-bit
         private const int OpusSampleRate = 48000;
-        private const int OpusChannels   = 2;
+        private const int OpusChannels = 2;
         private readonly WaveFormat _waveFormat;
         private readonly TimeSpan _totalTime;
         private TimeSpan _currentTime;
 
         public OpusReaderAdapter(string filePath)
         {
-            _filePath   = filePath;
+            _filePath = filePath;
             _waveFormat = new WaveFormat(OpusSampleRate, 16, OpusChannels);
 
             _fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var decoder = OpusCodecFactory.CreateDecoder(OpusSampleRate, OpusChannels);
             _readStream = new OpusOggReadStream(decoder, _fileStream);
-            _totalTime  = _readStream.TotalTime;
+            _totalTime = _readStream.TotalTime;
         }
 
         public WaveFormat WaveFormat => _waveFormat;
-        public TimeSpan   TotalTime  => _totalTime;
+        public TimeSpan TotalTime => _totalTime;
 
         public TimeSpan CurrentTime
         {
@@ -115,17 +115,17 @@ namespace Paddy.Services
         {
             // OpusOggReadStream.SeekTo() works directly on a seekable FileStream
             _readStream.SeekTo(target);
-            _decodeBuf       = Array.Empty<short>();
+            _decodeBuf = Array.Empty<short>();
             _decodeBufOffset = 0;
-            _decodeBufCount  = 0;
-            _currentTime     = target;
+            _decodeBufCount = 0;
+            _currentTime = target;
         }
 
-        public IWaveProvider   AsWaveProvider()   => this;
+        public IWaveProvider AsWaveProvider() => this;
         public ISampleProvider AsSampleProvider() => this;
 
         // IWaveProvider / ISampleProvider share the same underlying decode
-        WaveFormat IWaveProvider.WaveFormat   => _waveFormat;
+        WaveFormat IWaveProvider.WaveFormat => _waveFormat;
         WaveFormat ISampleProvider.WaveFormat => new WaveFormat(_waveFormat.SampleRate, 32, _waveFormat.Channels);
 
         public int Read(byte[] buffer, int offset, int count)
@@ -136,7 +136,7 @@ namespace Paddy.Services
                 // Drain existing decode buffer first
                 while (_decodeBufCount > 0 && written < count)
                 {
-                    buffer[offset + written]     = (byte)(_decodeBuf[_decodeBufOffset] & 0xFF);
+                    buffer[offset + written] = (byte)(_decodeBuf[_decodeBufOffset] & 0xFF);
                     buffer[offset + written + 1] = (byte)((_decodeBuf[_decodeBufOffset] >> 8) & 0xFF);
                     written += 2;
                     _decodeBufOffset++;
@@ -148,7 +148,7 @@ namespace Paddy.Services
                 if (!_readStream.HasNextPacket) break;
                 _decodeBuf = _readStream.DecodeNextPacket() ?? Array.Empty<short>();
                 _decodeBufOffset = 0;
-                _decodeBufCount  = _decodeBuf.Length;
+                _decodeBufCount = _decodeBuf.Length;
             }
 
             if (written > 0)

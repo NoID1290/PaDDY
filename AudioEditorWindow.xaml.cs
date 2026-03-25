@@ -262,7 +262,7 @@ namespace Paddy
                 _player.Init(_reader.AsWaveProvider());
 
                 double startSec = _trimStartFraction * _totalDurationSeconds;
-                double endSec   = _trimEndFraction   * _totalDurationSeconds;
+                double endSec = _trimEndFraction * _totalDurationSeconds;
                 _reader.CurrentTime = TimeSpan.FromSeconds(startSec);
                 _player.Play();
 
@@ -313,7 +313,7 @@ namespace Paddy
             if (_totalDurationSeconds <= 0 || _waveformWidth <= 0) return;
 
             double fromX = fromSec / _totalDurationSeconds * _waveformWidth;
-            double toX   = toSec   / _totalDurationSeconds * _waveformWidth;
+            double toX = toSec / _totalDurationSeconds * _waveformWidth;
 
             var anim = new DoubleAnimation(fromX, toX, new Duration(duration))
             {
