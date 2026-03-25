@@ -9,10 +9,10 @@ namespace Paddy.Services
         /// </summary>
         public static string ExtensionFor(string codec) => codec.ToLowerInvariant() switch
         {
-            "mp3"  => "mp3",
+            "mp3" => "mp3",
             "opus" => "opus",
-            "ogg"  => "ogg",
-            _      => "wav"
+            "ogg" => "ogg",
+            _ => "wav"
         };
 
         /// <summary>
@@ -20,10 +20,10 @@ namespace Paddy.Services
         /// </summary>
         public static IStreamingRecorder Create(string codec) => codec.ToLowerInvariant() switch
         {
-            "mp3"  => new Mp3Recorder(),
+            "mp3" => new Mp3Recorder(),
             "opus" => new OpusRecorder(),
-            "ogg"  => new VorbisRecorder(),
-            _      => new WaveFileRecorder()
+            "ogg" => new VorbisRecorder(),
+            _ => new WaveFileRecorder()
         };
 
         /// <summary>
