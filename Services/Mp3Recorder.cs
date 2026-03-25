@@ -1,18 +1,16 @@
 using System;
 using System.IO;
+using NAudio.Lame;
 using NAudio.Wave;
 
 namespace Paddy.Services
 {
-    /// <summary>
-    /// Thin wrapper around NAudio WaveFileWriter.
-    /// Call BeginRecording → AppendSamples (many times) → Finish.
-    /// </summary>
-    public sealed class WaveFileRecorder : IStreamingRecorder
+    public sealed class Mp3Recorder : IStreamingRecorder
     {
-        private WaveFileWriter? _writer;
-        private WaveFormat? _format;
+        private LameMP3FileWriter? _writer;
         private string? _filePath;
+        private WaveFormat? _format;
+        private long _bytesWritten;
         private bool _disposed;
 
         public bool IsRecording => _writer != null;
@@ -26,20 +24,21 @@ namespace Paddy.Services
             Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
             _filePath = filePath;
             _format = format;
-            _writer = new WaveFileWriter(filePath, format);
+            _bytesWritten = 0;
+            _writer = new LameMP3FileWriter(filePath, format, LAMEPreset.STANDARD);
         }
 
         public void AppendSamples(byte[] buffer, int offset, int count)
         {
             _writer?.Write(buffer, offset, count);
+            _bytesWritten += count;
         }
 
-        /// <summary>Finalises and closes the file. Returns the recorded duration.</summary>
         public TimeSpan Finish()
         {
-            if (_writer == null) return TimeSpan.Zero;
+            if (_writer == null || _format == null) return TimeSpan.Zero;
 
-            var duration = TimeSpan.FromSeconds(_writer.Length / (double)_writer.WaveFormat.AverageBytesPerSecond);
+            var duration = TimeSpan.FromSeconds(_bytesWritten / (double)_format.AverageBytesPerSecond);
             _writer.Flush();
             _writer.Dispose();
             _writer = null;

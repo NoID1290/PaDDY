@@ -51,6 +51,9 @@ namespace Paddy.Services
         /// <summary>Mic recording: number of channels (1=mono, 2=stereo).</summary>
         public int RecordChannels { get; set; } = 1;
 
+        /// <summary>Output codec: "wav", "mp3", "opus", or "ogg".</summary>
+        public string RecordCodec { get; set; } = "wav";
+
         /// <summary>Duration of the past-audio ring buffer in milliseconds.</summary>
         public int PastBufferDurationMs { get; set; } = 10000;
 
@@ -60,7 +63,7 @@ namespace Paddy.Services
         // â”€â”€ Internal state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private IWaveIn? _captureIn;
         private WaveFormat? _captureFormat;
-        private readonly WaveFileRecorder _recorder = new();
+        private IStreamingRecorder _recorder = new WaveFileRecorder();
         private bool _isRecording;
         private DateTime _lastVoiceTime;
 
@@ -228,8 +231,10 @@ namespace Paddy.Services
             string folder = Path.IsPathRooted(SaveFolder)
                 ? SaveFolder
                 : Path.Combine(AppContext.BaseDirectory, SaveFolder);
-            string filePath = Path.Combine(folder, $"Recording_{timestamp}.wav");
+            string ext = StreamingRecorderFactory.ExtensionFor(RecordCodec);
+            string filePath = Path.Combine(folder, $"Recording_{timestamp}.{ext}");
 
+            _recorder = StreamingRecorderFactory.Create(RecordCodec);
             var format = _captureFormat ?? new WaveFormat(16000, 16, 1);
             _recorder.BeginRecording(filePath, format);
 

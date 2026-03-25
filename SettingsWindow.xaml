@@ -239,27 +239,36 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0"
                                 Grid.Column="0"
-                                Text="Sample rate:"/>
-                        <ComboBox x:Name="SampleRateCombo"
+                                Text="Codec:"/>
+                        <ComboBox x:Name="CodecCombo"
                                 Grid.Row="0"
                                 Grid.Column="1"/>
 
                         <TextBlock Grid.Row="2"
                                 Grid.Column="0"
-                                Text="Bit depth:"/>
-                        <ComboBox x:Name="BitDepthCombo"
+                                Text="Sample rate:"/>
+                        <ComboBox x:Name="SampleRateCombo"
                                 Grid.Row="2"
                                 Grid.Column="1"/>
 
                         <TextBlock Grid.Row="4"
                                 Grid.Column="0"
+                                Text="Bit depth:"/>
+                        <ComboBox x:Name="BitDepthCombo"
+                                Grid.Row="4"
+                                Grid.Column="1"/>
+
+                        <TextBlock Grid.Row="6"
+                                Grid.Column="0"
                                 Text="Channels:"/>
                         <ComboBox x:Name="ChannelsCombo"
-                                Grid.Row="4"
+                                Grid.Row="6"
                                 Grid.Column="1"/>
                     </Grid>
                 </Border>
