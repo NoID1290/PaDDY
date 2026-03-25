@@ -11,6 +11,10 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.6.0.0325] - 2026-03-25
+
+- refactor: Replace AudioFileReader with AudioReaderFactory for improved audio handling and update copyright year in push script
+
 ## [0.5.2.0325] - 2026-03-25
 
 - fix: Correct copyright year in AssemblyInfo and ensure proper assembly attributes are set
