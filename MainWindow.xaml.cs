@@ -177,6 +177,7 @@ namespace Paddy
             _captureService.RecordSampleRate = _settings.RecordSampleRate;
             _captureService.RecordBitDepth = _settings.RecordBitDepth;
             _captureService.RecordChannels = _settings.RecordChannels;
+            _captureService.RecordCodec = _settings.RecordCodec;
             _captureService.PastBufferDurationMs = _settings.PastBufferDurationMs;
 
             string folder = string.IsNullOrWhiteSpace(_settings.SaveFolder)
@@ -476,6 +477,7 @@ namespace Paddy
             _settings.RecordSampleRate = win.SelectedSampleRate;
             _settings.RecordBitDepth = win.SelectedBitDepth;
             _settings.RecordChannels = win.SelectedChannels;
+            _settings.RecordCodec = win.SelectedCodec;
             _settings.SaveFolder = win.SelectedSaveFolder;
             _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
             _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
@@ -486,6 +488,7 @@ namespace Paddy
             _captureService.RecordSampleRate = win.SelectedSampleRate;
             _captureService.RecordBitDepth = win.SelectedBitDepth;
             _captureService.RecordChannels = win.SelectedChannels;
+            _captureService.RecordCodec = win.SelectedCodec;
             _captureService.SaveFolder = win.SelectedSaveFolder;
             _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
             FolderLabel.Text = win.SelectedSaveFolder;
@@ -624,6 +627,8 @@ namespace Paddy
                     FavoritesPanel.Children.Remove(b);
                     PadPanel.Children.Insert(0, b);
                     RemoveFavoriteFromSettings(b.Entry.FilePath);
+                    // Re-enforce limit: un-favoriting adds to PadPanel and may exceed MaxRecords
+                    EnforceMaxRecords();
                 }
                 UpdatePadState();
             };
@@ -660,7 +665,7 @@ namespace Paddy
                 }
                 try
                 {
-                    using var reader = new NAudio.Wave.AudioFileReader(path);
+                    using var reader = Paddy.Services.AudioReaderFactory.Open(path);
                     var entry = new RecordingEntry
                     {
                         FilePath = path,
@@ -689,8 +694,8 @@ namespace Paddy
             var favSet = new HashSet<string>(_settings.FavoriteFilePaths, StringComparer.OrdinalIgnoreCase);
 
             IEnumerable<FileInfo> files = new DirectoryInfo(folder)
-                .EnumerateFiles("*.wav")
-                .Where(f => !favSet.Contains(f.FullName))
+                .EnumerateFiles("*.*")
+                .Where(f => IsAudioFile(f.Name) && !favSet.Contains(f.FullName))
                 .OrderByDescending(f => f.CreationTime);
 
             int max = _settings.MaxRecords;
@@ -701,7 +706,7 @@ namespace Paddy
             {
                 try
                 {
-                    using var reader = new NAudio.Wave.AudioFileReader(fi.FullName);
+                    using var reader = Paddy.Services.AudioReaderFactory.Open(fi.FullName);
                     var entry = new RecordingEntry
                     {
                         FilePath = fi.FullName,
@@ -831,7 +836,7 @@ namespace Paddy
                     ? new HashSet<string>(_settings.FavoriteFilePaths, StringComparer.OrdinalIgnoreCase)
                     : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var wav in Directory.EnumerateFiles(saveFolder, "*.wav"))
+                foreach (var wav in Directory.EnumerateFiles(saveFolder, "*.*").Where(f => IsAudioFile(f)))
                 {
                     if (protectedPaths.Contains(wav)) continue;
                     try { File.Delete(wav); } catch { }
@@ -842,6 +847,12 @@ namespace Paddy
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
+        private static readonly HashSet<string> _audioExtensions =
+            new(StringComparer.OrdinalIgnoreCase) { ".wav", ".mp3", ".opus", ".ogg" };
+
+        private static bool IsAudioFile(string path) =>
+            _audioExtensions.Contains(Path.GetExtension(path));
+
         private void SetStatus(string text, string hexColor)
         {
             StatusLabel.Text = text;

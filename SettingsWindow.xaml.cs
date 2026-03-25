@@ -18,6 +18,7 @@ namespace Paddy
         public int SelectedSampleRate { get; private set; }
         public int SelectedBitDepth { get; private set; }
         public int SelectedChannels { get; private set; }
+        public string SelectedCodec { get; private set; } = "wav";
         public string SelectedSaveFolder { get; private set; } = string.Empty;
         public int SelectedBufferDurationMs { get; private set; }
         public uint SelectedHotKeyModifiers { get; private set; }
@@ -30,6 +31,13 @@ namespace Paddy
         {
             (1, "Mono (1ch)"),
             (2, "Stereo (2ch)")
+        };
+        private static readonly (string Value, string Label)[] CodecOptions =
+        {
+            ("wav",  "WAV (uncompressed)"),
+            ("mp3",  "MP3 (LAME)"),
+            ("opus", "Opus (.opus)"),
+            ("ogg",  "Ogg Vorbis (.ogg)"),
         };
 
         private uint _capturedVk;
@@ -49,6 +57,13 @@ namespace Paddy
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Codec
+            CodecCombo.Items.Clear();
+            foreach (var (_, label) in CodecOptions)
+                CodecCombo.Items.Add(label);
+            int codecIdx = Array.FindIndex(CodecOptions, c => c.Value == _settings.RecordCodec);
+            CodecCombo.SelectedIndex = codecIdx >= 0 ? codecIdx : 0;
+
             // Sample rate
             SampleRateCombo.Items.Clear();
             foreach (var sr in SampleRates)
@@ -157,6 +172,8 @@ namespace Paddy
             SelectedSampleRate = srIdx >= 0 && srIdx < SampleRates.Length ? SampleRates[srIdx] : 16000;
             SelectedBitDepth = BitDepthCombo.SelectedIndex == 1 ? 32 : 16;
             SelectedChannels = ChannelsCombo.SelectedIndex == 1 ? 2 : 1;
+            int ci = CodecCombo.SelectedIndex;
+            SelectedCodec = ci >= 0 && ci < CodecOptions.Length ? CodecOptions[ci].Value : "wav";
             SelectedSaveFolder = SaveFolderBox.Text;
             SelectedBufferDurationMs = (int)(BufferDurationSlider.Value * 1000);
 

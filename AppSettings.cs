@@ -36,6 +36,9 @@ namespace Paddy
         // Max recordings before auto-cleanup (0 = unlimited). Favorites are exempt.
         public int MaxRecords { get; set; } = 0;
 
+        // Output codec for new recordings: "wav", "mp3", "opus", "ogg"
+        public string RecordCodec { get; set; } = "wav";
+
         private static readonly string SettingsPath =
             Path.Combine(AppContext.BaseDirectory, "appsettings.json");
 

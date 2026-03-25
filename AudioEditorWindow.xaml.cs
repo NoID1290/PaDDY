@@ -5,9 +5,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using NAudio.Wave;
+using Paddy.Services;
 
 namespace Paddy
 {
@@ -20,10 +22,15 @@ namespace Paddy
         private double _trimEndFraction = 1.0;
 
         private WaveOutEvent? _player;
-        private AudioFileReader? _reader;
+        private IUnifiedAudioReader? _reader;
         private DispatcherTimer? _playbackTimer;
         private bool _isPreviewing;
         private bool _isStoppingPreview;
+
+        // Tracks the playback start wall-clock time and start position for animation restart on resize
+        private DateTime _playbackStartedAt;
+        private double _playbackStartSec;
+        private double _playbackEndSec;
 
         private double _totalDurationSeconds;
         private double _waveformWidth;
@@ -46,12 +53,12 @@ namespace Paddy
         {
             try
             {
-                using var reader = new AudioFileReader(_filePath);
+                using var reader = AudioReaderFactory.Open(_filePath);
                 _totalDuration = reader.TotalTime;
                 _totalDurationSeconds = Math.Max(_totalDuration.TotalSeconds, 0.001);
                 TotalDurationLabel.Text = FormatTime(_totalDuration);
 
-                RenderWaveform(reader);
+                RenderWaveform(reader.AsSampleProvider(), reader.WaveFormat);
             }
             catch (Exception ex)
             {
@@ -73,46 +80,49 @@ namespace Paddy
 
             if (_isPreviewing && _reader != null)
             {
-                UpdatePlaybackLinePosition(_reader.CurrentTime.TotalSeconds);
+                // Restart the linear animation from current playback position with remaining duration
+                double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
+                double currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
+                double remaining = _playbackEndSec - currentSec;
+                if (remaining > 0)
+                    StartPlaybackAnimation(currentSec, _playbackEndSec, TimeSpan.FromSeconds(remaining));
+                else
+                    UpdatePlaybackLinePosition(currentSec);
             }
         }
 
         // ── Waveform rendering ──────────────────────────────────────────────
 
-        private void RenderWaveform(AudioFileReader reader)
+        private void RenderWaveform(ISampleProvider sampleProvider, WaveFormat waveFormat)
         {
             int width = (int)WaveformGrid.ActualWidth;
             int height = (int)WaveformGrid.ActualHeight;
             if (width < 10 || height < 10) { width = 680; height = 180; }
 
-            // Read all samples (mono-mixed)
-            reader.Position = 0;
-            int channels = reader.WaveFormat.Channels;
-            long totalSamples = reader.Length / (reader.WaveFormat.BitsPerSample / 8);
-            long monoSamples = totalSamples / channels;
+            int channels = waveFormat.Channels;
+            long totalMonoSamples = (long)(_totalDurationSeconds * waveFormat.SampleRate);
 
-            float[] buffer = new float[reader.WaveFormat.SampleRate * channels]; // 1 sec chunks
+            float[] buffer = new float[waveFormat.SampleRate * channels]; // 1 sec chunks
             var peaks = new (float min, float max)[width];
-
-            // Initialise peaks
             for (int i = 0; i < width; i++)
                 peaks[i] = (0f, 0f);
 
             long samplesRead = 0;
             int read;
-            while ((read = reader.Read(buffer, 0, buffer.Length)) > 0)
+            while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
             {
                 int monoRead = read / channels;
                 for (int i = 0; i < monoRead; i++)
                 {
-                    // Mix channels to mono
                     float sample = 0f;
                     for (int ch = 0; ch < channels; ch++)
                         sample += buffer[i * channels + ch];
                     sample /= channels;
 
                     long monoIndex = samplesRead + i;
-                    int bucket = (int)(monoIndex * width / monoSamples);
+                    int bucket = totalMonoSamples > 0
+                        ? (int)(monoIndex * width / totalMonoSamples)
+                        : 0;
                     if (bucket >= width) bucket = width - 1;
 
                     if (sample < peaks[bucket].min) peaks[bucket] = (sample, peaks[bucket].max);
@@ -245,24 +255,30 @@ namespace Paddy
 
             try
             {
-                _reader = new AudioFileReader(_filePath);
+                _reader = AudioReaderFactory.Open(_filePath);
 
                 _player = new WaveOutEvent();
                 _player.PlaybackStopped += Player_PlaybackStopped;
-                _player.Init(_reader);
+                _player.Init(_reader.AsWaveProvider());
 
                 double startSec = _trimStartFraction * _totalDurationSeconds;
+                double endSec   = _trimEndFraction   * _totalDurationSeconds;
                 _reader.CurrentTime = TimeSpan.FromSeconds(startSec);
                 _player.Play();
 
                 _isPreviewing = true;
                 PlayBtn.Content = "⏹  Stop";
                 PlaybackLine.Visibility = Visibility.Visible;
-                UpdatePlaybackLinePosition(startSec);
 
+                _playbackStartSec = startSec;
+                _playbackEndSec = endSec;
+                _playbackStartedAt = DateTime.UtcNow;
+                StartPlaybackAnimation(startSec, endSec, TimeSpan.FromSeconds(endSec - startSec));
+
+                // Timer only checks for trim-end overrun; position is driven by the animation
                 _playbackTimer = new DispatcherTimer(DispatcherPriority.Render)
                 {
-                    Interval = TimeSpan.FromMilliseconds(16)
+                    Interval = TimeSpan.FromMilliseconds(32)
                 };
                 _playbackTimer.Tick += PlaybackTimer_Tick;
                 _playbackTimer.Start();
@@ -279,21 +295,32 @@ namespace Paddy
         {
             if (_reader == null || _player == null) return;
 
+            // Only stop detection — position is driven by the linear DoubleAnimation
             double currentSec = _reader.CurrentTime.TotalSeconds;
             double endSec = _trimEndFraction * _totalDurationSeconds;
 
             if (currentSec >= endSec)
-            {
                 StopPreview();
-                return;
-            }
-
-            UpdatePlaybackLinePosition(currentSec);
         }
 
         private void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() => StopPreview(false)));
+        }
+
+        private void StartPlaybackAnimation(double fromSec, double toSec, TimeSpan duration)
+        {
+            if (_totalDurationSeconds <= 0 || _waveformWidth <= 0) return;
+
+            double fromX = fromSec / _totalDurationSeconds * _waveformWidth;
+            double toX   = toSec   / _totalDurationSeconds * _waveformWidth;
+
+            var anim = new DoubleAnimation(fromX, toX, new Duration(duration))
+            {
+                FillBehavior = FillBehavior.HoldEnd
+            };
+            // No EasingFunction — linear by default
+            PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, anim);
         }
 
         private void UpdatePlaybackLinePosition(double currentSec)
@@ -306,6 +333,8 @@ namespace Paddy
 
             double clampedSec = Math.Clamp(currentSec, 0.0, _totalDurationSeconds);
             double fraction = clampedSec / _totalDurationSeconds;
+            // Detach any running animation then set value directly
+            PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, null);
             PlaybackLineTransform.X = fraction * _waveformWidth;
         }
 
@@ -340,6 +369,8 @@ namespace Paddy
 
                 _isPreviewing = false;
                 PlaybackLine.Visibility = Visibility.Collapsed;
+                // Detach the animation and reset position
+                PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, null);
                 PlaybackLineTransform.X = 0;
 
                 if (PlayBtn != null)
@@ -372,31 +403,32 @@ namespace Paddy
             string tempPath = _filePath + ".trim.tmp";
             try
             {
-                using (var reader = new AudioFileReader(_filePath))
+                using (var reader = AudioReaderFactory.Open(_filePath))
                 {
                     var format = reader.WaveFormat;
                     reader.CurrentTime = TimeSpan.FromSeconds(startSec);
 
-                    long startByte = reader.Position;
-                    long endByte = (long)(endSec / _totalDuration.TotalSeconds * reader.Length);
-                    // Align to block boundary
+                    // Duration of the trimmed region in bytes (PCM 16-bit estimate)
+                    double trimDuration = endSec - startSec;
+                    long bytesToWrite = (long)(trimDuration * format.AverageBytesPerSecond);
                     int blockAlign = format.BlockAlign;
-                    endByte = endByte / blockAlign * blockAlign;
-
-                    long bytesToWrite = endByte - startByte;
+                    bytesToWrite = bytesToWrite / blockAlign * blockAlign;
                     if (bytesToWrite <= 0) return;
 
-                    using var writer = new WaveFileWriter(tempPath, format);
-                    byte[] buffer = new byte[format.SampleRate * blockAlign]; // ~1 sec chunks
+                    using var recorder = StreamingRecorderFactory.CreateForFile(_filePath);
+                    recorder.BeginRecording(tempPath, format);
+
+                    byte[] buffer = new byte[format.SampleRate * blockAlign];
                     long written = 0;
                     while (written < bytesToWrite)
                     {
                         int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
-                        writer.Write(buffer, 0, read);
+                        recorder.AppendSamples(buffer, 0, read);
                         written += read;
                     }
+                    recorder.Finish();
                 }
 
                 // Replace original with trimmed file
@@ -407,9 +439,7 @@ namespace Paddy
             }
             catch (Exception ex)
             {
-                // Clean up temp file on failure
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
-
                 System.Windows.MessageBox.Show($"Trim failed:\n{ex.Message}", "Paddy",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
