@@ -11,6 +11,12 @@ Version format: `a.b.c.MMDD`
 - `c` = Little fix / patch
 - `MMDD` = Month and day of push (auto-generated)
 
+## [0.5.1.0325] - 2026-03-25
+
+- style: Refactor code formatting for consistency in AudioEditorWindow and Services
+- feat: Implement audio codec selection and recording functionality; add support for MP3, Opus, and Ogg Vorbis formats
+- feat: Update AboutWindow text and copyright year; modify MainWindow border color and empty hint message
+
 ## [0.5.0.0323] - 2026-03-23
 
 - feat: Update window properties in AudioEditorWindow and SettingsWindow for consistency
