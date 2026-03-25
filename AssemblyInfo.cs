@@ -4,7 +4,10 @@ using System.Reflection;
 [assembly: AssemblyVersion("0.5.1.0325")]
 [assembly: AssemblyFileVersion("0.5.1.0325")]
 [assembly: AssemblyInformationalVersion("0.5.1.0325")]
-[assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2026-2026")]
+[assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2020-2026")]
+[assembly: AssemblyCompany("NoID Softwork")]
+[assembly: AssemblyTitle("PaDDY")]
+[assembly: AssemblyProduct("PaDDY")]
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None,            //where theme specific resource dictionaries are located
