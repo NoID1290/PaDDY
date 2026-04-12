@@ -412,7 +412,36 @@ namespace PaDDY
                 using (var reader = AudioReaderFactory.Open(_filePath))
                 {
                     var format = reader.WaveFormat;
-                    reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+
+                    // Advance to the trim start point.
+                    // For Opus files, OpusOggReadStream.SeekTo does not clear its internal
+                    // _nextDataPacket after seeking, so the first decoded frame is stale audio
+                    // from before the seek.  SeekTo(0) also corrupts stream state entirely.
+                    // Avoid both issues by decoding-and-discarding up to startSec instead.
+                    string fileExt = Path.GetExtension(_filePath).TrimStart('.').ToLowerInvariant();
+                    if (startSec > 0.001)
+                    {
+                        if (fileExt == "opus")
+                        {
+                            // Decode-and-discard to reach startSec (guarantees correct position).
+                            int blockAlignSkip = format.BlockAlign;
+                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                            skipBytes = skipBytes / blockAlignSkip * blockAlignSkip;
+                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                            long skipped = 0;
+                            while (skipped < skipBytes)
+                            {
+                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                if (readSkip == 0) break;
+                                skipped += readSkip;
+                            }
+                        }
+                        else
+                        {
+                            reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+                        }
+                    }
 
                     // Duration of the trimmed region in bytes
                     double trimDuration = endSec - startSec;
