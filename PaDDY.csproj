@@ -6,13 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>Paddy</AssemblyName>
-    <RootNamespace>Paddy</RootNamespace>
+    <AssemblyName>PaDDY</AssemblyName>
+    <RootNamespace>PaDDY</RootNamespace>
     <Version>0.6.1.0411</Version>
     <AssemblyVersion>0.6.1.0411</AssemblyVersion>
     <FileVersion>0.6.1.0411</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <ApplicationIcon>Paddy.ico</ApplicationIcon>
+    <ApplicationIcon>PaDDY.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.3.0" />
@@ -23,6 +23,6 @@
     <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Paddy.ico" />
+    <Resource Include="PaDDY.ico" />
   </ItemGroup>
 </Project>

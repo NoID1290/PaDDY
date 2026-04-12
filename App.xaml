@@ -1,7 +1,7 @@
-﻿<Application x:Class="Paddy.App"
+<Application x:Class="PaDDY.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Paddy"
+             xmlns:local="clr-namespace:PaDDY"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

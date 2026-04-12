@@ -1,7 +1,7 @@
 using System;
 using NAudio.Wave;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     /// <summary>
     /// Streams incoming raw PCM bytes directly into an encoded output file.

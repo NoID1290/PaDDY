@@ -1,8 +1,8 @@
-<Window x:Class="Paddy.AboutWindow"
+<Window x:Class="PaDDY.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="About Paddy"
-        Icon="Paddy.ico"
+        Title="About PaDDY"
+        Icon="PaDDY.ico"
         Width="420"
         Height="500"
         ResizeMode="NoResize"
@@ -96,7 +96,7 @@
             <StackPanel>
                 <TextBlock FontSize="11"
                         TextWrapping="Wrap"
-                           Text="Paddy listens to your microphone or system audio and automatically saves clips when it detects voice activity. It also supports a Key Buffer mode for on-demand recording using a global hotkey."
+                           Text="PaDDY listens to your microphone or system audio and automatically saves clips when it detects voice activity. It also supports a Key Buffer mode for on-demand recording using a global hotkey."
                            Foreground="#FFBBBBBB"
                         Margin="0,0,0,12"/>
 

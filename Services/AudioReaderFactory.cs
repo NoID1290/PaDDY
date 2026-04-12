@@ -6,7 +6,7 @@ using Concentus.Oggfile;
 using NAudio.Vorbis;
 using NAudio.Wave;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     /// <summary>
     /// Opens the right <see cref="IUnifiedAudioReader"/> based on file extension.

@@ -1,6 +1,6 @@
 using System;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     public static class StreamingRecorderFactory
     {

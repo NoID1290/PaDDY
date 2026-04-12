@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using Paddy.Models;
+using PaDDY.Models;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     public enum CaptureSourceMode
     {

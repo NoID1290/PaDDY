@@ -4,7 +4,7 @@ using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     /// <summary>
     /// Registers and manages a global hotkey using Win32 RegisterHotKey.

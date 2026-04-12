@@ -5,7 +5,7 @@ using Concentus.Enums;
 using Concentus.Oggfile;
 using NAudio.Wave;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     public sealed class OpusRecorder : IStreamingRecorder
     {

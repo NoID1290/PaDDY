@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -7,12 +7,12 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
 using NAudio.Wave;
-using Paddy.Controls;
-using Paddy.Helpers;
-using Paddy.Models;
-using Paddy.Services;
+using PaDDY.Controls;
+using PaDDY.Helpers;
+using PaDDY.Models;
+using PaDDY.Services;
 
-namespace Paddy
+namespace PaDDY
 {
     [SupportedOSPlatform("windows")]
     public partial class MainWindow : Window
@@ -341,7 +341,7 @@ namespace Paddy
         {
             if (GetSelectedCaptureMode() == CaptureSourceMode.Microphone && WaveInEvent.DeviceCount == 0)
             {
-                System.Windows.MessageBox.Show("No microphone detected.", "Paddy",
+                System.Windows.MessageBox.Show("No microphone detected.", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 MonitorToggle.IsChecked = false;
                 return;
@@ -349,7 +349,7 @@ namespace Paddy
 
             if (GetSelectedCaptureMode() == CaptureSourceMode.OutputLoopback && _loopbackDevices.Count == 0)
             {
-                System.Windows.MessageBox.Show("No active output device found for loopback capture.", "Paddy",
+                System.Windows.MessageBox.Show("No active output device found for loopback capture.", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 MonitorToggle.IsChecked = false;
                 return;
@@ -361,7 +361,7 @@ namespace Paddy
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Unable to start monitoring:\n{ex.Message}", "Paddy",
+                System.Windows.MessageBox.Show($"Unable to start monitoring:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 MonitorToggle.IsChecked = false;
             }
@@ -665,7 +665,7 @@ namespace Paddy
                 }
                 try
                 {
-                    using var reader = Paddy.Services.AudioReaderFactory.Open(path);
+                    using var reader = PaDDY.Services.AudioReaderFactory.Open(path);
                     var entry = new RecordingEntry
                     {
                         FilePath = path,
@@ -706,7 +706,7 @@ namespace Paddy
             {
                 try
                 {
-                    using var reader = Paddy.Services.AudioReaderFactory.Open(fi.FullName);
+                    using var reader = PaDDY.Services.AudioReaderFactory.Open(fi.FullName);
                     var entry = new RecordingEntry
                     {
                         FilePath = fi.FullName,

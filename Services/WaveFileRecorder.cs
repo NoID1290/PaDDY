@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using NAudio.Wave;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     /// <summary>
     /// Thin wrapper around NAudio WaveFileWriter.

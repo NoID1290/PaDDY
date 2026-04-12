@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace Paddy.Controls
+namespace PaDDY.Controls
 {
     public sealed class RenameDialog : Window
     {

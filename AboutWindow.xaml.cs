@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Windows;
 
-namespace Paddy
+namespace PaDDY
 {
     public partial class AboutWindow : Window
     {
