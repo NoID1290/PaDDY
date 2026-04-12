@@ -1,4 +1,4 @@
-namespace Paddy.Helpers
+namespace PaDDY.Helpers
 {
     /// <summary>
     /// Shared utility for converting Win32 virtual-key codes to human-readable labels.

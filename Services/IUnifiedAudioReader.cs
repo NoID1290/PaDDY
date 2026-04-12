@@ -1,7 +1,7 @@
 using System;
 using NAudio.Wave;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     /// <summary>
     /// Unified abstraction over audio file readers for WAV, MP3, Ogg Vorbis, and Opus.

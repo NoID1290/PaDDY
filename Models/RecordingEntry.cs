@@ -1,6 +1,6 @@
 using System;
 
-namespace Paddy.Models
+namespace PaDDY.Models
 {
     public class RecordingEntry
     {

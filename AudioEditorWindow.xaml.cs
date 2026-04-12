@@ -8,9 +8,9 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using NAudio.Wave;
-using Paddy.Services;
+using PaDDY.Services;
 
-namespace Paddy
+namespace PaDDY
 {
     [SupportedOSPlatform("windows")]
     public partial class AudioEditorWindow : Window
@@ -60,7 +60,7 @@ namespace Paddy
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Could not read audio file:\n{ex.Message}", "Paddy",
+                System.Windows.MessageBox.Show($"Could not read audio file:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 Close();
                 return;
@@ -280,7 +280,7 @@ namespace Paddy
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "Paddy",
+                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 StopPreview();
             }
@@ -416,7 +416,7 @@ namespace Paddy
             catch (Exception ex)
             {
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
-                System.Windows.MessageBox.Show($"Trim failed:\n{ex.Message}", "Paddy",
+                System.Windows.MessageBox.Show($"Trim failed:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }

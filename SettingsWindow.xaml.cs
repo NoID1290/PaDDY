@@ -5,9 +5,9 @@ using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using Paddy.Helpers;
+using PaDDY.Helpers;
 
-namespace Paddy
+namespace PaDDY
 {
     [SupportedOSPlatform("windows")]
     public partial class SettingsWindow : Window

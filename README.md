@@ -1,4 +1,4 @@
-﻿# PaDDY
+# PaDDY
 
 [![Version](https://img.shields.io/badge/version-0.6.1-blue)](CHANGELOG.md)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
@@ -50,16 +50,16 @@ PaDDY is designed for fast voice/audio capture with minimal friction:
 
 1. Download the latest release artifact.
 2. Extract it.
-3. Run `Paddy.exe`.
+3. Run `PaDDY.exe`.
 
 ### Option 2: Build from source
 
 ```powershell
-dotnet restore Paddy.sln
-dotnet build Paddy.csproj --configuration Release
+dotnet restore PaDDY.sln
+dotnet build PaDDY.csproj --configuration Release
 ```
 
-> Note: Paddy targets `net8.0-windows` (WPF), so building is expected on Windows.
+> Note: PaDDY targets `net8.0-windows` (WPF), so building is expected on Windows.
 
 ## Usage
 

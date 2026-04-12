@@ -6,7 +6,7 @@ using Brushes = System.Windows.Media.Brushes;
 using Button = System.Windows.Controls.Button;
 using Orientation = System.Windows.Controls.Orientation;
 
-namespace Paddy.Controls
+namespace PaDDY.Controls
 {
     /// <summary>
     /// Modal dialog asking whether to delete all recordings.

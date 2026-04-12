@@ -3,7 +3,7 @@ using System.IO;
 using NAudio.Wave;
 using OggVorbisEncoder;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     public sealed class VorbisRecorder : IStreamingRecorder
     {

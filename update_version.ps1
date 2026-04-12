@@ -1,6 +1,6 @@
 # ============================================================================
 #
-# update_version.ps1 - Update the MMDD date portion of the version in Paddy
+# update_version.ps1 - Update the MMDD date portion of the version in PaDDY
 # Copyright (c) NoID Softwork 2026-2026. All rights reserved.
 #
 # Version format: a.b.c.MMDD
@@ -11,11 +11,11 @@
 #
 # Usage:
 #   .\update_version.ps1
-#   (Reads current a.b.c from Paddy.csproj, updates MMDD to today, saves back)
+#   (Reads current a.b.c from PaDDY.csproj, updates MMDD to today, saves back)
 # ============================================================================
 
 $repoRoot          = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectFilePath   = Join-Path $repoRoot "Paddy.csproj"
+$projectFilePath   = Join-Path $repoRoot "PaDDY.csproj"
 $assemblyInfoPath  = Join-Path $repoRoot "AssemblyInfo.cs"
 
 function Update-ProjectVersionDate {
@@ -38,9 +38,9 @@ function Update-ProjectVersionDate {
     Write-Host "Version updated: $ProjectPath -> $NewVersion" -ForegroundColor Green
 }
 
-# Read current version from Paddy.csproj
+# Read current version from PaDDY.csproj
 if (-not (Test-Path $projectFilePath)) {
-    Write-Host "[ERROR] Paddy.csproj not found at: $projectFilePath" -ForegroundColor Red
+    Write-Host "[ERROR] PaDDY.csproj not found at: $projectFilePath" -ForegroundColor Red
     exit 1
 }
 
@@ -48,7 +48,7 @@ if (-not (Test-Path $projectFilePath)) {
 $currentVersion = $mainProjectFile.Project.PropertyGroup.Version
 
 if (-not $currentVersion) {
-    Write-Host "[ERROR] No <Version> element found in Paddy.csproj" -ForegroundColor Red
+    Write-Host "[ERROR] No <Version> element found in PaDDY.csproj" -ForegroundColor Red
     exit 1
 }
 
@@ -67,7 +67,7 @@ $newVersion = "$a.$b.$c.$dateString"
 
 Write-Host "New version:     $newVersion" -ForegroundColor Cyan
 
-# Update Paddy.csproj
+# Update PaDDY.csproj
 Update-ProjectVersionDate -ProjectPath $projectFilePath -NewVersion $newVersion
 
 # Update AssemblyInfo.cs

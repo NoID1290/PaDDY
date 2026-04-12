@@ -3,7 +3,7 @@ using System.IO;
 using NAudio.Lame;
 using NAudio.Wave;
 
-namespace Paddy.Services
+namespace PaDDY.Services
 {
     public sealed class Mp3Recorder : IStreamingRecorder
     {

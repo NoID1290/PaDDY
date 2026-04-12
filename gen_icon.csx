@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -98,5 +98,5 @@ for (int i = 0; i < sizes.Length; i++)
 foreach (var img in images)
     bw.Write(img);
 
-File.WriteAllBytes(@"s:\VScodeProjects\Paddy-dev\Paddy.ico", ms.ToArray());
+File.WriteAllBytes(@"s:\VScodeProjects\PaDDY-dev\PaDDY.ico", ms.ToArray());
 Console.WriteLine("ICO created successfully: " + string.Join(", ", sizes.Select(s => $"{s}x{s}")));

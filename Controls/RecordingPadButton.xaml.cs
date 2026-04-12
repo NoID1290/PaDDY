@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Versioning;
@@ -10,10 +10,10 @@ using WpfButton = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
 using System.Windows.Media.Animation;
 using NAudio.Wave;
-using Paddy.Models;
-using Paddy.Services;
+using PaDDY.Models;
+using PaDDY.Services;
 
-namespace Paddy.Controls
+namespace PaDDY.Controls
 {
     [SupportedOSPlatform("windows")]
     public partial class RecordingPadButton : WpfControl
@@ -199,7 +199,7 @@ namespace Paddy.Controls
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "Paddy",
+                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
                     System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 StopPlayback();
             }
@@ -223,7 +223,7 @@ namespace Paddy.Controls
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "Paddy",
+                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
                     System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 StopPlayback();
             }
@@ -281,7 +281,7 @@ namespace Paddy.Controls
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Rename failed:\n{ex.Message}", "Paddy",
+                System.Windows.MessageBox.Show($"Rename failed:\n{ex.Message}", "PaDDY",
                     System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
             }
         }

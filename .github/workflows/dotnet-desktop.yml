@@ -1,4 +1,4 @@
-name: Build Paddy Desktop
+name: Build PaDDY Desktop
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
 
 env:
   DOTNET_VERSION: 8.0.x
-  SOLUTION_PATH: Paddy.sln
-  PROJECT_PATH: Paddy.csproj
+  SOLUTION_PATH: PaDDY.sln
+  PROJECT_PATH: PaDDY.csproj
   ARTIFACT_ROOT: bin/artifacts
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
         $version = $project.Project.PropertyGroup.Version
 
         if ([string]::IsNullOrWhiteSpace($version)) {
-          throw "Paddy.csproj does not contain a Version value."
+          throw "PaDDY.csproj does not contain a Version value."
         }
 
         "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -54,7 +54,7 @@ jobs:
       env:
         VERSION: ${{ steps.version.outputs.value }}
       run: |
-        $publishDir = Join-Path $env:ARTIFACT_ROOT "Paddy-$env:VERSION"
+        $publishDir = Join-Path $env:ARTIFACT_ROOT "PaDDY-$env:VERSION"
 
         if (Test-Path $publishDir) {
           Remove-Item $publishDir -Recurse -Force
@@ -78,7 +78,7 @@ jobs:
         VERSION: ${{ steps.version.outputs.value }}
         PUBLISH_DIR: ${{ steps.publish.outputs.publish_dir }}
       run: |
-        $zipPath = Join-Path $env:ARTIFACT_ROOT "Paddy-$env:VERSION.zip"
+        $zipPath = Join-Path $env:ARTIFACT_ROOT "PaDDY-$env:VERSION.zip"
 
         if (Test-Path $zipPath) {
           Remove-Item $zipPath -Force
@@ -90,13 +90,13 @@ jobs:
     - name: Upload published folder
       uses: actions/upload-artifact@v4
       with:
-        name: Paddy-${{ steps.version.outputs.value }}
+        name: PaDDY-${{ steps.version.outputs.value }}
         path: ${{ steps.publish.outputs.publish_dir }}
         if-no-files-found: error
 
     - name: Upload release zip
       uses: actions/upload-artifact@v4
       with:
-        name: Paddy-${{ steps.version.outputs.value }}-zip
+        name: PaDDY-${{ steps.version.outputs.value }}-zip
         path: ${{ steps.archive.outputs.zip_path }}
         if-no-files-found: error

@@ -49,8 +49,8 @@ param(
     [switch]$PreRelease
 )
 
-$projectFilePath  = "Paddy.csproj"
-$solutionPath     = "Paddy.sln"
+$projectFilePath  = "PaDDY.csproj"
+$solutionPath     = "PaDDY.sln"
 $assemblyInfoPath = "AssemblyInfo.cs"
 $changelogPath    = "CHANGELOG.md"
 
@@ -106,7 +106,7 @@ function Update-ProjectVersion {
     $ver = $proj.Project.PropertyGroup.Version
     if (-not $ver) { $ver = "0.1.0.0101" }
 
-    Write-Host "[Paddy] Current version: $ver" -ForegroundColor White
+    Write-Host "[PaDDY] Current version: $ver" -ForegroundColor White
 
     $parts = $ver -split '\.'
     while ($parts.Count -lt 3) { $parts += "0" }
@@ -120,16 +120,16 @@ function Update-ProjectVersion {
             $vA++
             $vB = 0
             $vC = 0
-            Write-Host "[Paddy] Frontend version incremented" -ForegroundColor Green
+            Write-Host "[PaDDY] Frontend version incremented" -ForegroundColor Green
         }
         "backend" {
             $vB++
             $vC = 0
-            Write-Host "[Paddy] Backend version incremented" -ForegroundColor Green
+            Write-Host "[PaDDY] Backend version incremented" -ForegroundColor Green
         }
         "fix" {
             $vC++
-            Write-Host "[Paddy] Fix version incremented" -ForegroundColor Green
+            Write-Host "[PaDDY] Fix version incremented" -ForegroundColor Green
         }
     }
 
@@ -142,7 +142,7 @@ function Update-ProjectVersion {
     $proj.Project.PropertyGroup.FileVersion     = $newVer
 
     $proj.Save((Resolve-Path $Path).Path)
-    Write-Host "[Paddy] Updated to: $newVer" -ForegroundColor Green
+    Write-Host "[PaDDY] Updated to: $newVer" -ForegroundColor Green
 
     return $newVer
 }
@@ -443,7 +443,7 @@ if ($AttachAssets) {
         Write-Host "[ASSETS] AttachAssets requested; building and uploading artifacts" -ForegroundColor Cyan
 
         $artifactRoot = Join-Path $PSScriptRoot "bin\artifacts"
-        $publishDir   = Join-Path $artifactRoot "Paddy-$newVersion"
+        $publishDir   = Join-Path $artifactRoot "PaDDY-$newVersion"
 
         # Clean previous artifacts
         if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
@@ -466,7 +466,7 @@ if ($AttachAssets) {
             }
 
             # Create zip
-            $zipName = "Paddy-$newVersion.zip"
+            $zipName = "PaDDY-$newVersion.zip"
             $zipPath = Join-Path $artifactRoot $zipName
             if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
             Write-Host "[ZIP] Creating $zipPath" -ForegroundColor Cyan
