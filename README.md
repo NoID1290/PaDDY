@@ -1,4 +1,4 @@
-﻿# Paddy
+﻿# PaDDY
 
 [![Version](https://img.shields.io/badge/version-0.6.0-blue)](CHANGELOG.md)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
@@ -7,9 +7,9 @@
 
 Windows application recording pad for quickly capturing, organizing, and replaying short audio clips.
 
-## Why Paddy
+## Why PaDDY
 
-Paddy is designed for fast voice/audio capture with minimal friction:
+PaDDY is designed for fast voice/audio capture with minimal friction:
 - monitor microphone or system output
 - auto-save clips with voice activity detection (AutoVAD)
 - capture a rolling buffer on demand with a global hotkey (Key Buffer mode)
