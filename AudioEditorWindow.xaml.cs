@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using PaDDY.Services;
 
 namespace PaDDY
@@ -32,6 +33,7 @@ namespace PaDDY
 
         private double _totalDurationSeconds;
         private double _waveformWidth;
+        private double _gainDb = 0.0;
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
@@ -90,6 +92,14 @@ namespace PaDDY
         }
 
         // ── Waveform rendering ──────────────────────────────────────────────
+
+        private void GainSlider_ValueChanged(object sender,
+            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            _gainDb = e.NewValue;
+            if (GainLabel != null)
+                GainLabel.Text = _gainDb == 0.0 ? "0 dB" : $"{_gainDb:+0;-0} dB";
+        }
 
         private void RenderWaveform(ISampleProvider sampleProvider, WaveFormat waveFormat)
         {
@@ -258,15 +268,32 @@ namespace PaDDY
                 double startSec = _trimStartFraction * _totalDurationSeconds;
                 double endSec = _trimEndFraction * _totalDurationSeconds;
 
-                // Byte-limiting wrapper: seeks to startSec and stops feeding audio
-                // after (endSec - startSec) worth of bytes.  WaveOutEvent will
-                // naturally drain its internal buffers before firing PlaybackStopped,
-                // so the very last samples are never discarded.
-                var trimmed = new TrimmedWaveProvider(_reader, startSec, endSec);
+                // Apply gain if non-zero, otherwise use the byte-limiting wrapper directly
+                IWaveProvider source;
+                if (Math.Abs(_gainDb) >= 0.01)
+                {
+                    float factor = (float)Math.Pow(10.0, _gainDb / 20.0);
+                    // Seek with same Opus-safe guard used by TrimmedWaveProvider
+                    if (startSec > 0.001)
+                        _reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+                    var gainProvider = new VolumeSampleProvider(_reader.AsSampleProvider()) { Volume = factor };
+                    var limited = new OffsetSampleProvider(gainProvider)
+                    {
+                        Take = TimeSpan.FromSeconds(endSec - startSec)
+                    };
+                    source = new SampleToWaveProvider(limited);
+                }
+                else
+                {
+                    // Byte-limiting wrapper: seeks to startSec and stops feeding audio
+                    // after (endSec - startSec) worth of bytes.  WaveOutEvent will
+                    // naturally drain its internal buffers before firing PlaybackStopped.
+                    source = new TrimmedWaveProvider(_reader, startSec, endSec);
+                }
 
                 _player = new WaveOutEvent();
                 _player.PlaybackStopped += Player_PlaybackStopped;
-                _player.Init(trimmed);
+                _player.Init(source);
                 _player.Play();
 
                 _isPreviewing = true;
@@ -369,8 +396,11 @@ namespace PaDDY
             double startSec = _trimStartFraction * _totalDuration.TotalSeconds;
             double endSec = _trimEndFraction * _totalDuration.TotalSeconds;
 
-            // Nothing to trim — the entire file is already selected
-            if (_trimStartFraction <= 0.001 && _trimEndFraction >= 0.999)
+            bool noTrim = _trimStartFraction <= 0.001 && _trimEndFraction >= 0.999;
+            bool noGain = Math.Abs(_gainDb) < 0.01;
+
+            // Nothing to do — no trim and no gain
+            if (noTrim && noGain)
             {
                 DialogResult = true;
                 return;
@@ -384,12 +414,14 @@ namespace PaDDY
                     var format = reader.WaveFormat;
                     reader.CurrentTime = TimeSpan.FromSeconds(startSec);
 
-                    // Duration of the trimmed region in bytes (PCM 16-bit estimate)
+                    // Duration of the trimmed region in bytes
                     double trimDuration = endSec - startSec;
                     long bytesToWrite = (long)(trimDuration * format.AverageBytesPerSecond);
                     int blockAlign = format.BlockAlign;
                     bytesToWrite = bytesToWrite / blockAlign * blockAlign;
                     if (bytesToWrite <= 0) return;
+
+                    float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
 
                     using var recorder = StreamingRecorderFactory.CreateForFile(_filePath);
                     recorder.BeginRecording(tempPath, format);
@@ -401,6 +433,8 @@ namespace PaDDY
                         int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
+                        if (!noGain)
+                            ApplyGainToBuffer(buffer, read, format, gainFactor);
                         recorder.AppendSamples(buffer, 0, read);
                         written += read;
                     }
@@ -428,6 +462,43 @@ namespace PaDDY
             return ts.TotalSeconds < 60
                 ? $"{ts.TotalSeconds:0.0}s"
                 : $"{(int)ts.TotalMinutes}m {ts.Seconds:00}s";
+        }
+
+        /// <summary>
+        /// Multiplies every PCM sample in <paramref name="buffer"/> by <paramref name="factor"/>,
+        /// clamping to avoid overflow.  Supports 16-bit PCM and 32-bit IEEE float formats.
+        /// </summary>
+        private static void ApplyGainToBuffer(byte[] buffer, int count, WaveFormat format, float factor)
+        {
+            int bytesPerSample = format.BitsPerSample / 8;
+            int samples = count / bytesPerSample;
+
+            if (format.BitsPerSample == 16)
+            {
+                for (int i = 0; i < samples; i++)
+                {
+                    int offset = i * 2;
+                    short s = BitConverter.ToInt16(buffer, offset);
+                    int scaled = (int)(s * factor);
+                    short clamped = (short)Math.Clamp(scaled, short.MinValue, short.MaxValue);
+                    buffer[offset]     = (byte)(clamped & 0xFF);
+                    buffer[offset + 1] = (byte)((clamped >> 8) & 0xFF);
+                }
+            }
+            else if (format.BitsPerSample == 32)
+            {
+                for (int i = 0; i < samples; i++)
+                {
+                    int offset = i * 4;
+                    float f = BitConverter.ToSingle(buffer, offset);
+                    f = Math.Clamp(f * factor, -1f, 1f);
+                    byte[] fb = BitConverter.GetBytes(f);
+                    buffer[offset]     = fb[0];
+                    buffer[offset + 1] = fb[1];
+                    buffer[offset + 2] = fb[2];
+                    buffer[offset + 3] = fb[3];
+                }
+            }
         }
 
         // ── Byte-limiting wrapper ───────────────────────────────────────────
