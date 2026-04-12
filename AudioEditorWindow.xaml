@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Trim Audio"
         Icon="PaDDY.ico"
-        Width="720" Height="340"
+        Width="720" Height="390"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FF1E1E1E">
@@ -48,6 +48,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -160,8 +161,38 @@
                        HorizontalAlignment="Right"/>
         </Grid>
 
-        <!-- Row 3 — Controls -->
-        <DockPanel Grid.Row="3" Margin="0,12,0,0" LastChildFill="False">
+        <!-- Row 3 — Gain control -->
+        <Grid Grid.Row="3" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="56"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="Gain:"
+                       Foreground="#FFD0D0D0"
+                       VerticalAlignment="Center"
+                       FontSize="12"/>
+            <Slider x:Name="GainSlider"
+                    Grid.Column="1"
+                    Minimum="-24"
+                    Maximum="24"
+                    Value="0"
+                    TickFrequency="1"
+                    IsSnapToTickEnabled="True"
+                    VerticalAlignment="Center"
+                    ValueChanged="GainSlider_ValueChanged"/>
+            <TextBlock x:Name="GainLabel"
+                       Grid.Column="2"
+                       Text="0 dB"
+                       Foreground="#FF9E9E9E"
+                       FontSize="11"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- Row 4 — Controls -->
+        <DockPanel Grid.Row="4" Margin="0,12,0,0" LastChildFill="False">
             <!-- Left side: Play preview -->
             <Button x:Name="PlayBtn"
                     Style="{StaticResource DarkBtn}"

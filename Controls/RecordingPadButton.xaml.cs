@@ -67,7 +67,8 @@ namespace PaDDY.Controls
 
         /// <summary>Fired when the user toggles the favorite (â­) button.</summary>
         public event EventHandler? FavoriteToggled;
-
+        /// <summary>Fired after a successful rename; args are (oldFilePath, newFilePath).</summary>
+        public event Action<string, string>? FileRenamed;
         public RecordingPadButton()
         {
             InitializeComponent();
@@ -275,9 +276,11 @@ namespace PaDDY.Controls
             try
             {
                 StopPlayback();
+                string oldPath = Entry.FilePath;
                 File.Move(Entry.FilePath, newPath);
                 Entry.FilePath = newPath;
                 SetEntry(Entry);
+                FileRenamed?.Invoke(oldPath, newPath);
             }
             catch (Exception ex)
             {

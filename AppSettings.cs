@@ -39,6 +39,10 @@ namespace PaDDY
         // Output codec for new recordings: "wav", "mp3", "opus", "ogg"
         public string RecordCodec { get; set; } = "wav";
 
+        // Sort order for the recordings pad panel
+        // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest
+        public int PadSortOrder { get; set; } = 0;
+
         private static readonly string SettingsPath =
             Path.Combine(AppContext.BaseDirectory, "appsettings.json");
 

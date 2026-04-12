@@ -58,6 +58,7 @@ namespace PaDDY
             PopulateOutputDevices();
             PopulateListenOutputDevices();
             PopulateRecordingModes();
+            PopulateSortOrderCombo();
             ApplySettings();
             LoadFavoritesFromSettings();
             LoadNonFavoriteRecordingsFromDisk();
@@ -84,6 +85,52 @@ namespace PaDDY
             RecordingModeCombo.Items.Clear();
             RecordingModeCombo.Items.Add("Auto VAD");
             RecordingModeCombo.Items.Add("Key Buffer");
+        }
+
+        private static readonly string[] SortOrderLabels =
+        {
+            "Newest first",
+            "Oldest first",
+            "Name A\u2192Z",
+            "Name Z\u2192A",
+            "Longest",
+            "Shortest"
+        };
+
+        private void PopulateSortOrderCombo()
+        {
+            SortOrderCombo.Items.Clear();
+            foreach (var label in SortOrderLabels)
+                SortOrderCombo.Items.Add(label);
+            SortOrderCombo.SelectedIndex = Math.Clamp(_settings.PadSortOrder, 0, SortOrderLabels.Length - 1);
+        }
+
+        private void SortOrderCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+            _settings.PadSortOrder = SortOrderCombo.SelectedIndex;
+            _settings.Save();
+            SortPadPanel();
+        }
+
+        private void SortPadPanel()
+        {
+            var buttons = PadPanel.Children.OfType<RecordingPadButton>().ToList();
+            if (buttons.Count < 2) return;
+
+            IEnumerable<RecordingPadButton> sorted = _settings.PadSortOrder switch
+            {
+                1 => buttons.OrderBy(b => b.Entry?.CreatedAt ?? DateTime.MinValue),
+                2 => buttons.OrderBy(b => b.Entry?.FileName ?? string.Empty, StringComparer.OrdinalIgnoreCase),
+                3 => buttons.OrderByDescending(b => b.Entry?.FileName ?? string.Empty, StringComparer.OrdinalIgnoreCase),
+                4 => buttons.OrderByDescending(b => b.Entry?.Duration ?? TimeSpan.Zero),
+                5 => buttons.OrderBy(b => b.Entry?.Duration ?? TimeSpan.Zero),
+                _ => buttons.OrderByDescending(b => b.Entry?.CreatedAt ?? DateTime.MinValue) // 0 = Newest first
+            };
+
+            PadPanel.Children.Clear();
+            foreach (var btn in sorted)
+                PadPanel.Children.Add(btn);
         }
 
         private void PopulateInputDevices()
@@ -135,6 +182,7 @@ namespace PaDDY
                 ListenOutputDeviceCombo.Items.Count - 1);
             ListenOutputDeviceCombo.SelectedIndex = clamped;
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
+            ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
         }
 
         private void PopulateLoopbackDevices()
@@ -184,13 +232,13 @@ namespace PaDDY
                 ? Path.Combine(AppContext.BaseDirectory, "recordings")
                 : _settings.SaveFolder;
             _captureService.SaveFolder = folder;
-            FolderLabel.Text = folder;
 
             _captureService.Sensitivity = _settings.Sensitivity;
             _captureService.SilenceTimeoutMs = _settings.SilenceTimeoutMs;
 
             UpdateInputControlsForSource();
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
+            ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
             RefreshPadOutputRouting();
         }
 
@@ -315,6 +363,7 @@ namespace PaDDY
             _settings.ListenOutputEnabled = ListenOutputEnabledCheck.IsChecked == true;
             _settings.Save();
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
+            ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
             RefreshPadOutputRouting();
         }
 
@@ -442,23 +491,6 @@ namespace PaDDY
             _settings.Save();
         }
 
-        // ── Folder selection ───────────────────────────────────────────────────
-        [SupportedOSPlatform("windows")]
-        private void ChangeFolderButton_Click(object sender, RoutedEventArgs e)
-        {
-            using var dlg = new FolderBrowserDialog
-            {
-                Description = "Select folder to save recordings",
-                UseDescriptionForTitle = true,
-                SelectedPath = _captureService.SaveFolder
-            };
-            if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-
-            _captureService.SaveFolder = dlg.SelectedPath;
-            FolderLabel.Text = dlg.SelectedPath;
-            _settings.SaveFolder = dlg.SelectedPath;
-            _settings.Save();
-        }
 
         private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
         {
@@ -491,7 +523,6 @@ namespace PaDDY
             _captureService.RecordCodec = win.SelectedCodec;
             _captureService.SaveFolder = win.SelectedSaveFolder;
             _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
-            FolderLabel.Text = win.SelectedSaveFolder;
 
             // Re-register hotkey with new key
             _hotkeyService.Reregister(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
@@ -611,6 +642,11 @@ namespace PaDDY
                 }
             };
 
+            btn.FileRenamed += (oldPath, newPath) =>
+            {
+                UpdateFavoritePathAfterRename(oldPath, newPath);
+            };
+
             btn.FavoriteToggled += (s, _) =>
             {
                 if (s is not RecordingPadButton b || b.Entry == null) return;
@@ -646,7 +682,10 @@ namespace PaDDY
             if (entry.IsFavorite)
                 FavoritesPanel.Children.Insert(0, btn);
             else
+            {
                 PadPanel.Children.Insert(0, btn);
+                SortPadPanel();
+            }
 
             EnforceMaxRecords();
             UpdatePadState();
@@ -670,15 +709,16 @@ namespace PaDDY
                     {
                         FilePath = path,
                         Duration = reader.TotalTime,
+                        CreatedAt = File.GetCreationTime(path),
                         IsFavorite = true
                     };
                     var btn = CreatePadButton(entry);
                     FavoritesPanel.Children.Add(btn);
                 }
-                catch { toRemove.Add(path); }
+                catch { /* skip unreadable files — do NOT remove from favorites */ }
             }
 
-            // Clean up missing files
+            // Clean up only files confirmed missing from disk
             foreach (var p in toRemove)
                 _settings.FavoriteFilePaths.Remove(p);
             if (toRemove.Count > 0) _settings.Save();
@@ -696,7 +736,7 @@ namespace PaDDY
             IEnumerable<FileInfo> files = new DirectoryInfo(folder)
                 .EnumerateFiles("*.*")
                 .Where(f => IsAudioFile(f.Name) && !favSet.Contains(f.FullName))
-                .OrderByDescending(f => f.CreationTime);
+                .OrderByDescending(f => f.CreationTime); // initial load always newest-first; SortPadPanel applied after
 
             int max = _settings.MaxRecords;
             if (max > 0)
@@ -720,6 +760,7 @@ namespace PaDDY
                 catch { /* skip unreadable files */ }
             }
 
+            SortPadPanel();
             UpdatePadState();
         }
 
@@ -736,6 +777,17 @@ namespace PaDDY
         {
             _settings.FavoriteFilePaths.Remove(filePath);
             _settings.Save();
+        }
+
+        private void UpdateFavoritePathAfterRename(string oldPath, string newPath)
+        {
+            int idx = _settings.FavoriteFilePaths
+                .FindIndex(p => string.Equals(p, oldPath, StringComparison.OrdinalIgnoreCase));
+            if (idx >= 0)
+            {
+                _settings.FavoriteFilePaths[idx] = newPath;
+                _settings.Save();
+            }
         }
 
         private void UpdatePadState()
