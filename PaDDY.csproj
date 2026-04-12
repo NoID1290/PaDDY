@@ -8,9 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>noidsoftwork.core.paddy</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>0.6.2.0412</Version>
-    <AssemblyVersion>0.6.2.0412</AssemblyVersion>
-    <FileVersion>0.6.2.0412</FileVersion>
+    <Version>0.6.3.0412</Version>
+    <AssemblyVersion>0.6.3.0412</AssemblyVersion>
+    <FileVersion>0.6.3.0412</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
   </PropertyGroup>
@@ -26,13 +26,9 @@
     <Resource Include="PaDDY.ico" />
   </ItemGroup>
   <Target Name="RenameExeAfterBuild" AfterTargets="Build">
-    <Move SourceFiles="$(OutputPath)noidsoftwork.core.paddy.exe"
-          DestinationFiles="$(OutputPath)PaDDY.exe"
-          Condition="Exists('$(OutputPath)noidsoftwork.core.paddy.exe')" />
+    <Move SourceFiles="$(OutputPath)noidsoftwork.core.paddy.exe" DestinationFiles="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)noidsoftwork.core.paddy.exe')" />
   </Target>
   <Target Name="RenameExeAfterPublish" AfterTargets="Publish">
-    <Move SourceFiles="$(PublishDir)noidsoftwork.core.paddy.exe"
-          DestinationFiles="$(PublishDir)PaDDY.exe"
-          Condition="Exists('$(PublishDir)noidsoftwork.core.paddy.exe')" />
+    <Move SourceFiles="$(PublishDir)noidsoftwork.core.paddy.exe" DestinationFiles="$(PublishDir)PaDDY.exe" Condition="Exists('$(PublishDir)noidsoftwork.core.paddy.exe')" />
   </Target>
 </Project>
