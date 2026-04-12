@@ -5,7 +5,7 @@
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Paddy is a Windows WPF recording pad app for quickly capturing, organizing, and replaying short audio clips.
+Windows application recording pad for quickly capturing, organizing, and replaying short audio clips.
 
 ## Why Paddy
 
