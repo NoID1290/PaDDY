@@ -4,6 +4,15 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.7.0.0412] - 2026-04-12
+
+- Enhance folder button in MainWindow.xaml with an emoji icon for better visual representation
+- Enhance audio seeking for Opus files by implementing decode-and-discard method to ensure accurate playback position
+- Enhance OpusRecorder to support dynamic resampling and channel downmixing for improved audio quality
+- Refactor buffer manipulation for audio processing to improve readability
+- Add sorting functionality for recordings and gain control in audio editor
+- Remove outdated configuration and development sections from README.md
+
 ## [0.6.3.0412] - 2026-04-12
 
 - Update AssemblyName to 'noidsoftwork.core.paddy' and add targets for renaming executable
