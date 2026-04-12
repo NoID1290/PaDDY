@@ -10,6 +10,7 @@ Windows application recording pad for quickly capturing, organizing, and replayi
 ## Why PaDDY
 
 PaDDY is designed for fast voice/audio capture with minimal friction:
+
 - monitor microphone or system output
 - auto-save clips with voice activity detection (AutoVAD)
 - capture a rolling buffer on demand with a global hotkey (Key Buffer mode)
@@ -46,11 +47,13 @@ PaDDY is designed for fast voice/audio capture with minimal friction:
 ## Getting Started
 
 ### Option 1: Use a release build
+
 1. Download the latest release artifact.
 2. Extract it.
 3. Run `Paddy.exe`.
 
 ### Option 2: Build from source
+
 ```powershell
 dotnet restore Paddy.sln
 dotnet build Paddy.csproj --configuration Release
@@ -73,6 +76,7 @@ dotnet build Paddy.csproj --configuration Release
 Settings are saved in `appsettings.json` next to the app executable.
 
 Configurable options include:
+
 - capture source/device and playback devices
 - codec, sample rate, bit depth, channels
 - save folder
@@ -92,6 +96,7 @@ Configurable options include:
 ## Development
 
 CI workflow restores and builds the app on Windows via:
+
 - `.github/workflows/dotnet-desktop.yml`
 
 ## Contributing

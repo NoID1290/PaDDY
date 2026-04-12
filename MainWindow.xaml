@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Paddy.Controls"
-        Title="Paddy — Auto Voice Recorder"
+        Title="PaDDY"
         Icon="Paddy.ico"
         Height="700"
         Width="960"
