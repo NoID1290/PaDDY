@@ -71,40 +71,7 @@ dotnet build PaDDY.csproj --configuration Release
 4. New clips appear as pads in the recordings area.
 5. Click a pad to play/stop. Use pad actions to favorite, rename, trim, or delete.
 
-## Configuration
-
-Settings are saved in `appsettings.json` next to the app executable.
-
-Configurable options include:
-
-- capture source/device and playback devices
-- codec, sample rate, bit depth, channels
-- save folder
-- AutoVAD sensitivity and silence timeout
-- Key Buffer duration and global hotkey (default `Ctrl+F9`)
-- max recordings limit
-
-## Repository Structure
-
-- `/Controls` - reusable UI controls (recording pad, dialogs)
-- `/Services` - capture, encoding, playback, hotkey, and audio IO services
-- `/Models` - data models
-- `MainWindow.*` - primary app UI and interaction logic
-- `SettingsWindow.*` - settings UI and persistence wiring
-- `AudioEditorWindow.*` - waveform trim editor
-
-## Development
-
-CI workflow restores and builds the app on Windows via:
-
-- `.github/workflows/dotnet-desktop.yml`
-
-## Contributing
-
-Issues and pull requests are welcome.
-
 ## License
 
 This project is licensed under the MIT License.  
 NoID Softwork © 2020-2026.
-
