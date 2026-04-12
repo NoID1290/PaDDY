@@ -481,7 +481,7 @@ namespace PaDDY
                     short s = BitConverter.ToInt16(buffer, offset);
                     int scaled = (int)(s * factor);
                     short clamped = (short)Math.Clamp(scaled, short.MinValue, short.MaxValue);
-                    buffer[offset]     = (byte)(clamped & 0xFF);
+                    buffer[offset] = (byte)(clamped & 0xFF);
                     buffer[offset + 1] = (byte)((clamped >> 8) & 0xFF);
                 }
             }
@@ -493,7 +493,7 @@ namespace PaDDY
                     float f = BitConverter.ToSingle(buffer, offset);
                     f = Math.Clamp(f * factor, -1f, 1f);
                     byte[] fb = BitConverter.GetBytes(f);
-                    buffer[offset]     = fb[0];
+                    buffer[offset] = fb[0];
                     buffer[offset + 1] = fb[1];
                     buffer[offset + 2] = fb[2];
                     buffer[offset + 3] = fb[3];
