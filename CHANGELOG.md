@@ -4,6 +4,14 @@ All notable changes to Paddy will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.6.1.0411] - 2026-04-11
+
+- First public release
+- fix: Correct spelling of 'Paddy' to 'PaDDY' in various files
+- Fix spelling of 'Paddy' to 'PaDDY' in README
+- Update README description for Paddy application
+- Enhance README with detailed application information
+
 ## [0.6.0.0325] - 2026-03-25
 
 - refactor: Replace AudioFileReader with AudioReaderFactory for improved audio handling and update copyright year in push script
