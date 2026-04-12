@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.6.3.0412] - 2026-04-12
+
+- Update AssemblyName to 'noidsoftwork.core.paddy' and add targets for renaming executable
+
 ## [0.6.2.0412] - 2026-04-12
 
 - Rename 'Paddy' to 'PaDDY' across the project
