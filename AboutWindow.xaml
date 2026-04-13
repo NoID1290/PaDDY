@@ -98,6 +98,8 @@
                         TextWrapping="Wrap"
                            Text="PaDDY listens to your microphone or system audio and automatically saves clips when it detects voice activity. It also supports a Key Buffer mode for on-demand recording using a global hotkey."
                            Foreground="#FFBBBBBB"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
                         Margin="0,0,0,12"/>
 
                 <Separator Background="#FF3A3A3A"
@@ -130,6 +132,7 @@
                 <TextBlock x:Name="CopyrightLabel"
                            Text="© 2020-2026 NoID Softwork. All rights reserved."
                            FontSize="10"
+                           HorizontalAlignment="Center"
                            Foreground="#FF616161"/>
             </StackPanel>
         </Border>

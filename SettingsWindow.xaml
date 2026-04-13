@@ -4,7 +4,7 @@
         Title="PaDDY — Settings"
         Icon="PaDDY.ico"
         Width="480"
-        Height="600"
+        Height="650"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FF1E1E1E"
