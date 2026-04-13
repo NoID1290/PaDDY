@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Trim Audio"
         Icon="PaDDY.ico"
-        Width="720" Height="390"
+        Width="780" Height="390"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FF1E1E1E">
@@ -69,78 +69,123 @@
                        VerticalAlignment="Center"/>
         </DockPanel>
 
-        <!-- Row 1 — Waveform area -->
-        <Border Grid.Row="1"
-                Background="#FF161616"
-                BorderBrush="#FF444444"
-                BorderThickness="1"
-                CornerRadius="4"
-                ClipToBounds="True">
-            <Grid x:Name="WaveformGrid">
-                <!-- Waveform image -->
-                <Image x:Name="WaveformImage"
-                       Stretch="Fill"
-                       RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+        <!-- Row 1 — Waveform area + vertical meter -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="24"/>
+            </Grid.ColumnDefinitions>
 
-                <!-- Left excluded overlay -->
-                <Border x:Name="LeftOverlay"
-                        Background="#AA000000"
-                        HorizontalAlignment="Left"
-                        Width="0"/>
+            <!-- Waveform -->
+            <Border Grid.Column="0"
+                    Background="#FF161616"
+                    BorderBrush="#FF444444"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    ClipToBounds="True">
+                <Grid x:Name="WaveformGrid">
+                    <!-- Waveform image -->
+                    <Image x:Name="WaveformImage"
+                           Stretch="Fill"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
 
-                <!-- Right excluded overlay -->
-                <Border x:Name="RightOverlay"
-                        Background="#AA000000"
-                        HorizontalAlignment="Right"
-                        Width="0"/>
+                    <!-- Left excluded overlay -->
+                    <Border x:Name="LeftOverlay"
+                            Background="#AA000000"
+                            HorizontalAlignment="Left"
+                            Width="0"/>
 
-                <!-- Playback position indicator -->
-                <Border x:Name="PlaybackLine"
-                        Background="#FFFFC107"
-                        Width="2"
-                        HorizontalAlignment="Left"
-                        Margin="0"
-                        Visibility="Collapsed">
-                    <Border.RenderTransform>
-                        <TranslateTransform x:Name="PlaybackLineTransform" X="0"/>
-                    </Border.RenderTransform>
-                </Border>
+                    <!-- Right excluded overlay -->
+                    <Border x:Name="RightOverlay"
+                            Background="#AA000000"
+                            HorizontalAlignment="Right"
+                            Width="0"/>
 
-                <!-- Left trim handle -->
-                <Thumb x:Name="LeftHandle"
-                       Width="10"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Stretch"
-                       Cursor="SizeWE"
-                       DragDelta="LeftHandle_DragDelta">
-                    <Thumb.Template>
-                        <ControlTemplate TargetType="Thumb">
-                            <Border Background="#CC4CAF50"
-                                    CornerRadius="2,0,0,2"
-                                    BorderBrush="#FF66BB6A"
-                                    BorderThickness="1,0,0,0"/>
-                        </ControlTemplate>
-                    </Thumb.Template>
-                </Thumb>
+                    <!-- Playback position indicator -->
+                    <Border x:Name="PlaybackLine"
+                            Background="#FFFFC107"
+                            Width="2"
+                            HorizontalAlignment="Left"
+                            Margin="0"
+                            Visibility="Collapsed">
+                        <Border.RenderTransform>
+                            <TranslateTransform x:Name="PlaybackLineTransform" X="0"/>
+                        </Border.RenderTransform>
+                    </Border>
 
-                <!-- Right trim handle -->
-                <Thumb x:Name="RightHandle"
-                       Width="10"
-                       HorizontalAlignment="Right"
-                       VerticalAlignment="Stretch"
-                       Cursor="SizeWE"
-                       DragDelta="RightHandle_DragDelta">
-                    <Thumb.Template>
-                        <ControlTemplate TargetType="Thumb">
-                            <Border Background="#CC4CAF50"
-                                    CornerRadius="0,2,2,0"
-                                    BorderBrush="#FF66BB6A"
-                                    BorderThickness="0,0,1,0"/>
-                        </ControlTemplate>
-                    </Thumb.Template>
-                </Thumb>
-            </Grid>
-        </Border>
+                    <!-- Left trim handle -->
+                    <Thumb x:Name="LeftHandle"
+                           Width="10"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Stretch"
+                           Cursor="SizeWE"
+                           DragDelta="LeftHandle_DragDelta">
+                        <Thumb.Template>
+                            <ControlTemplate TargetType="Thumb">
+                                <Border Background="#CC4CAF50"
+                                        CornerRadius="2,0,0,2"
+                                        BorderBrush="#FF66BB6A"
+                                        BorderThickness="1,0,0,0"/>
+                            </ControlTemplate>
+                        </Thumb.Template>
+                    </Thumb>
+
+                    <!-- Right trim handle -->
+                    <Thumb x:Name="RightHandle"
+                           Width="10"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Stretch"
+                           Cursor="SizeWE"
+                           DragDelta="RightHandle_DragDelta">
+                        <Thumb.Template>
+                            <ControlTemplate TargetType="Thumb">
+                                <Border Background="#CC4CAF50"
+                                        CornerRadius="0,2,2,0"
+                                        BorderBrush="#FF66BB6A"
+                                        BorderThickness="0,0,1,0"/>
+                            </ControlTemplate>
+                        </Thumb.Template>
+                    </Thumb>
+                </Grid>
+            </Border>
+
+            <!-- Vertical level meter -->
+            <Border Grid.Column="1"
+                    Background="#FF1A1A1A"
+                    BorderBrush="#FF444444"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4,0,0,0"
+                    ClipToBounds="True">
+                <Grid x:Name="VertMeterGrid">
+                    <!-- Gradient fill: bottom = quiet/green, top = loud/red -->
+                    <Rectangle x:Name="VertMeterBar" VerticalAlignment="Stretch">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                <GradientStop Color="#FF2E7D32" Offset="0.0"/>
+                                <GradientStop Color="#FF4CAF50" Offset="0.35"/>
+                                <GradientStop Color="#FFFDD835" Offset="0.70"/>
+                                <GradientStop Color="#FFFF9800" Offset="0.85"/>
+                                <GradientStop Color="#FFF44336" Offset="0.95"/>
+                                <GradientStop Color="#FFD50000" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <!-- Dark overlay covers the top (quiet) portion -->
+                    <Rectangle x:Name="VertMeterOverlay"
+                               Fill="#FF1A1A1A"
+                               VerticalAlignment="Top"
+                               Height="10000"/>
+                    <!-- Peak hold line -->
+                    <Canvas x:Name="VertPeakCanvas" VerticalAlignment="Stretch">
+                        <Rectangle x:Name="VertPeakLine"
+                                   Width="24" Height="2"
+                                   Fill="#FFFFC107"
+                                   Visibility="Collapsed"/>
+                    </Canvas>
+                </Grid>
+            </Border>
+        </Grid>
 
         <!-- Row 2 — Time labels -->
         <Grid Grid.Row="2" Margin="0,6,0,0">
@@ -193,14 +238,20 @@
 
         <!-- Row 4 — Controls -->
         <DockPanel Grid.Row="4" Margin="0,12,0,0" LastChildFill="False">
-            <!-- Left side: Play preview -->
+            <!-- Left side: Play preview + Add to Favourites -->
             <Button x:Name="PlayBtn"
                     Style="{StaticResource DarkBtn}"
                     Content="▶  Preview"
                     DockPanel.Dock="Left"
                     Click="PlayBtn_Click"/>
+            <CheckBox x:Name="SaveToFavCheckBox"
+                      Content="Add to Favourites"
+                      Foreground="#FFD0D0D0"
+                      DockPanel.Dock="Left"
+                      Margin="12,0,0,0"
+                      VerticalAlignment="Center"/>
 
-            <!-- Right side: Cancel + Save -->
+            <!-- Right side: Cancel + Save as Copy + Save Trim -->
             <Button x:Name="SaveBtn"
                     Style="{StaticResource DarkBtn}"
                     Content="✂  Save Trim"
@@ -211,7 +262,12 @@
                     <SolidColorBrush Color="#FF2E7D32"/>
                 </Button.Background>
             </Button>
-
+            <Button x:Name="SaveCopyBtn"
+                    Style="{StaticResource DarkBtn}"
+                    Content="✂  Save as Copy"
+                    DockPanel.Dock="Right"
+                    Margin="8,0,0,0"
+                    Click="SaveCopyBtn_Click"/>
             <Button Style="{StaticResource DarkBtn}"
                     Content="Cancel"
                     DockPanel.Dock="Right"

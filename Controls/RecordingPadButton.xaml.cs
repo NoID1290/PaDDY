@@ -69,6 +69,8 @@ namespace PaDDY.Controls
         public event EventHandler? FavoriteToggled;
         /// <summary>Fired after a successful rename; args are (oldFilePath, newFilePath).</summary>
         public event Action<string, string>? FileRenamed;
+        /// <summary>Fired when "Save as Copy" produces a new file; args are (newFilePath, addToFavorite).</summary>
+        public event Action<string, bool>? RecordingCopied;
         public RecordingPadButton()
         {
             InitializeComponent();
@@ -134,12 +136,17 @@ namespace PaDDY.Controls
         private void RenameBtn_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            MenuRename_Click(sender, e);
+            OpenRename();
         }
 
         private void TrimBtn_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
+            OpenAudioEditor();
+        }
+
+        public void OpenAudioEditor()
+        {
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
             StopPlayback();
 
@@ -149,14 +156,29 @@ namespace PaDDY.Controls
             };
             if (editor.ShowDialog() == true)
             {
-                // Re-read duration from the trimmed file
-                try
+                if (editor.CopyFilePath != null)
                 {
-                    using var reader = AudioReaderFactory.Open(Entry.FilePath);
-                    Entry.Duration = reader.TotalTime;
+                    // "Save as Copy" — fire event so MainWindow adds a new pad
+                    RecordingCopied?.Invoke(editor.CopyFilePath, editor.ShouldSaveToFavorite);
                 }
-                catch { }
-                SetEntry(Entry);
+                else
+                {
+                    // In-place save — re-read duration from the trimmed file
+                    try
+                    {
+                        using var reader = AudioReaderFactory.Open(Entry.FilePath);
+                        Entry.Duration = reader.TotalTime;
+                    }
+                    catch { }
+                    SetEntry(Entry);
+
+                    if (editor.ShouldSaveToFavorite && !IsFavorite)
+                    {
+                        IsFavorite = true;
+                        Entry.IsFavorite = true;
+                        FavoriteToggled?.Invoke(this, EventArgs.Empty);
+                    }
+                }
             }
         }
 
@@ -257,6 +279,11 @@ namespace PaDDY.Controls
 
         // â”€â”€ Context menu handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private void MenuRename_Click(object sender, RoutedEventArgs e)
+        {
+            OpenRename();
+        }
+
+        public void OpenRename()
         {
             if (Entry == null) return;
 
