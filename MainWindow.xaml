@@ -343,6 +343,36 @@
             <WrapPanel Orientation="Horizontal"
                     VerticalAlignment="Center">
 
+                <!-- Start/Stop toggle -->
+                <ToggleButton x:Name="MonitorToggle"
+                              Margin="0,0,8,0"
+                              Checked="MonitorToggle_Checked"
+                              Unchecked="MonitorToggle_Unchecked"/>
+
+                <!-- Folder -->
+                <Button Margin="0,0,8,0"
+                    Padding="8,0"
+                    ToolTip="Open recordings folder in Explorer"
+                    Click="OpenFolderButton_Click">
+                    <TextBlock Text="&#x1F4C1;"
+                           FontFamily="Segoe UI Emoji"
+                           FontSize="15"/>
+                </Button>
+
+                <!-- Settings + About -->
+                <Button Content="⚙ Settings"
+                        Margin="0,0,6,0"
+                        Click="SettingsButton_Click"/>
+                <Button Content="ℹ About"
+                        Click="AboutButton_Click"/>
+
+                <!-- Separator -->
+                <Rectangle Width="1"
+                           Height="20"
+                           Fill="#FF444444"
+                           Margin="12,0,12,0"
+                           VerticalAlignment="Center"/>
+
                 <!-- Input device -->
                 <StackPanel Orientation="Horizontal"
                         Margin="0,0,12,0">
@@ -413,29 +443,6 @@
                               SelectionChanged="RecordingModeCombo_SelectionChanged"
                               ToolTip="AutoVAD: auto-detect speech. Key Buffer: save last N seconds on hotkey press."/>
                 </StackPanel>
-
-                <!-- Start/Stop toggle -->
-                <ToggleButton x:Name="MonitorToggle"
-                              Margin="0,0,12,0"
-                              Checked="MonitorToggle_Checked"
-                              Unchecked="MonitorToggle_Unchecked"/>
-
-                <!-- Folder -->
-                <Button Margin="0,0,12,0"
-                    Padding="8,0"
-                    ToolTip="Open recordings folder in Explorer"
-                    Click="OpenFolderButton_Click">
-                    <TextBlock Text="&#x1F4C1;"
-                           FontFamily="Segoe UI Emoji"
-                           FontSize="15"/>
-                </Button>
-
-                <!-- Settings + About -->
-                <Button Content="⚙ Settings"
-                        Margin="0,0,6,0"
-                        Click="SettingsButton_Click"/>
-                <Button Content="ℹ About"
-                        Click="AboutButton_Click"/>
             </WrapPanel>
         </Border>
 

@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Input;
 using System.Windows.Media;
 using NAudio.Wave;
 using PaDDY.Controls;
@@ -23,6 +24,7 @@ namespace PaDDY
         private List<(string Id, string Name)> _loopbackDevices = new();
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
+        private RecordingPadButton? _hoveredPad;
 
         // Peak hold state
         private const double PeakThresholdDb = -1.0;
@@ -47,6 +49,17 @@ namespace PaDDY
             Closing += MainWindow_Closing;
             ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
+            this.PreviewKeyDown += OnPadHotKey;
+        }
+
+        private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (_hoveredPad == null) return;
+            // Don't intercept when a text-entry control has keyboard focus
+            if (Keyboard.FocusedElement is System.Windows.Controls.TextBox ||
+                Keyboard.FocusedElement is System.Windows.Controls.ComboBox) return;
+            if (e.Key == Key.E) { e.Handled = true; _hoveredPad.OpenAudioEditor(); }
+            else if (e.Key == Key.R) { e.Handled = true; _hoveredPad.OpenRename(); }
         }
 
         // ── Startup ────────────────────────────────────────────────────────────
@@ -668,6 +681,27 @@ namespace PaDDY
                 }
                 UpdatePadState();
             };
+
+            btn.RecordingCopied += (copyPath, asFav) =>
+            {
+                if (!File.Exists(copyPath)) return;
+                try
+                {
+                    using var reader = PaDDY.Services.AudioReaderFactory.Open(copyPath);
+                    var newEntry = new RecordingEntry
+                    {
+                        FilePath = copyPath,
+                        Duration = reader.TotalTime,
+                        CreatedAt = File.GetCreationTime(copyPath),
+                        IsFavorite = asFav
+                    };
+                    AddPadButton(newEntry, asFav);
+                }
+                catch { }
+            };
+
+            btn.MouseEnter += (s, _) => _hoveredPad = s as RecordingPadButton;
+            btn.MouseLeave += (_, _) => { if (_hoveredPad == btn) _hoveredPad = null; };
 
             return btn;
         }

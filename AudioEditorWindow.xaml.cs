@@ -37,6 +37,17 @@ namespace PaDDY
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
+        // Stored waveform peaks for gain-responsive re-render
+        private (float min, float max)[]? _originalPeaks;
+
+        // Vertical meter state
+        private MeteringSampleProvider? _meterProvider;
+        private double _vertPeakFrac;
+        private DateTime _vertPeakHeldAt = DateTime.MinValue;
+
+        public string? CopyFilePath { get; private set; }
+        public bool ShouldSaveToFavorite => SaveToFavCheckBox.IsChecked == true;
+
         public AudioEditorWindow(string filePath)
         {
             InitializeComponent();
@@ -99,6 +110,8 @@ namespace PaDDY
             _gainDb = e.NewValue;
             if (GainLabel != null)
                 GainLabel.Text = _gainDb == 0.0 ? "0 dB" : $"{_gainDb:+0;-0} dB";
+            if (_originalPeaks != null)
+                RenderWaveformFromPeaks();
         }
 
         private void RenderWaveform(ISampleProvider sampleProvider, WaveFormat waveFormat)
@@ -139,25 +152,36 @@ namespace PaDDY
                 samplesRead += monoRead;
             }
 
-            // Draw to WriteableBitmap
+            // Store peaks and delegate rendering to RenderWaveformFromPeaks (supports gain preview)
+            _originalPeaks = peaks;
+            RenderWaveformFromPeaks();
+        }
+
+        private void RenderWaveformFromPeaks()
+        {
+            if (_originalPeaks == null) return;
+
+            int width = (int)WaveformGrid.ActualWidth;
+            int height = (int)WaveformGrid.ActualHeight;
+            if (width < 10 || height < 10) { width = 680; height = 180; }
+
+            float gainFactor = (float)Math.Pow(10.0, _gainDb / 20.0);
+
             var bmp = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
             int stride = width * 4;
             byte[] pixels = new byte[stride * height];
-
             int midY = height / 2;
 
-            // Background is transparent (the parent Border provides #FF161616)
             // Draw centre line
             for (int x = 0; x < width; x++)
-            {
                 SetPixel(pixels, stride, x, midY, 0x44, 0x44, 0x44, 0xFF);
-            }
 
-            // Draw waveform
-            for (int x = 0; x < width; x++)
+            // Draw waveform with gain applied
+            int peakLen = _originalPeaks.Length;
+            for (int x = 0; x < width && x < peakLen; x++)
             {
-                float pMin = peaks[x].min;
-                float pMax = peaks[x].max;
+                float pMin = Math.Clamp(_originalPeaks[x].min * gainFactor, -1f, 1f);
+                float pMax = Math.Clamp(_originalPeaks[x].max * gainFactor, -1f, 1f);
 
                 int yTop = midY - (int)(pMax * midY);
                 int yBot = midY - (int)(pMin * midY);
@@ -167,7 +191,6 @@ namespace PaDDY
 
                 for (int y = yTop; y <= yBot; y++)
                 {
-                    // Gradient from bright green at centre to darker at extremes
                     float dist = Math.Abs(y - midY) / (float)midY;
                     byte g = (byte)(200 - (int)(dist * 80));
                     byte r = (byte)(40 + (int)(dist * 30));
@@ -268,32 +291,26 @@ namespace PaDDY
                 double startSec = _trimStartFraction * _totalDurationSeconds;
                 double endSec = _trimEndFraction * _totalDurationSeconds;
 
-                // Apply gain if non-zero, otherwise use the byte-limiting wrapper directly
-                IWaveProvider source;
+                // Seek to trim start (Opus-safe: only seek when we need to skip ahead)
+                if (startSec > 0.001)
+                    _reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+
+                ISampleProvider sp = _reader.AsSampleProvider();
+
+                // Apply gain
                 if (Math.Abs(_gainDb) >= 0.01)
-                {
-                    float factor = (float)Math.Pow(10.0, _gainDb / 20.0);
-                    // Seek with same Opus-safe guard used by TrimmedWaveProvider
-                    if (startSec > 0.001)
-                        _reader.CurrentTime = TimeSpan.FromSeconds(startSec);
-                    var gainProvider = new VolumeSampleProvider(_reader.AsSampleProvider()) { Volume = factor };
-                    var limited = new OffsetSampleProvider(gainProvider)
-                    {
-                        Take = TimeSpan.FromSeconds(endSec - startSec)
-                    };
-                    source = new SampleToWaveProvider(limited);
-                }
-                else
-                {
-                    // Byte-limiting wrapper: seeks to startSec and stops feeding audio
-                    // after (endSec - startSec) worth of bytes.  WaveOutEvent will
-                    // naturally drain its internal buffers before firing PlaybackStopped.
-                    source = new TrimmedWaveProvider(_reader, startSec, endSec);
-                }
+                    sp = new VolumeSampleProvider(sp) { Volume = (float)Math.Pow(10.0, _gainDb / 20.0) };
+
+                // Limit to trim region
+                sp = new OffsetSampleProvider(sp) { Take = TimeSpan.FromSeconds(endSec - startSec) };
+
+                // Wrap with metering
+                _meterProvider = new MeteringSampleProvider(sp);
+                _meterProvider.StreamVolume += OnMeterStreamVolume;
 
                 _player = new WaveOutEvent();
                 _player.PlaybackStopped += Player_PlaybackStopped;
-                _player.Init(source);
+                _player.Init(new SampleToWaveProvider(_meterProvider));
                 _player.Play();
 
                 _isPreviewing = true;
@@ -355,6 +372,12 @@ namespace PaDDY
 
             try
             {
+                if (_meterProvider != null)
+                {
+                    _meterProvider.StreamVolume -= OnMeterStreamVolume;
+                    _meterProvider = null;
+                }
+
                 if (_player != null)
                 {
                     _player.PlaybackStopped -= Player_PlaybackStopped;
@@ -377,14 +400,64 @@ namespace PaDDY
                 PlaybackLineTransform.X = 0;
 
                 if (PlayBtn != null)
-                {
                     PlayBtn.Content = "▶  Preview";
-                }
+
+                ResetVertMeter();
             }
             finally
             {
                 _isStoppingPreview = false;
             }
+        }
+
+        // ── Vertical meter ─────────────────────────────────────────────────────────
+
+        private void OnMeterStreamVolume(object? sender, NAudio.Wave.SampleProviders.StreamVolumeEventArgs e)
+        {
+            float maxVal = 0f;
+            foreach (var v in e.MaxSampleValues)
+                if (v > maxVal) maxVal = v;
+            Dispatcher.BeginInvoke(new Action(() => UpdateVertMeter(maxVal)));
+        }
+
+        private void UpdateVertMeter(float linear)
+        {
+            if (VertMeterGrid.ActualHeight <= 0) return;
+
+            double db = linear > 0 ? 20.0 * Math.Log10(linear) : -60.0;
+            double frac = DbToMeterFraction(db);
+            double totalH = VertMeterGrid.ActualHeight;
+
+            // Overlay covers the top (unfilled) portion
+            VertMeterOverlay.Height = Math.Max(0, totalH * (1.0 - frac));
+
+            // Peak hold
+            const double peakHold = 1.5;
+            if (frac > _vertPeakFrac || (DateTime.UtcNow - _vertPeakHeldAt).TotalSeconds > peakHold)
+            {
+                _vertPeakFrac = frac;
+                _vertPeakHeldAt = DateTime.UtcNow;
+            }
+
+            double peakBottom = _vertPeakFrac * totalH;
+            Canvas.SetBottom(VertPeakLine, Math.Clamp(peakBottom, 0, totalH - 2));
+            VertPeakLine.Visibility = Visibility.Visible;
+        }
+
+        private void ResetVertMeter()
+        {
+            if (VertMeterGrid == null) return;
+            _vertPeakFrac = 0;
+            if (VertMeterGrid.ActualHeight > 0)
+                VertMeterOverlay.Height = VertMeterGrid.ActualHeight;
+            VertPeakLine.Visibility = Visibility.Collapsed;
+        }
+
+        private static double DbToMeterFraction(double db)
+        {
+            if (db <= -60.0) return 0.0;
+            if (db >= 0.0) return 1.0;
+            return (db + 60.0) / 60.0;
         }
 
         // ── Save (destructive trim) ────────────────────────────────────────
@@ -483,7 +556,109 @@ namespace PaDDY
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+        // ── Save as Copy ─────────────────────────────────────────────────
 
+        private void SaveCopyBtn_Click(object sender, RoutedEventArgs e)
+        {
+            StopPreview();
+
+            double startSec = _trimStartFraction * _totalDuration.TotalSeconds;
+            double endSec = _trimEndFraction * _totalDuration.TotalSeconds;
+
+            bool noTrim = _trimStartFraction <= 0.001 && _trimEndFraction >= 0.999;
+            bool noGain = Math.Abs(_gainDb) < 0.01;
+
+            // Generate a unique copy path
+            string dir = Path.GetDirectoryName(_filePath)!;
+            string nameNoExt = Path.GetFileNameWithoutExtension(_filePath);
+            string ext = Path.GetExtension(_filePath);
+            string copyPath = Path.Combine(dir, nameNoExt + "_copy" + ext);
+            int counter = 2;
+            while (File.Exists(copyPath))
+                copyPath = Path.Combine(dir, $"{nameNoExt}_copy{counter++}{ext}");
+
+            if (noTrim && noGain)
+            {
+                try
+                {
+                    File.Copy(_filePath, copyPath, overwrite: false);
+                    CopyFilePath = copyPath;
+                    DialogResult = true;
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show($"Copy failed:\n{ex.Message}", "PaDDY",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                return;
+            }
+
+            string tempPath = copyPath + ".tmp";
+            try
+            {
+                using (var reader = AudioReaderFactory.Open(_filePath))
+                {
+                    var format = reader.WaveFormat;
+                    string fileExt = ext.TrimStart('.').ToLowerInvariant();
+                    if (startSec > 0.001)
+                    {
+                        if (fileExt == "opus")
+                        {
+                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                            skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
+                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                            long skipped = 0;
+                            while (skipped < skipBytes)
+                            {
+                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                if (readSkip == 0) break;
+                                skipped += readSkip;
+                            }
+                        }
+                        else
+                        {
+                            reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+                        }
+                    }
+
+                    double trimDuration = endSec - startSec;
+                    long bytesToWrite = (long)(trimDuration * format.AverageBytesPerSecond);
+                    int blockAlign = format.BlockAlign;
+                    bytesToWrite = bytesToWrite / blockAlign * blockAlign;
+                    if (bytesToWrite <= 0) return;
+
+                    float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
+
+                    using var recorder = StreamingRecorderFactory.CreateForFile(_filePath);
+                    recorder.BeginRecording(tempPath, format);
+
+                    byte[] buffer = new byte[format.SampleRate * blockAlign];
+                    long written = 0;
+                    while (written < bytesToWrite)
+                    {
+                        int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
+                        int read = reader.Read(buffer, 0, toRead);
+                        if (read == 0) break;
+                        if (!noGain)
+                            ApplyGainToBuffer(buffer, read, format, gainFactor);
+                        recorder.AppendSamples(buffer, 0, read);
+                        written += read;
+                    }
+                    recorder.Finish();
+                }
+
+                File.Move(tempPath, copyPath);
+                CopyFilePath = copyPath;
+                DialogResult = true;
+            }
+            catch (Exception ex)
+            {
+                try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
+                System.Windows.MessageBox.Show($"Save as copy failed:\n{ex.Message}", "PaDDY",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
         // ── Helpers ─────────────────────────────────────────────────────────
 
         private static string FormatTime(TimeSpan ts)
