@@ -4,7 +4,7 @@
         Title="About PaDDY"
         Icon="PaDDY.ico"
         Width="420"
-        Height="500"
+        Height="460"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FF1E1E1E"
@@ -79,11 +79,7 @@
                        HorizontalAlignment="Center"
                        Foreground="#FF9E9E9E"
                        Margin="0,4,0,0"/>
-            <TextBlock Text="For Windows 10 and 11"
-                       FontSize="11"
-                       HorizontalAlignment="Center"
-                       Foreground="#FF757575"
-                       Margin="0,2,0,0"/>
+
         </StackPanel>
 
         <!-- Details -->
