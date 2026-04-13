@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.7.2.0413] - 2026-04-13
+
+- Improving layout and remove unnecessary text
+
 ## [0.7.1.0413] - 2026-04-13
 
 - Fix minimum width windows
