@@ -579,47 +579,49 @@
             </WrapPanel>
         </Border>
 
-        <!-- ───────────── Row 2: Status bar + L/R RMS meters ───────────── -->
+        <!-- ───────────── Row 2: Status + IN/OUT RMS meters ───────────── -->
         <Border Grid.Row="2"
                 Background="#FF1A1A1A"
-                Padding="12,6">
+                Padding="12,4">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="280"/>
-                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <!-- IN/OUT labels -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Meter bars -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- dB + peak -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Status -->
                 </Grid.ColumnDefinitions>
 
-                <!-- Status dot + text -->
+                <!-- IN / OUT labels -->
                 <StackPanel Grid.Column="0"
-                        Orientation="Vertical"
-                        Margin="0,0,12,0">
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse x:Name="StatusDot"
-                                Width="10"
-                                Height="10"
-                                 Fill="#FF757575"
-                                VerticalAlignment="Center"
-                                Margin="0,0,8,0"/>
-                        <TextBlock x:Name="StatusLabel"
-                                   Text="Idle — press Start to begin"
-                                   FontSize="12"
-                                   VerticalAlignment="Center"
-                                   TextTrimming="CharacterEllipsis"
-                                   MaxWidth="240"/>
-                    </StackPanel>
-                    <TextBlock Text="OUT"
-                               Foreground="#FF616161"
+                            Orientation="Vertical"
+                            VerticalAlignment="Center"
+                            Margin="0,0,6,0">
+                    <TextBlock Text="IN"
+                               Foreground="#FF9E9E9E"
                                FontSize="9"
                                FontWeight="Bold"
-                               Margin="0,6,0,0"/>
+                               HorizontalAlignment="Right"
+                               Height="24"
+                               Padding="0,4,0,0"/>
+                    <TextBlock Text="OUT"
+                               Foreground="#FF42A5F5"
+                               FontSize="9"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Right"
+                               Height="24"
+                               Margin="0,5,0,0"
+                               Padding="0,4,0,0"/>
                 </StackPanel>
 
-                <!-- Input L/R RMS meters -->
+                <!-- Meter bars column -->
                 <StackPanel Grid.Column="1"
                         Orientation="Vertical"
                         VerticalAlignment="Center">
-                    <!-- L channel -->
+                    <!-- Input L channel -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="14"/>
@@ -632,7 +634,6 @@
                                    VerticalAlignment="Center"
                                 HorizontalAlignment="Center"/>
                         <Grid Grid.Column="1" ClipToBounds="True">
-                            <!-- dB gradient background (green → yellow → red) -->
                             <Rectangle Height="11">
                                 <Rectangle.Fill>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -645,13 +646,11 @@
                                     </LinearGradientBrush>
                                 </Rectangle.Fill>
                             </Rectangle>
-                            <!-- Dark overlay that covers the unfilled portion -->
                             <Rectangle x:Name="MeterOverlayL"
                                        Height="11"
                                        Fill="#FF333333"
                                        HorizontalAlignment="Right"
                                        Width="1000"/>
-                            <!-- Threshold marker -->
                             <Canvas x:Name="ThresholdCanvas"
                                     Height="11">
                                 <Rectangle x:Name="ThresholdLine"
@@ -662,7 +661,7 @@
                             </Canvas>
                         </Grid>
                     </Grid>
-                    <!-- R channel -->
+                    <!-- Input R channel -->
                     <Grid x:Name="RmsMeterRRow"
                             Margin="0,2,0,0">
                         <Grid.ColumnDefinitions>
@@ -676,7 +675,6 @@
                                    VerticalAlignment="Center"
                                 HorizontalAlignment="Center"/>
                         <Grid Grid.Column="1" ClipToBounds="True">
-                            <!-- dB gradient background (green → yellow → red) -->
                             <Rectangle Height="11">
                                 <Rectangle.Fill>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -689,13 +687,11 @@
                                     </LinearGradientBrush>
                                 </Rectangle.Fill>
                             </Rectangle>
-                            <!-- Dark overlay that covers the unfilled portion -->
                             <Rectangle x:Name="MeterOverlayR"
                                        Height="11"
                                        Fill="#FF333333"
                                        HorizontalAlignment="Right"
                                        Width="1000"/>
-                            <!-- Threshold marker -->
                             <Canvas x:Name="ThresholdCanvasR"
                                     Height="11">
                                 <Rectangle x:Name="ThresholdLineR"
@@ -707,10 +703,10 @@
                         </Grid>
                     </Grid>
 
-                    <!-- Spacer between input and output meters -->
+                    <!-- Separator -->
                     <Rectangle Height="1"
-                               Fill="#FF444444"
-                               Margin="0,4,0,4"/>
+                               Fill="#FF333333"
+                               Margin="14,3,0,3"/>
 
                     <!-- Output L channel -->
                     <Grid>
@@ -778,10 +774,10 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- dB L/R value + peak indicators (Input + Output) -->
+                <!-- dB values + peak indicators -->
                 <StackPanel Grid.Column="2"
                             Orientation="Vertical"
-                            VerticalAlignment="Top"
+                            VerticalAlignment="Center"
                             Margin="8,0,0,0">
                     <!-- Input dB -->
                     <StackPanel Orientation="Horizontal">
@@ -811,7 +807,7 @@
                                 ToolTip="Peak clip indicator"/>
                     </StackPanel>
                     <!-- Output dB -->
-                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                         <TextBlock x:Name="OutputRmsValueLabel"
                                    Text="-∞"
                                    FontSize="10"
@@ -837,6 +833,26 @@
                                 VerticalAlignment="Center"
                                 ToolTip="Output peak clip indicator"/>
                     </StackPanel>
+                </StackPanel>
+
+                <!-- Status indicator (right side) -->
+                <StackPanel Grid.Column="3"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="16,0,0,0">
+                    <Ellipse x:Name="StatusDot"
+                             Width="10"
+                             Height="10"
+                             Fill="#FF757575"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0"/>
+                    <TextBlock x:Name="StatusLabel"
+                               Text="Idle — press Start to begin"
+                               FontSize="11"
+                               Foreground="#FF9E9E9E"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="300"/>
                 </StackPanel>
             </Grid>
         </Border>
