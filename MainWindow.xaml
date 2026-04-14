@@ -509,6 +509,73 @@
                                FontWeight="Bold"
                                VerticalAlignment="Center"/>
                 </StackPanel>
+
+                <!-- Separator -->
+                <Rectangle Width="1"
+                           Height="16"
+                           Fill="#FF444444"
+                           Margin="8,0,16,0"
+                           VerticalAlignment="Center"/>
+
+                <!-- Input Volume -->
+                <StackPanel Orientation="Horizontal"
+                        Margin="0,0,20,0">
+                    <TextBlock Text="🔊 Input:"
+                            Style="{StaticResource SectionLabel}"
+                            Margin="0,0,6,0"/>
+                    <Slider x:Name="InputVolumeSlider"
+                            Width="100"
+                            Minimum="0"
+                            Maximum="100"
+                            Value="80"
+                            TickFrequency="5"
+                            ValueChanged="InputVolumeSlider_ValueChanged"/>
+                    <TextBlock x:Name="InputVolumeValueLabel"
+                               Text="80"
+                               Style="{StaticResource SectionLabel}"
+                               Margin="6,0,0,0"
+                               Width="28"/>
+                </StackPanel>
+
+                <!-- Output Volume -->
+                <StackPanel Orientation="Horizontal"
+                        Margin="0,0,20,0">
+                    <TextBlock Text="🔊 Output:"
+                            Style="{StaticResource SectionLabel}"
+                            Margin="0,0,6,0"/>
+                    <Slider x:Name="OutputVolumeSlider"
+                            Width="100"
+                            Minimum="0"
+                            Maximum="100"
+                            Value="100"
+                            TickFrequency="5"
+                            ValueChanged="OutputVolumeSlider_ValueChanged"/>
+                    <TextBlock x:Name="OutputVolumeValueLabel"
+                               Text="100"
+                               Style="{StaticResource SectionLabel}"
+                               Margin="6,0,0,0"
+                               Width="28"/>
+                </StackPanel>
+
+                <!-- Pad Listen Volume -->
+                <StackPanel Orientation="Horizontal"
+                        Margin="0,0,0,0">
+                    <TextBlock Text="🔈 Pad Listen:"
+                            Style="{StaticResource SectionLabel}"
+                            Margin="0,0,6,0"/>
+                    <Slider x:Name="PadListenVolumeSlider"
+                            Width="100"
+                            Minimum="0"
+                            Maximum="100"
+                            Value="100"
+                            TickFrequency="5"
+                            ValueChanged="PadListenVolumeSlider_ValueChanged"/>
+                    <TextBlock x:Name="PadListenVolumeValueLabel"
+                               Text="100"
+                               Style="{StaticResource SectionLabel}"
+                               Margin="6,0,0,0"
+                               Width="28"/>
+                </StackPanel>
             </WrapPanel>
         </Border>
 
@@ -525,23 +592,30 @@
 
                 <!-- Status dot + text -->
                 <StackPanel Grid.Column="0"
-                        Orientation="Horizontal"
+                        Orientation="Vertical"
                         Margin="0,0,12,0">
-                    <Ellipse x:Name="StatusDot"
-                            Width="10"
-                            Height="10"
-                             Fill="#FF757575"
-                            VerticalAlignment="Center"
-                            Margin="0,0,8,0"/>
-                    <TextBlock x:Name="StatusLabel"
-                               Text="Idle — press Start to begin"
-                               FontSize="12"
-                               VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis"
-                               MaxWidth="240"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="StatusDot"
+                                Width="10"
+                                Height="10"
+                                 Fill="#FF757575"
+                                VerticalAlignment="Center"
+                                Margin="0,0,8,0"/>
+                        <TextBlock x:Name="StatusLabel"
+                                   Text="Idle — press Start to begin"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="240"/>
+                    </StackPanel>
+                    <TextBlock Text="OUT"
+                               Foreground="#FF616161"
+                               FontSize="9"
+                               FontWeight="Bold"
+                               Margin="0,6,0,0"/>
                 </StackPanel>
 
-                <!-- L/R RMS meters -->
+                <!-- Input L/R RMS meters -->
                 <StackPanel Grid.Column="1"
                         Orientation="Vertical"
                         VerticalAlignment="Center">
@@ -632,13 +706,84 @@
                             </Canvas>
                         </Grid>
                     </Grid>
+
+                    <!-- Spacer between input and output meters -->
+                    <Rectangle Height="1"
+                               Fill="#FF444444"
+                               Margin="0,4,0,4"/>
+
+                    <!-- Output L channel -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="L"
+                                Grid.Column="0"
+                                   Foreground="#FF616161"
+                                FontSize="9"
+                                   VerticalAlignment="Center"
+                                HorizontalAlignment="Center"/>
+                        <Grid Grid.Column="1" ClipToBounds="True">
+                            <Rectangle Height="11">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF1565C0" Offset="0.0"/>
+                                        <GradientStop Color="#FF42A5F5" Offset="0.35"/>
+                                        <GradientStop Color="#FF80DEEA" Offset="0.70"/>
+                                        <GradientStop Color="#FFFDD835" Offset="0.85"/>
+                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
+                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <Rectangle x:Name="OutputMeterOverlayL"
+                                       Height="11"
+                                       Fill="#FF333333"
+                                       HorizontalAlignment="Right"
+                                       Width="1000"/>
+                        </Grid>
+                    </Grid>
+                    <!-- Output R channel -->
+                    <Grid Margin="0,2,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="R"
+                                Grid.Column="0"
+                                   Foreground="#FF616161"
+                                FontSize="9"
+                                   VerticalAlignment="Center"
+                                HorizontalAlignment="Center"/>
+                        <Grid Grid.Column="1" ClipToBounds="True">
+                            <Rectangle Height="11">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF1565C0" Offset="0.0"/>
+                                        <GradientStop Color="#FF42A5F5" Offset="0.35"/>
+                                        <GradientStop Color="#FF80DEEA" Offset="0.70"/>
+                                        <GradientStop Color="#FFFDD835" Offset="0.85"/>
+                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
+                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <Rectangle x:Name="OutputMeterOverlayR"
+                                       Height="11"
+                                       Fill="#FF333333"
+                                       HorizontalAlignment="Right"
+                                       Width="1000"/>
+                        </Grid>
+                    </Grid>
                 </StackPanel>
 
-                <!-- dB L/R value + peak indicators -->
+                <!-- dB L/R value + peak indicators (Input + Output) -->
                 <StackPanel Grid.Column="2"
                             Orientation="Vertical"
-                            VerticalAlignment="Center"
+                            VerticalAlignment="Top"
                             Margin="8,0,0,0">
+                    <!-- Input dB -->
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="RmsValueLabel"
                                    Text="-∞"
@@ -664,6 +809,33 @@
                                 Background="#FF444444"
                                 VerticalAlignment="Center"
                                 ToolTip="Peak clip indicator"/>
+                    </StackPanel>
+                    <!-- Output dB -->
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock x:Name="OutputRmsValueLabel"
+                                   Text="-∞"
+                                   FontSize="10"
+                                   Foreground="#FF616161"
+                                   Width="36"/>
+                        <Border x:Name="OutputPeakIndicatorL"
+                                Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#FF444444"
+                                VerticalAlignment="Center"
+                                ToolTip="Output peak clip indicator"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                        <TextBlock x:Name="OutputRmsValueLabelR"
+                                   Text="-∞"
+                                   FontSize="10"
+                                   Foreground="#FF616161"
+                                   Width="36"/>
+                        <Border x:Name="OutputPeakIndicatorR"
+                                Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#FF444444"
+                                VerticalAlignment="Center"
+                                ToolTip="Output peak clip indicator"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>

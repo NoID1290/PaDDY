@@ -60,6 +60,9 @@ namespace PaDDY.Services
         /// <summary>AutoVAD or KeyBuffer.</summary>
         public AudioRecordingMode RecordingMode { get; set; } = AudioRecordingMode.AutoVAD;
 
+        /// <summary>Input gain multiplier 0.0–1.0. Applied to captured samples before metering and recording.</summary>
+        public float InputGain { get; set; } = 0.8f;
+
         // â”€â”€ Internal state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private IWaveIn? _captureIn;
         private WaveFormat? _captureFormat;
@@ -154,6 +157,9 @@ namespace PaDDY.Services
         private void OnDataAvailable(object? sender, WaveInEventArgs e)
         {
             if (e.BytesRecorded == 0) return;
+
+            // Apply input gain to the buffer before any processing
+            ApplyGain(e.Buffer, e.BytesRecorded, _captureFormat, InputGain);
 
             (double L, double R) = ComputeNormalisedLevels(e.Buffer, e.BytesRecorded, _captureFormat);
             RmsLevelChanged?.Invoke(L, R);
@@ -279,6 +285,42 @@ namespace PaDDY.Services
         }
 
         // â”€â”€ RMS computation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        /// <summary>
+        /// Applies a gain multiplier to all samples in the buffer in-place.
+        /// </summary>
+        private static void ApplyGain(byte[] buffer, int count, WaveFormat? format, float gain)
+        {
+            if (format == null || gain == 1.0f) return;
+
+            bool isFloat = format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample == 32;
+            if (isFloat)
+            {
+                for (int i = 0; i <= count - 4; i += 4)
+                {
+                    float s = BitConverter.ToSingle(buffer, i);
+                    s *= gain;
+                    byte[] bytes = BitConverter.GetBytes(s);
+                    buffer[i] = bytes[0];
+                    buffer[i + 1] = bytes[1];
+                    buffer[i + 2] = bytes[2];
+                    buffer[i + 3] = bytes[3];
+                }
+            }
+            else
+            {
+                // PCM 16-bit
+                for (int i = 0; i <= count - 2; i += 2)
+                {
+                    short s = (short)(buffer[i] | (buffer[i + 1] << 8));
+                    int scaled = (int)(s * gain);
+                    scaled = Math.Clamp(scaled, short.MinValue, short.MaxValue);
+                    short result = (short)scaled;
+                    buffer[i] = (byte)(result & 0xFF);
+                    buffer[i + 1] = (byte)((result >> 8) & 0xFF);
+                }
+            }
+        }
+
         /// <summary>
         /// Returns normalised (L, R) levels 0-100.
         /// For mono or unknown formats, L == R.
