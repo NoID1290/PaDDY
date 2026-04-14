@@ -26,14 +26,22 @@ namespace PaDDY
         private bool _suppressSelectionEvents = true;
         private RecordingPadButton? _hoveredPad;
 
-        // Peak hold state
+        // Volume controls
+        private float _outputVolume = 1.0f;
+        private float _padListenVolume = 1.0f;
+
+        // Peak hold state (input)
         private const double PeakThresholdDb = -1.0;
         private const double PeakHoldSeconds = 1.5;
         private const double MeterMinDb = -60.0;
         private DateTime _peakHoldTimeL = DateTime.MinValue;
         private DateTime _peakHoldTimeR = DateTime.MinValue;
 
-        // Meter decay animation
+        // Peak hold state (output)
+        private DateTime _outputPeakHoldTimeL = DateTime.MinValue;
+        private DateTime _outputPeakHoldTimeR = DateTime.MinValue;
+
+        // Meter decay animation (input)
         private System.Windows.Threading.DispatcherTimer? _meterDecayTimer;
         private double _decayTargetL;
         private double _decayTargetR;
@@ -41,6 +49,14 @@ namespace PaDDY
         private double _decayCurrentR;
         private const int DecaySteps = 18; // ~288ms at 16ms/tick
         private int _decayStep;
+
+        // Meter decay animation (output)
+        private System.Windows.Threading.DispatcherTimer? _outputMeterDecayTimer;
+        private double _outputDecayTargetL;
+        private double _outputDecayTargetR;
+        private double _outputDecayCurrentL;
+        private double _outputDecayCurrentR;
+        private int _outputDecayStep;
 
         public MainWindow()
         {
@@ -249,6 +265,14 @@ namespace PaDDY
             _captureService.Sensitivity = _settings.Sensitivity;
             _captureService.SilenceTimeoutMs = _settings.SilenceTimeoutMs;
 
+            // Volume settings
+            InputVolumeSlider.Value = _settings.InputVolume;
+            OutputVolumeSlider.Value = _settings.OutputVolume;
+            PadListenVolumeSlider.Value = _settings.PadListenVolume;
+            _captureService.InputGain = (float)(_settings.InputVolume / 100.0);
+            _outputVolume = (float)(_settings.OutputVolume / 100.0);
+            _padListenVolume = (float)(_settings.PadListenVolume / 100.0);
+
             UpdateInputControlsForSource();
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
             ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
@@ -278,6 +302,8 @@ namespace PaDDY
                     {
                         pad.OutputDeviceIndex = _outputDeviceIndex;
                         pad.ListenDeviceIndex = listenDevice;
+                        pad.OutputVolume = _outputVolume;
+                        pad.ListenVolume = _padListenVolume;
                     }
                 }
             }
@@ -504,6 +530,41 @@ namespace PaDDY
             _settings.Save();
         }
 
+        private void InputVolumeSlider_ValueChanged(object sender,
+            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (InputVolumeValueLabel == null) return;
+            double v = Math.Round(e.NewValue);
+            InputVolumeValueLabel.Text = v.ToString("0");
+            _captureService.InputGain = (float)(v / 100.0);
+            _settings.InputVolume = v;
+            _settings.Save();
+        }
+
+        private void OutputVolumeSlider_ValueChanged(object sender,
+            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (OutputVolumeValueLabel == null) return;
+            double v = Math.Round(e.NewValue);
+            OutputVolumeValueLabel.Text = v.ToString("0");
+            _outputVolume = (float)(v / 100.0);
+            _settings.OutputVolume = v;
+            _settings.Save();
+            RefreshPadOutputRouting();
+        }
+
+        private void PadListenVolumeSlider_ValueChanged(object sender,
+            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (PadListenVolumeValueLabel == null) return;
+            double v = Math.Round(e.NewValue);
+            PadListenVolumeValueLabel.Text = v.ToString("0");
+            _padListenVolume = (float)(v / 100.0);
+            _settings.PadListenVolume = v;
+            _settings.Save();
+            RefreshPadOutputRouting();
+        }
+
 
         private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
         {
@@ -614,6 +675,87 @@ namespace PaDDY
             });
         }
 
+        private void UpdateOutputMeter(double left, double right)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                _outputMeterDecayTimer?.Stop();
+
+                double dbL = LinearToDb(left);
+                double dbR = LinearToDb(right);
+
+                double meterWidth = ThresholdCanvas.ActualWidth;
+                if (meterWidth > 0)
+                {
+                    double filledL = DbToMeterFraction(dbL) * meterWidth;
+                    double filledR = DbToMeterFraction(dbR) * meterWidth;
+                    OutputMeterOverlayL.Width = Math.Max(0, meterWidth - filledL);
+                    OutputMeterOverlayR.Width = Math.Max(0, meterWidth - filledR);
+                }
+
+                OutputRmsValueLabel.Text = left > 0 ? $"{dbL:0}" : "-∞";
+                OutputRmsValueLabelR.Text = right > 0 ? $"{dbR:0}" : "-∞";
+
+                var now = DateTime.UtcNow;
+                if (dbL >= PeakThresholdDb)
+                    _outputPeakHoldTimeL = now;
+                if (dbR >= PeakThresholdDb)
+                    _outputPeakHoldTimeR = now;
+
+                OutputPeakIndicatorL.Background = (now - _outputPeakHoldTimeL).TotalSeconds < PeakHoldSeconds
+                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
+                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+                OutputPeakIndicatorR.Background = (now - _outputPeakHoldTimeR).TotalSeconds < PeakHoldSeconds
+                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
+                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+
+                // If both L and R are zero (playback stopped), start decay animation
+                if (left <= 0 && right <= 0)
+                    StartOutputMeterDecay();
+            });
+        }
+
+        private void StartOutputMeterDecay()
+        {
+            double meterWidth = ThresholdCanvas.ActualWidth;
+            if (meterWidth <= 0) { OutputMeterOverlayL.Width = 10000; OutputMeterOverlayR.Width = 10000; return; }
+
+            _outputDecayCurrentL = OutputMeterOverlayL.Width;
+            _outputDecayCurrentR = OutputMeterOverlayR.Width;
+            _outputDecayTargetL = meterWidth;
+            _outputDecayTargetR = meterWidth;
+            _outputDecayStep = 0;
+
+            if (_outputMeterDecayTimer == null)
+            {
+                _outputMeterDecayTimer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(16)
+                };
+                _outputMeterDecayTimer.Tick += OutputMeterDecayTick;
+            }
+            _outputMeterDecayTimer.Start();
+        }
+
+        private void OutputMeterDecayTick(object? sender, EventArgs e)
+        {
+            _outputDecayStep++;
+            double t = Math.Min(1.0, (double)_outputDecayStep / DecaySteps);
+            double ease = 1.0 - (1.0 - t) * (1.0 - t);
+
+            OutputMeterOverlayL.Width = _outputDecayCurrentL + (_outputDecayTargetL - _outputDecayCurrentL) * ease;
+            OutputMeterOverlayR.Width = _outputDecayCurrentR + (_outputDecayTargetR - _outputDecayCurrentR) * ease;
+
+            if (t >= 1.0)
+            {
+                _outputMeterDecayTimer!.Stop();
+                OutputMeterOverlayL.Width = 10000;
+                OutputMeterOverlayR.Width = 10000;
+                OutputRmsValueLabel.Text = "-∞";
+                OutputRmsValueLabelR.Text = "-∞";
+            }
+        }
+
         private void OnRecordingStateChanged(bool isRecording)
         {
             Dispatcher.InvokeAsync(() =>
@@ -637,10 +779,14 @@ namespace PaDDY
             {
                 Margin = new Thickness(6),
                 OutputDeviceIndex = _outputDeviceIndex,
-                ListenDeviceIndex = GetCurrentListenDeviceIndex()
+                ListenDeviceIndex = GetCurrentListenDeviceIndex(),
+                OutputVolume = _outputVolume,
+                ListenVolume = _padListenVolume
             };
             btn.SetEntry(entry);
             btn.IsFavorite = entry.IsFavorite;
+
+            btn.PlaybackRmsChanged += UpdateOutputMeter;
 
             btn.DeleteRequested += (s, _) =>
             {

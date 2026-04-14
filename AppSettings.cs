@@ -43,6 +43,11 @@ namespace PaDDY
         // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest
         public int PadSortOrder { get; set; } = 0;
 
+        // Volume controls (0–100 range)
+        public double InputVolume { get; set; } = 80.0;
+        public double OutputVolume { get; set; } = 100.0;
+        public double PadListenVolume { get; set; } = 100.0;
+
         private static readonly string SettingsPath =
             Path.Combine(AppContext.BaseDirectory, "appsettings.json");
 

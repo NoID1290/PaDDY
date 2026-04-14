@@ -40,6 +40,13 @@ namespace PaDDY.Controls
         // Listen device: -2 = disabled, -1 = default, 0..N = specific
         public int ListenDeviceIndex { get; set; } = -2;
 
+        // Volume controls (0.0–1.0)
+        public float OutputVolume { get; set; } = 1.0f;
+        public float ListenVolume { get; set; } = 1.0f;
+
+        /// <summary>Fired with (left, right) normalised 0-100 values during playback on the main output.</summary>
+        public event Action<double, double>? PlaybackRmsChanged;
+
         private bool _isFavorite;
         public bool IsFavorite
         {
@@ -58,6 +65,7 @@ namespace PaDDY.Controls
 
         private WaveOutEvent? _player;
         private IUnifiedAudioReader? _reader;
+        private PlaybackMeterProvider? _meterProvider;
         private WaveOutEvent? _listenPlayer;
         private IUnifiedAudioReader? _listenReader;
         private bool _isPlaying;
@@ -205,8 +213,11 @@ namespace PaDDY.Controls
             try
             {
                 _reader = AudioReaderFactory.Open(Entry.FilePath);
+                _meterProvider = new PlaybackMeterProvider(_reader.AsSampleProvider());
+                _meterProvider.RmsLevelChanged += (l, r) => PlaybackRmsChanged?.Invoke(l, r);
                 _player = new WaveOutEvent { DeviceNumber = OutputDeviceIndex };
-                _player.Init(_reader.AsWaveProvider());
+                _player.Init(new NAudio.Wave.SampleProviders.SampleToWaveProvider(_meterProvider));
+                _player.Volume = OutputVolume;
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _player.Play();
 
@@ -215,6 +226,7 @@ namespace PaDDY.Controls
                     _listenReader = AudioReaderFactory.Open(Entry.FilePath);
                     _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
                     _listenPlayer.Init(_listenReader.AsWaveProvider());
+                    _listenPlayer.Volume = ListenVolume;
                     _listenPlayer.Play();
                 }
 
@@ -240,6 +252,7 @@ namespace PaDDY.Controls
                 _listenReader = AudioReaderFactory.Open(Entry.FilePath);
                 _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
                 _listenPlayer.Init(_listenReader.AsWaveProvider());
+                _listenPlayer.Volume = ListenVolume;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _listenPlayer.Play();
                 SetPlayingVisual(true);
@@ -257,6 +270,9 @@ namespace PaDDY.Controls
             _player?.Stop();
             _player?.Dispose();
             _player = null;
+            if (_meterProvider != null)
+                _meterProvider.RmsLevelChanged -= null; // event will be GC'd with the provider
+            _meterProvider = null;
             _reader?.Dispose();
             _reader = null;
             _listenPlayer?.Stop();
@@ -264,6 +280,7 @@ namespace PaDDY.Controls
             _listenPlayer = null;
             _listenReader?.Dispose();
             _listenReader = null;
+            PlaybackRmsChanged?.Invoke(0, 0);
             SetPlayingVisual(false);
         }
 
