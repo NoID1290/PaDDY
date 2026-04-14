@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>noidsoftwork.core.paddy</AssemblyName>
+    <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
     <Version>0.7.2.0413</Version>
     <AssemblyVersion>0.7.2.0413</AssemblyVersion>
@@ -26,9 +26,9 @@
     <Resource Include="PaDDY.ico" />
   </ItemGroup>
   <Target Name="RenameExeAfterBuild" AfterTargets="Build">
-    <Move SourceFiles="$(OutputPath)noidsoftwork.core.paddy.exe" DestinationFiles="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)noidsoftwork.core.paddy.exe')" />
+    <Move SourceFiles="$(OutputPath)NoIDSoftwork.Core.exe" DestinationFiles="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)NoIDSoftwork.Core.exe')" />
   </Target>
   <Target Name="RenameExeAfterPublish" AfterTargets="Publish">
-    <Move SourceFiles="$(PublishDir)noidsoftwork.core.paddy.exe" DestinationFiles="$(PublishDir)PaDDY.exe" Condition="Exists('$(PublishDir)noidsoftwork.core.paddy.exe')" />
+    <Move SourceFiles="$(PublishDir)NoIDSoftwork.Core.exe" DestinationFiles="$(PublishDir)PaDDY.exe" Condition="Exists('$(PublishDir)NoIDSoftwork.Core.exe')" />
   </Target>
 </Project>
