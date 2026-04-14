@@ -105,7 +105,7 @@ namespace PaDDY
         private void PopulateCaptureSourceModes()
         {
             CaptureSourceCombo.Items.Clear();
-            CaptureSourceCombo.Items.Add("Microphone");
+            CaptureSourceCombo.Items.Add("Mic/Line input");
             CaptureSourceCombo.Items.Add("Output loopback");
         }
 
