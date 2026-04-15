@@ -4,6 +4,16 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.8.0.0415] - 2026-04-15
+
+- Add missing using directives and set window icon in RenameDialog
+- Adjust playback latency and buffer for improved audio performance
+- Update input device labels for clarity and consistency
+- Refactor status bar layout and improve meter labels for clarity
+- Add volume controls and playback metering features
+- Fix assembly name casing in project file and update executable references
+- Gain in Audio Editor now show in realtime the waveform being edited Add the option to save edited audio as a copy Add the option to save edited audio directly in the favorite Add keyboard shortcut on pad
+
 ## [0.7.2.0413] - 2026-04-13
 
 - Improving layout and remove unnecessary text
