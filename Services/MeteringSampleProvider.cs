@@ -14,7 +14,7 @@ namespace PaDDY.Services
         private readonly ISampleProvider _source;
         private readonly int _channels;
         private readonly Stopwatch _sw = Stopwatch.StartNew();
-        private const long FireIntervalMs = 30;
+        private const long FireIntervalMs = 15;
 
         // Accumulated RMS state between fires
         private double _sumL, _sumR;

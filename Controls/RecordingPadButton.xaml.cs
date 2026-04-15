@@ -215,7 +215,7 @@ namespace PaDDY.Controls
                 _reader = AudioReaderFactory.Open(Entry.FilePath);
                 _meterProvider = new PlaybackMeterProvider(_reader.AsSampleProvider());
                 _meterProvider.RmsLevelChanged += (l, r) => PlaybackRmsChanged?.Invoke(l, r);
-                _player = new WaveOutEvent { DeviceNumber = OutputDeviceIndex };
+                _player = new WaveOutEvent { DeviceNumber = OutputDeviceIndex, DesiredLatency = 100, NumberOfBuffers = 6 };
                 _player.Init(new NAudio.Wave.SampleProviders.SampleToWaveProvider(_meterProvider));
                 _player.Volume = OutputVolume;
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
