@@ -1,4 +1,6 @@
+using System;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace PaDDY.Controls
 {
@@ -13,6 +15,7 @@ namespace PaDDY.Controls
             Width = 340; Height = 130;
             ResizeMode = ResizeMode.NoResize;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            Icon = BitmapFrame.Create(new Uri("pack://application:,,,/PaDDY.ico", UriKind.Absolute));
             Background = new System.Windows.Media.SolidColorBrush(
                 System.Windows.Media.Color.FromRgb(0x2D, 0x2D, 0x2D));
 
