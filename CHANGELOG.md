@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added multichannels inputs support up to 8 channels (7.1)
 - Now support 24bit bit depth
 - Now support sampling rate up to 96kHz
-- Audio settings are now handle automaticly
+- Audio settings are now handle automatically based on the input source capabilities
 - New downmixing pipeline for codecs that only support 2 channels
 - New audio core pipeline
 

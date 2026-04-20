@@ -50,6 +50,7 @@ param(
 )
 
 $projectFilePath  = "PaDDY.csproj"
+$audioProjectFilePath = "NoIDSoftwork.AudioProcessor/NoIDSoftwork.AudioProcessor.csproj"
 $solutionPath     = "PaDDY.sln"
 $assemblyInfoPath = "AssemblyInfo.cs"
 $changelogPath    = "CHANGELOG.md"
@@ -93,7 +94,8 @@ function Add-GitPath {
 function Update-ProjectVersion {
     param(
         [string]$Path,
-        [string]$UpdateType
+        [string]$UpdateType,
+        [string]$NewVersion
     )
 
     if (-not (Test-Path $Path)) {
@@ -103,10 +105,20 @@ function Update-ProjectVersion {
 
     [xml]$proj = Get-Content $Path
 
+    $projectName = [System.IO.Path]::GetFileNameWithoutExtension($Path)
     $ver = $proj.Project.PropertyGroup.Version
     if (-not $ver) { $ver = "0.1.0.0101" }
 
-    Write-Host "[PaDDY] Current version: $ver" -ForegroundColor White
+    if ($NewVersion) {
+        $proj.Project.PropertyGroup.Version         = $NewVersion
+        $proj.Project.PropertyGroup.AssemblyVersion = $NewVersion
+        $proj.Project.PropertyGroup.FileVersion     = $NewVersion
+        $proj.Save((Resolve-Path $Path).Path)
+        Write-Host "[$projectName] Updated to: $NewVersion" -ForegroundColor Green
+        return $NewVersion
+    }
+
+    Write-Host "[$projectName] Current version: $ver" -ForegroundColor White
 
     $parts = $ver -split '\.'
     while ($parts.Count -lt 3) { $parts += "0" }
@@ -120,16 +132,16 @@ function Update-ProjectVersion {
             $vA++
             $vB = 0
             $vC = 0
-            Write-Host "[PaDDY] Frontend version incremented" -ForegroundColor Green
+            Write-Host "[$projectName] Frontend version incremented" -ForegroundColor Green
         }
         "backend" {
             $vB++
             $vC = 0
-            Write-Host "[PaDDY] Backend version incremented" -ForegroundColor Green
+            Write-Host "[$projectName] Backend version incremented" -ForegroundColor Green
         }
         "fix" {
             $vC++
-            Write-Host "[PaDDY] Fix version incremented" -ForegroundColor Green
+            Write-Host "[$projectName] Fix version incremented" -ForegroundColor Green
         }
     }
 
@@ -142,7 +154,7 @@ function Update-ProjectVersion {
     $proj.Project.PropertyGroup.FileVersion     = $newVer
 
     $proj.Save((Resolve-Path $Path).Path)
-    Write-Host "[PaDDY] Updated to: $newVer" -ForegroundColor Green
+    Write-Host "[$projectName] Updated to: $newVer" -ForegroundColor Green
 
     return $newVer
 }
@@ -179,6 +191,7 @@ function Update-ReadmeVersionBadge {
 # ── Version Update ──────────────────────────────────────────────────────────
 if (-not $SkipVersion) {
     $newVersion = Update-ProjectVersion -Path $projectFilePath -UpdateType $Type
+    Update-ProjectVersion -Path $audioProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
 
     # Sync AssemblyInfo.cs
     if (Test-Path $assemblyInfoPath) {
@@ -306,6 +319,7 @@ $categorySection
 # ── Stage ───────────────────────────────────────────────────────────────────
 Write-Host "[STAGING] Changes..." -ForegroundColor Cyan
 Add-GitPath -Path $projectFilePath
+Add-GitPath -Path $audioProjectFilePath
 if (Test-Path $solutionPath) { Add-GitPath -Path $solutionPath }
 if (-not $SkipVersion) {
     Add-GitPath -Path $changelogPath
