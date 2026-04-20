@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Forms;
@@ -14,11 +13,9 @@ namespace PaDDY
     public partial class SettingsWindow : Window
     {
         private readonly AppSettings _settings;
+        private List<(string Value, string Label)> _visibleCodecOptions = new();
 
         // Resolved output values
-        public int SelectedSampleRate { get; private set; }
-        public int SelectedBitDepth { get; private set; }
-        public int SelectedChannels { get; private set; }
         public string SelectedCodec { get; private set; } = "wav";
         public string SelectedSaveFolder { get; private set; } = string.Empty;
         public int SelectedBufferDurationMs { get; private set; }
@@ -26,19 +23,20 @@ namespace PaDDY
         public uint SelectedHotKeyVk { get; private set; }
         public int SelectedMaxRecords { get; private set; }
 
-        private static readonly int[] SampleRates = { 8000, 16000, 44100, 48000 };
-        private static readonly int[] BitDepths = { 16, 32 };
-        private static readonly (int Value, string Label)[] ChannelOptions =
-        {
-            (1, "Mono (1ch)"),
-            (2, "Stereo (2ch)")
-        };
         private static readonly (string Value, string Label)[] CodecOptions =
         {
             ("wav",  "WAV (uncompressed)"),
             ("mp3",  "MP3 (LAME)"),
             ("opus", "Opus (.opus)"),
             ("ogg",  "Ogg Vorbis (.ogg)"),
+        };
+
+        private static readonly Dictionary<string, string> CodecDescriptions = new()
+        {
+            ["wav"]  = "Lossless · All formats preserved exactly, including multi-channel.",
+            ["mp3"]  = "Lossy · Up to stereo; multi-channel sources are automatically downmixed to stereo.",
+            ["opus"] = "Lossy · Optimised for voice. Up to stereo; automatically resamples to the nearest supported rate.",
+            ["ogg"]  = "Lossy · High-quality VBR. Up to stereo; multi-channel sources are automatically downmixed.",
         };
 
         private uint _capturedVk;
@@ -58,27 +56,16 @@ namespace PaDDY
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            // Codec — populate first then rebuild dependent controls
+            // Codec
+            _visibleCodecOptions = new List<(string Value, string Label)>(CodecOptions);
             CodecCombo.Items.Clear();
-            foreach (var (_, label) in CodecOptions)
+            foreach (var (_, label) in _visibleCodecOptions)
                 CodecCombo.Items.Add(label);
-            // Temporarily detach SelectionChanged to avoid double-rebuild during init
             CodecCombo.SelectionChanged -= CodecCombo_SelectionChanged;
-            int codecIdx = Array.FindIndex(CodecOptions, c => c.Value == _settings.RecordCodec);
+            int codecIdx = _visibleCodecOptions.FindIndex(c => c.Value == _settings.RecordCodec);
             CodecCombo.SelectedIndex = codecIdx >= 0 ? codecIdx : 0;
             CodecCombo.SelectionChanged += CodecCombo_SelectionChanged;
-
-            // Sample rate / Bit depth — built by helper so codec constraints are applied
-            RebuildFormatControls(
-                CodecOptions[CodecCombo.SelectedIndex >= 0 ? CodecCombo.SelectedIndex : 0].Value,
-                _settings.RecordSampleRate,
-                _settings.RecordBitDepth);
-
-            // Channels
-            ChannelsCombo.Items.Clear();
-            foreach (var (_, label) in ChannelOptions)
-                ChannelsCombo.Items.Add(label);
-            ChannelsCombo.SelectedIndex = _settings.RecordChannels == 2 ? 1 : 0;
+            UpdateCodecInfo();
 
             // Save folder
             SaveFolderBox.Text = string.IsNullOrWhiteSpace(_settings.SaveFolder)
@@ -107,64 +94,15 @@ namespace PaDDY
         private void CodecCombo_SelectionChanged(object sender,
             System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            if (SampleRateCombo == null || BitDepthCombo == null) return;
-            int ci = CodecCombo.SelectedIndex;
-            string codec = ci >= 0 && ci < CodecOptions.Length ? CodecOptions[ci].Value : "wav";
-
-            // Remember current selections before rebuild
-            int currentSr = GetSelectedSampleRate();
-            int currentBd = BitDepthCombo.SelectedIndex == 1 ? 32 : 16;
-            RebuildFormatControls(codec, currentSr, currentBd);
+            UpdateCodecInfo();
         }
 
-        /// <summary>
-        /// Rebuilds SampleRateCombo and BitDepthCombo to show only options valid for the given codec.
-        /// Tries to preserve the previously selected sample rate and bit depth where possible.
-        /// </summary>
-        private void RebuildFormatControls(string codec, int preferredSr, int preferredBd)
+        private void UpdateCodecInfo()
         {
-            // Opus: only supports 8000, 12000, 16000, 24000, 48000 Hz; PCM 16-bit only
-            // MP3 (LAME): 32-bit float not supported
-            // WAV, Ogg: all combinations valid
-
-            int[] validRates = codec == "opus"
-                ? SampleRates.Where(r => r != 44100).ToArray()
-                : SampleRates;
-
-            bool allow32bit = codec != "opus" && codec != "mp3";
-
-            // Rebuild sample rate combo
-            SampleRateCombo.Items.Clear();
-            foreach (var sr in validRates)
-                SampleRateCombo.Items.Add($"{sr / 1000.0:0.#} kHz");
-            // Select closest available rate
-            int srIdx = Array.IndexOf(validRates, preferredSr);
-            if (srIdx < 0)
-            {
-                // Preferred rate not available — pick nearest
-                int nearest = validRates.OrderBy(r => Math.Abs(r - preferredSr)).First();
-                srIdx = Array.IndexOf(validRates, nearest);
-            }
-            SampleRateCombo.SelectedIndex = Math.Max(0, srIdx);
-
-            // Rebuild bit depth combo
-            BitDepthCombo.Items.Clear();
-            BitDepthCombo.Items.Add("16-bit PCM");
-            if (allow32bit)
-                BitDepthCombo.Items.Add("32-bit float");
-            BitDepthCombo.SelectedIndex = (allow32bit && preferredBd == 32) ? 1 : 0;
-        }
-
-        private int GetSelectedSampleRate()
-        {
-            // Determine which rate array is currently shown based on codec
+            if (CodecInfoText == null) return;
             int ci = CodecCombo.SelectedIndex;
-            string codec = ci >= 0 && ci < CodecOptions.Length ? CodecOptions[ci].Value : "wav";
-            int[] validRates = codec == "opus"
-                ? SampleRates.Where(r => r != 44100).ToArray()
-                : SampleRates;
-            int idx = SampleRateCombo.SelectedIndex;
-            return idx >= 0 && idx < validRates.Length ? validRates[idx] : 16000;
+            string codec = ci >= 0 && ci < _visibleCodecOptions.Count ? _visibleCodecOptions[ci].Value : "wav";
+            CodecInfoText.Text = CodecDescriptions.TryGetValue(codec, out var info) ? info : string.Empty;
         }
 
         private void BrowseFolder_Click(object sender, RoutedEventArgs e)
@@ -228,11 +166,8 @@ namespace PaDDY
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            SelectedSampleRate = GetSelectedSampleRate();
-            SelectedBitDepth = BitDepthCombo.SelectedIndex == 1 ? 32 : 16;
-            SelectedChannels = ChannelsCombo.SelectedIndex == 1 ? 2 : 1;
             int ci = CodecCombo.SelectedIndex;
-            SelectedCodec = ci >= 0 && ci < CodecOptions.Length ? CodecOptions[ci].Value : "wav";
+            SelectedCodec = ci >= 0 && ci < _visibleCodecOptions.Count ? _visibleCodecOptions[ci].Value : "wav";
             SelectedSaveFolder = SaveFolderBox.Text;
             SelectedBufferDurationMs = (int)(BufferDurationSlider.Value * 1000);
 

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8765;CS8767;CS8769</NoWarn>
+    <AssemblyName>NoIDSoftwork.AudioProcessor</AssemblyName>
+    <RootNamespace>NoIDSoftwork.AudioProcessor</RootNamespace>
+    <SupportedOSPlatform>windows</SupportedOSPlatform>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Use vendored source for deterministic single-DLL compilation. -->
+    <Compile Remove="vendors/**/*.cs" />
+    <EmbeddedResource Remove="vendors/**/*.resx" />
+    <Page Remove="vendors/**/*.xaml" />
+    <ApplicationDefinition Remove="vendors/**/*.xaml" />
+
+    <Compile Include="vendors/NAudio/NAudio.Core/**/*.cs" />
+    <Compile Include="vendors/NAudio/NAudio/**/*.cs" />
+    <Compile Include="vendors/NAudio/NAudio.Wasapi/**/*.cs" />
+    <Compile Include="vendors/NAudio/NAudio.WinForms/**/*.cs" />
+    <Compile Include="vendors/NAudio/NAudio.WinMM/**/*.cs" />
+    <Compile Include="vendors/NAudio.Lame/LameDLLWrap/**/*.cs" />
+    <Compile Include="vendors/NAudio.Lame/NAudio.Lame/**/*.cs" />
+    <Compile Include="vendors/NAudio.Vorbis/NAudio.Vorbis/**/*.cs" />
+    <Compile Include="vendors/NVorbis/NVorbis/**/*.cs" />
+    <Compile Include="vendors/Concentus/CSharp/Concentus/**/*.cs" />
+    <Compile Include="vendors/Concentus.OggFile/Concentus.Oggfile/**/*.cs" />
+    <Compile Include="vendors/OggVorbisEncoder/OggVorbisEncoder/**/*.cs" />
+
+    <Compile Remove="vendors/**/bin/**/*.cs;vendors/**/obj/**/*.cs;vendors/**/tests/**/*.cs;vendors/**/test/**/*.cs;vendors/**/example/**/*.cs;vendors/**/examples/**/*.cs;vendors/**/benchmark/**/*.cs" />
+
+    <!-- NAudio.Lame depends on native libmp3lame binaries at runtime. -->
+    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.32.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.64.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Keep upstream vendored sources untouched while limiting warning noise to app-owned code. -->
+    <Compile Update="vendors/**/*.cs" NoWarn="CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8765;CS8767;CS8769" />
+  </ItemGroup>
+</Project>

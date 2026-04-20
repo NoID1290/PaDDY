@@ -9,7 +9,10 @@ using WpfControl = System.Windows.Controls.UserControl;
 using WpfButton = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
 using System.Windows.Media.Animation;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using NoIDSoftwork.AudioProcessor;
 using PaDDY.Models;
 using PaDDY.Services;
 
@@ -63,10 +66,10 @@ namespace PaDDY.Controls
             }
         }
 
-        private WaveOutEvent? _player;
+        private IWavePlayer? _player;
         private IUnifiedAudioReader? _reader;
         private PlaybackMeterProvider? _meterProvider;
-        private WaveOutEvent? _listenPlayer;
+        private IWavePlayer? _listenPlayer;
         private IUnifiedAudioReader? _listenReader;
         private bool _isPlaying;
 
@@ -213,10 +216,11 @@ namespace PaDDY.Controls
             try
             {
                 _reader = AudioReaderFactory.Open(Entry.FilePath);
-                _meterProvider = new PlaybackMeterProvider(_reader.AsSampleProvider());
+                ISampleProvider playbackSource = BuildPlaybackSource(_reader.AsSampleProvider());
+                _meterProvider = new PlaybackMeterProvider(playbackSource);
                 _meterProvider.RmsLevelChanged += (l, r) => PlaybackRmsChanged?.Invoke(l, r);
-                _player = new WaveOutEvent { DeviceNumber = OutputDeviceIndex, DesiredLatency = 100, NumberOfBuffers = 6 };
-                _player.Init(new NAudio.Wave.SampleProviders.SampleToWaveProvider(_meterProvider));
+                _player = CreateWasapiPlayer(OutputDeviceIndex, 100);
+                _player.Init(_meterProvider.ToWaveProvider16());
                 _player.Volume = OutputVolume;
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _player.Play();
@@ -224,8 +228,9 @@ namespace PaDDY.Controls
                 if (ListenDeviceIndex >= -1)
                 {
                     _listenReader = AudioReaderFactory.Open(Entry.FilePath);
-                    _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
-                    _listenPlayer.Init(_listenReader.AsWaveProvider());
+                    ISampleProvider listenSource = BuildPlaybackSource(_listenReader.AsSampleProvider());
+                    _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
+                    _listenPlayer.Init(listenSource.ToWaveProvider16());
                     _listenPlayer.Volume = ListenVolume;
                     _listenPlayer.Play();
                 }
@@ -250,8 +255,9 @@ namespace PaDDY.Controls
             try
             {
                 _listenReader = AudioReaderFactory.Open(Entry.FilePath);
-                _listenPlayer = new WaveOutEvent { DeviceNumber = ListenDeviceIndex };
-                _listenPlayer.Init(_listenReader.AsWaveProvider());
+                ISampleProvider listenSource = BuildPlaybackSource(_listenReader.AsSampleProvider());
+                _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
+                _listenPlayer.Init(listenSource.ToWaveProvider16());
                 _listenPlayer.Volume = ListenVolume;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _listenPlayer.Play();
@@ -292,6 +298,43 @@ namespace PaDDY.Controls
             TileBorder.BorderBrush = playing
                 ? BrushPlaying
                 : (_isFavorite ? BrushFavorite : BrushNormal);
+        }
+
+        private static IWavePlayer CreateWasapiPlayer(int deviceIndex, int latencyMs)
+        {
+            MMDevice? device = ResolveRenderDevice(deviceIndex);
+            return device != null
+                ? new WasapiOut(device, AudioClientShareMode.Shared, true, latencyMs)
+                : new WasapiOut(AudioClientShareMode.Shared, true, latencyMs);
+        }
+
+        private static MMDevice? ResolveRenderDevice(int deviceIndex)
+        {
+            if (deviceIndex < 0)
+                return null;
+
+            var enumerator = new MMDeviceEnumerator();
+            var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            return deviceIndex < devices.Count ? devices[deviceIndex] : null;
+        }
+
+        private static ISampleProvider BuildPlaybackSource(ISampleProvider source)
+        {
+            if (source.WaveFormat.Channels == 1)
+            {
+                return source.ToStereo();
+            }
+
+            if (source.WaveFormat.Channels > 2)
+            {
+                // Route front-left/front-right to stereo for robust device compatibility.
+                var mux = new MultiplexingSampleProvider(new[] { source }, 2);
+                mux.ConnectInputToOutput(0, 0);
+                mux.ConnectInputToOutput(1, 1);
+                return mux;
+            }
+
+            return source;
         }
 
         // â”€â”€ Context menu handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
