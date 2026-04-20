@@ -6,20 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.9.1.0420] - 2026-04-20
 
-- Improving layout
-- Update CHANGELOG for audio core enhancements
-- Remove outdated build note README.md
-- Refactor formatting for consistency in LoopbackFormatConverter and SettingsWindow
-- New Audio Core
-
-## [0.9.0.0420] - 2026-04-20
-
 - Added multichannels inputs support up to 8 channels (7.1)
 - Now support 24bit bit depth
 - Now support sampling rate up to 96kHz
 - Audio settings are now handle automatically based on the input source capabilities
 - New downmixing pipeline for codecs that only support 2 channels
 - New audio core pipeline
+- Improving layout and remove unnecessary UI elements
 
 ## [0.8.0.0415] - 2026-04-15
 
