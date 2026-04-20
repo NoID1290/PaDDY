@@ -23,10 +23,12 @@ namespace PaDDY
         private readonly AudioCaptureService _captureService = new();
         private readonly GlobalHotkeyService _hotkeyService = new();
         private AppSettings _settings = AppSettings.Load();
+        private readonly List<CaptureSourceMode> _captureSourceModes = new();
         private List<(string Id, string Name)> _loopbackDevices = new();
         private List<(uint ProcessId, string ProcessName)> _appLoopbackProcesses = new();
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
+        private bool _developerModeEnabled;
         private RecordingPadButton? _hoveredPad;
 
         // Volume controls
@@ -73,6 +75,14 @@ namespace PaDDY
 
         private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) == (ModifierKeys.Control | ModifierKeys.Shift)
+                && e.Key == Key.D)
+            {
+                e.Handled = true;
+                ToggleDeveloperMode();
+                return;
+            }
+
             if (_hoveredPad == null) return;
             // Don't intercept when a text-entry control has keyboard focus
             if (Keyboard.FocusedElement is System.Windows.Controls.TextBox ||
@@ -110,9 +120,57 @@ namespace PaDDY
         private void PopulateCaptureSourceModes()
         {
             CaptureSourceCombo.Items.Clear();
-            CaptureSourceCombo.Items.Add("Mic/Line input");
-            CaptureSourceCombo.Items.Add("Output loopback");
-            CaptureSourceCombo.Items.Add("App loopback");
+            _captureSourceModes.Clear();
+
+            AddCaptureSourceMode(CaptureSourceMode.Microphone, "Mic/Line input");
+            AddCaptureSourceMode(CaptureSourceMode.OutputLoopback, "Output loopback");
+
+            if (_developerModeEnabled)
+                AddCaptureSourceMode(CaptureSourceMode.AppLoopback, "App loopback");
+        }
+
+        private void AddCaptureSourceMode(CaptureSourceMode mode, string label)
+        {
+            _captureSourceModes.Add(mode);
+            CaptureSourceCombo.Items.Add(label);
+        }
+
+        private void ToggleDeveloperMode()
+        {
+            _developerModeEnabled = !_developerModeEnabled;
+
+            var previousMode = GetSelectedCaptureMode();
+            RefreshCaptureSourceModes(previousMode, persistSelection: true);
+
+            string status = _developerModeEnabled
+                ? "Developer mode enabled. App loopback is now visible."
+                : "Developer mode disabled. App loopback is now hidden.";
+            SetStatus(status, _developerModeEnabled ? "#FFFFB300" : "#FF757575");
+        }
+
+        private void RefreshCaptureSourceModes(CaptureSourceMode preferredMode, bool persistSelection)
+        {
+            bool wasSuppressing = _suppressSelectionEvents;
+            _suppressSelectionEvents = true;
+
+            PopulateCaptureSourceModes();
+
+            CaptureSourceMode nextMode = preferredMode;
+            if (!_captureSourceModes.Contains(nextMode))
+                nextMode = _captureSourceModes.Contains(CaptureSourceMode.OutputLoopback)
+                    ? CaptureSourceMode.OutputLoopback
+                    : CaptureSourceMode.Microphone;
+
+            CaptureSourceCombo.SelectedIndex = _captureSourceModes.IndexOf(nextMode);
+            _suppressSelectionEvents = wasSuppressing;
+
+            if (persistSelection)
+            {
+                _settings.CaptureSourceMode = (int)nextMode;
+                _settings.Save();
+                UpdateInputControlsForSource();
+                RestartMonitoringIfActive();
+            }
         }
 
         private void PopulateRecordingModes()
@@ -263,8 +321,19 @@ namespace PaDDY
 
         private void ApplySettings()
         {
-            int sourceMode = Math.Clamp(_settings.CaptureSourceMode, 0, CaptureSourceCombo.Items.Count - 1);
-            CaptureSourceCombo.SelectedIndex = sourceMode;
+            var requestedMode = (CaptureSourceMode)Math.Clamp(_settings.CaptureSourceMode, 0, 2);
+            if (!_captureSourceModes.Contains(requestedMode))
+                requestedMode = _captureSourceModes.Contains(CaptureSourceMode.OutputLoopback)
+                    ? CaptureSourceMode.OutputLoopback
+                    : CaptureSourceMode.Microphone;
+
+            CaptureSourceCombo.SelectedIndex = _captureSourceModes.IndexOf(requestedMode);
+            if (_settings.CaptureSourceMode != (int)requestedMode)
+            {
+                _settings.CaptureSourceMode = (int)requestedMode;
+                _settings.Save();
+            }
+
             ListenOutputEnabledCheck.IsChecked = _settings.ListenOutputEnabled;
 
             SensitivitySlider.Value = _settings.Sensitivity;
@@ -338,12 +407,11 @@ namespace PaDDY
 
         private CaptureSourceMode GetSelectedCaptureMode()
         {
-            return CaptureSourceCombo.SelectedIndex switch
-            {
-                1 => CaptureSourceMode.OutputLoopback,
-                2 => CaptureSourceMode.AppLoopback,
-                _ => CaptureSourceMode.Microphone
-            };
+            int index = CaptureSourceCombo.SelectedIndex;
+            if (index >= 0 && index < _captureSourceModes.Count)
+                return _captureSourceModes[index];
+
+            return CaptureSourceMode.Microphone;
         }
 
         private string? GetSelectedLoopbackDeviceId()

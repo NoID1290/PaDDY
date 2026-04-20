@@ -19,5 +19,10 @@ namespace PaDDY
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+        private void CreditsButton_Click(object sender, RoutedEventArgs e)
+        {
+            new CreditsWindow { Owner = this }.ShowDialog();
+        }
     }
 }

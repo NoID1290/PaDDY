@@ -27,6 +27,16 @@
     <ApplicationDefinition Remove="NoIDSoftwork.AudioProcessor\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="NoIDSoftwork.AudioProcessor\vendors\licenses\*.txt">
+      <Link>licenses\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="NoIDSoftwork.AudioProcessor\vendors\VENDORING_MANIFEST.md">
+      <Link>licenses\VENDORING_MANIFEST.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="PaDDY.ico" />
   </ItemGroup>
   <Target Name="RenameExeAfterBuild" AfterTargets="Build">

@@ -1,6 +1,6 @@
 # ============================================================================
 #
-# update_version.ps1 - Update the MMDD date portion of the version in PaDDY
+# update_version.ps1 - Update the MMDD date portion of the version in project files
 # Copyright (c) NoID Softwork 2026-2026. All rights reserved.
 #
 # Version format: a.b.c.MMDD
@@ -11,11 +11,12 @@
 #
 # Usage:
 #   .\update_version.ps1
-#   (Reads current a.b.c from PaDDY.csproj, updates MMDD to today, saves back)
+#   (Reads current a.b.c from PaDDY.csproj, updates MMDD to today for all synced projects)
 # ============================================================================
 
 $repoRoot          = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectFilePath   = Join-Path $repoRoot "PaDDY.csproj"
+$audioProjectFilePath = Join-Path $repoRoot "NoIDSoftwork.AudioProcessor\NoIDSoftwork.AudioProcessor.csproj"
 $assemblyInfoPath  = Join-Path $repoRoot "AssemblyInfo.cs"
 
 function Update-ProjectVersionDate {
@@ -69,6 +70,8 @@ Write-Host "New version:     $newVersion" -ForegroundColor Cyan
 
 # Update PaDDY.csproj
 Update-ProjectVersionDate -ProjectPath $projectFilePath -NewVersion $newVersion
+# Update NoIDSoftwork.AudioProcessor.csproj
+Update-ProjectVersionDate -ProjectPath $audioProjectFilePath -NewVersion $newVersion
 
 # Update AssemblyInfo.cs
 if (Test-Path $assemblyInfoPath) {
