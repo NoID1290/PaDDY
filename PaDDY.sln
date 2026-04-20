@@ -4,6 +4,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaDDY", "PaDDY.csproj", "{87C23CA2-B398-60CC-9B23-C93BDF587E7E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoIDSoftwork.AudioProcessor", "NoIDSoftwork.AudioProcessor\NoIDSoftwork.AudioProcessor.csproj", "{A1B2C3D4-E5F6-4789-ABCD-EF0123456789}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{87C23CA2-B398-60CC-9B23-C93BDF587E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87C23CA2-B398-60CC-9B23-C93BDF587E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87C23CA2-B398-60CC-9B23-C93BDF587E7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-4789-ABCD-EF0123456789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-4789-ABCD-EF0123456789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-4789-ABCD-EF0123456789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-4789-ABCD-EF0123456789}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
