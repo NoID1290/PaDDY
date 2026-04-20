@@ -7,7 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using NoIDSoftwork.AudioProcessor;
 using PaDDY.Controls;
 using PaDDY.Helpers;
 using PaDDY.Models;
@@ -22,6 +24,7 @@ namespace PaDDY
         private readonly GlobalHotkeyService _hotkeyService = new();
         private AppSettings _settings = AppSettings.Load();
         private List<(string Id, string Name)> _loopbackDevices = new();
+        private List<(uint ProcessId, string ProcessName)> _appLoopbackProcesses = new();
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
         private RecordingPadButton? _hoveredPad;
@@ -84,6 +87,7 @@ namespace PaDDY
             PopulateCaptureSourceModes();
             PopulateInputDevices();
             PopulateLoopbackDevices();
+            PopulateAppLoopbackProcesses();
             PopulateOutputDevices();
             PopulateListenOutputDevices();
             PopulateRecordingModes();
@@ -96,6 +100,7 @@ namespace PaDDY
             _captureService.RmsLevelChanged += OnRmsChanged;
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
+            _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
 
             // Register global hotkey
             _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
@@ -107,6 +112,7 @@ namespace PaDDY
             CaptureSourceCombo.Items.Clear();
             CaptureSourceCombo.Items.Add("Mic/Line input");
             CaptureSourceCombo.Items.Add("Output loopback");
+            CaptureSourceCombo.Items.Add("App loopback");
         }
 
         private void PopulateRecordingModes()
@@ -184,10 +190,11 @@ namespace PaDDY
             OutputDeviceCombo.Items.Clear();
             OutputDeviceCombo.Items.Add("Default Output");
 
-            for (int i = 0; i < WaveOut.DeviceCount; i++)
+            using (var enumerator = new MMDeviceEnumerator())
             {
-                var caps = WaveOut.GetCapabilities(i);
-                OutputDeviceCombo.Items.Add(caps.ProductName);
+                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                foreach (var device in devices)
+                    OutputDeviceCombo.Items.Add(device.FriendlyName);
             }
 
             int clampedOut = Math.Clamp(_settings.OutputDeviceIndex, 0,
@@ -201,10 +208,11 @@ namespace PaDDY
             ListenOutputDeviceCombo.Items.Clear();
             ListenOutputDeviceCombo.Items.Add("Default Output");
 
-            for (int i = 0; i < WaveOut.DeviceCount; i++)
+            using (var enumerator = new MMDeviceEnumerator())
             {
-                var caps = WaveOut.GetCapabilities(i);
-                ListenOutputDeviceCombo.Items.Add(caps.ProductName);
+                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                foreach (var device in devices)
+                    ListenOutputDeviceCombo.Items.Add(device.FriendlyName);
             }
 
             int clamped = Math.Clamp(_settings.ListenOutputDeviceIndex, 0,
@@ -232,6 +240,25 @@ namespace PaDDY
                 LoopbackDeviceCombo.Items.Add("No output devices found");
                 LoopbackDeviceCombo.SelectedIndex = 0;
             }
+        }
+
+        private void PopulateAppLoopbackProcesses()
+        {
+            _appLoopbackProcesses = AudioSessionHelper.GetAudioProcesses();
+            AppLoopbackCombo.Items.Clear();
+
+            if (_appLoopbackProcesses.Count == 0)
+            {
+                AppLoopbackCombo.Items.Add("No apps producing audio");
+                AppLoopbackCombo.SelectedIndex = 0;
+                return;
+            }
+
+            foreach (var p in _appLoopbackProcesses)
+                AppLoopbackCombo.Items.Add(p.ProcessName);
+
+            int idx = _appLoopbackProcesses.FindIndex(p => p.ProcessId == _settings.AppLoopbackProcessId);
+            AppLoopbackCombo.SelectedIndex = idx >= 0 ? idx : 0;
         }
 
         private void ApplySettings()
@@ -311,9 +338,12 @@ namespace PaDDY
 
         private CaptureSourceMode GetSelectedCaptureMode()
         {
-            return CaptureSourceCombo.SelectedIndex == 1
-                ? CaptureSourceMode.OutputLoopback
-                : CaptureSourceMode.Microphone;
+            return CaptureSourceCombo.SelectedIndex switch
+            {
+                1 => CaptureSourceMode.OutputLoopback,
+                2 => CaptureSourceMode.AppLoopback,
+                _ => CaptureSourceMode.Microphone
+            };
         }
 
         private string? GetSelectedLoopbackDeviceId()
@@ -325,12 +355,21 @@ namespace PaDDY
 
         private void UpdateInputControlsForSource()
         {
-            bool useLoopback = GetSelectedCaptureMode() == CaptureSourceMode.OutputLoopback;
+            var mode = GetSelectedCaptureMode();
+            bool useMic = mode == CaptureSourceMode.Microphone;
+            bool useLoopback = mode == CaptureSourceMode.OutputLoopback;
+            bool useApp = mode == CaptureSourceMode.AppLoopback;
 
-            InputDeviceLabel.Visibility = useLoopback ? Visibility.Collapsed : Visibility.Visible;
-            InputDeviceCombo.Visibility = useLoopback ? Visibility.Collapsed : Visibility.Visible;
+            InputDeviceLabel.Visibility = useMic ? Visibility.Visible : Visibility.Collapsed;
+            InputDeviceCombo.Visibility = useMic ? Visibility.Visible : Visibility.Collapsed;
             LoopbackDeviceLabel.Visibility = useLoopback ? Visibility.Visible : Visibility.Collapsed;
             LoopbackDeviceCombo.Visibility = useLoopback ? Visibility.Visible : Visibility.Collapsed;
+            AppLoopbackLabel.Visibility = useApp ? Visibility.Visible : Visibility.Collapsed;
+            AppLoopbackCombo.Visibility = useApp ? Visibility.Visible : Visibility.Collapsed;
+            RefreshAppLoopbackBtn.Visibility = useApp ? Visibility.Visible : Visibility.Collapsed;
+
+            if (useApp)
+                PopulateAppLoopbackProcesses();
         }
 
         private void RestartMonitoringIfActive()
@@ -350,11 +389,25 @@ namespace PaDDY
                 return;
             }
 
+            if (mode == CaptureSourceMode.AppLoopback)
+            {
+                if (_appLoopbackProcesses.Count == 0)
+                    throw new InvalidOperationException("No apps producing audio to capture.");
+
+                int idx = AppLoopbackCombo.SelectedIndex;
+                if (idx < 0 || idx >= _appLoopbackProcesses.Count)
+                    throw new InvalidOperationException("No app selected for loopback capture.");
+
+                _captureService.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
+                _captureService.Start(0, mode, null);
+                SetStatus($"Monitoring app: {_appLoopbackProcesses[idx].ProcessName}…", "#FF4CAF50");
+                return;
+            }
+
             if (_loopbackDevices.Count == 0)
                 throw new InvalidOperationException("No active output devices available for loopback capture.");
 
             _captureService.Start(0, mode, GetSelectedLoopbackDeviceId());
-            // Loopback format detected lazily from first audio frame
             SetStatus("Monitoring output loopback…", "#FF4CAF50");
         }
 
@@ -385,6 +438,24 @@ namespace PaDDY
             _settings.LoopbackDeviceId = GetSelectedLoopbackDeviceId() ?? string.Empty;
             _settings.Save();
             RestartMonitoringIfActive();
+        }
+
+        private void AppLoopbackCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+
+            int idx = AppLoopbackCombo.SelectedIndex;
+            if (idx >= 0 && idx < _appLoopbackProcesses.Count)
+            {
+                _settings.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
+                _settings.Save();
+            }
+            RestartMonitoringIfActive();
+        }
+
+        private void RefreshAppLoopback_Click(object sender, RoutedEventArgs e)
+        {
+            PopulateAppLoopbackProcesses();
         }
 
         private void OutputDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -438,6 +509,14 @@ namespace PaDDY
             if (GetSelectedCaptureMode() == CaptureSourceMode.OutputLoopback && _loopbackDevices.Count == 0)
             {
                 System.Windows.MessageBox.Show("No active output device found for loopback capture.", "PaDDY",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MonitorToggle.IsChecked = false;
+                return;
+            }
+
+            if (GetSelectedCaptureMode() == CaptureSourceMode.AppLoopback && _appLoopbackProcesses.Count == 0)
+            {
+                System.Windows.MessageBox.Show("No apps currently producing audio.\nStart playback in an app first, then click the refresh button.", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 MonitorToggle.IsChecked = false;
                 return;
@@ -576,13 +655,13 @@ namespace PaDDY
         // ── Settings / About buttons ───────────────────────────────────────────
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            var win = new SettingsWindow(_settings) { Owner = this };
+            var win = new SettingsWindow(_settings)
+            {
+                Owner = this
+            };
             if (win.ShowDialog() != true) return;
 
             // Apply changes
-            _settings.RecordSampleRate = win.SelectedSampleRate;
-            _settings.RecordBitDepth = win.SelectedBitDepth;
-            _settings.RecordChannels = win.SelectedChannels;
             _settings.RecordCodec = win.SelectedCodec;
             _settings.SaveFolder = win.SelectedSaveFolder;
             _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
@@ -591,9 +670,6 @@ namespace PaDDY
             _settings.MaxRecords = win.SelectedMaxRecords;
             _settings.Save();
 
-            _captureService.RecordSampleRate = win.SelectedSampleRate;
-            _captureService.RecordBitDepth = win.SelectedBitDepth;
-            _captureService.RecordChannels = win.SelectedChannels;
             _captureService.RecordCodec = win.SelectedCodec;
             _captureService.SaveFolder = win.SelectedSaveFolder;
             _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
@@ -772,6 +848,22 @@ namespace PaDDY
             Dispatcher.InvokeAsync(() => AddPadButton(entry, toFavorites: false));
         }
 
+        private void OnCodecCompatibilityWarning(string message)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                _settings.RecordCodec = "wav";
+                _settings.Save();
+                _captureService.RecordCodec = "wav";
+
+                System.Windows.MessageBox.Show(this,
+                    message,
+                    "Codec Disabled",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            });
+        }
+
         // ── Pad panel ──────────────────────────────────────────────────────────
         private RecordingPadButton CreatePadButton(RecordingEntry entry)
         {
@@ -833,7 +925,7 @@ namespace PaDDY
                 if (!File.Exists(copyPath)) return;
                 try
                 {
-                    using var reader = PaDDY.Services.AudioReaderFactory.Open(copyPath);
+                    using var reader = AudioReaderFactory.Open(copyPath);
                     var newEntry = new RecordingEntry
                     {
                         FilePath = copyPath,
@@ -884,7 +976,7 @@ namespace PaDDY
                 }
                 try
                 {
-                    using var reader = PaDDY.Services.AudioReaderFactory.Open(path);
+                    using var reader = AudioReaderFactory.Open(path);
                     var entry = new RecordingEntry
                     {
                         FilePath = path,
@@ -926,7 +1018,7 @@ namespace PaDDY
             {
                 try
                 {
-                    using var reader = PaDDY.Services.AudioReaderFactory.Open(fi.FullName);
+                    using var reader = AudioReaderFactory.Open(fi.FullName);
                     var entry = new RecordingEntry
                     {
                         FilePath = fi.FullName,

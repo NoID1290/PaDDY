@@ -61,6 +61,14 @@ dotnet build PaDDY.csproj --configuration Release
 
 > Note: PaDDY targets `net8.0-windows` (WPF), so building is expected on Windows.
 
+### Dependency model
+
+- `NoIDSoftwork.AudioProcessor` now vendors audio dependencies as source under `NoIDSoftwork.AudioProcessor/vendors` and compiles them into a single managed `NoIDSoftwork.AudioProcessor.dll`.
+- Vendored source origins and pinned refs are documented in `NoIDSoftwork.AudioProcessor/vendors/VENDORING_MANIFEST.md`.
+- MP3 encoding still requires native runtime binaries:
+  - `libmp3lame.32.dll`
+  - `libmp3lame.64.dll`
+
 ## Usage
 
 1. Select **Source** (Mic or Loopback) and devices.

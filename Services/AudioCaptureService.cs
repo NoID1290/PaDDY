@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using NoIDSoftwork.AudioProcessor;
 using PaDDY.Models;
 
 namespace PaDDY.Services
@@ -11,7 +12,8 @@ namespace PaDDY.Services
     public enum CaptureSourceMode
     {
         Microphone = 0,
-        OutputLoopback = 1
+        OutputLoopback = 1,
+        AppLoopback = 2
     }
 
     public enum AudioRecordingMode
@@ -32,6 +34,7 @@ namespace PaDDY.Services
         /// <summary>Fired with (left, right) normalised 0-100 values. Mono sources fire identical L/R.</summary>
         public event Action<double, double>? RmsLevelChanged;
         public event Action<bool>? RecordingStateChanged; // true = started, false = stopped
+        public event Action<string>? CodecCompatibilityWarning;
 
         // â”€â”€ Configuration properties â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         /// <summary>RMS threshold 0-100. Voice above this is recorded (AutoVAD mode).</summary>
@@ -62,6 +65,9 @@ namespace PaDDY.Services
 
         /// <summary>Input gain multiplier 0.0–1.0. Applied to captured samples before metering and recording.</summary>
         public float InputGain { get; set; } = 0.8f;
+
+        /// <summary>Current active capture format, if monitoring is running.</summary>
+        public WaveFormat? CurrentCaptureFormat => _captureFormat;
 
         // â”€â”€ Internal state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private IWaveIn? _captureIn;
@@ -107,6 +113,9 @@ namespace PaDDY.Services
             Start(deviceIndex, CaptureSourceMode.Microphone, null);
         }
 
+        /// <summary>Process ID to capture when using AppLoopback mode.</summary>
+        public uint AppLoopbackProcessId { get; set; }
+
         public void Start(int microphoneDeviceIndex, CaptureSourceMode sourceMode, string? loopbackDeviceId)
         {
             if (_captureIn != null) Stop();
@@ -118,6 +127,7 @@ namespace PaDDY.Services
             IWaveIn capture = sourceMode switch
             {
                 CaptureSourceMode.OutputLoopback => CreateLoopbackCapture(loopbackDeviceId),
+                CaptureSourceMode.AppLoopback => new ProcessLoopbackCapture(AppLoopbackProcessId),
                 _ => new WaveInEvent
                 {
                     DeviceNumber = microphoneDeviceIndex,
@@ -233,15 +243,26 @@ namespace PaDDY.Services
             _isRecording = true;
             _lastVoiceTime = DateTime.UtcNow;
 
+            var format = _captureFormat ?? new WaveFormat(16000, 16, 1);
+            string requestedCodec = (RecordCodec ?? "wav").ToLowerInvariant();
+            string codecToUse = requestedCodec;
+
+            if (!IsCodecCompatibleWithFormat(requestedCodec, format, out string incompatibilityReason))
+            {
+                codecToUse = "wav";
+                RecordCodec = "wav";
+                CodecCompatibilityWarning?.Invoke(
+                    $"{requestedCodec.ToUpperInvariant()} is not compatible with current input format ({format.SampleRate} Hz, {format.Channels} channel(s)). {incompatibilityReason} Falling back to WAV.");
+            }
+
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string folder = Path.IsPathRooted(SaveFolder)
                 ? SaveFolder
                 : Path.Combine(AppContext.BaseDirectory, SaveFolder);
-            string ext = StreamingRecorderFactory.ExtensionFor(RecordCodec);
+            string ext = StreamingRecorderFactory.ExtensionFor(codecToUse);
             string filePath = Path.Combine(folder, $"Recording_{timestamp}.{ext}");
 
-            _recorder = StreamingRecorderFactory.Create(RecordCodec);
-            var format = _captureFormat ?? new WaveFormat(16000, 16, 1);
+            _recorder = StreamingRecorderFactory.Create(codecToUse);
             _recorder.BeginRecording(filePath, format);
 
             foreach (var chunk in _preBuffer)
@@ -250,6 +271,51 @@ namespace PaDDY.Services
             _preBufferBytes = 0;
 
             RecordingStateChanged?.Invoke(true);
+        }
+
+        private static bool IsCodecCompatibleWithFormat(string codec, WaveFormat format, out string reason)
+        {
+            reason = string.Empty;
+
+            if (codec == "mp3")
+            {
+                int[] validRates = { 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000 };
+
+                if (format.Channels > 2)
+                {
+                    reason = "MP3 supports only mono or stereo input.";
+                    return false;
+                }
+
+                if (!validRates.Contains(format.SampleRate))
+                {
+                    reason = "MP3 requires one of these sample rates: 8k, 11.025k, 12k, 16k, 22.05k, 24k, 32k, 44.1k, 48k.";
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (codec == "opus")
+            {
+                int[] validRates = { 8000, 12000, 16000, 24000, 48000 };
+
+                if (format.Channels > 2)
+                {
+                    reason = "Opus supports only mono or stereo input.";
+                    return false;
+                }
+
+                if (!validRates.Contains(format.SampleRate))
+                {
+                    reason = "Opus requires one of these sample rates: 8k, 12k, 16k, 24k, 48k.";
+                    return false;
+                }
+
+                return true;
+            }
+
+            return true;
         }
 
         private void FinaliseClip()
@@ -293,7 +359,9 @@ namespace PaDDY.Services
             if (format == null || gain == 1.0f) return;
 
             bool isFloat = format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample == 32;
-            if (isFloat)
+            int bytesPerSample = format.BitsPerSample / 8;
+
+            if (isFloat && bytesPerSample == 4)
             {
                 for (int i = 0; i <= count - 4; i += 4)
                 {
@@ -308,86 +376,165 @@ namespace PaDDY.Services
             }
             else
             {
-                // PCM 16-bit
-                for (int i = 0; i <= count - 2; i += 2)
+                if (bytesPerSample == 2)
                 {
-                    short s = (short)(buffer[i] | (buffer[i + 1] << 8));
-                    int scaled = (int)(s * gain);
-                    scaled = Math.Clamp(scaled, short.MinValue, short.MaxValue);
-                    short result = (short)scaled;
-                    buffer[i] = (byte)(result & 0xFF);
-                    buffer[i + 1] = (byte)((result >> 8) & 0xFF);
+                    // PCM 16-bit
+                    for (int i = 0; i <= count - 2; i += 2)
+                    {
+                        short s = (short)(buffer[i] | (buffer[i + 1] << 8));
+                        int scaled = (int)(s * gain);
+                        scaled = Math.Clamp(scaled, short.MinValue, short.MaxValue);
+                        short result = (short)scaled;
+                        buffer[i] = (byte)(result & 0xFF);
+                        buffer[i + 1] = (byte)((result >> 8) & 0xFF);
+                    }
+                }
+                else if (bytesPerSample == 3)
+                {
+                    // PCM 24-bit
+                    for (int i = 0; i <= count - 3; i += 3)
+                    {
+                        int sample = ReadPcm24(buffer, i);
+                        int scaled = (int)(sample * gain);
+                        scaled = Math.Clamp(scaled, -8388608, 8388607);
+                        WritePcm24(buffer, i, scaled);
+                    }
+                }
+                else if (bytesPerSample == 4)
+                {
+                    // PCM 32-bit integer
+                    for (int i = 0; i <= count - 4; i += 4)
+                    {
+                        int sample = BitConverter.ToInt32(buffer, i);
+                        long scaled = (long)(sample * gain);
+                        scaled = Math.Clamp(scaled, int.MinValue, int.MaxValue);
+                        byte[] bytes = BitConverter.GetBytes((int)scaled);
+                        buffer[i] = bytes[0];
+                        buffer[i + 1] = bytes[1];
+                        buffer[i + 2] = bytes[2];
+                        buffer[i + 3] = bytes[3];
+                    }
                 }
             }
         }
 
         /// <summary>
         /// Returns normalised (L, R) levels 0-100.
-        /// For mono or unknown formats, L == R.
+        /// Mono: L == R. Stereo: separate L/R. Multi-channel (5.1/7.1): overall RMS as L == R.
         /// </summary>
         private static (double L, double R) ComputeNormalisedLevels(byte[] buffer, int count, WaveFormat? format)
         {
             if (count <= 0 || format == null) return (0, 0);
 
-            bool isStereo = format.Channels == 2;
+            int channels = format.Channels;
             bool isFloat = format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample == 32;
+            int bytesPerSample = format.BitsPerSample / 8;
+            if (bytesPerSample <= 0) return (0, 0);
 
             double rmsL, rmsR;
 
-            if (isFloat)
+            if (isFloat && bytesPerSample == 4)
             {
                 int sampleCount = count / 4;
                 if (sampleCount == 0) return (0, 0);
 
-                double sumL = 0, sumR = 0;
-                int samplesL = 0, samplesR = 0;
-
-                for (int i = 0; i <= count - 4; i += 4)
+                if (channels == 2)
                 {
-                    float s = BitConverter.ToSingle(buffer, i);
-                    int sampleIndex = i / 4;
-                    if (isStereo)
+                    // Stereo: separate L/R
+                    double sumL = 0, sumR = 0;
+                    int samplesL = 0, samplesR = 0;
+                    for (int i = 0; i <= count - 4; i += 4)
                     {
+                        float s = BitConverter.ToSingle(buffer, i);
+                        int sampleIndex = i / 4;
                         if (sampleIndex % 2 == 0) { sumL += s * s; samplesL++; }
                         else { sumR += s * s; samplesR++; }
                     }
-                    else { sumL += s * s; samplesL++; }
+                    rmsL = samplesL > 0 ? Math.Sqrt(sumL / samplesL) : 0;
+                    rmsR = samplesR > 0 ? Math.Sqrt(sumR / samplesR) : 0;
                 }
-
-                rmsL = samplesL > 0 ? Math.Sqrt(sumL / samplesL) : 0;
-                rmsR = isStereo ? (samplesR > 0 ? Math.Sqrt(sumR / samplesR) : 0) : rmsL;
+                else
+                {
+                    // Mono or multi-channel (5.1, 7.1, etc.): compute overall RMS across all samples
+                    double sum = 0;
+                    int samples = 0;
+                    for (int i = 0; i <= count - 4; i += 4)
+                    {
+                        float s = BitConverter.ToSingle(buffer, i);
+                        sum += s * s;
+                        samples++;
+                    }
+                    rmsL = samples > 0 ? Math.Sqrt(sum / samples) : 0;
+                    rmsR = rmsL;
+                }
             }
             else
             {
-                // PCM 16-bit
-                if (count < 2) return (0, 0);
-
-                long sumL = 0, sumR = 0;
-                int samplesL = 0, samplesR = 0;
-                int sampleIndex = 0;
-
-                for (int i = 0; i <= count - 2; i += 2)
+                // PCM 16/24/32-bit integer
+                if (channels == 2)
                 {
-                    short s = (short)(buffer[i] | (buffer[i + 1] << 8));
-                    long sq = (long)s * s;
-                    if (isStereo)
+                    double sumL = 0, sumR = 0;
+                    int samplesL = 0, samplesR = 0;
+                    int sampleIndex = 0;
+                    for (int i = 0; i <= count - bytesPerSample; i += bytesPerSample)
                     {
+                        double normalized = ReadIntPcmSampleAsDouble(buffer, i, bytesPerSample);
+                        double sq = normalized * normalized;
                         if (sampleIndex % 2 == 0) { sumL += sq; samplesL++; }
                         else { sumR += sq; samplesR++; }
+                        sampleIndex++;
                     }
-                    else { sumL += sq; samplesL++; }
-                    sampleIndex++;
+                    double rawL = samplesL > 0 ? Math.Sqrt(sumL / samplesL) : 0;
+                    double rawR = samplesR > 0 ? Math.Sqrt(sumR / samplesR) : 0;
+                    rmsL = rawL;
+                    rmsR = rawR;
                 }
-
-                double rawL = samplesL > 0 ? Math.Sqrt((double)sumL / samplesL) / short.MaxValue : 0;
-                double rawR = isStereo ? (samplesR > 0 ? Math.Sqrt((double)sumR / samplesR) / short.MaxValue : 0) : rawL;
-                rmsL = rawL;
-                rmsR = rawR;
+                else
+                {
+                    // Mono or multi-channel: overall RMS
+                    double sum = 0;
+                    int samples = 0;
+                    for (int i = 0; i <= count - bytesPerSample; i += bytesPerSample)
+                    {
+                        double normalized = ReadIntPcmSampleAsDouble(buffer, i, bytesPerSample);
+                        sum += normalized * normalized;
+                        samples++;
+                    }
+                    double raw = samples > 0 ? Math.Sqrt(sum / samples) : 0;
+                    rmsL = raw;
+                    rmsR = raw;
+                }
             }
 
             double normL = Math.Min(100.0, rmsL * 500.0);
             double normR = Math.Min(100.0, rmsR * 500.0);
-            return (normL, isStereo ? normR : normL);
+            return (normL, normR);
+        }
+
+        private static int ReadPcm24(byte[] buffer, int byteOffset)
+        {
+            int sample = buffer[byteOffset] | (buffer[byteOffset + 1] << 8) | (buffer[byteOffset + 2] << 16);
+            if ((sample & 0x800000) != 0)
+                sample |= unchecked((int)0xFF000000);
+            return sample;
+        }
+
+        private static void WritePcm24(byte[] buffer, int byteOffset, int sample)
+        {
+            buffer[byteOffset] = (byte)(sample & 0xFF);
+            buffer[byteOffset + 1] = (byte)((sample >> 8) & 0xFF);
+            buffer[byteOffset + 2] = (byte)((sample >> 16) & 0xFF);
+        }
+
+        private static double ReadIntPcmSampleAsDouble(byte[] buffer, int byteOffset, int bytesPerSample)
+        {
+            return bytesPerSample switch
+            {
+                2 => BitConverter.ToInt16(buffer, byteOffset) / 32768.0,
+                3 => ReadPcm24(buffer, byteOffset) / 8388608.0,
+                4 => BitConverter.ToInt32(buffer, byteOffset) / 2147483648.0,
+                _ => 0.0
+            };
         }
 
         private static WasapiLoopbackCapture CreateLoopbackCapture(string? loopbackDeviceId)

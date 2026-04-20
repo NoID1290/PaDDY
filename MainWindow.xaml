@@ -401,6 +401,23 @@
                             Width="210"
                             Visibility="Collapsed"
                               SelectionChanged="LoopbackDeviceCombo_SelectionChanged"/>
+
+                    <TextBlock x:Name="AppLoopbackLabel"
+                            Text="🎯 App:"
+                            Style="{StaticResource SectionLabel}"
+                            Margin="10,0,6,0"
+                            Visibility="Collapsed"/>
+                    <ComboBox x:Name="AppLoopbackCombo"
+                            Width="240"
+                            Visibility="Collapsed"
+                              SelectionChanged="AppLoopbackCombo_SelectionChanged"/>
+                    <Button x:Name="RefreshAppLoopbackBtn"
+                            Content="⟳"
+                            Width="28"
+                            Margin="4,0,0,0"
+                            ToolTip="Refresh list of apps producing audio"
+                            Visibility="Collapsed"
+                            Click="RefreshAppLoopback_Click"/>
                 </StackPanel>
 
                 <!-- Output device -->

@@ -9,6 +9,8 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using NAudio.CoreAudioApi;
+using NoIDSoftwork.AudioProcessor;
 using PaDDY.Services;
 
 namespace PaDDY
@@ -21,7 +23,7 @@ namespace PaDDY
         private double _trimStartFraction;  // 0.0 – 1.0
         private double _trimEndFraction = 1.0;
 
-        private WaveOutEvent? _player;
+        private WasapiOut? _player;
         private IUnifiedAudioReader? _reader;
         private bool _isPreviewing;
         private bool _isStoppingPreview;
@@ -308,9 +310,9 @@ namespace PaDDY
                 _meterProvider = new MeteringSampleProvider(sp);
                 _meterProvider.StreamVolume += OnMeterStreamVolume;
 
-                _player = new WaveOutEvent();
+                _player = new WasapiOut(AudioClientShareMode.Shared, true, 100);
                 _player.PlaybackStopped += Player_PlaybackStopped;
-                _player.Init(new SampleToWaveProvider(_meterProvider));
+                _player.Init(BuildPlaybackSource(_meterProvider).ToWaveProvider16());
                 _player.Play();
 
                 _isPreviewing = true;
@@ -333,6 +335,22 @@ namespace PaDDY
         private void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() => StopPreview(false)));
+        }
+
+        private static ISampleProvider BuildPlaybackSource(ISampleProvider source)
+        {
+            if (source.WaveFormat.Channels == 1)
+                return source.ToStereo();
+
+            if (source.WaveFormat.Channels > 2)
+            {
+                var mux = new MultiplexingSampleProvider(new[] { source }, 2);
+                mux.ConnectInputToOutput(0, 0);
+                mux.ConnectInputToOutput(1, 1);
+                return mux;
+            }
+
+            return source;
         }
 
         private void StartPlaybackAnimation(double fromSec, double toSec, TimeSpan duration)

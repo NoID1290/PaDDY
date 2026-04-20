@@ -4,7 +4,7 @@
         Title="PaDDY — Settings"
         Icon="PaDDY.ico"
         Width="480"
-        Height="650"
+        Height="520"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FF1E1E1E"
@@ -228,50 +228,24 @@
                         CornerRadius="4"
                         Padding="12,10"
                         Margin="0,0,0,12">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0"
-                                Grid.Column="0"
-                                Text="Codec:"/>
-                        <ComboBox x:Name="CodecCombo"
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                SelectionChanged="CodecCombo_SelectionChanged"/>
-
-                        <TextBlock Grid.Row="2"
-                                Grid.Column="0"
-                                Text="Sample rate:"/>
-                        <ComboBox x:Name="SampleRateCombo"
-                                Grid.Row="2"
-                                Grid.Column="1"/>
-
-                        <TextBlock Grid.Row="4"
-                                Grid.Column="0"
-                                Text="Bit depth:"/>
-                        <ComboBox x:Name="BitDepthCombo"
-                                Grid.Row="4"
-                                Grid.Column="1"/>
-
-                        <TextBlock Grid.Row="6"
-                                Grid.Column="0"
-                                Text="Channels:"/>
-                        <ComboBox x:Name="ChannelsCombo"
-                                Grid.Row="6"
-                                Grid.Column="1"/>
-                    </Grid>
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                    Text="Codec:"/>
+                            <ComboBox x:Name="CodecCombo"
+                                    Grid.Column="1"
+                                    SelectionChanged="CodecCombo_SelectionChanged"/>
+                        </Grid>
+                        <TextBlock x:Name="CodecInfoText"
+                                   Margin="0,8,0,0"
+                                   TextWrapping="Wrap"
+                                   Foreground="#FF909090"
+                                   FontSize="11"/>
+                    </StackPanel>
                 </Border>
 
                 <!-- ── Save Folder ── -->
