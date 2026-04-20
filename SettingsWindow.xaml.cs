@@ -33,10 +33,10 @@ namespace PaDDY
 
         private static readonly Dictionary<string, string> CodecDescriptions = new()
         {
-            ["wav"]  = "Lossless · All formats preserved exactly, including multi-channel.",
-            ["mp3"]  = "Lossy · Up to stereo; multi-channel sources are automatically downmixed to stereo.",
+            ["wav"] = "Lossless · All formats preserved exactly, including multi-channel.",
+            ["mp3"] = "Lossy · Up to stereo; multi-channel sources are automatically downmixed to stereo.",
             ["opus"] = "Lossy · Optimised for voice. Up to stereo; automatically resamples to the nearest supported rate.",
-            ["ogg"]  = "Lossy · High-quality VBR. Up to stereo; multi-channel sources are automatically downmixed.",
+            ["ogg"] = "Lossy · High-quality VBR. Up to stereo; multi-channel sources are automatically downmixed.",
         };
 
         private uint _capturedVk;
