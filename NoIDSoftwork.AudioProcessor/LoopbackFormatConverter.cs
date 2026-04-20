@@ -126,7 +126,7 @@ namespace NoIDSoftwork.AudioProcessor
                 float sr = _sourceChannels > 7 ? ReadSampleAsFloat(buffer, frameOffset + (7 * bytesPerSample), bytesPerSample, isFloat) : 0f;
 
                 // ITU-R BS.775 stereo downmix
-                float left  = fl + CenterMix * fc + SurroundMix * bl + SurroundMix * sl + LfeMix * lfe;
+                float left = fl + CenterMix * fc + SurroundMix * bl + SurroundMix * sl + LfeMix * lfe;
                 float right = fr + CenterMix * fc + SurroundMix * br + SurroundMix * sr + LfeMix * lfe;
 
                 // Normalize to prevent clipping (peak coefficient sum ≈ 1 + 0.707 + 0.707 + 0.707 + 0.5 ≈ 3.62)
@@ -178,7 +178,7 @@ namespace NoIDSoftwork.AudioProcessor
                 int idx1 = Math.Min(srcIndex + 1, inputFrames - 1) * 2;
 
                 // Linear interpolation for each channel
-                output[i * 2]     = stereoInput[idx0]     * (1f - frac) + stereoInput[idx1]     * frac;
+                output[i * 2] = stereoInput[idx0] * (1f - frac) + stereoInput[idx1] * frac;
                 output[i * 2 + 1] = stereoInput[idx0 + 1] * (1f - frac) + stereoInput[idx1 + 1] * frac;
             }
 
