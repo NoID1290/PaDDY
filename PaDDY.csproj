@@ -8,19 +8,23 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>0.8.0.0415</Version>
-    <AssemblyVersion>0.8.0.0415</AssemblyVersion>
-    <FileVersion>0.8.0.0415</FileVersion>
+    <Version>0.9.0.0420</Version>
+    <AssemblyVersion>0.9.0.0420</AssemblyVersion>
+    <FileVersion>0.9.0.0420</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
   </PropertyGroup>
+  <!-- Audio packages are now in NoIDSoftwork.AudioProcessor (transitive via ProjectReference) -->
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="2.3.0" />
-    <PackageReference Include="NAudio.Lame" Version="2.1.0" />
-    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
-    <PackageReference Include="Concentus" Version="2.2.2" />
-    <PackageReference Include="Concentus.OggFile" Version="1.0.7" />
-    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />
+    <ProjectReference Include="NoIDSoftwork.AudioProcessor\NoIDSoftwork.AudioProcessor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Exclude the sub-project's source and obj files from this compilation -->
+    <Compile Remove="NoIDSoftwork.AudioProcessor\**" />
+    <None Remove="NoIDSoftwork.AudioProcessor\**" />
+    <EmbeddedResource Remove="NoIDSoftwork.AudioProcessor\**" />
+    <Page Remove="NoIDSoftwork.AudioProcessor\**" />
+    <ApplicationDefinition Remove="NoIDSoftwork.AudioProcessor\**" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="PaDDY.ico" />
