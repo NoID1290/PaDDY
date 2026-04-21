@@ -400,6 +400,7 @@ namespace PaDDY
                         pad.ListenDeviceIndex = listenDevice;
                         pad.OutputVolume = _outputVolume;
                         pad.ListenVolume = _padListenVolume;
+                        pad.RefreshLiveVolumes();
                     }
                 }
             }

@@ -69,8 +69,10 @@ namespace PaDDY.Controls
         private IWavePlayer? _player;
         private IUnifiedAudioReader? _reader;
         private PlaybackMeterProvider? _meterProvider;
+        private VolumeSampleProvider? _outputVolumeProvider;
         private IWavePlayer? _listenPlayer;
         private IUnifiedAudioReader? _listenReader;
+        private VolumeSampleProvider? _listenVolumeProvider;
         private bool _isPlaying;
 
         /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
@@ -217,11 +219,15 @@ namespace PaDDY.Controls
             {
                 _reader = AudioReaderFactory.Open(Entry.FilePath);
                 ISampleProvider playbackSource = BuildPlaybackSource(_reader.AsSampleProvider());
-                _meterProvider = new PlaybackMeterProvider(playbackSource);
+                _outputVolumeProvider = new VolumeSampleProvider(playbackSource)
+                {
+                    Volume = Math.Clamp(OutputVolume, 0.0f, 1.0f)
+                };
+                _meterProvider = new PlaybackMeterProvider(_outputVolumeProvider);
                 _meterProvider.RmsLevelChanged += (l, r) => PlaybackRmsChanged?.Invoke(l, r);
                 _player = CreateWasapiPlayer(OutputDeviceIndex, 100);
                 _player.Init(_meterProvider.ToWaveProvider16());
-                _player.Volume = OutputVolume;
+                _player.Volume = 1.0f;
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _player.Play();
 
@@ -229,9 +235,13 @@ namespace PaDDY.Controls
                 {
                     _listenReader = AudioReaderFactory.Open(Entry.FilePath);
                     ISampleProvider listenSource = BuildPlaybackSource(_listenReader.AsSampleProvider());
+                    _listenVolumeProvider = new VolumeSampleProvider(listenSource)
+                    {
+                        Volume = Math.Clamp(ListenVolume, 0.0f, 1.0f)
+                    };
                     _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
-                    _listenPlayer.Init(listenSource.ToWaveProvider16());
-                    _listenPlayer.Volume = ListenVolume;
+                    _listenPlayer.Init(_listenVolumeProvider.ToWaveProvider16());
+                    _listenPlayer.Volume = 1.0f;
                     _listenPlayer.Play();
                 }
 
@@ -256,9 +266,13 @@ namespace PaDDY.Controls
             {
                 _listenReader = AudioReaderFactory.Open(Entry.FilePath);
                 ISampleProvider listenSource = BuildPlaybackSource(_listenReader.AsSampleProvider());
+                _listenVolumeProvider = new VolumeSampleProvider(listenSource)
+                {
+                    Volume = Math.Clamp(ListenVolume, 0.0f, 1.0f)
+                };
                 _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
-                _listenPlayer.Init(listenSource.ToWaveProvider16());
-                _listenPlayer.Volume = ListenVolume;
+                _listenPlayer.Init(_listenVolumeProvider.ToWaveProvider16());
+                _listenPlayer.Volume = 1.0f;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _listenPlayer.Play();
                 SetPlayingVisual(true);
@@ -279,6 +293,7 @@ namespace PaDDY.Controls
             if (_meterProvider != null)
                 _meterProvider.RmsLevelChanged -= null; // event will be GC'd with the provider
             _meterProvider = null;
+            _outputVolumeProvider = null;
             _reader?.Dispose();
             _reader = null;
             _listenPlayer?.Stop();
@@ -286,8 +301,22 @@ namespace PaDDY.Controls
             _listenPlayer = null;
             _listenReader?.Dispose();
             _listenReader = null;
+            _listenVolumeProvider = null;
             PlaybackRmsChanged?.Invoke(0, 0);
             SetPlayingVisual(false);
+        }
+
+        public void RefreshLiveVolumes()
+        {
+            if (_outputVolumeProvider != null)
+                _outputVolumeProvider.Volume = Math.Clamp(OutputVolume, 0.0f, 1.0f);
+            if (_listenVolumeProvider != null)
+                _listenVolumeProvider.Volume = Math.Clamp(ListenVolume, 0.0f, 1.0f);
+
+            if (_player != null)
+                _player.Volume = 1.0f;
+            if (_listenPlayer != null)
+                _listenPlayer.Volume = 1.0f;
         }
 
         private void SetPlayingVisual(bool playing)

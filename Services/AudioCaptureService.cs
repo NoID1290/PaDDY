@@ -420,7 +420,7 @@ namespace PaDDY.Services
 
         /// <summary>
         /// Returns normalised (L, R) levels 0-100.
-        /// Mono: L == R. Stereo: separate L/R. Multi-channel (5.1/7.1): overall RMS as L == R.
+        /// Mono: L == R. Stereo/multi-channel: uses channels 0/1 as front-left/front-right.
         /// </summary>
         private static (double L, double R) ComputeNormalisedLevels(byte[] buffer, int count, WaveFormat? format)
         {
@@ -438,24 +438,25 @@ namespace PaDDY.Services
                 int sampleCount = count / 4;
                 if (sampleCount == 0) return (0, 0);
 
-                if (channels == 2)
+                if (channels >= 2)
                 {
-                    // Stereo: separate L/R
+                    // Stereo or multi-channel: track front-left/front-right channels.
                     double sumL = 0, sumR = 0;
                     int samplesL = 0, samplesR = 0;
                     for (int i = 0; i <= count - 4; i += 4)
                     {
                         float s = BitConverter.ToSingle(buffer, i);
                         int sampleIndex = i / 4;
-                        if (sampleIndex % 2 == 0) { sumL += s * s; samplesL++; }
-                        else { sumR += s * s; samplesR++; }
+                        int channelIndex = sampleIndex % channels;
+                        if (channelIndex == 0) { sumL += s * s; samplesL++; }
+                        else if (channelIndex == 1) { sumR += s * s; samplesR++; }
                     }
                     rmsL = samplesL > 0 ? Math.Sqrt(sumL / samplesL) : 0;
                     rmsR = samplesR > 0 ? Math.Sqrt(sumR / samplesR) : 0;
                 }
                 else
                 {
-                    // Mono or multi-channel (5.1, 7.1, etc.): compute overall RMS across all samples
+                    // Mono source
                     double sum = 0;
                     int samples = 0;
                     for (int i = 0; i <= count - 4; i += 4)
@@ -471,7 +472,7 @@ namespace PaDDY.Services
             else
             {
                 // PCM 16/24/32-bit integer
-                if (channels == 2)
+                if (channels >= 2)
                 {
                     double sumL = 0, sumR = 0;
                     int samplesL = 0, samplesR = 0;
@@ -480,8 +481,9 @@ namespace PaDDY.Services
                     {
                         double normalized = ReadIntPcmSampleAsDouble(buffer, i, bytesPerSample);
                         double sq = normalized * normalized;
-                        if (sampleIndex % 2 == 0) { sumL += sq; samplesL++; }
-                        else { sumR += sq; samplesR++; }
+                        int channelIndex = sampleIndex % channels;
+                        if (channelIndex == 0) { sumL += sq; samplesL++; }
+                        else if (channelIndex == 1) { sumR += sq; samplesR++; }
                         sampleIndex++;
                     }
                     double rawL = samplesL > 0 ? Math.Sqrt(sumL / samplesL) : 0;
@@ -491,7 +493,7 @@ namespace PaDDY.Services
                 }
                 else
                 {
-                    // Mono or multi-channel: overall RMS
+                    // Mono source
                     double sum = 0;
                     int samples = 0;
                     for (int i = 0; i <= count - bytesPerSample; i += bytesPerSample)
