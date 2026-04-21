@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using MessagePack;
+using MessagePack.Resolvers;
 
 namespace PaDDY
 {
@@ -50,7 +52,13 @@ namespace PaDDY
         public double PadListenVolume { get; set; } = 100.0;
 
         private static readonly string SettingsPath =
+            Path.Combine(AppContext.BaseDirectory, "usrcfg.bin");
+
+        private static readonly string LegacySettingsPath =
             Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+
+        private static readonly MessagePackSerializerOptions SerializerOptions =
+            MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
 
         public static AppSettings Load()
         {
@@ -58,9 +66,21 @@ namespace PaDDY
             {
                 if (File.Exists(SettingsPath))
                 {
-                    var json = File.ReadAllText(SettingsPath);
-                    var s = JsonSerializer.Deserialize<AppSettings>(json);
+                    var bytes = File.ReadAllBytes(SettingsPath);
+                    var s = MessagePackSerializer.Deserialize<AppSettings>(bytes, SerializerOptions);
                     if (s != null) return s;
+                }
+
+                // Migrate once from legacy JSON settings if present.
+                if (File.Exists(LegacySettingsPath))
+                {
+                    var json = File.ReadAllText(LegacySettingsPath);
+                    var migrated = JsonSerializer.Deserialize<AppSettings>(json);
+                    if (migrated != null)
+                    {
+                        migrated.Save();
+                        return migrated;
+                    }
                 }
             }
             catch { /* fall through to defaults */ }
@@ -72,8 +92,8 @@ namespace PaDDY
         {
             try
             {
-                var json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(SettingsPath, json);
+                var bytes = MessagePackSerializer.Serialize(this, SerializerOptions);
+                File.WriteAllBytes(SettingsPath, bytes);
             }
             catch { /* non-critical */ }
         }

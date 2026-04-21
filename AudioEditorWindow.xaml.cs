@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Windows;
@@ -7,6 +8,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using WpfRectangle = System.Windows.Shapes.Rectangle;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NAudio.CoreAudioApi;
@@ -44,8 +46,11 @@ namespace PaDDY
 
         // Vertical meter state
         private MeteringSampleProvider? _meterProvider;
-        private double _vertPeakFrac;
-        private DateTime _vertPeakHeldAt = DateTime.MinValue;
+        private VolumeSampleProvider? _previewGainProvider;
+        private readonly List<WpfRectangle> _vertMeterOverlays = new();
+        private readonly List<Border> _vertPeakLines = new();
+        private readonly List<double> _vertPeakFracs = new();
+        private readonly List<DateTime> _vertPeakHeldAt = new();
 
         public string? CopyFilePath { get; private set; }
         public bool ShouldSaveToFavorite => SaveToFavCheckBox.IsChecked == true;
@@ -84,6 +89,8 @@ namespace PaDDY
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
             UpdateHandlePositions();
             UpdateTimeLabels();
+            EnsureVertMeterChannels(2);
+            ResetVertMeter();
         }
 
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -112,9 +119,16 @@ namespace PaDDY
             _gainDb = e.NewValue;
             if (GainLabel != null)
                 GainLabel.Text = _gainDb == 0.0 ? "0 dB" : $"{_gainDb:+0;-0} dB";
+
+            if (_previewGainProvider != null)
+                _previewGainProvider.Volume = GainDbToFactor(_gainDb);
+
             if (_originalPeaks != null)
                 RenderWaveformFromPeaks();
         }
+
+        private static float GainDbToFactor(double gainDb)
+            => (float)Math.Pow(10.0, gainDb / 20.0);
 
         private void RenderWaveform(ISampleProvider sampleProvider, WaveFormat waveFormat)
         {
@@ -300,15 +314,21 @@ namespace PaDDY
                 ISampleProvider sp = _reader.AsSampleProvider();
 
                 // Apply gain
-                if (Math.Abs(_gainDb) >= 0.01)
-                    sp = new VolumeSampleProvider(sp) { Volume = (float)Math.Pow(10.0, _gainDb / 20.0) };
+                _previewGainProvider = new VolumeSampleProvider(sp)
+                {
+                    Volume = GainDbToFactor(_gainDb)
+                };
+                sp = _previewGainProvider;
 
                 // Limit to trim region
                 sp = new OffsetSampleProvider(sp) { Take = TimeSpan.FromSeconds(endSec - startSec) };
 
                 // Wrap with metering
                 _meterProvider = new MeteringSampleProvider(sp);
+                _meterProvider.SamplesPerNotification = Math.Max(1, _meterProvider.WaveFormat.SampleRate / 60);
                 _meterProvider.StreamVolume += OnMeterStreamVolume;
+                EnsureVertMeterChannels(_meterProvider.WaveFormat.Channels);
+                ResetVertMeter();
 
                 _player = new WasapiOut(AudioClientShareMode.Shared, true, 100);
                 _player.PlaybackStopped += Player_PlaybackStopped;
@@ -395,6 +415,7 @@ namespace PaDDY
                     _meterProvider.StreamVolume -= OnMeterStreamVolume;
                     _meterProvider = null;
                 }
+                _previewGainProvider = null;
 
                 if (_player != null)
                 {
@@ -432,43 +453,130 @@ namespace PaDDY
 
         private void OnMeterStreamVolume(object? sender, NAudio.Wave.SampleProviders.StreamVolumeEventArgs e)
         {
-            float maxVal = 0f;
-            foreach (var v in e.MaxSampleValues)
-                if (v > maxVal) maxVal = v;
-            Dispatcher.BeginInvoke(new Action(() => UpdateVertMeter(maxVal)));
+            var snapshot = (float[])e.MaxSampleValues.Clone();
+            Dispatcher.BeginInvoke(new Action(() => UpdateVertMeter(snapshot)));
         }
 
-        private void UpdateVertMeter(float linear)
+        private void EnsureVertMeterChannels(int channelCount)
         {
-            if (VertMeterGrid.ActualHeight <= 0) return;
+            channelCount = Math.Clamp(channelCount, 1, 8);
+            if (VertMeterHost == null) return;
+            if (_vertMeterOverlays.Count == channelCount) return;
 
-            double db = linear > 0 ? 20.0 * Math.Log10(linear) : -60.0;
-            double frac = DbToMeterFraction(db);
-            double totalH = VertMeterGrid.ActualHeight;
+            VertMeterHost.Children.Clear();
+            VertMeterHost.ColumnDefinitions.Clear();
+            _vertMeterOverlays.Clear();
+            _vertPeakLines.Clear();
+            _vertPeakFracs.Clear();
+            _vertPeakHeldAt.Clear();
 
-            // Overlay covers the top (unfilled) portion
-            VertMeterOverlay.Height = Math.Max(0, totalH * (1.0 - frac));
-
-            // Peak hold
-            const double peakHold = 1.5;
-            if (frac > _vertPeakFrac || (DateTime.UtcNow - _vertPeakHeldAt).TotalSeconds > peakHold)
+            for (int i = 0; i < channelCount; i++)
             {
-                _vertPeakFrac = frac;
-                _vertPeakHeldAt = DateTime.UtcNow;
+                VertMeterHost.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                var meterGrid = new Grid
+                {
+                    Margin = new Thickness(2, 0, 2, 0),
+                    ClipToBounds = true
+                };
+
+                var fillBar = new WpfRectangle { VerticalAlignment = VerticalAlignment.Stretch };
+                fillBar.Fill = new LinearGradientBrush
+                {
+                    StartPoint = new System.Windows.Point(0, 1),
+                    EndPoint = new System.Windows.Point(0, 0),
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(System.Windows.Media.Color.FromRgb(0x2E, 0x7D, 0x32), 0.0),
+                        new GradientStop(System.Windows.Media.Color.FromRgb(0x4C, 0xAF, 0x50), 0.35),
+                        new GradientStop(System.Windows.Media.Color.FromRgb(0xFD, 0xD8, 0x35), 0.70),
+                        new GradientStop(System.Windows.Media.Color.FromRgb(0xFF, 0x98, 0x00), 0.85),
+                        new GradientStop(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36), 0.95),
+                        new GradientStop(System.Windows.Media.Color.FromRgb(0xD5, 0x00, 0x00), 1.0)
+                    }
+                };
+
+                var overlay = new WpfRectangle
+                {
+                    Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1A, 0x1A, 0x1A)),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Height = 10000
+                };
+
+                var peak = new Border
+                {
+                    Height = 2,
+                    Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xC1, 0x07)),
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
+                    Visibility = Visibility.Collapsed
+                };
+
+                meterGrid.Children.Add(fillBar);
+                meterGrid.Children.Add(overlay);
+                meterGrid.Children.Add(peak);
+
+                Grid.SetColumn(meterGrid, i);
+                VertMeterHost.Children.Add(meterGrid);
+
+                _vertMeterOverlays.Add(overlay);
+                _vertPeakLines.Add(peak);
+                _vertPeakFracs.Add(0.0);
+                _vertPeakHeldAt.Add(DateTime.MinValue);
+            }
+        }
+
+        private void UpdateVertMeter(float[] channels)
+        {
+            if (VertMeterHost.ActualHeight <= 0) return;
+            if (_vertMeterOverlays.Count == 0)
+                EnsureVertMeterChannels(channels.Length);
+
+            int meterCount = Math.Min(channels.Length, _vertMeterOverlays.Count);
+            double totalH = VertMeterHost.ActualHeight;
+            const double peakHold = 1.5;
+            var now = DateTime.UtcNow;
+
+            for (int i = 0; i < meterCount; i++)
+            {
+                double linear = channels[i];
+                double db = linear > 0 ? 20.0 * Math.Log10(linear) : -60.0;
+                double frac = DbToMeterFraction(db);
+
+                // Overlay covers the top (unfilled) portion.
+                _vertMeterOverlays[i].Height = Math.Max(0, totalH * (1.0 - frac));
+
+                if (frac > _vertPeakFracs[i] || (now - _vertPeakHeldAt[i]).TotalSeconds > peakHold)
+                {
+                    _vertPeakFracs[i] = frac;
+                    _vertPeakHeldAt[i] = now;
+                }
+
+                double peakBottom = Math.Clamp(_vertPeakFracs[i] * totalH, 0, Math.Max(0, totalH - 2));
+                _vertPeakLines[i].Margin = new Thickness(0, 0, 0, peakBottom);
+                _vertPeakLines[i].Visibility = Visibility.Visible;
             }
 
-            double peakBottom = _vertPeakFrac * totalH;
-            Canvas.SetBottom(VertPeakLine, Math.Clamp(peakBottom, 0, totalH - 2));
-            VertPeakLine.Visibility = Visibility.Visible;
+            for (int i = meterCount; i < _vertPeakLines.Count; i++)
+            {
+                _vertPeakLines[i].Visibility = Visibility.Collapsed;
+            }
         }
 
         private void ResetVertMeter()
         {
-            if (VertMeterGrid == null) return;
-            _vertPeakFrac = 0;
-            if (VertMeterGrid.ActualHeight > 0)
-                VertMeterOverlay.Height = VertMeterGrid.ActualHeight;
-            VertPeakLine.Visibility = Visibility.Collapsed;
+            if (VertMeterHost == null) return;
+
+            double totalH = VertMeterHost.ActualHeight;
+            for (int i = 0; i < _vertMeterOverlays.Count; i++)
+            {
+                _vertPeakFracs[i] = 0;
+                _vertPeakHeldAt[i] = DateTime.MinValue;
+                if (totalH > 0)
+                    _vertMeterOverlays[i].Height = totalH;
+                _vertPeakLines[i].Visibility = Visibility.Collapsed;
+                _vertPeakLines[i].Margin = new Thickness(0);
+            }
         }
 
         private static double DbToMeterFraction(double db)

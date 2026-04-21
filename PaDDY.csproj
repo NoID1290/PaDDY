@@ -19,6 +19,9 @@
     <ProjectReference Include="NoIDSoftwork.AudioProcessor\NoIDSoftwork.AudioProcessor.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Exclude the sub-project's source and obj files from this compilation -->
     <Compile Remove="NoIDSoftwork.AudioProcessor\**" />
     <None Remove="NoIDSoftwork.AudioProcessor\**" />
