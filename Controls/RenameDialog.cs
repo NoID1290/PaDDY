@@ -24,6 +24,10 @@ namespace PaDDY.Controls
                 Text = currentName,
                 Margin = new Thickness(12, 12, 12, 8),
                 Padding = new Thickness(4),
+                Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x3C, 0x3C, 0x3C)),
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xFF, 0xFF, 0xFF)),
                 FontSize = 13
             };
             _textBox.SelectAll();
