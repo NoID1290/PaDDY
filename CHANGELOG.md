@@ -6,8 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.9.2.0421] - 2026-04-21
 
-- Meeter are now showing correctly multichannel (Editor Trim) All sliders are now apply in real-time Fix output/monitor audio level intensity Fix input meeter showing mono signal on multichannel input
-- Update CHANGELOG
+- Meeter on editor trim are now showing correctly multichannel
+- All sliders are now apply in real-time
+- Fix output/monitor audio level intensity
+- Fix input meeter showing mono signal on multichannel input
 
 ## [0.9.1.0420] - 2026-04-20
 
