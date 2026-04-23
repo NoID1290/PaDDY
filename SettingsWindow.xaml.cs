@@ -29,14 +29,16 @@ namespace PaDDY
             ("mp3",  "MP3 (LAME)"),
             ("opus", "Opus (.opus)"),
             ("ogg",  "Ogg Vorbis (.ogg)"),
+            ("flac", "FLAC (lossless)"),
         };
 
         private static readonly Dictionary<string, string> CodecDescriptions = new()
         {
-            ["wav"] = "Lossless · All formats preserved exactly, including multi-channel.",
-            ["mp3"] = "Lossy · Up to stereo; multi-channel sources are automatically downmixed to stereo.",
-            ["opus"] = "Lossy · Optimised for voice. Up to stereo; automatically resamples to the nearest supported rate.",
-            ["ogg"] = "Lossy · High-quality VBR. Up to stereo; multi-channel sources are automatically downmixed.",
+            ["wav"]  = "Lossless \u00b7 All formats preserved exactly, including multi-channel.",
+            ["mp3"]  = "Lossy \u00b7 Up to stereo; multi-channel sources are automatically downmixed to stereo.",
+            ["opus"] = "Lossy \u00b7 Optimised for voice. Up to stereo; automatically resamples to the nearest supported rate.",
+            ["ogg"]  = "Lossy \u00b7 High-quality VBR. Up to stereo; multi-channel sources are automatically downmixed.",
+            ["flac"] = "Lossless \u00b7 Full quality, all channels and sample rates preserved. Smaller files than WAV.",
         };
 
         private uint _capturedVk;

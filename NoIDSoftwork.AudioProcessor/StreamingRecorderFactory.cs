@@ -9,9 +9,10 @@ namespace NoIDSoftwork.AudioProcessor
         /// </summary>
         public static string ExtensionFor(string codec) => codec.ToLowerInvariant() switch
         {
-            "mp3" => "mp3",
+            "mp3"  => "mp3",
             "opus" => "opus",
-            "ogg" => "ogg",
+            "ogg"  => "ogg",
+            "flac" => "flac",
             _ => "wav"
         };
 
@@ -20,9 +21,10 @@ namespace NoIDSoftwork.AudioProcessor
         /// </summary>
         public static IStreamingRecorder Create(string codec) => codec.ToLowerInvariant() switch
         {
-            "mp3" => new Mp3Recorder(),
+            "mp3"  => new Mp3Recorder(),
             "opus" => new OpusRecorder(),
-            "ogg" => new VorbisRecorder(),
+            "ogg"  => new VorbisRecorder(),
+            "flac" => new FlacRecorder(),
             _ => new WaveFileRecorder()
         };
 
