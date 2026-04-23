@@ -31,6 +31,8 @@
     <Compile Include="vendors/Concentus/CSharp/Concentus/**/*.cs" />
     <Compile Include="vendors/Concentus.OggFile/Concentus.Oggfile/**/*.cs" />
     <Compile Include="vendors/OggVorbisEncoder/OggVorbisEncoder/**/*.cs" />
+    <Compile Include="vendors/CUETools.Flake/**/*.cs" />
+    <Compile Include="vendors/NAudio.Flac/**/*.cs" />
     <Compile Remove="vendors/**/bin/**/*.cs;vendors/**/obj/**/*.cs;vendors/**/tests/**/*.cs;vendors/**/test/**/*.cs;vendors/**/example/**/*.cs;vendors/**/examples/**/*.cs;vendors/**/benchmark/**/*.cs" />
     <!-- NAudio.Lame depends on native libmp3lame binaries at runtime. -->
     <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.32.dll" CopyToOutputDirectory="PreserveNewest" />
