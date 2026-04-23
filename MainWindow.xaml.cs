@@ -76,7 +76,6 @@ namespace PaDDY
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
-            SizeChanged += (_, _) => ReflowTopToolbarCards();
             ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
@@ -125,7 +124,6 @@ namespace PaDDY
             RefreshInputFormatInfo();
             Forget(RefreshStorageInfoAsync());
             _ = CheckForUpdateAsync();
-            ReflowTopToolbarCards();
 
             // Register global hotkey
             _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
@@ -458,54 +456,6 @@ namespace PaDDY
                 PopulateAppLoopbackProcesses();
 
             RefreshInputFormatInfo();
-            ReflowTopToolbarCards();
-        }
-
-        private void ReflowTopToolbarCards()
-        {
-            if (TopToolbarPrimaryWrap == null || TopToolbarSecondaryWrap == null) return;
-
-            MoveCardToWrap(ActionCard, TopToolbarPrimaryWrap);
-            MoveCardToWrap(CaptureSourceCard, TopToolbarPrimaryWrap);
-            MoveCardToWrap(PadMonitorCard, TopToolbarPrimaryWrap);
-
-            double availableWidth = Math.Max(0, MainRootGrid.ActualWidth - 32);
-            double allCardsWidth =
-                GetOuterWidth(ActionCard) +
-                GetOuterWidth(CaptureSourceCard) +
-                GetOuterWidth(PadMonitorCard) +
-                GetOuterWidth(DetectionCard) +
-                GetOuterWidth(LevelsCard);
-
-            bool useSingleRow = allCardsWidth <= availableWidth;
-            if (useSingleRow)
-            {
-                MoveCardToWrap(DetectionCard, TopToolbarPrimaryWrap);
-                MoveCardToWrap(LevelsCard, TopToolbarPrimaryWrap);
-                TopToolbarSecondaryWrap.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                MoveCardToWrap(DetectionCard, TopToolbarSecondaryWrap);
-                MoveCardToWrap(LevelsCard, TopToolbarSecondaryWrap);
-                TopToolbarSecondaryWrap.Visibility = Visibility.Visible;
-            }
-        }
-
-        private static void MoveCardToWrap(Border card, WrapPanel destination)
-        {
-            if (card.Parent is System.Windows.Controls.Panel parent && !ReferenceEquals(parent, destination))
-                parent.Children.Remove(card);
-
-            if (!destination.Children.Contains(card))
-                destination.Children.Add(card);
-        }
-
-        private static double GetOuterWidth(FrameworkElement element)
-        {
-            element.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
-            double width = element.ActualWidth > 0 ? element.ActualWidth : element.DesiredSize.Width;
-            return width + element.Margin.Left + element.Margin.Right;
         }
 
         private void RestartMonitoringIfActive()
