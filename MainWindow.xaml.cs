@@ -1,12 +1,18 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection;
 using System.Runtime.Versioning;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Navigation;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
@@ -62,6 +68,8 @@ namespace PaDDY
         private double _outputDecayCurrentL;
         private double _outputDecayCurrentR;
         private int _outputDecayStep;
+        private static readonly Uri ReleasesPageUri = new("https://github.com/NoID1290/PaDDY/releases");
+        private const string ReleasesApiEndpoint = "https://api.github.com/repos/NoID1290/PaDDY/releases/latest";
 
         public MainWindow()
         {
@@ -111,6 +119,11 @@ namespace PaDDY
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
+
+            RefreshOutputFormatInfo();
+            RefreshInputFormatInfo();
+            _ = RefreshStorageInfoAsync();
+            _ = CheckForUpdateAsync();
 
             // Register global hotkey
             _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
@@ -373,6 +386,8 @@ namespace PaDDY
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
             ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
             RefreshPadOutputRouting();
+            RefreshOutputFormatInfo();
+            RefreshInputFormatInfo();
         }
 
         private void UpdateHotkeyLabel()
@@ -439,6 +454,8 @@ namespace PaDDY
 
             if (useApp)
                 PopulateAppLoopbackProcesses();
+
+            RefreshInputFormatInfo();
         }
 
         private void RestartMonitoringIfActive()
@@ -455,6 +472,7 @@ namespace PaDDY
             {
                 _captureService.Start(Math.Max(0, InputDeviceCombo.SelectedIndex), mode, null);
                 SetStatus("Listening…", "#FF4CAF50");
+                RefreshInputFormatInfo();
                 return;
             }
 
@@ -470,6 +488,7 @@ namespace PaDDY
                 _captureService.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
                 _captureService.Start(0, mode, null);
                 SetStatus($"Monitoring app: {_appLoopbackProcesses[idx].ProcessName}…", "#FF4CAF50");
+                RefreshInputFormatInfo();
                 return;
             }
 
@@ -478,6 +497,7 @@ namespace PaDDY
 
             _captureService.Start(0, mode, GetSelectedLoopbackDeviceId());
             SetStatus("Monitoring output loopback…", "#FF4CAF50");
+            RefreshInputFormatInfo();
         }
 
         // ── Device selection ───────────────────────────────────────────────────
@@ -486,6 +506,7 @@ namespace PaDDY
             if (_suppressSelectionEvents) return;
             _settings.InputDeviceIndex = InputDeviceCombo.SelectedIndex;
             _settings.Save();
+            RefreshInputFormatInfo();
             RestartMonitoringIfActive();
         }
 
@@ -506,6 +527,7 @@ namespace PaDDY
 
             _settings.LoopbackDeviceId = GetSelectedLoopbackDeviceId() ?? string.Empty;
             _settings.Save();
+            RefreshInputFormatInfo();
             RestartMonitoringIfActive();
         }
 
@@ -519,12 +541,14 @@ namespace PaDDY
                 _settings.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
                 _settings.Save();
             }
+            RefreshInputFormatInfo();
             RestartMonitoringIfActive();
         }
 
         private void RefreshAppLoopback_Click(object sender, RoutedEventArgs e)
         {
             PopulateAppLoopbackProcesses();
+            RefreshInputFormatInfo();
         }
 
         private void OutputDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -562,6 +586,7 @@ namespace PaDDY
             _settings.RecordingMode = idx;
             _settings.Save();
             KeyBufferHint.Visibility = idx == 1 ? Visibility.Visible : Visibility.Collapsed;
+            RefreshOutputFormatInfo();
         }
 
         // ── Monitoring toggle ──────────────────────────────────────────────────
@@ -607,6 +632,7 @@ namespace PaDDY
         {
             _captureService.Stop();
             SetStatus("Idle — press Start to begin", "#FF757575");
+            RefreshInputFormatInfo();
             RmsValueLabel.Text = "-∞";
             RmsValueLabelR.Text = "-∞";
             PeakIndicatorL.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
@@ -749,6 +775,9 @@ namespace PaDDY
 
             // Restart monitoring to apply new format settings
             RestartMonitoringIfActive();
+            RefreshOutputFormatInfo();
+            RefreshInputFormatInfo();
+            _ = RefreshStorageInfoAsync();
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
@@ -914,7 +943,11 @@ namespace PaDDY
 
         private void OnRecordingCompleted(RecordingEntry entry)
         {
-            Dispatcher.InvokeAsync(() => AddPadButton(entry, toFavorites: false));
+            Dispatcher.InvokeAsync(() =>
+            {
+                AddPadButton(entry, toFavorites: false);
+                _ = RefreshStorageInfoAsync();
+            });
         }
 
         private void OnCodecCompatibilityWarning(string message)
@@ -924,6 +957,7 @@ namespace PaDDY
                 _settings.RecordCodec = "wav";
                 _settings.Save();
                 _captureService.RecordCodec = "wav";
+                RefreshOutputFormatInfo();
 
                 System.Windows.MessageBox.Show(this,
                     message,
@@ -949,7 +983,7 @@ namespace PaDDY
 
             btn.PlaybackRmsChanged += UpdateOutputMeter;
 
-            btn.DeleteRequested += (s, _) =>
+            btn.DeleteRequested += (s, e) =>
             {
                 if (s is RecordingPadButton b)
                 {
@@ -959,6 +993,7 @@ namespace PaDDY
                     if (b.IsFavorite && b.Entry != null)
                         RemoveFavoriteFromSettings(b.Entry.FilePath);
                     UpdatePadState();
+                    _ = RefreshStorageInfoAsync();
                 }
             };
 
@@ -1003,6 +1038,7 @@ namespace PaDDY
                         IsFavorite = asFav
                     };
                     AddPadButton(newEntry, asFav);
+                    _ = RefreshStorageInfoAsync();
                 }
                 catch { }
             };
@@ -1152,6 +1188,8 @@ namespace PaDDY
             int max = _settings.MaxRecords;
             if (max <= 0) return; // unlimited
 
+            bool removedAny = false;
+
             while (PadPanel.Children.Count > max)
             {
                 // Find oldest by CreatedAt among PadPanel children
@@ -1168,7 +1206,11 @@ namespace PaDDY
                 if (oldest.Entry?.FilePath is string fp)
                     try { File.Delete(fp); } catch { }
                 PadPanel.Children.Remove(oldest);
+                removedAny = true;
             }
+
+            if (removedAny)
+                _ = RefreshStorageInfoAsync();
         }
 
         // ── Clear / Delete All ─────────────────────────────────────────────────
@@ -1237,6 +1279,7 @@ namespace PaDDY
             }
 
             UpdatePadState();
+            _ = RefreshStorageInfoAsync();
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
@@ -1245,6 +1288,223 @@ namespace PaDDY
 
         private static bool IsAudioFile(string path) =>
             _audioExtensions.Contains(Path.GetExtension(path));
+
+        private void RefreshInputFormatInfo()
+        {
+            if (MonitorToggle.IsChecked != true)
+            {
+                InputFormatInfoLabel.Text = "Input format: waiting for monitoring";
+                return;
+            }
+
+            var format = _captureService.CurrentCaptureFormat;
+            if (format == null)
+            {
+                InputFormatInfoLabel.Text = "Input format: detecting...";
+                return;
+            }
+
+            InputFormatInfoLabel.Text = $"Input format: {FormatPcmDetails(format.SampleRate, format.BitsPerSample, format.Channels)}";
+        }
+
+        private void RefreshOutputFormatInfo()
+        {
+            string codec = (_captureService.RecordCodec ?? "wav").Trim().ToUpperInvariant();
+            int sampleRate = _captureService.RecordSampleRate;
+            int bitDepth = _captureService.RecordBitDepth;
+            int channels = _captureService.RecordChannels;
+
+            string suffix = codec is "WAV" or "FLAC"
+                ? $"{FormatPcmDetails(sampleRate, bitDepth, channels)}"
+                : $"{FormatSampleRate(sampleRate)} | {FormatChannels(channels)}";
+
+            OutputFormatInfoLabel.Text = $"Recording format: {codec} | {suffix}";
+        }
+
+        private async Task RefreshStorageInfoAsync()
+        {
+            string folder = _captureService.SaveFolder;
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                StorageInfoLabel.Text = "Output folder: unavailable";
+                return;
+            }
+
+            try
+            {
+                string summary = await Task.Run(() => BuildStorageSummary(folder));
+                StorageInfoLabel.Text = summary;
+            }
+            catch
+            {
+                StorageInfoLabel.Text = "Output folder: unable to read storage data";
+            }
+        }
+
+        private static string BuildStorageSummary(string folder)
+        {
+            if (!Directory.Exists(folder))
+                return "Output folder: not found";
+
+            long folderBytes = GetFolderSizeBytes(folder);
+            string root = Path.GetPathRoot(folder) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(root))
+                return $"Output folder: {FormatByteSize(folderBytes)} used";
+
+            var drive = new DriveInfo(root);
+            return $"Output folder: {FormatByteSize(folderBytes)} used | {FormatByteSize(drive.AvailableFreeSpace)} free";
+        }
+
+        private static long GetFolderSizeBytes(string folder)
+        {
+            long total = 0;
+            var dirs = new Stack<string>();
+            dirs.Push(folder);
+
+            while (dirs.Count > 0)
+            {
+                string current = dirs.Pop();
+                try
+                {
+                    foreach (var file in Directory.EnumerateFiles(current))
+                    {
+                        try
+                        {
+                            total += new FileInfo(file).Length;
+                        }
+                        catch
+                        {
+                            // Ignore files we cannot inspect.
+                        }
+                    }
+
+                    foreach (var subDir in Directory.EnumerateDirectories(current))
+                        dirs.Push(subDir);
+                }
+                catch
+                {
+                    // Ignore directories we cannot enumerate.
+                }
+            }
+
+            return total;
+        }
+
+        private async Task CheckForUpdateAsync()
+        {
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+                http.DefaultRequestHeaders.UserAgent.ParseAdd("PaDDY-UpdateCheck/1.0");
+                using var response = await http.GetAsync(ReleasesApiEndpoint);
+                if (!response.IsSuccessStatusCode)
+                {
+                    UpdateNoticeText.Visibility = Visibility.Collapsed;
+                    return;
+                }
+
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                using var document = await JsonDocument.ParseAsync(stream);
+                if (!document.RootElement.TryGetProperty("tag_name", out var tagNameProperty))
+                {
+                    UpdateNoticeText.Visibility = Visibility.Collapsed;
+                    return;
+                }
+
+                string tagName = tagNameProperty.GetString() ?? string.Empty;
+                if (!TryParseTagVersion(tagName, out var latestVersion))
+                {
+                    UpdateNoticeText.Visibility = Visibility.Collapsed;
+                    return;
+                }
+
+                var currentVersion = GetCurrentAppVersion();
+                if (latestVersion <= currentVersion)
+                {
+                    UpdateNoticeText.Visibility = Visibility.Collapsed;
+                    return;
+                }
+
+                UpdateNoticeLink.NavigateUri = ReleasesPageUri;
+                UpdateNoticeText.Visibility = Visibility.Visible;
+            }
+            catch
+            {
+                UpdateNoticeText.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private static Version GetCurrentAppVersion()
+        {
+            return Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0, 0);
+        }
+
+        private static bool TryParseTagVersion(string tagName, out Version version)
+        {
+            version = new Version(0, 0, 0, 0);
+            if (string.IsNullOrWhiteSpace(tagName)) return false;
+
+            string normalized = tagName.Trim();
+            if (normalized.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                normalized = normalized[1..];
+
+            if (!Version.TryParse(normalized, out var parsed) || parsed == null)
+                return false;
+
+            version = parsed;
+            return true;
+        }
+
+        private static string FormatPcmDetails(int sampleRate, int bitDepth, int channels)
+        {
+            return $"{FormatSampleRate(sampleRate)} | {bitDepth}-bit | {FormatChannels(channels)}";
+        }
+
+        private static string FormatSampleRate(int sampleRate)
+        {
+            return $"{sampleRate / 1000.0:0.0} kHz";
+        }
+
+        private static string FormatChannels(int channels)
+        {
+            return channels switch
+            {
+                1 => "mono",
+                2 => "stereo",
+                _ => $"{channels}ch"
+            };
+        }
+
+        private static string FormatByteSize(long bytes)
+        {
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+            double value = bytes;
+            int index = 0;
+
+            while (value >= 1024 && index < units.Length - 1)
+            {
+                value /= 1024;
+                index++;
+            }
+
+            return $"{value:0.0} {units[index]}";
+        }
+
+        private void UpdateNoticeLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = e.Uri.AbsoluteUri,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                // Ignore browser launch failures to keep UX non-invasive.
+            }
+        }
 
         private void SetStatus(string text, string hexColor)
         {
