@@ -796,14 +796,18 @@ namespace PaDDY
 
         /// <summary>
         /// Multiplies every PCM sample in <paramref name="buffer"/> by <paramref name="factor"/>,
-        /// clamping to avoid overflow.  Supports 16-bit PCM and 32-bit IEEE float formats.
+        /// clamping to avoid overflow. Supports 16/24/32-bit PCM and 32-bit IEEE float formats.
         /// </summary>
         private static void ApplyGainToBuffer(byte[] buffer, int count, WaveFormat format, float factor)
         {
             int bytesPerSample = format.BitsPerSample / 8;
+            if (bytesPerSample <= 0)
+                return;
+
+            count -= count % bytesPerSample;
             int samples = count / bytesPerSample;
 
-            if (format.BitsPerSample == 16)
+            if (format.Encoding == WaveFormatEncoding.Pcm && format.BitsPerSample == 16)
             {
                 for (int i = 0; i < samples; i++)
                 {
@@ -815,7 +819,32 @@ namespace PaDDY
                     buffer[offset + 1] = (byte)((clamped >> 8) & 0xFF);
                 }
             }
-            else if (format.BitsPerSample == 32)
+            else if (format.Encoding == WaveFormatEncoding.Pcm && format.BitsPerSample == 24)
+            {
+                for (int i = 0; i < samples; i++)
+                {
+                    int offset = i * 3;
+                    int sample = ReadPcm24(buffer, offset);
+                    int scaled = (int)Math.Round(sample * factor);
+                    WritePcm24(buffer, offset, Math.Clamp(scaled, -8388608, 8388607));
+                }
+            }
+            else if (format.Encoding == WaveFormatEncoding.Pcm && format.BitsPerSample == 32)
+            {
+                for (int i = 0; i < samples; i++)
+                {
+                    int offset = i * 4;
+                    int sample = BitConverter.ToInt32(buffer, offset);
+                    long scaled = (long)Math.Round(sample * factor);
+                    int clamped = (int)Math.Clamp(scaled, int.MinValue, int.MaxValue);
+                    byte[] bytes = BitConverter.GetBytes(clamped);
+                    buffer[offset] = bytes[0];
+                    buffer[offset + 1] = bytes[1];
+                    buffer[offset + 2] = bytes[2];
+                    buffer[offset + 3] = bytes[3];
+                }
+            }
+            else if (format.Encoding == WaveFormatEncoding.IeeeFloat && format.BitsPerSample == 32)
             {
                 for (int i = 0; i < samples; i++)
                 {
@@ -829,6 +858,19 @@ namespace PaDDY
                     buffer[offset + 3] = fb[3];
                 }
             }
+        }
+
+        private static int ReadPcm24(byte[] buffer, int offset)
+        {
+            int sample = buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16);
+            return (sample & 0x800000) != 0 ? sample | unchecked((int)0xFF000000) : sample;
+        }
+
+        private static void WritePcm24(byte[] buffer, int offset, int value)
+        {
+            buffer[offset] = (byte)(value & 0xFF);
+            buffer[offset + 1] = (byte)((value >> 8) & 0xFF);
+            buffer[offset + 2] = (byte)((value >> 16) & 0xFF);
         }
 
         // ── Byte-limiting wrapper ───────────────────────────────────────────
