@@ -4,6 +4,17 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0423] - 2026-04-23
+
+- Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
+- Update MainWindow layout and add dynamic toolbar card reflow functionality
+- Add runtime info display and update check functionality in MainWindow
+- Enhance PCM processing by adding support for 24-bit audio and improving gain application logic
+- Refactor code for consistent formatting in audio processing classes
+- Added FLAC support
+- Set consistent background and foreground colors for the RenameDialog text box
+- Update CHANGELOG.md
+
 ## [0.9.2.0421] - 2026-04-21
 
 - Meeter on editor trim are now showing correctly multichannel
