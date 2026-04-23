@@ -413,16 +413,9 @@
             BorderBrush="#FF353535"
             BorderThickness="0,0,0,1"
             Padding="8,5,8,4">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <WrapPanel x:Name="TopToolbarPrimaryWrap"
-                           Grid.Row="0"
-                           Orientation="Horizontal"
-                           HorizontalAlignment="Left">
+            <WrapPanel x:Name="TopToolbarWrap"
+                       Orientation="Horizontal"
+                       HorizontalAlignment="Left">
 
             <Border x:Name="ActionCard"
                 Style="{StaticResource ToolbarCard}"
@@ -478,7 +471,7 @@
                            Text="Mic/Line"
                            Style="{StaticResource ToolbarLabel}"/>
                     <ComboBox x:Name="InputDeviceCombo"
-                        Width="240"
+                        Width="180"
                         Margin="0,0,8,0"
                          SelectionChanged="InputDeviceCombo_SelectionChanged"/>
 
@@ -570,13 +563,7 @@
                 </StackPanel>
             </Border>
 
-                </WrapPanel>
 
-                                <WrapPanel x:Name="TopToolbarSecondaryWrap"
-                                                     Grid.Row="1"
-                                                     Orientation="Horizontal"
-                                                     HorizontalAlignment="Left"
-                                                     Margin="0,6,0,0">
 
             <Border x:Name="DetectionCard"
                 Style="{StaticResource ToolbarCard}"
@@ -596,7 +583,7 @@
                           Style="{StaticResource ToolbarLabel}"/>
                       <ComboBox x:Name="RecordingModeCombo"
                        Grid.Column="1"
-                       Width="220"
+                       Width="180"
                        SelectionChanged="RecordingModeCombo_SelectionChanged"
                        ToolTip="AutoVAD: auto-detect speech. Key Buffer: save last N seconds on hotkey press."/>
                   </Grid>
@@ -685,11 +672,29 @@
 
             <Border x:Name="LevelsCard"
                 Style="{StaticResource ToolbarCard}"
-                Width="520"
+                Width="400"
                 Margin="0,0,0,0">
                 <StackPanel>
                 <TextBlock Text="LEVELS"
                        Style="{StaticResource ToolbarTitle}"/>
+
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="74"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                           Text="Device"
+                           Style="{StaticResource ToolbarLabel}"/>
+                    <ComboBox x:Name="OutputDeviceCombo"
+                            Grid.Column="1"
+                            MinWidth="220"
+                            MaxWidth="480"
+                            HorizontalAlignment="Stretch"
+                            ToolTip="Primary output device for pad playback"
+                            SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
+                </Grid>
 
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
@@ -722,7 +727,7 @@
                     </Border>
                 </Grid>
 
-                <Grid Margin="0,0,0,4">
+                <Grid>
                     <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="74"/>
                     <ColumnDefinition Width="*"/>
@@ -751,31 +756,11 @@
                            Width="26"
                            TextAlignment="Center"/>
                     </Border>
-                      </Grid>
-
-                      <Grid>
-                          <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="74"/>
-                          <ColumnDefinition Width="*"/>
-                          <ColumnDefinition Width="Auto"/>
-                          </Grid.ColumnDefinitions>
-
-                          <TextBlock Grid.Column="0"
-                              Text="Device"
-                              Style="{StaticResource ToolbarLabel}"/>
-                    <ComboBox x:Name="OutputDeviceCombo"
-                            Grid.Column="1"
-                            MinWidth="220"
-                            MaxWidth="480"
-                            HorizontalAlignment="Stretch"
-                         ToolTip="Primary output device for pad playback"
-                         SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
                 </Grid>
                 </StackPanel>
             </Border>
 
-                </WrapPanel>
-            </Grid>
+            </WrapPanel>
         </Border>
 
         <!-- ───────────── Row 1: Sensitivity + Silence + Levels ───────────── -->
