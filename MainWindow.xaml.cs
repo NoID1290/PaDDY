@@ -76,6 +76,7 @@ namespace PaDDY
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
+            SizeChanged += (_, _) => ReflowTopToolbarCards();
             ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
@@ -122,8 +123,9 @@ namespace PaDDY
 
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
-            _ = RefreshStorageInfoAsync();
+            Forget(RefreshStorageInfoAsync());
             _ = CheckForUpdateAsync();
+            ReflowTopToolbarCards();
 
             // Register global hotkey
             _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
@@ -456,6 +458,54 @@ namespace PaDDY
                 PopulateAppLoopbackProcesses();
 
             RefreshInputFormatInfo();
+            ReflowTopToolbarCards();
+        }
+
+        private void ReflowTopToolbarCards()
+        {
+            if (TopToolbarPrimaryWrap == null || TopToolbarSecondaryWrap == null) return;
+
+            MoveCardToWrap(ActionCard, TopToolbarPrimaryWrap);
+            MoveCardToWrap(CaptureSourceCard, TopToolbarPrimaryWrap);
+            MoveCardToWrap(PadMonitorCard, TopToolbarPrimaryWrap);
+
+            double availableWidth = Math.Max(0, MainRootGrid.ActualWidth - 32);
+            double allCardsWidth =
+                GetOuterWidth(ActionCard) +
+                GetOuterWidth(CaptureSourceCard) +
+                GetOuterWidth(PadMonitorCard) +
+                GetOuterWidth(DetectionCard) +
+                GetOuterWidth(LevelsCard);
+
+            bool useSingleRow = allCardsWidth <= availableWidth;
+            if (useSingleRow)
+            {
+                MoveCardToWrap(DetectionCard, TopToolbarPrimaryWrap);
+                MoveCardToWrap(LevelsCard, TopToolbarPrimaryWrap);
+                TopToolbarSecondaryWrap.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MoveCardToWrap(DetectionCard, TopToolbarSecondaryWrap);
+                MoveCardToWrap(LevelsCard, TopToolbarSecondaryWrap);
+                TopToolbarSecondaryWrap.Visibility = Visibility.Visible;
+            }
+        }
+
+        private static void MoveCardToWrap(Border card, WrapPanel destination)
+        {
+            if (card.Parent is System.Windows.Controls.Panel parent && !ReferenceEquals(parent, destination))
+                parent.Children.Remove(card);
+
+            if (!destination.Children.Contains(card))
+                destination.Children.Add(card);
+        }
+
+        private static double GetOuterWidth(FrameworkElement element)
+        {
+            element.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+            double width = element.ActualWidth > 0 ? element.ActualWidth : element.DesiredSize.Width;
+            return width + element.Margin.Left + element.Margin.Right;
         }
 
         private void RestartMonitoringIfActive()
@@ -777,7 +827,7 @@ namespace PaDDY
             RestartMonitoringIfActive();
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
-            _ = RefreshStorageInfoAsync();
+            Forget(RefreshStorageInfoAsync());
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
@@ -946,7 +996,7 @@ namespace PaDDY
             Dispatcher.InvokeAsync(() =>
             {
                 AddPadButton(entry, toFavorites: false);
-                _ = RefreshStorageInfoAsync();
+                Forget(RefreshStorageInfoAsync());
             });
         }
 
@@ -993,7 +1043,6 @@ namespace PaDDY
                     if (b.IsFavorite && b.Entry != null)
                         RemoveFavoriteFromSettings(b.Entry.FilePath);
                     UpdatePadState();
-                    _ = RefreshStorageInfoAsync();
                 }
             };
 
@@ -1038,7 +1087,7 @@ namespace PaDDY
                         IsFavorite = asFav
                     };
                     AddPadButton(newEntry, asFav);
-                    _ = RefreshStorageInfoAsync();
+                    Forget(RefreshStorageInfoAsync());
                 }
                 catch { }
             };
@@ -1210,7 +1259,7 @@ namespace PaDDY
             }
 
             if (removedAny)
-                _ = RefreshStorageInfoAsync();
+                Forget(RefreshStorageInfoAsync());
         }
 
         // ── Clear / Delete All ─────────────────────────────────────────────────
@@ -1279,7 +1328,7 @@ namespace PaDDY
             }
 
             UpdatePadState();
-            _ = RefreshStorageInfoAsync();
+            Forget(RefreshStorageInfoAsync());
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
@@ -1448,7 +1497,7 @@ namespace PaDDY
             if (normalized.StartsWith("v", StringComparison.OrdinalIgnoreCase))
                 normalized = normalized[1..];
 
-            if (!Version.TryParse(normalized, out var parsed) || parsed == null)
+            if (!Version.TryParse(normalized, out var parsed))
                 return false;
 
             version = parsed;
@@ -1458,6 +1507,11 @@ namespace PaDDY
         private static string FormatPcmDetails(int sampleRate, int bitDepth, int channels)
         {
             return $"{FormatSampleRate(sampleRate)} | {bitDepth}-bit | {FormatChannels(channels)}";
+        }
+
+        private static void Forget(Task task)
+        {
+            // Intentionally ignored background refresh task.
         }
 
         private static string FormatSampleRate(int sampleRate)

@@ -5,9 +5,9 @@
         Title="PaDDY"
         Icon="PaDDY.ico"
         Height="700"
-        Width="1280"
-        MinWidth="1280"
-        MinHeight="450"
+        Width="1380"
+        MinWidth="1380"
+        MinHeight="550"
         Background="#FF1E1E1E"
         Foreground="#FFE0E0E0"
         FontFamily="Segoe UI">
@@ -287,6 +287,66 @@
                     Value="CharacterEllipsis"/>
             </Style>
 
+                <Style x:Key="ToolbarCard"
+                       TargetType="Border">
+                    <Setter Property="Background"
+                        Value="#FF252525"/>
+                    <Setter Property="BorderBrush"
+                        Value="#FF3C3C3C"/>
+                    <Setter Property="BorderThickness"
+                        Value="1"/>
+                    <Setter Property="CornerRadius"
+                        Value="5"/>
+                    <Setter Property="Padding"
+                        Value="8,6"/>
+                    <Setter Property="Margin"
+                        Value="0,0,6,0"/>
+                </Style>
+
+                <Style x:Key="ToolbarTitle"
+                       TargetType="TextBlock">
+                    <Setter Property="Foreground"
+                        Value="#FFC3C3C3"/>
+                    <Setter Property="FontSize"
+                        Value="9"/>
+                    <Setter Property="FontWeight"
+                        Value="SemiBold"/>
+                    <Setter Property="Margin"
+                        Value="0,0,0,4"/>
+                    <Setter Property="TextOptions.TextFormattingMode"
+                        Value="Display"/>
+                </Style>
+
+                <Style x:Key="ToolbarLabel"
+                       TargetType="TextBlock">
+                    <Setter Property="Foreground"
+                        Value="#FF9E9E9E"/>
+                    <Setter Property="FontSize"
+                        Value="9"/>
+                    <Setter Property="VerticalAlignment"
+                        Value="Center"/>
+                    <Setter Property="Margin"
+                        Value="0,0,4,0"/>
+                </Style>
+
+                <Style x:Key="ValueReadout"
+                       TargetType="Border">
+                    <Setter Property="Background"
+                        Value="#FF1C1C1C"/>
+                    <Setter Property="BorderBrush"
+                        Value="#FF3C3C3C"/>
+                    <Setter Property="BorderThickness"
+                        Value="1"/>
+                    <Setter Property="CornerRadius"
+                        Value="4"/>
+                    <Setter Property="Padding"
+                        Value="4,0"/>
+                    <Setter Property="Margin"
+                        Value="6,0,0,0"/>
+                    <Setter Property="VerticalAlignment"
+                        Value="Center"/>
+                </Style>
+
         <!-- Dark Button style -->
         <Style TargetType="Button">
             <Setter Property="Background"
@@ -335,7 +395,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
+    <Grid x:Name="MainRootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Row 0: Device + Controls toolbar -->
@@ -349,264 +409,383 @@
 
         <!-- ───────────── Row 0: Device + Controls toolbar ───────────── -->
         <Border Grid.Row="0"
-                Background="#FF252525"
-                BorderBrush="#FF333333"
-                BorderThickness="0,0,0,1"
-                Padding="12,8">
-            <WrapPanel Orientation="Horizontal"
+            Background="#FF1F1F1F"
+            BorderBrush="#FF353535"
+            BorderThickness="0,0,0,1"
+            Padding="8,5,8,4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <WrapPanel x:Name="TopToolbarPrimaryWrap"
+                           Grid.Row="0"
+                           Orientation="Horizontal"
+                           HorizontalAlignment="Left">
+
+            <Border x:Name="ActionCard"
+                Style="{StaticResource ToolbarCard}"
+                Margin="0,0,8,0"
+                Padding="8,4">
+                <StackPanel Orientation="Horizontal"
                     VerticalAlignment="Center">
-
-                <!-- Start/Stop toggle -->
                 <ToggleButton x:Name="MonitorToggle"
-                              Margin="0,0,8,0"
-                              Checked="MonitorToggle_Checked"
-                              Unchecked="MonitorToggle_Unchecked"/>
+                          Margin="0,0,8,0"
+                          MinWidth="148"
+                          Checked="MonitorToggle_Checked"
+                          Unchecked="MonitorToggle_Unchecked"/>
 
-                <!-- Folder -->
                 <Button Margin="0,0,8,0"
-                    Padding="8,0"
+                    Width="32"
+                    Padding="0"
                     ToolTip="Open recordings folder in Explorer"
                     Click="OpenFolderButton_Click">
                     <TextBlock Text="&#x1F4C1;"
                            FontFamily="Segoe UI Emoji"
-                           FontSize="15"/>
+                           FontSize="15"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"/>
                 </Button>
 
-                <!-- Settings + About -->
-                <Button Content="⚙ Settings"
-                        Margin="0,0,6,0"
-                        Click="SettingsButton_Click"/>
-                <Button Content="ℹ About"
-                        Click="AboutButton_Click"/>
+                <Button Content="Settings"
+                    Margin="0,0,6,0"
+                    MinWidth="78"
+                    Click="SettingsButton_Click"/>
+                <Button Content="About"
+                    MinWidth="68"
+                    Click="AboutButton_Click"/>
+                </StackPanel>
+            </Border>
 
-                <!-- Separator -->
-                <Rectangle Width="1"
-                           Height="20"
-                           Fill="#FF444444"
-                           Margin="12,0,12,0"
-                           VerticalAlignment="Center"/>
+            <Border x:Name="CaptureSourceCard"
+                Style="{StaticResource ToolbarCard}"
+                Margin="0,0,8,0">
+                <StackPanel>
+                <TextBlock Text="CAPTURE SOURCE"
+                       Style="{StaticResource ToolbarTitle}"/>
 
-                <!-- Input device -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,12,0">
-                    <TextBlock Text="🎚 Source:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,6,0"/>
+                <WrapPanel Orientation="Horizontal"
+                       VerticalAlignment="Center">
+                    <TextBlock Text="Source"
+                           Style="{StaticResource ToolbarLabel}"/>
                     <ComboBox x:Name="CaptureSourceCombo"
-                            Width="145"
-                              SelectionChanged="CaptureSourceCombo_SelectionChanged"
-                            Margin="0,0,10,0"/>
+                        Width="160"
+                        Margin="0,0,8,0"
+                         SelectionChanged="CaptureSourceCombo_SelectionChanged"/>
 
                     <TextBlock x:Name="InputDeviceLabel"
-                            Text="🎙 Mic/Line In:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,6,0"/>
+                           Text="Mic/Line"
+                           Style="{StaticResource ToolbarLabel}"/>
                     <ComboBox x:Name="InputDeviceCombo"
-                            Width="175"
-                              SelectionChanged="InputDeviceCombo_SelectionChanged"/>
+                        Width="240"
+                        Margin="0,0,8,0"
+                         SelectionChanged="InputDeviceCombo_SelectionChanged"/>
 
                     <TextBlock x:Name="LoopbackDeviceLabel"
-                            Text="🖥 Loopback:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="10,0,6,0"
-                            Visibility="Collapsed"/>
+                           Text="Loopback"
+                           Style="{StaticResource ToolbarLabel}"
+                           Visibility="Collapsed"/>
                     <ComboBox x:Name="LoopbackDeviceCombo"
-                            Width="210"
-                            Visibility="Collapsed"
-                              SelectionChanged="LoopbackDeviceCombo_SelectionChanged"/>
+                        Width="250"
+                        Margin="0,0,8,0"
+                         Visibility="Collapsed"
+                         SelectionChanged="LoopbackDeviceCombo_SelectionChanged"/>
 
                     <TextBlock x:Name="AppLoopbackLabel"
-                            Text="🎯 App:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="10,0,6,0"
-                            Visibility="Collapsed"/>
+                           Text="App"
+                           Style="{StaticResource ToolbarLabel}"
+                           Visibility="Collapsed"/>
                     <ComboBox x:Name="AppLoopbackCombo"
-                            Width="240"
-                            Visibility="Collapsed"
-                              SelectionChanged="AppLoopbackCombo_SelectionChanged"/>
+                        Width="250"
+                         Visibility="Collapsed"
+                         SelectionChanged="AppLoopbackCombo_SelectionChanged"/>
                     <Button x:Name="RefreshAppLoopbackBtn"
-                            Content="⟳"
-                            Width="28"
-                            Margin="4,0,0,0"
-                            ToolTip="Refresh list of apps producing audio"
-                            Visibility="Collapsed"
-                            Click="RefreshAppLoopback_Click"/>
+                        Content="Refresh"
+                        Width="58"
+                        Margin="4,0,0,0"
+                        Visibility="Collapsed"
+                        ToolTip="Refresh list of apps producing audio"
+                        Click="RefreshAppLoopback_Click"/>
+                </WrapPanel>
                 </StackPanel>
+            </Border>
 
-                <!-- Output device -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,12,0">
-                    <TextBlock Text="🔊 Output:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,6,0"/>
-                    <ComboBox x:Name="OutputDeviceCombo"
-                            Width="165"
-                              SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
-                </StackPanel>
+            <Border x:Name="PadMonitorCard"
+                Style="{StaticResource ToolbarCard}"
+                Margin="6,0,0,0"
+                MinWidth="300">
+                <StackPanel>
+                <TextBlock Text="PAD MONITOR"
+                       Style="{StaticResource ToolbarTitle}"/>
 
-                <!-- Pad listen output -->
                 <StackPanel Orientation="Horizontal"
-                        Margin="0,0,12,0"
-                        VerticalAlignment="Center">
+                            VerticalAlignment="Center"
+                            Margin="0,0,0,4">
                     <CheckBox x:Name="ListenOutputEnabledCheck"
-                              Content="🔈 Pad Monitor"
+                              Content="Enable"
                               Foreground="#FFE0E0E0"
                               VerticalAlignment="Center"
                               Margin="0,0,8,0"
                               Checked="ListenOutputEnabledCheck_Changed"
                               Unchecked="ListenOutputEnabledCheck_Changed"/>
                     <ComboBox x:Name="ListenOutputDeviceCombo"
-                            Width="170"
-                              ToolTip="Playback device used when clicking a recording pad"
-                              SelectionChanged="ListenOutputDeviceCombo_SelectionChanged"/>
+                             MinWidth="180"
+                             MaxWidth="320"
+                             HorizontalAlignment="Stretch"
+                             ToolTip="Playback device used when clicking a recording pad"
+                             SelectionChanged="ListenOutputDeviceCombo_SelectionChanged"/>
                 </StackPanel>
 
-                <!-- Recording mode -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,12,0"
-                        VerticalAlignment="Center">
-                    <TextBlock Text="⚙ Mode:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,6,0"/>
-                    <ComboBox x:Name="RecordingModeCombo"
-                            Width="120"
-                              SelectionChanged="RecordingModeCombo_SelectionChanged"
-                              ToolTip="AutoVAD: auto-detect speech. Key Buffer: save last N seconds on hotkey press."/>
-                </StackPanel>
-            </WrapPanel>
-        </Border>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="74"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-        <!-- ───────────── Row 1: Sensitivity + Silence + KeyBuffer hint ───────────── -->
-        <Border Grid.Row="1"
-                Background="#FF222222"
-                BorderBrush="#FF333333"
-                BorderThickness="0,0,0,1"
-                Padding="12,6">
-            <WrapPanel Orientation="Horizontal">
-
-                <!-- Sensitivity -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,24,0">
-                    <TextBlock Text="🎚 Sensitivity:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,8,0"/>
-                    <Slider x:Name="SensitivitySlider"
-                            Width="160"
-                            Minimum="1"
-                            Maximum="99"
-                            Value="30"
-                            TickFrequency="5"
-                            ValueChanged="SensitivitySlider_ValueChanged"/>
-                    <TextBlock x:Name="SensitivityValueLabel"
-                               Text="30"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="8,0,0,0"
-                               Width="28"/>
-                </StackPanel>
-
-                <!-- Silence timeout -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,24,0">
-                    <TextBlock Text="⏱ Silence:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,8,0"/>
-                    <Slider x:Name="SilenceSlider"
-                            Width="130"
-                            Minimum="300"
-                            Maximum="2000"
-                            Value="700"
-                            TickFrequency="100"
-                            ValueChanged="SilenceSlider_ValueChanged"/>
-                    <TextBlock x:Name="SilenceValueLabel"
-                               Text="0.70s"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="8,0,0,0"
-                               Width="36"/>
-                </StackPanel>
-
-                <!-- Key Buffer hint (visible in KeyBuffer mode) -->
-                <StackPanel x:Name="KeyBufferHint"
-                            Orientation="Horizontal"
-                            Visibility="Collapsed"
-                            VerticalAlignment="Center">
-                    <TextBlock Text="⌨ Buffer hotkey:"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="0,0,6,0"/>
-                    <TextBlock x:Name="HotkeyLabel"
-                               Text="Ctrl+F9"
-                               Foreground="#FFFFC107"
-                               FontSize="11"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <!-- Separator -->
-                <Rectangle Width="1"
-                           Height="16"
-                           Fill="#FF444444"
-                           Margin="8,0,16,0"
-                           VerticalAlignment="Center"/>
-
-                <!-- Input Volume -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,20,0">
-                    <TextBlock Text="🔊 Input:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,6,0"/>
-                    <Slider x:Name="InputVolumeSlider"
-                            Width="100"
-                            Minimum="0"
-                            Maximum="100"
-                            Value="80"
-                            TickFrequency="5"
-                            ValueChanged="InputVolumeSlider_ValueChanged"/>
-                    <TextBlock x:Name="InputVolumeValueLabel"
-                               Text="80"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="6,0,0,0"
-                               Width="28"/>
-                </StackPanel>
-
-                <!-- Output Volume -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,20,0">
-                    <TextBlock Text="🔊 Output:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,6,0"/>
-                    <Slider x:Name="OutputVolumeSlider"
-                            Width="100"
-                            Minimum="0"
-                            Maximum="100"
-                            Value="100"
-                            TickFrequency="5"
-                            ValueChanged="OutputVolumeSlider_ValueChanged"/>
-                    <TextBlock x:Name="OutputVolumeValueLabel"
-                               Text="100"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="6,0,0,0"
-                               Width="28"/>
-                </StackPanel>
-
-                <!-- Pad Listen Volume -->
-                <StackPanel Orientation="Horizontal"
-                        Margin="0,0,0,0">
-                    <TextBlock Text="🔈 Pad Listen:"
-                            Style="{StaticResource SectionLabel}"
-                            Margin="0,0,6,0"/>
+                    <TextBlock Grid.Column="0"
+                               Text="Level"
+                               Style="{StaticResource ToolbarLabel}"/>
                     <Slider x:Name="PadListenVolumeSlider"
-                            Width="100"
+                            Grid.Column="1"
+                            MinWidth="160"
+                            MaxWidth="320"
+                            HorizontalAlignment="Stretch"
                             Minimum="0"
                             Maximum="100"
                             Value="100"
                             TickFrequency="5"
                             ValueChanged="PadListenVolumeSlider_ValueChanged"/>
-                    <TextBlock x:Name="PadListenVolumeValueLabel"
-                               Text="100"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="6,0,0,0"
-                               Width="28"/>
+                    <Border Grid.Column="2"
+                            Style="{StaticResource ValueReadout}">
+                        <TextBlock x:Name="PadListenVolumeValueLabel"
+                                   Text="100"
+                                   Foreground="#FFC7C7C7"
+                                   FontSize="10"
+                                   Width="26"
+                                   TextAlignment="Center"/>
+                    </Border>
+                </Grid>
                 </StackPanel>
-            </WrapPanel>
+            </Border>
+
+                </WrapPanel>
+
+                                <WrapPanel x:Name="TopToolbarSecondaryWrap"
+                                                     Grid.Row="1"
+                                                     Orientation="Horizontal"
+                                                     HorizontalAlignment="Left"
+                                                     Margin="0,6,0,0">
+
+            <Border x:Name="DetectionCard"
+                Style="{StaticResource ToolbarCard}"
+                Margin="0,0,8,0">
+                <StackPanel>
+                <TextBlock Text="DETECTION"
+                       Style="{StaticResource ToolbarTitle}"/>
+
+                  <Grid Margin="0,0,0,4">
+                      <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="70"/>
+                      <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+
+                      <TextBlock Grid.Column="0"
+                          Text="Mode"
+                          Style="{StaticResource ToolbarLabel}"/>
+                      <ComboBox x:Name="RecordingModeCombo"
+                       Grid.Column="1"
+                       Width="220"
+                       SelectionChanged="RecordingModeCombo_SelectionChanged"
+                       ToolTip="AutoVAD: auto-detect speech. Key Buffer: save last N seconds on hotkey press."/>
+                  </Grid>
+
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                           Text="Sensitivity"
+                           Style="{StaticResource ToolbarLabel}"/>
+                    <Slider x:Name="SensitivitySlider"
+                        Grid.Column="1"
+                        MinWidth="220"
+                        MaxWidth="480"
+                        HorizontalAlignment="Stretch"
+                        Minimum="1"
+                        Maximum="99"
+                        Value="30"
+                        TickFrequency="5"
+                        ValueChanged="SensitivitySlider_ValueChanged"/>
+                    <Border Grid.Column="2"
+                        Style="{StaticResource ValueReadout}">
+                    <TextBlock x:Name="SensitivityValueLabel"
+                           Text="30"
+                           Foreground="#FFC7C7C7"
+                           FontSize="10"
+                           Width="26"
+                           TextAlignment="Center"/>
+                    </Border>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                           Text="Silence"
+                           Style="{StaticResource ToolbarLabel}"/>
+                    <Slider x:Name="SilenceSlider"
+                        Grid.Column="1"
+                        MinWidth="220"
+                        MaxWidth="480"
+                        HorizontalAlignment="Stretch"
+                        Minimum="300"
+                        Maximum="2000"
+                        Value="700"
+                        TickFrequency="100"
+                        ValueChanged="SilenceSlider_ValueChanged"/>
+                    <Border Grid.Column="2"
+                        Style="{StaticResource ValueReadout}">
+                    <TextBlock x:Name="SilenceValueLabel"
+                           Text="0.70s"
+                           Foreground="#FFC7C7C7"
+                           FontSize="10"
+                           Width="42"
+                           TextAlignment="Center"/>
+                    </Border>
+                </Grid>
+
+                <StackPanel x:Name="KeyBufferHint"
+                            Orientation="Horizontal"
+                            Visibility="Collapsed"
+                            VerticalAlignment="Center"
+                            Margin="0,4,0,0">
+                    <TextBlock Text="Buffer hotkey"
+                               Style="{StaticResource ToolbarLabel}"/>
+                    <Border Style="{StaticResource ValueReadout}"
+                            Margin="2,0,0,0">
+                        <TextBlock x:Name="HotkeyLabel"
+                                   Text="Ctrl+F9"
+                                   Foreground="#FFFFC107"
+                                   FontSize="10"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="LevelsCard"
+                Style="{StaticResource ToolbarCard}"
+                Width="520"
+                Margin="0,0,0,0">
+                <StackPanel>
+                <TextBlock Text="LEVELS"
+                       Style="{StaticResource ToolbarTitle}"/>
+
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="74"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                           Text="Input"
+                           Style="{StaticResource ToolbarLabel}"/>
+                    <Slider x:Name="InputVolumeSlider"
+                        Grid.Column="1"
+                        MinWidth="220"
+                        MaxWidth="480"
+                        HorizontalAlignment="Stretch"
+                        Minimum="0"
+                        Maximum="100"
+                        Value="80"
+                        TickFrequency="5"
+                        ValueChanged="InputVolumeSlider_ValueChanged"/>
+                    <Border Grid.Column="2"
+                        Style="{StaticResource ValueReadout}">
+                    <TextBlock x:Name="InputVolumeValueLabel"
+                           Text="80"
+                           Foreground="#FFC7C7C7"
+                           FontSize="10"
+                           Width="26"
+                           TextAlignment="Center"/>
+                    </Border>
+                </Grid>
+
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="74"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                           Text="Output"
+                           Style="{StaticResource ToolbarLabel}"/>
+                    <Slider x:Name="OutputVolumeSlider"
+                        Grid.Column="1"
+                        MinWidth="220"
+                        MaxWidth="480"
+                        HorizontalAlignment="Stretch"
+                        Minimum="0"
+                        Maximum="100"
+                        Value="100"
+                        TickFrequency="5"
+                        ValueChanged="OutputVolumeSlider_ValueChanged"/>
+                    <Border Grid.Column="2"
+                        Style="{StaticResource ValueReadout}">
+                    <TextBlock x:Name="OutputVolumeValueLabel"
+                           Text="100"
+                           Foreground="#FFC7C7C7"
+                           FontSize="10"
+                           Width="26"
+                           TextAlignment="Center"/>
+                    </Border>
+                      </Grid>
+
+                      <Grid>
+                          <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="74"/>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                          </Grid.ColumnDefinitions>
+
+                          <TextBlock Grid.Column="0"
+                              Text="Device"
+                              Style="{StaticResource ToolbarLabel}"/>
+                    <ComboBox x:Name="OutputDeviceCombo"
+                            Grid.Column="1"
+                            MinWidth="220"
+                            MaxWidth="480"
+                            HorizontalAlignment="Stretch"
+                         ToolTip="Primary output device for pad playback"
+                         SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
+                </Grid>
+                </StackPanel>
+            </Border>
+
+                </WrapPanel>
+            </Grid>
+        </Border>
+
+        <!-- ───────────── Row 1: Sensitivity + Silence + Levels ───────────── -->
+        <Border Grid.Row="1"
+            Visibility="Collapsed"
+            Background="#FF202020"
+            BorderBrush="#FF333333"
+            BorderThickness="0,0,0,1"
+            Padding="8,4,8,5">
+            <Grid/>
         </Border>
 
         <!-- ───────────── Row 2: Status + IN/OUT RMS meters ───────────── -->
@@ -867,7 +1046,7 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Status + runtime info (right side) -->
+                <!-- Runtime info (right side) -->
                 <Border Grid.Column="3"
                         Margin="16,0,0,0"
                         Padding="10,6"
@@ -898,6 +1077,7 @@
                                    Text="Input format: waiting for monitoring"
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="360"/>
+
                         <TextBlock x:Name="OutputFormatInfoLabel"
                                    Text="Recording format: WAV | 48.0 kHz | 16-bit | stereo"
                                    Style="{StaticResource InfoLineLabel}"
