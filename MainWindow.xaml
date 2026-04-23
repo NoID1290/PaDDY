@@ -274,6 +274,19 @@
                     Value="Center"/>
         </Style>
 
+            <!-- Compact info line style for runtime details -->
+            <Style x:Key="InfoLineLabel"
+                   TargetType="TextBlock">
+                <Setter Property="Foreground"
+                    Value="#FF9A9A9A"/>
+                <Setter Property="FontSize"
+                    Value="10"/>
+                <Setter Property="Margin"
+                    Value="0,2,0,0"/>
+                <Setter Property="TextTrimming"
+                    Value="CharacterEllipsis"/>
+            </Style>
+
         <!-- Dark Button style -->
         <Style TargetType="Button">
             <Setter Property="Background"
@@ -598,8 +611,10 @@
 
         <!-- ───────────── Row 2: Status + IN/OUT RMS meters ───────────── -->
         <Border Grid.Row="2"
-                Background="#FF1A1A1A"
-                Padding="12,4">
+            Background="#FF1A1A1A"
+            BorderBrush="#FF2D2D2D"
+            BorderThickness="0,0,0,1"
+            Padding="12,6">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -852,25 +867,59 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Status indicator (right side) -->
-                <StackPanel Grid.Column="3"
-                            Orientation="Horizontal"
-                            VerticalAlignment="Center"
-                            Margin="16,0,0,0">
-                    <Ellipse x:Name="StatusDot"
-                             Width="10"
-                             Height="10"
-                             Fill="#FF757575"
-                             VerticalAlignment="Center"
-                             Margin="0,0,8,0"/>
-                    <TextBlock x:Name="StatusLabel"
-                               Text="Idle — press Start to begin"
-                               FontSize="11"
-                               Foreground="#FF9E9E9E"
-                               VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis"
-                               MaxWidth="300"/>
-                </StackPanel>
+                <!-- Status + runtime info (right side) -->
+                <Border Grid.Column="3"
+                        Margin="16,0,0,0"
+                        Padding="10,6"
+                        Background="#22111111"
+                        BorderBrush="#334D4D4D"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        MaxWidth="390">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <Ellipse x:Name="StatusDot"
+                                     Width="10"
+                                     Height="10"
+                                     Fill="#FF757575"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,8,0"/>
+                            <TextBlock x:Name="StatusLabel"
+                                       Text="Idle — press Start to begin"
+                                       FontSize="11"
+                                       Foreground="#FF9E9E9E"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxWidth="350"/>
+                        </StackPanel>
+
+                        <TextBlock x:Name="InputFormatInfoLabel"
+                                   Text="Input format: waiting for monitoring"
+                                   Style="{StaticResource InfoLineLabel}"
+                                   MaxWidth="360"/>
+                        <TextBlock x:Name="OutputFormatInfoLabel"
+                                   Text="Recording format: WAV | 48.0 kHz | 16-bit | stereo"
+                                   Style="{StaticResource InfoLineLabel}"
+                                   MaxWidth="360"/>
+                        <TextBlock x:Name="StorageInfoLabel"
+                                   Text="Output folder: calculating usage…"
+                                   Style="{StaticResource InfoLineLabel}"
+                                   MaxWidth="360"/>
+
+                        <TextBlock x:Name="UpdateNoticeText"
+                                   Visibility="Collapsed"
+                                   Margin="0,3,0,0"
+                                   FontSize="10"
+                                   Foreground="#FFF0C04A">
+                            <Hyperlink x:Name="UpdateNoticeLink"
+                                       Foreground="#FFF0C04A"
+                                       RequestNavigate="UpdateNoticeLink_RequestNavigate">
+                                New PaDDY release available - open downloads
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Border>
 
