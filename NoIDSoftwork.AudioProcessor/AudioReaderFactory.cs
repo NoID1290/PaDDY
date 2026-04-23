@@ -22,10 +22,10 @@ namespace NoIDSoftwork.AudioProcessor
             string ext = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
             return ext switch
             {
-                "ogg"  => new VorbisReaderAdapter(filePath),
+                "ogg" => new VorbisReaderAdapter(filePath),
                 "opus" => new OpusReaderAdapter(filePath),
                 "flac" => new FlacReaderAdapter(filePath),
-                _      => new WavMp3ReaderAdapter(filePath)   // wav, mp3
+                _ => new WavMp3ReaderAdapter(filePath)   // wav, mp3
             };
         }
     }
@@ -69,7 +69,7 @@ namespace NoIDSoftwork.AudioProcessor
         }
 
         public WaveFormat WaveFormat => _reader.WaveFormat;
-        public TimeSpan TotalTime   => _reader.TotalTime;
+        public TimeSpan TotalTime => _reader.TotalTime;
 
         public TimeSpan CurrentTime
         {
