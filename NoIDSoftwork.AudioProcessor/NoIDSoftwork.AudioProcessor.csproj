@@ -8,7 +8,7 @@
     <NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8765;CS8767;CS8769</NoWarn>
     <AssemblyName>NoIDSoftwork.AudioProcessor</AssemblyName>
     <RootNamespace>NoIDSoftwork.AudioProcessor</RootNamespace>
-    <Version>1.0.0.0424-Pre-release_1</Version>
+    <Version>1.0.0.0424</Version>
     <AssemblyVersion>1.0.0.0424</AssemblyVersion>
     <FileVersion>1.0.0.0424</FileVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
