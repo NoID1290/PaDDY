@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Enhance versioning logic to support 'none' type for MMDD updates and adjust pre-release versioning in AssemblyInfo and CHANGELOG
 
+## [1.0.0.0424-Pre-release_2] - 2026-04-24
+
+- Refactor pre-release versioning logic to retain numeric values in .csproj files while applying suffix to tags, release, and CHANGELOG
+
 ## [1.0.0.0423] - 2026-04-23
 
 - Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
