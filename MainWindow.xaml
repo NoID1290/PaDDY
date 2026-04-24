@@ -455,7 +455,7 @@
                 Style="{StaticResource ToolbarCard}"
                 Margin="0,0,8,0">
                 <StackPanel>
-                <TextBlock Text="CAPTURE SOURCE"
+                <TextBlock Text="INPUT"
                        Style="{StaticResource ToolbarTitle}"/>
 
                 <WrapPanel Orientation="Horizontal"
@@ -500,6 +500,37 @@
                         Visibility="Collapsed"
                         ToolTip="Refresh list of apps producing audio"
                         Click="RefreshAppLoopback_Click"/>
+
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="74"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                           Text="Input"
+                           Style="{StaticResource ToolbarLabel}"/>
+                    <Slider x:Name="InputVolumeSlider"
+                        Grid.Column="1"
+                        MinWidth="220"
+                        MaxWidth="480"
+                        HorizontalAlignment="Stretch"
+                        Minimum="0"
+                        Maximum="100"
+                        Value="80"
+                        TickFrequency="5"
+                        ValueChanged="InputVolumeSlider_ValueChanged"/>
+                    <Border Grid.Column="2"
+                        Style="{StaticResource ValueReadout}">
+                    <TextBlock x:Name="InputVolumeValueLabel"
+                           Text="80"
+                           Foreground="#FFC7C7C7"
+                           FontSize="10"
+                           Width="26"
+                           TextAlignment="Center"/>
+                    </Border>
+                </Grid>    
                 </WrapPanel>
                 </StackPanel>
             </Border>
@@ -696,36 +727,6 @@
                             SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
                 </Grid>
 
-                <Grid Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="74"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0"
-                           Text="Input"
-                           Style="{StaticResource ToolbarLabel}"/>
-                    <Slider x:Name="InputVolumeSlider"
-                        Grid.Column="1"
-                        MinWidth="220"
-                        MaxWidth="480"
-                        HorizontalAlignment="Stretch"
-                        Minimum="0"
-                        Maximum="100"
-                        Value="80"
-                        TickFrequency="5"
-                        ValueChanged="InputVolumeSlider_ValueChanged"/>
-                    <Border Grid.Column="2"
-                        Style="{StaticResource ValueReadout}">
-                    <TextBlock x:Name="InputVolumeValueLabel"
-                           Text="80"
-                           Foreground="#FFC7C7C7"
-                           FontSize="10"
-                           Width="26"
-                           TextAlignment="Center"/>
-                    </Border>
-                </Grid>
 
                 <Grid>
                     <Grid.ColumnDefinitions>
