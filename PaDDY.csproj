@@ -8,9 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>1.0.0.0423</Version>
-    <AssemblyVersion>1.0.0.0423</AssemblyVersion>
-    <FileVersion>1.0.0.0423</FileVersion>
+    <Version>1.0.0.0424-Pre-release_1</Version>
+    <AssemblyVersion>1.0.0.0424</AssemblyVersion>
+    <FileVersion>1.0.0.0424</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
   </PropertyGroup>
