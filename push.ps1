@@ -208,16 +208,7 @@ if ($PreRelease) {
     $preReleaseNumber = $existingPreTags.Count + 1
     $preReleaseVersion = "$newVersion-Pre-release_$preReleaseNumber"
     Write-Host "[PRE-RELEASE] Suffix: -Pre-release_$preReleaseNumber (found $($existingPreTags.Count) existing tag(s))" -ForegroundColor Magenta
-
-    # Patch <Version> in .csproj files; AssemblyVersion/FileVersion remain numeric
-    foreach ($csprojPath in @($projectFilePath, $audioProjectFilePath)) {
-        if (Test-Path $csprojPath) {
-            [xml]$csproj = Get-Content $csprojPath
-            $csproj.Project.PropertyGroup.Version = $preReleaseVersion
-            $csproj.Save((Resolve-Path $csprojPath).Path)
-            Write-Host "[PRE-RELEASE] Patched <Version> in $csprojPath" -ForegroundColor Magenta
-        }
-    }
+    Write-Host "[PRE-RELEASE] <Version>/<AssemblyVersion>/<FileVersion> in .csproj stay numeric ($newVersion); suffix applied to tag, release, CHANGELOG, and AssemblyInformationalVersion only" -ForegroundColor DarkMagenta
 } else {
     $preReleaseVersion = $newVersion
 }
