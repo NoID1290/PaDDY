@@ -22,12 +22,13 @@
 #   .\push.ps1 -Type frontend -AttachAssets           # build zip + GitHub release
 #   .\push.ps1 -SkipVersion                           # commit without bumping
 #   .\push.ps1 -NoRelease                             # push without GitHub release
-#   .\push.ps1 -PreRelease                            # mark GitHub release as pre-release
+#   .\push.ps1 -PreRelease                            # mark GitHub release as pre-release; appends -Pre-release_N suffix
+#   .\push.ps1 -Type none                             # update MMDD/CHANGELOG only, don't bump a/b/c
 # ============================================================================
 
 param(
     [Parameter(Mandatory=$false)]
-    [ValidateSet("frontend", "backend", "fix")]
+    [ValidateSet("frontend", "backend", "fix", "none")]
     [string]$Type = "fix",
 
     [Parameter(Mandatory=$false)]
@@ -143,6 +144,9 @@ function Update-ProjectVersion {
             $vC++
             Write-Host "[$projectName] Fix version incremented" -ForegroundColor Green
         }
+        "none" {
+            Write-Host "[$projectName] Type 'none': keeping a.b.c, updating MMDD only" -ForegroundColor DarkGray
+        }
     }
 
     $today   = Get-Date
@@ -192,14 +196,41 @@ function Update-ReadmeVersionBadge {
 if (-not $SkipVersion) {
     $newVersion = Update-ProjectVersion -Path $projectFilePath -UpdateType $Type
     Update-ProjectVersion -Path $audioProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
+} else {
+    Write-Host "[INFO] SkipVersion is set; not incrementing version" -ForegroundColor Yellow
+    [xml]$p  = Get-Content $projectFilePath
+    $newVersion = $p.Project.PropertyGroup.Version
+}
 
+# ── Pre-release Suffix ───────────────────────────────────────────────────────
+if ($PreRelease) {
+    $existingPreTags = @(git tag --list "v$newVersion-Pre-release_*")
+    $preReleaseNumber = $existingPreTags.Count + 1
+    $preReleaseVersion = "$newVersion-Pre-release_$preReleaseNumber"
+    Write-Host "[PRE-RELEASE] Suffix: -Pre-release_$preReleaseNumber (found $($existingPreTags.Count) existing tag(s))" -ForegroundColor Magenta
+
+    # Patch <Version> in .csproj files; AssemblyVersion/FileVersion remain numeric
+    foreach ($csprojPath in @($projectFilePath, $audioProjectFilePath)) {
+        if (Test-Path $csprojPath) {
+            [xml]$csproj = Get-Content $csprojPath
+            $csproj.Project.PropertyGroup.Version = $preReleaseVersion
+            $csproj.Save((Resolve-Path $csprojPath).Path)
+            Write-Host "[PRE-RELEASE] Patched <Version> in $csprojPath" -ForegroundColor Magenta
+        }
+    }
+} else {
+    $preReleaseVersion = $newVersion
+}
+
+# ── AssemblyInfo / README Sync ───────────────────────────────────────────────
+if (-not $SkipVersion) {
     # Sync AssemblyInfo.cs
     if (Test-Path $assemblyInfoPath) {
         $assemblyInfoContent = Get-Content $assemblyInfoPath -Raw -Encoding UTF8
 
         $assemblyInfoContent = $assemblyInfoContent -replace '\[assembly: AssemblyVersion\("[^"]*"\)\]',               "[assembly: AssemblyVersion(""$newVersion"")]"
         $assemblyInfoContent = $assemblyInfoContent -replace '\[assembly: AssemblyFileVersion\("[^"]*"\)\]',           "[assembly: AssemblyFileVersion(""$newVersion"")]"
-        $assemblyInfoContent = $assemblyInfoContent -replace '\[assembly: AssemblyInformationalVersion\("[^"]*"\)\]',  "[assembly: AssemblyInformationalVersion(""$newVersion"")]"
+        $assemblyInfoContent = $assemblyInfoContent -replace '\[assembly: AssemblyInformationalVersion\("[^"]*"\)\]',  "[assembly: AssemblyInformationalVersion(""$preReleaseVersion"")]"
 
         # Update copyright year dynamically (keep start year, update end year to current)
         $currentYear = (Get-Date).Year
@@ -214,21 +245,17 @@ if (-not $SkipVersion) {
             $assemblyInfoContent += "`r`n[assembly: AssemblyFileVersion(""$newVersion"")]"
         }
         if ($assemblyInfoContent -notmatch 'AssemblyInformationalVersion') {
-            $assemblyInfoContent += "`r`n[assembly: AssemblyInformationalVersion(""$newVersion"")]"
+            $assemblyInfoContent += "`r`n[assembly: AssemblyInformationalVersion(""$preReleaseVersion"")]"
         }
 
         Set-Content -Path $assemblyInfoPath -Value $assemblyInfoContent -Encoding UTF8
-        Write-Host "[SUCCESS] AssemblyInfo.cs updated with version: $newVersion" -ForegroundColor Green
+        Write-Host "[SUCCESS] AssemblyInfo.cs updated with version: $newVersion (informational: $preReleaseVersion)" -ForegroundColor Green
     }
 
-    # Update README badge when AttachAssets is requested
+    # Update README badge when AttachAssets is requested (always use numeric base version)
     if ($AttachAssets) {
         Update-ReadmeVersionBadge -Version $newVersion
     }
-} else {
-    Write-Host "[INFO] SkipVersion is set; not incrementing version" -ForegroundColor Yellow
-    [xml]$p  = Get-Content $projectFilePath
-    $newVersion = $p.Project.PropertyGroup.Version
 }
 
 # ── CHANGELOG Update ─────────────────────────────────────────────────────────
@@ -240,10 +267,10 @@ if (-not $SkipVersion) {
     if (Test-Path $changelogPath) {
         $content = Get-Content $changelogPath -Raw -Encoding UTF8
 
-        $versionPattern = [regex]::Escape("## [$newVersion]")
+        $versionPattern = [regex]::Escape("## [$preReleaseVersion]")
         if ($content -match $versionPattern) {
-            Write-Host "[INFO] Version $newVersion already exists in CHANGELOG.md; skipping update" -ForegroundColor Yellow
-            $existingPattern = "(?s)(## \[$([regex]::Escape($newVersion))\].*?)(?=\n## \[|$)"
+            Write-Host "[INFO] Version $preReleaseVersion already exists in CHANGELOG.md; skipping update" -ForegroundColor Yellow
+            $existingPattern = "(?s)(## \[$([regex]::Escape($preReleaseVersion))\].*?)(?=\n## \[|$)"
             if ($content -match $existingPattern) {
                 $releaseNotes = $matches[1].Trim()
             }
@@ -277,7 +304,7 @@ if (-not $SkipVersion) {
 
             $categorySection = ($commitList -join "`n")
             $newEntry = @"
-## [$newVersion] - $date
+## [$preReleaseVersion] - $date
 
 $categorySection
 "@
@@ -360,7 +387,7 @@ if ($?) {
 }
 
 # ── Tag ──────────────────────────────────────────────────────────────────────
-$tagName    = "v$newVersion"
+$tagName    = "v$preReleaseVersion"
 $existingTag = git tag --list $tagName
 if (-not $existingTag) {
     Write-Host "[TAG] Creating annotated tag: $tagName" -ForegroundColor Cyan
