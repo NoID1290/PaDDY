@@ -8,9 +8,15 @@
     <NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8765;CS8767;CS8769</NoWarn>
     <AssemblyName>NoIDSoftwork.AudioProcessor</AssemblyName>
     <RootNamespace>NoIDSoftwork.AudioProcessor</RootNamespace>
+    <Description>NoIDSoftwork.AudioProcessor</Description>
+    <Product>NoIDSoftwork.AudioProcessor</Product>
+    <Company>NoID Softwork</Company>
+    <Copyright>Copyright (c) NoID Softwork 2020-2026. All rights reserved.</Copyright>
     <Version>1.0.0.0424</Version>
     <AssemblyVersion>1.0.0.0424</AssemblyVersion>
     <FileVersion>1.0.0.0424</FileVersion>
+    <InformationalVersion>1.0.0.0424</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
   </PropertyGroup>
   <ItemGroup>

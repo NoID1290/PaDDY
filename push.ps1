@@ -111,9 +111,12 @@ function Update-ProjectVersion {
     if (-not $ver) { $ver = "0.1.0.0101" }
 
     if ($NewVersion) {
-        $proj.Project.PropertyGroup.Version         = $NewVersion
-        $proj.Project.PropertyGroup.AssemblyVersion = $NewVersion
-        $proj.Project.PropertyGroup.FileVersion     = $NewVersion
+        $proj.Project.PropertyGroup.Version              = $NewVersion
+        $proj.Project.PropertyGroup.AssemblyVersion      = $NewVersion
+        $proj.Project.PropertyGroup.FileVersion          = $NewVersion
+        if ($null -ne $proj.Project.PropertyGroup.InformationalVersion) {
+            $proj.Project.PropertyGroup.InformationalVersion = $NewVersion
+        }
         $proj.Save((Resolve-Path $Path).Path)
         Write-Host "[$projectName] Updated to: $NewVersion" -ForegroundColor Green
         return $NewVersion
@@ -208,7 +211,14 @@ if ($PreRelease) {
     $preReleaseNumber = $existingPreTags.Count + 1
     $preReleaseVersion = "$newVersion-Pre-release_$preReleaseNumber"
     Write-Host "[PRE-RELEASE] Suffix: -Pre-release_$preReleaseNumber (found $($existingPreTags.Count) existing tag(s))" -ForegroundColor Magenta
-    Write-Host "[PRE-RELEASE] <Version>/<AssemblyVersion>/<FileVersion> in .csproj stay numeric ($newVersion); suffix applied to tag, release, CHANGELOG, and AssemblyInformationalVersion only" -ForegroundColor DarkMagenta
+    # Patch <Version> in .csproj files; AssemblyVersion/FileVersion remain numeric
+    # InformationalVersion gets the pre-release suffix
+    if (Test-Path $audioProjectFilePath) {
+        [xml]$audioCsproj = Get-Content $audioProjectFilePath
+        $audioCsproj.Project.PropertyGroup.InformationalVersion = $preReleaseVersion
+        $audioCsproj.Save((Resolve-Path $audioProjectFilePath).Path)
+        Write-Host "[PRE-RELEASE] Patched InformationalVersion in $audioProjectFilePath" -ForegroundColor Magenta
+    }
 } else {
     $preReleaseVersion = $newVersion
 }
