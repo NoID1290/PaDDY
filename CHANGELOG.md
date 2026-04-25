@@ -34,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Enhance asset management: Build and attach artifacts during GitHub release creation
 
+## [1.0.0.0425-Pre-release_5] - 2026-04-25
+
+- Fix GitHub release notes handling: write to temp file to avoid shell escaping issues
+
 ## [1.0.0.0423] - 2026-04-23
 
 - Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
