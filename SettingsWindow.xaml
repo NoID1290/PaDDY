@@ -1,289 +1,119 @@
-<Window x:Class="PaDDY.SettingsWindow"
+﻿<Window x:Class="PaDDY.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PaDDY — Settings"
         Icon="PaDDY.ico"
-        Width="480"
-        Height="580"
+        Width="520"
+        Height="640"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="#FF1E1E1E"
-        Foreground="#FFE0E0E0"
+        Background="#FF0D0D14"
+        Foreground="#FFE0E8F0"
         FontFamily="Segoe UI">
 
     <Window.Resources>
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground"
-                    Value="#FFD0D0D0"/>
-            <Setter Property="VerticalAlignment"
-                    Value="Center"/>
+
+        <!-- Section header with left accent bar -->
+        <Style x:Key="GroupHeader" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal"/>
+            <Setter Property="Margin"      Value="0,0,0,8"/>
         </Style>
-        <Style TargetType="ComboBox">
-            <Setter Property="Background"
-                    Value="#FF2A2A2A"/>
-            <Setter Property="Foreground"
-                    Value="#FFF2F2F2"/>
-            <Setter Property="BorderBrush"
-                    Value="#FF555555"/>
-            <Setter Property="Height"
-                    Value="26"/>
-            <Setter Property="VerticalContentAlignment"
-                    Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
-                            <ToggleButton x:Name="ToggleButton"
-                                          Focusable="False"
-                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
-                                              RelativeSource={RelativeSource TemplatedParent}}"
-                                          ClickMode="Press">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="Bd"
-                                                Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}"
-                                                BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}"
-                                                BorderThickness="1"
-                                                CornerRadius="3">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="20"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Path x:Name="Arrow"
-                                                      Grid.Column="1"
-                                                      HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"
-                                                      Data="M0,0 L4,4 L8,0 Z"
-                                                      Fill="#FFA0A0A0"/>
-                                            </Grid>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Bd" Property="Background" Value="#FF353535"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                            <ContentPresenter x:Name="ContentSite"
-                                              IsHitTestVisible="False"
-                                              Content="{TemplateBinding SelectionBoxItem}"
-                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                              Margin="8,0,24,0"
-                                              VerticalAlignment="Center"/>
-                            <Popup x:Name="Popup"
-                                   Placement="Bottom"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   PopupAnimation="Slide">
-                                <Grid MinWidth="{TemplateBinding ActualWidth}"
-                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border x:Name="DropDownBorder"
-                                            Background="#FF2A2A2A"
-                                            BorderBrush="#FF555555"
-                                            BorderThickness="1"
-                                            CornerRadius="0,0,3,3">
-                                        <ScrollViewer>
-                                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
-                                        </ScrollViewer>
-                                    </Border>
-                                </Grid>
-                            </Popup>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+
+        <!-- Accent bar used in group headers -->
+        <Style x:Key="HeaderAccentBar" TargetType="Rectangle">
+            <Setter Property="Width"        Value="3"/>
+            <Setter Property="Height"       Value="11"/>
+            <Setter Property="Fill"         Value="#FF4CAF50"/>
+            <Setter Property="RadiusX"      Value="1"/>
+            <Setter Property="RadiusY"      Value="1"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin"       Value="0,0,7,0"/>
         </Style>
-        <Style TargetType="CheckBox">
-            <Setter Property="Foreground"
-                    Value="#FFD0D0D0"/>
-            <Setter Property="VerticalAlignment"
-                    Value="Center"/>
+
+        <!-- Header text -->
+        <Style x:Key="HeaderText" TargetType="TextBlock">
+            <Setter Property="Foreground"  Value="#FF5A9070"/>
+            <Setter Property="FontSize"    Value="10"/>
+            <Setter Property="FontWeight"  Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-        <Style TargetType="TextBox">
-            <Setter Property="Background"
-                    Value="#FF2A2A2A"/>
-            <Setter Property="Foreground"
-                    Value="#FFF2F2F2"/>
-            <Setter Property="BorderBrush"
-                    Value="#FF555555"/>
-            <Setter Property="Height"
-                    Value="26"/>
-            <Setter Property="Padding"
-                    Value="6,3"/>
-            <Setter Property="VerticalContentAlignment"
-                    Value="Center"/>
-            <Setter Property="CaretBrush"
-                    Value="White"/>
+
+        <!-- Settings row label -->
+        <Style x:Key="SettingsLabel" TargetType="TextBlock">
+            <Setter Property="Foreground"        Value="#FF9090B8"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize"          Value="11"/>
         </Style>
-        <Style TargetType="Button">
-            <Setter Property="Background"
-                    Value="#FF353535"/>
-            <Setter Property="Foreground"
-                    Value="#FFE0E0E0"/>
-            <Setter Property="BorderBrush"
-                    Value="#FF555555"/>
-            <Setter Property="BorderThickness"
-                    Value="1"/>
-            <Setter Property="Padding"
-                    Value="12,4"/>
-            <Setter Property="Height"
-                    Value="28"/>
-            <Setter Property="Cursor"
-                    Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver"
-                                    Value="True">
-                                <Setter TargetName="Bd"
-                                        Property="Background"
-                                        Value="#FF454545"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed"
-                                    Value="True">
-                                <Setter TargetName="Bd"
-                                        Property="Background"
-                                        Value="#FF252525"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground"
-                    Value="#FFF2F2F2"/>
-            <Setter Property="Background"
-                    Value="#FF2A2A2A"/>
-            <Setter Property="Padding"
-                    Value="6,3"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBoxItem">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsHighlighted"
-                                    Value="True">
-                                <Setter TargetName="Bd"
-                                        Property="Background"
-                                        Value="#FF3D6B9C"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected"
-                                    Value="True">
-                                <Setter TargetName="Bd"
-                                        Property="Background"
-                                        Value="#FF2D5A8E"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="GroupHeader"
-                TargetType="TextBlock">
-            <Setter Property="Foreground"
-                    Value="#FF9E9E9E"/>
-            <Setter Property="FontSize"
-                    Value="10"/>
-            <Setter Property="FontWeight"
-                    Value="Bold"/>
-            <Setter Property="Margin"
-                    Value="0,0,0,6"/>
-        </Style>
+
     </Window.Resources>
 
-    <Grid Margin="16">
+    <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <ScrollViewer Grid.Row="0"
-                VerticalScrollBarVisibility="Auto">
+                      VerticalScrollBarVisibility="Auto">
             <StackPanel>
 
                 <!-- ── Recording Format ── -->
-                <TextBlock Text="RECORDING FORMAT"
-                        Style="{StaticResource GroupHeader}"/>
-                <Border Background="#FF252525"
-                        BorderBrush="#FF383838"
-                        BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12,10"
-                        Margin="0,0,0,12">
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="RECORDING FORMAT" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
                     <StackPanel>
-                        <Grid>
+                        <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="140"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                    Text="Codec:"/>
+                            <TextBlock Grid.Column="0" Text="Codec:"
+                                       Style="{StaticResource SettingsLabel}"/>
                             <ComboBox x:Name="CodecCombo"
-                                    Grid.Column="1"
-                                    SelectionChanged="CodecCombo_SelectionChanged"/>
+                                      Grid.Column="1"
+                                      SelectionChanged="CodecCombo_SelectionChanged"/>
                         </Grid>
                         <TextBlock x:Name="CodecInfoText"
-                                   Margin="0,8,0,0"
                                    TextWrapping="Wrap"
-                                   Foreground="#FF909090"
+                                   Foreground="#FF606090"
                                    FontSize="11"/>
                     </StackPanel>
                 </Border>
 
                 <!-- ── Save Folder ── -->
-                <TextBlock Text="SAVE FOLDER"
-                        Style="{StaticResource GroupHeader}"/>
-                <Border Background="#FF252525"
-                        BorderBrush="#FF383838"
-                        BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12,10"
-                        Margin="0,0,0,12">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBox x:Name="SaveFolderBox"
-                                 Width="280"
-                                 IsReadOnly="True"
-                                 Margin="0,0,8,0"/>
-                        <Button Content="📁 Browse…"
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="SAVE FOLDER" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right"
+                                Content="&#x1F4C1; Browse…"
+                                Padding="12,5"
+                                Margin="10,0,0,0"
                                 Click="BrowseFolder_Click"/>
-                    </StackPanel>
+                        <TextBox x:Name="SaveFolderBox"
+                                 IsReadOnly="True"/>
+                    </DockPanel>
                 </Border>
 
                 <!-- ── Buffer Recording ── -->
-                <TextBlock Text="BUFFER RECORDING"
-                        Style="{StaticResource GroupHeader}"/>
-                <Border Background="#FF252525"
-                        BorderBrush="#FF383838"
-                        BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12,10"
-                        Margin="0,0,0,12">
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="BUFFER RECORDING" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="160"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="48"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0"
-                                Text="Past buffer duration:"/>
+                                   Text="Past buffer duration:"
+                                   Style="{StaticResource SettingsLabel}"/>
                         <Slider x:Name="BufferDurationSlider"
                                 Grid.Column="1"
                                 Minimum="0.5"
@@ -296,52 +126,43 @@
                                    Grid.Column="2"
                                    HorizontalAlignment="Right"
                                    VerticalAlignment="Center"
-                                   Text="10s"/>
+                                   Text="10s"
+                                   Foreground="#FFB0B0CC"/>
                     </Grid>
                 </Border>
 
-                <!-- ── Global Hotkey ── -->
-                <TextBlock Text="BUFFER TRIGGER HOTKEY"
-                        Style="{StaticResource GroupHeader}"/>
-                <Border Background="#FF252525"
-                        BorderBrush="#FF383838"
-                        BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12,10"
-                        Margin="0,0,0,12">
+                <!-- ── Buffer Trigger Hotkey ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="BUFFER TRIGGER HOTKEY" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="160"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="12"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0"
-                                Grid.Column="0"
-                                Text="Modifiers:"/>
-                        <StackPanel Grid.Row="0"
-                                Grid.Column="1"
-                                Orientation="Horizontal">
-                            <CheckBox x:Name="ModCtrl"
-                                    Content="Ctrl"
-                                    Margin="0,0,12,0"/>
-                            <CheckBox x:Name="ModAlt"
-                                    Content="Alt"
-                                    Margin="0,0,12,0"/>
-                            <CheckBox x:Name="ModShift"
-                                    Content="Shift"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="Modifiers:"
+                                   Style="{StaticResource SettingsLabel}"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1"
+                                    Orientation="Horizontal">
+                            <CheckBox x:Name="ModCtrl"  Content="Ctrl"  Margin="0,0,14,0"/>
+                            <CheckBox x:Name="ModAlt"   Content="Alt"   Margin="0,0,14,0"/>
+                            <CheckBox x:Name="ModShift" Content="Shift"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="2"
-                                Grid.Column="0"
-                                Text="Key (click to capture):"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="Key (click to capture):"
+                                   Style="{StaticResource SettingsLabel}"/>
                         <TextBox x:Name="HotkeyKeyBox"
-                                 Grid.Row="2"
-                                Grid.Column="1"
+                                 Grid.Row="2" Grid.Column="1"
                                  IsReadOnly="True"
                                  Cursor="Hand"
                                  ToolTip="Click then press any key to assign"
@@ -351,23 +172,21 @@
                     </Grid>
                 </Border>
 
-                <!-- ── Max Recordings ── -->
-                <TextBlock Text="AUTO-CLEANUP"
-                        Style="{StaticResource GroupHeader}"/>
-                <Border Background="#FF252525"
-                        BorderBrush="#FF383838"
-                        BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12,10"
-                        Margin="0,0,0,12">
+                <!-- ── Auto-Cleanup ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="AUTO-CLEANUP" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="160"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="40"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0"
-                                Text="Max recordings:"/>
+                                   Text="Max recordings:"
+                                   Style="{StaticResource SettingsLabel}"/>
                         <Slider x:Name="MaxRecordsSlider"
                                 Grid.Column="1"
                                 Minimum="0"
@@ -381,6 +200,7 @@
                                    HorizontalAlignment="Right"
                                    VerticalAlignment="Center"
                                    Text="∞"
+                                   Foreground="#FFB0B0CC"
                                    ToolTip="0 = unlimited. Favorites are never auto-deleted."/>
                     </Grid>
                 </Border>
@@ -389,19 +209,25 @@
         </ScrollViewer>
 
         <!-- OK / Cancel -->
-        <StackPanel Grid.Row="1"
-                Orientation="Horizontal"
-                HorizontalAlignment="Right"
-                    Margin="0,12,0,0">
-            <Button Content="OK"
-                    Width="80"
-                    Margin="0,0,8,0"
-                    Click="OkButton_Click"
-                    IsDefault="True"/>
-            <Button Content="Cancel"
-                    Width="80"
-                    Click="CancelButton_Click"
-                    IsCancel="True"/>
-        </StackPanel>
+        <Border Grid.Row="1"
+                Margin="0,14,0,0"
+                Padding="0,12,0,0"
+                BorderBrush="#14FFFFFF"
+                BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="OK"
+                        Width="88"
+                        Margin="0,0,10,0"
+                        Click="OkButton_Click"
+                        IsDefault="True"
+                        Background="#FF1A2E1A"
+                        BorderBrush="#404CAF50"
+                        Foreground="#FF9ECC9E"/>
+                <Button Content="Cancel"
+                        Width="88"
+                        Click="CancelButton_Click"
+                        IsCancel="True"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
