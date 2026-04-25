@@ -28,8 +28,12 @@ public partial class App : WpfApplication
         var entry = FontVariants.FirstOrDefault(v => v.Key == variantKey);
         if (entry == default) entry = FontVariants.First(v => v.Key == "condensed-display");
 
-        var fontUri = new Uri($"pack://application:,,,/Themes/Fonts/{entry.FileName}");
-        var appFont = Fonts.GetFontFamilies(fontUri).FirstOrDefault();
+        // Two-argument overload correctly enumerates families from the specific embedded file.
+        var appFont = Fonts.GetFontFamilies(
+            new Uri("pack://application:,,,/"),
+            $"/Themes/Fonts/{entry.FileName}"
+        ).FirstOrDefault();
+
         if (appFont != null)
             Current.Resources["AppFont"] = appFont;
     }
