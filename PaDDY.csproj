@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="PaDDY.ico" />
+    <Resource Include="Themes\Fonts\ari-w9500-condensed-display.ttf" />
   </ItemGroup>
   <Target Name="RenameExeAfterBuild" AfterTargets="Build">
     <Move SourceFiles="$(OutputPath)NoIDSoftwork.Core.exe" DestinationFiles="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)NoIDSoftwork.Core.exe')" />
