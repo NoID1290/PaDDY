@@ -22,6 +22,7 @@ namespace PaDDY
         public uint SelectedHotKeyModifiers { get; private set; }
         public uint SelectedHotKeyVk { get; private set; }
         public int SelectedMaxRecords { get; private set; }
+        public string SelectedFontVariant { get; private set; } = "condensed-display";
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -91,6 +92,17 @@ namespace PaDDY
             // Max records
             MaxRecordsSlider.Value = _settings.MaxRecords;
             MaxRecordsLabel.Text = _settings.MaxRecords == 0 ? "∞" : _settings.MaxRecords.ToString();
+
+            // Font variant
+            FontVariantCombo.Items.Clear();
+            int fontIdx = 0;
+            for (int i = 0; i < App.FontVariants.Count; i++)
+            {
+                var v = App.FontVariants[i];
+                FontVariantCombo.Items.Add(v.DisplayName);
+                if (v.Key == _settings.AppFontVariant) fontIdx = i;
+            }
+            FontVariantCombo.SelectedIndex = fontIdx;
         }
 
         private void CodecCombo_SelectionChanged(object sender,
@@ -180,6 +192,11 @@ namespace PaDDY
             SelectedHotKeyModifiers = mods;
             SelectedHotKeyVk = _capturedVk;
             SelectedMaxRecords = (int)MaxRecordsSlider.Value;
+
+            int fi = FontVariantCombo.SelectedIndex;
+            SelectedFontVariant = (fi >= 0 && fi < App.FontVariants.Count)
+                ? App.FontVariants[fi].Key
+                : "condensed-display";
 
             DialogResult = true;
         }

@@ -205,6 +205,25 @@
                     </Grid>
                 </Border>
 
+                <!-- ── Font Variant ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="FONT VARIANT" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="App font:"
+                                   Style="{StaticResource SettingsLabel}"/>
+                        <ComboBox x:Name="FontVariantCombo"
+                                  Grid.Column="1"/>
+                    </Grid>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
 

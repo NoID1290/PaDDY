@@ -779,7 +779,10 @@ namespace PaDDY
             _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
             _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
             _settings.MaxRecords = win.SelectedMaxRecords;
+            _settings.AppFontVariant = win.SelectedFontVariant;
             _settings.Save();
+
+            App.ApplyFont(win.SelectedFontVariant);
 
             _captureService.RecordCodec = win.SelectedCodec;
             _captureService.SaveFolder = win.SelectedSaveFolder;
