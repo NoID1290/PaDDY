@@ -7,7 +7,7 @@
         WindowStartupLocation="CenterOwner"
         Background="#FF0D0D14"
         Foreground="#FFE0E8F0"
-        FontFamily="{StaticResource AppFont}">
+        FontFamily="{DynamicResource AppFont}">
 
     <Grid Margin="18">
         <Grid.RowDefinitions>
