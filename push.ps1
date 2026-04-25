@@ -496,10 +496,14 @@ if ($NoRelease) {
         $releaseExists = ($LASTEXITCODE -eq 0)
         $ErrorActionPreference = $prevEAP
 
+        # Write release notes to a temp file to avoid shell escaping issues with special characters
+        $notesFile = [System.IO.Path]::GetTempFileName()
+        Set-Content -Path $notesFile -Value $releaseNotes -Encoding UTF8
+
         if (-not $releaseExists) {
             $releaseType = if ($PreRelease) { "pre-release" } else { "release" }
             Write-Host "[RELEASE] Creating GitHub $releaseType for $tagName" -ForegroundColor Cyan
-            $ghReleaseArgs = @($tagName, '--title', $tagName, '--notes', $releaseNotes, '--target', $Branch)
+            $ghReleaseArgs = @($tagName, '--title', $tagName, '--notes-file', $notesFile, '--target', $Branch)
             if ($PreRelease) { $ghReleaseArgs += '--prerelease' }
             # Attach zip inline during creation if available
             if ($zipPath -and (Test-Path $zipPath)) { $ghReleaseArgs += $zipPath }
@@ -515,10 +519,12 @@ if ($NoRelease) {
             }
         } else {
             Write-Host "[INFO] GitHub release $tagName already exists; updating notes" -ForegroundColor Yellow
-            $ghEditArgs = @($tagName, '--notes', $releaseNotes)
+            $ghEditArgs = @($tagName, '--notes-file', $notesFile)
             if ($PreRelease) { $ghEditArgs += '--prerelease' }
             gh release edit @ghEditArgs
         }
+
+        Remove-Item $notesFile -Force -ErrorAction SilentlyContinue
 
         # Upload zip separately if it wasn't attached during creation (existing release case)
         if ($zipPath -and (Test-Path $zipPath)) {
