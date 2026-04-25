@@ -9,7 +9,44 @@
         Foreground="#FFE0E8F0"
         FontFamily="{DynamicResource AppFont}">
 
-    <Grid Margin="18">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="36"
+                      GlassFrameThickness="0"
+                      ResizeBorderThickness="4"
+                      UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="36"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Custom title bar -->
+        <Border Grid.Row="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#FF141422" Offset="0"/>
+                    <GradientStop Color="#FF0F0F1A" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <TextBlock Text="Credits and Licenses"
+                           Foreground="#FF8080A8"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           Margin="16,0,0,0"/>
+                <Button Style="{StaticResource ChromeCloseBtn}"
+                        HorizontalAlignment="Right"
+                        ToolTip="Close"
+                        Click="ChromeClose_Click">
+                    <TextBlock Text="&#x2715;" FontSize="11" FontFamily="Segoe UI"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Existing content -->
+        <Grid Grid.Row="1" Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -85,5 +122,6 @@
                         Click="CloseButton_Click"/>
             </StackPanel>
         </Border>
+        </Grid>
     </Grid>
 </Window>

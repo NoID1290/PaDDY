@@ -34,6 +34,8 @@ namespace PaDDY
             Loaded += (_, _) => CreditsTextBox.Text = BuildCreditsText();
         }
 
+        private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
+
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
         private void OpenLicensesFolder_Click(object sender, RoutedEventArgs e)

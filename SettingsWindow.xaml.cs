@@ -178,6 +178,8 @@ namespace PaDDY
             Keyboard.ClearFocus();
         }
 
+        private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
+
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             int ci = CodecCombo.SelectedIndex;
