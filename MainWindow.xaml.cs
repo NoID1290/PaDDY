@@ -83,6 +83,29 @@ namespace PaDDY
             this.PreviewKeyDown += OnPadHotKey;
         }
 
+        // ── Custom Window Chrome ───────────────────────────────────────────────
+        private void ChromeMinimize_Click(object sender, RoutedEventArgs e)
+            => SystemCommands.MinimizeWindow(this);
+
+        private void ChromeMaximize_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                SystemCommands.RestoreWindow(this);
+                ChromeMaxIcon.Text = "\u2610"; // □
+                ChromeMaxRestoreBtn.ToolTip = "Maximize";
+            }
+            else
+            {
+                SystemCommands.MaximizeWindow(this);
+                ChromeMaxIcon.Text = "\u2750"; // ❐ (restore icon)
+                ChromeMaxRestoreBtn.ToolTip = "Restore";
+            }
+        }
+
+        private void ChromeClose_Click(object sender, RoutedEventArgs e)
+            => SystemCommands.CloseWindow(this);
+
         private void ToggleConfigPanel_Click(object sender, RoutedEventArgs e)
         {
             _configPanelVisible = !_configPanelVisible;

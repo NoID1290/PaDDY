@@ -292,6 +292,8 @@ namespace PaDDY
 
         // ── Playback preview ────────────────────────────────────────────────
 
+        private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
+
         private void PlayBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_isPreviewing)
