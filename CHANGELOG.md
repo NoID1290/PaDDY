@@ -12,6 +12,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Refactor pre-release versioning logic to retain numeric values in .csproj files while applying suffix to tags, release, and CHANGELOG
 
+## [1.0.0.0425-Pre-release_1] - 2026-04-25
+
+- Implement custom window chrome: Add title bars and close buttons to multiple windows for improved UI consistency
+- Refactor font loading logic: Simplify URI creation for font families in ApplyFont method
+- Refactor code structure for improved readability and maintainability
+- Refactor font resource handling: Change FontFamily bindings to use DynamicResource for better runtime flexibility
+- Enhance UI and functionality: Added config panel toggle, updated settings window layout, and introduced new app theme resources.
+- Rename "CAPTURE SOURCE" to "INPUT" and add Input Volume control with slider and label
+- Enhance version display in AboutWindow to include pre-release suffix and update project file to add InformationalVersion and other metadata
+
 ## [1.0.0.0423] - 2026-04-23
 
 - Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
