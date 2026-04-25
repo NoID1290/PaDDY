@@ -2,11 +2,6 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ═══════════════════════════════════════════════════════════════
-         FONT RESOURCES
-    ═══════════════════════════════════════════════════════════════ -->
-    <FontFamily x:Key="AppFont">pack://application:,,,/Themes/Fonts/#AriW9500 Condensed Display</FontFamily>
-
-    <!-- ═══════════════════════════════════════════════════════════════
          BRUSH / COLOR RESOURCES
     ═══════════════════════════════════════════════════════════════ -->
     <SolidColorBrush x:Key="WindowBgBrush"       Color="#FF0D0D14"/>
@@ -27,14 +22,14 @@
 
     <!-- TextBlock -->
     <Style TargetType="TextBlock">
-        <Setter Property="FontFamily"        Value="{StaticResource AppFont}"/>
+        <Setter Property="FontFamily"        Value="{DynamicResource AppFont}"/>
         <Setter Property="Foreground"        Value="#FFD0D0E0"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
     <!-- Label -->
     <Style TargetType="Label">
-        <Setter Property="FontFamily"        Value="{StaticResource AppFont}"/>
+        <Setter Property="FontFamily"        Value="{DynamicResource AppFont}"/>
         <Setter Property="Foreground"        Value="#FFB0B0CC"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Padding"           Value="0"/>
