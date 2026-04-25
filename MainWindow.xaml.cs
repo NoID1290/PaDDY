@@ -71,6 +71,8 @@ namespace PaDDY
         private static readonly Uri ReleasesPageUri = new("https://github.com/NoID1290/PaDDY/releases");
         private const string ReleasesApiEndpoint = "https://api.github.com/repos/NoID1290/PaDDY/releases/latest";
 
+        private bool _configPanelVisible = true;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -79,6 +81,20 @@ namespace PaDDY
             ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
+        }
+
+        private void ToggleConfigPanel_Click(object sender, RoutedEventArgs e)
+        {
+            _configPanelVisible = !_configPanelVisible;
+            var target = _configPanelVisible ? 290.0 : 0.0;
+            var anim = new System.Windows.Media.Animation.DoubleAnimation(target,
+                TimeSpan.FromMilliseconds(240))
+            {
+                EasingFunction = new System.Windows.Media.Animation.CubicEase
+                    { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }
+            };
+            ConfigPanelBorder.BeginAnimation(MaxHeightProperty, anim);
+            ConfigToggleText.Text = _configPanelVisible ? "▲" : "▼";
         }
 
         private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
