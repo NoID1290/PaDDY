@@ -409,6 +409,46 @@ if (-not $existingTag) {
     Write-Host "[INFO] Tag $tagName already exists; skipping tag creation" -ForegroundColor Yellow
 }
 
+# ── Build Assets (before release creation, so zip can be attached inline) ────
+$zipPath = $null
+if ($AttachAssets -and -not $NoRelease) {
+    Write-Host "[ASSETS] AttachAssets requested; building artifacts before release creation" -ForegroundColor Cyan
+
+    $artifactRoot = Join-Path $PSScriptRoot "bin\artifacts"
+    $publishDir   = Join-Path $artifactRoot "PaDDY-$newVersion"
+
+    # Clean previous artifacts
+    if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
+
+    Write-Host "[BUILD] dotnet publish -c Release -o $publishDir -p:DebugType=None" -ForegroundColor Cyan
+    dotnet publish $projectFilePath -c Release -o $publishDir -p:DebugType=None
+
+    if (-not $?) {
+        Write-Host "[ERROR] dotnet publish failed; skipping artifact upload" -ForegroundColor Red
+    } else {
+        # Remove dev files
+        Write-Host "[CLEANUP] Removing dev files (*.pdb, *.xml) from release" -ForegroundColor Cyan
+        Get-ChildItem -Path $publishDir -Include *.pdb, *.xml -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+
+        # Remove appsettings.json (regenerated at runtime)
+        $appSettingsInPublish = Join-Path $publishDir "appsettings.json"
+        if (Test-Path $appSettingsInPublish) {
+            Remove-Item $appSettingsInPublish -Force
+            Write-Host "[CLEANUP] Removed appsettings.json from release" -ForegroundColor Green
+        }
+
+        # Create zip
+        $zipName = "PaDDY-$newVersion.zip"
+        $zipPath = Join-Path $artifactRoot $zipName
+        if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+        Write-Host "[ZIP] Creating $zipPath" -ForegroundColor Cyan
+        Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Force
+        Write-Host "[ZIP] Created: $zipName" -ForegroundColor Green
+    }
+} elseif ($AttachAssets -and $NoRelease) {
+    Write-Host "[INFO] AttachAssets was requested but NoRelease is set; skipping asset build" -ForegroundColor Yellow
+}
+
 # ── GitHub Release ───────────────────────────────────────────────────────────
 if ($NoRelease) {
     Write-Host "[INFO] NoRelease flag is set; skipping GitHub release creation" -ForegroundColor Yellow
@@ -453,16 +493,23 @@ if ($NoRelease) {
         $prevEAP = $ErrorActionPreference
         $ErrorActionPreference = 'SilentlyContinue'
         gh release view $tagName > $null 2>&1
+        $releaseExists = ($LASTEXITCODE -eq 0)
         $ErrorActionPreference = $prevEAP
 
-        if ($LASTEXITCODE -ne 0) {
+        if (-not $releaseExists) {
             $releaseType = if ($PreRelease) { "pre-release" } else { "release" }
             Write-Host "[RELEASE] Creating GitHub $releaseType for $tagName" -ForegroundColor Cyan
             $ghReleaseArgs = @($tagName, '--title', $tagName, '--notes', $releaseNotes, '--target', $Branch)
             if ($PreRelease) { $ghReleaseArgs += '--prerelease' }
+            # Attach zip inline during creation if available
+            if ($zipPath -and (Test-Path $zipPath)) { $ghReleaseArgs += $zipPath }
             gh release create @ghReleaseArgs
             if ($?) {
                 Write-Host "[SUCCESS] GitHub release created: $tagName" -ForegroundColor Green
+                if ($zipPath -and (Test-Path $zipPath)) {
+                    Write-Host "[SUCCESS] Asset attached during release creation" -ForegroundColor Green
+                    $zipPath = $null  # mark as already uploaded
+                }
             } else {
                 Write-Host "[WARNING] Failed to create GitHub release via gh CLI" -ForegroundColor Yellow
             }
@@ -472,62 +519,19 @@ if ($NoRelease) {
             if ($PreRelease) { $ghEditArgs += '--prerelease' }
             gh release edit @ghEditArgs
         }
-    } else {
-        Write-Host "[INFO] 'gh' CLI not found; skipping GitHub release creation" -ForegroundColor Yellow
-    }
-}
 
-# ── Build & Upload Assets ─────────────────────────────────────────────────────
-if ($AttachAssets) {
-    if ($NoRelease) {
-        Write-Host "[INFO] AttachAssets was requested but NoRelease is set; skipping asset upload" -ForegroundColor Yellow
-    } else {
-        Write-Host "[ASSETS] AttachAssets requested; building and uploading artifacts" -ForegroundColor Cyan
-
-        $artifactRoot = Join-Path $PSScriptRoot "bin\artifacts"
-        $publishDir   = Join-Path $artifactRoot "PaDDY-$newVersion"
-
-        # Clean previous artifacts
-        if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
-
-        Write-Host "[BUILD] dotnet publish -c Release -o $publishDir -p:DebugType=None" -ForegroundColor Cyan
-        dotnet publish $projectFilePath -c Release -o $publishDir -p:DebugType=None
-
-        if (-not $?) {
-            Write-Host "[ERROR] dotnet publish failed; skipping artifact upload" -ForegroundColor Red
-        } else {
-            # Remove dev files
-            Write-Host "[CLEANUP] Removing dev files (*.pdb, *.xml) from release" -ForegroundColor Cyan
-            Get-ChildItem -Path $publishDir -Include *.pdb, *.xml -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
-
-            # Remove appsettings.json (regenerated at runtime)
-            $appSettingsInPublish = Join-Path $publishDir "appsettings.json"
-            if (Test-Path $appSettingsInPublish) {
-                Remove-Item $appSettingsInPublish -Force
-                Write-Host "[CLEANUP] Removed appsettings.json from release" -ForegroundColor Green
-            }
-
-            # Create zip
-            $zipName = "PaDDY-$newVersion.zip"
-            $zipPath = Join-Path $artifactRoot $zipName
-            if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-            Write-Host "[ZIP] Creating $zipPath" -ForegroundColor Cyan
-            Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Force
-
-            # Upload to release
-            $ghCmd = Get-Command gh -ErrorAction SilentlyContinue
-            if ($ghCmd) {
-                Write-Host "[UPLOAD] Uploading $zipName to release $tagName" -ForegroundColor Cyan
-                gh release upload $tagName $zipPath --clobber
-                if ($?) {
-                    Write-Host "[SUCCESS] Uploaded asset: $zipName" -ForegroundColor Green
-                } else {
-                    Write-Host "[WARNING] Failed to upload asset $zipName" -ForegroundColor Yellow
-                }
+        # Upload zip separately if it wasn't attached during creation (existing release case)
+        if ($zipPath -and (Test-Path $zipPath)) {
+            Write-Host "[UPLOAD] Uploading $(Split-Path $zipPath -Leaf) to release $tagName" -ForegroundColor Cyan
+            gh release upload $tagName $zipPath --clobber
+            if ($?) {
+                Write-Host "[SUCCESS] Uploaded asset: $(Split-Path $zipPath -Leaf)" -ForegroundColor Green
             } else {
-                Write-Host "[INFO] 'gh' CLI not found; cannot upload assets" -ForegroundColor Yellow
+                Write-Host "[WARNING] Failed to upload asset $(Split-Path $zipPath -Leaf)" -ForegroundColor Yellow
             }
         }
+    } else {
+        Write-Host "[INFO] 'gh' CLI not found; skipping GitHub release creation" -ForegroundColor Yellow
     }
 }
 
