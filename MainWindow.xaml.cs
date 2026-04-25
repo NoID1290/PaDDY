@@ -91,7 +91,7 @@ namespace PaDDY
                 TimeSpan.FromMilliseconds(240))
             {
                 EasingFunction = new System.Windows.Media.Animation.CubicEase
-                    { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }
+                { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }
             };
             ConfigPanelBorder.BeginAnimation(MaxHeightProperty, anim);
             ConfigToggleText.Text = _configPanelVisible ? "▲" : "▼";

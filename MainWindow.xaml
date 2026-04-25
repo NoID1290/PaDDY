@@ -10,7 +10,7 @@
         MinHeight="600"
         Background="#FF0D0D14"
         Foreground="#FFE0E8F0"
-        FontFamily="Segoe UI">
+        FontFamily="{StaticResource AppFont}">
 
     <Window.Resources>
 
