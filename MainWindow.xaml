@@ -123,6 +123,115 @@
             <Setter Property="Padding" Value="0"/>
         </Style>
 
+        <Style x:Key="LogoAboutBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="LogoShell"
+                                Padding="8,6"
+                                CornerRadius="10"
+                                Background="#00000000"
+                                BorderBrush="#00FFFFFF"
+                                BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="LogoGlow"
+                                                  ShadowDepth="0"
+                                                  BlurRadius="0"
+                                                  Color="#FF4CAF50"
+                                                  Opacity="0"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Border x:Name="LogoOverlay"
+                                        CornerRadius="9"
+                                        Opacity="0">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#147070A8" Offset="0"/>
+                                            <GradientStop Color="#204CAF50" Offset="0.55"/>
+                                            <GradientStop Color="#08FFFFFF" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <Rectangle x:Name="ShimmerBand"
+                                           Width="24"
+                                           RadiusX="12"
+                                           RadiusY="12"
+                                           HorizontalAlignment="Left"
+                                           Opacity="0">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#00FFFFFF" Offset="0"/>
+                                            <GradientStop Color="#66FFFFFF" Offset="0.5"/>
+                                            <GradientStop Color="#00FFFFFF" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                    <Rectangle.RenderTransform>
+                                        <TranslateTransform X="-34"/>
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                                <StackPanel Orientation="Horizontal" Margin="8,0">
+                                    <TextBlock Text="Pa"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="#FF7070A8"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="DDY"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="#FF4CAF50"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="LogoShell" Property="Background" Value="#0CFFFFFF"/>
+                                <Setter TargetName="LogoShell" Property="BorderBrush" Value="#1EFFFFFF"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard x:Name="LogoHoverStoryboard">
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="LogoOverlay"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1"
+                                                             Duration="0:0:0.18"/>
+                                            <DoubleAnimation Storyboard.TargetName="LogoGlow"
+                                                             Storyboard.TargetProperty="BlurRadius"
+                                                             To="18"
+                                                             Duration="0:0:0.2"/>
+                                            <DoubleAnimation Storyboard.TargetName="LogoGlow"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0.55"
+                                                             Duration="0:0:0.2"/>
+                                            <DoubleAnimation Storyboard.TargetName="ShimmerBand"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0.75"
+                                                             Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="ShimmerBand"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                             From="-34"
+                                                             To="110"
+                                                             Duration="0:0:0.45"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="LogoHoverStoryboard"/>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="LogoShell" Property="Opacity" Value="0.82"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Compact info line style for runtime details -->
         <Style x:Key="InfoLineLabel" TargetType="TextBlock">
             <Setter Property="Foreground"   Value="#FF606088"/>
@@ -159,12 +268,12 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Logo -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
-                    <TextBlock Text="Pa" FontSize="20" FontWeight="Bold"
-                               Foreground="#FF7070A8" VerticalAlignment="Center"/>
-                    <TextBlock Text="DDY" FontSize="20" FontWeight="Bold"
-                               Foreground="#FF4CAF50" VerticalAlignment="Center"/>
-                </StackPanel>
+                <Button Grid.Column="0"
+                    Style="{StaticResource LogoAboutBtn}"
+                    VerticalAlignment="Center"
+                    Margin="0,0,20,0"
+                    ToolTip="Open About PaDDY"
+                    Click="AboutButton_Click"/>
 
                 <!-- Monitor toggle -->
                 <ToggleButton x:Name="MonitorToggle"
@@ -172,7 +281,7 @@
                               Style="{StaticResource MonitorToggleStyle}"
                               HorizontalAlignment="Center"
                               VerticalAlignment="Center"
-                              WindowChrome.IsHitTestVisibleInChrome="True"
+                              shell:WindowChrome.IsHitTestVisibleInChrome="True"
                               Checked="MonitorToggle_Checked"
                               Unchecked="MonitorToggle_Unchecked"/>
 
@@ -181,7 +290,7 @@
                     <Button Style="{StaticResource TopBarIconBtn}"
                             Margin="0,0,6,0"
                             ToolTip="Open recordings folder in Explorer"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             Click="OpenFolderButton_Click">
                         <TextBlock Text="&#x1F4C1;" FontFamily="Segoe UI Emoji" FontSize="15"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -190,7 +299,7 @@
                             Style="{StaticResource TopBarBtn}"
                             Margin="0,0,6,0"
                             ToolTip="Show / hide configuration panel"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             Click="ToggleConfigPanel_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="ConfigToggleText" Text="▲" FontSize="10"
@@ -201,13 +310,8 @@
                     <Button Style="{StaticResource TopBarBtn}"
                             Content="Settings"
                             Margin="0,0,6,0"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             Click="SettingsButton_Click"/>
-                    <Button Style="{StaticResource TopBarBtn}"
-                            Content="About"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
-                            Click="AboutButton_Click"/>
-
                     <!-- Custom caption / window control buttons -->
                     <Rectangle Width="1" Fill="#18FFFFFF" Margin="10,8,0,8" VerticalAlignment="Stretch"/>
                     <Button Style="{StaticResource ChromeMinBtn}"
