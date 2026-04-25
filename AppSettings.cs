@@ -51,6 +51,9 @@ namespace PaDDY
         public double OutputVolume { get; set; } = 100.0;
         public double PadListenVolume { get; set; } = 100.0;
 
+        // UI font variant: "regular", "bold", "condensed", "condensed-bold", "display", "condensed-display"
+        public string AppFontVariant { get; set; } = "condensed-display";
+
         private static readonly string SettingsPath =
             Path.Combine(AppContext.BaseDirectory, "usrcfg.bin");
 
