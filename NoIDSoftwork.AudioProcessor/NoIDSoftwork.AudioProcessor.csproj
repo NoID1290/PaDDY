@@ -15,7 +15,7 @@
     <Version>1.0.0.0425</Version>
     <AssemblyVersion>1.0.0.0425</AssemblyVersion>
     <FileVersion>1.0.0.0425</FileVersion>
-    <InformationalVersion>1.0.0.0425-Pre-release_1</InformationalVersion>
+    <InformationalVersion>1.0.0.0425-Pre-release_2</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
   </PropertyGroup>
