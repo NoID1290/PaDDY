@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0426-Pre-release_4] - 2026-04-26
+
+- Version bump
+
 ## [1.0.0.0426-Pre-release_3] - 2026-04-26
 
 - Version bump
