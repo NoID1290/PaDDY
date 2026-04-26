@@ -951,7 +951,7 @@
                                 Height="24"
                                 Padding="10,2"
                                 Margin="0,0,6,0"
-                                ToolTip="Remove pad buttons from the UI (files are kept on disk)"
+                                ToolTip="Permanently delete all non-favorite recordings (favorites are kept)"
                                 Click="ClearPadsButton_Click"/>
                         <Button Content="&#x1F5D1; Delete All Files"
                                 Height="24"
