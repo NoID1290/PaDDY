@@ -146,34 +146,6 @@
                                                   Opacity="0"/>
                             </Border.Effect>
                             <Grid>
-                                <Border x:Name="LogoOverlay"
-                                        CornerRadius="9"
-                                        Opacity="0">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#147070A8" Offset="0"/>
-                                            <GradientStop Color="#204CAF50" Offset="0.55"/>
-                                            <GradientStop Color="#08FFFFFF" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                                <Rectangle x:Name="ShimmerBand"
-                                           Width="24"
-                                           RadiusX="12"
-                                           RadiusY="12"
-                                           HorizontalAlignment="Left"
-                                           Opacity="0">
-                                    <Rectangle.Fill>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#00FFFFFF" Offset="0"/>
-                                            <GradientStop Color="#66FFFFFF" Offset="0.5"/>
-                                            <GradientStop Color="#00FFFFFF" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Rectangle.Fill>
-                                    <Rectangle.RenderTransform>
-                                        <TranslateTransform X="-34"/>
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
                                 <StackPanel Orientation="Horizontal" Margin="8,0">
                                     <TextBlock Text="Pa"
                                                FontSize="20"
@@ -195,32 +167,47 @@
                                 <Trigger.EnterActions>
                                     <BeginStoryboard x:Name="LogoHoverStoryboard">
                                         <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="LogoOverlay"
-                                                             Storyboard.TargetProperty="Opacity"
-                                                             To="1"
-                                                             Duration="0:0:0.18"/>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
                                                              Storyboard.TargetProperty="BlurRadius"
-                                                             To="18"
-                                                             Duration="0:0:0.2"/>
+                                                             To="12"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0.55"
-                                                             Duration="0:0:0.2"/>
-                                            <DoubleAnimation Storyboard.TargetName="ShimmerBand"
-                                                             Storyboard.TargetProperty="Opacity"
-                                                             To="0.75"
-                                                             Duration="0:0:0.12"/>
-                                            <DoubleAnimation Storyboard.TargetName="ShimmerBand"
-                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                             From="-34"
-                                                             To="110"
-                                                             Duration="0:0:0.45"/>
+                                                             To="0.38"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
                                 <Trigger.ExitActions>
                                     <StopStoryboard BeginStoryboardName="LogoHoverStoryboard"/>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="LogoGlow"
+                                                             Storyboard.TargetProperty="BlurRadius"
+                                                             To="0"
+                                                             Duration="0:0:0.16">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseIn"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoGlow"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0"
+                                                             Duration="0:0:0.16">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseIn"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
                                 </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
