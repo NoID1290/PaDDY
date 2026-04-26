@@ -1259,9 +1259,22 @@ namespace PaDDY
         // ── Clear / Delete All ─────────────────────────────────────────────────
         private void ClearPadsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (PadPanel.Children.Count == 0) return;
+            var buttons = PadPanel.Children.OfType<RecordingPadButton>().ToList();
+            if (buttons.Count == 0) return;
+
+            var idsToDelete = buttons
+                .Where(b => b.Entry != null && !string.IsNullOrEmpty(b.Entry.RecordingId))
+                .Select(b => b.Entry!.RecordingId)
+                .ToList();
+
+            foreach (var btn in buttons)
+                btn.StopPlayback();
+
             PadPanel.Children.Clear();
+            _recordingStore.DeleteAll(idsToDelete);
+
             UpdatePadState();
+            Forget(CompactAndRefreshAsync());
         }
 
         private void DeleteAllFilesButton_Click(object sender, RoutedEventArgs e)
@@ -1301,7 +1314,7 @@ namespace PaDDY
             _recordingStore.DeleteAll(idsToDelete);
 
             UpdatePadState();
-            Forget(RefreshStorageInfoAsync());
+            Forget(CompactAndRefreshAsync());
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
@@ -1341,6 +1354,14 @@ namespace PaDDY
                 : $"{FormatSampleRate(sampleRate)} | {FormatChannels(channels)}";
 
             OutputFormatInfoLabel.Text = $"Recording format: {codec} | {suffix}";
+        }
+
+        private async Task CompactAndRefreshAsync()
+        {
+            // Run WAL checkpoint + VACUUM off the UI thread so the app stays responsive,
+            // then refresh the displayed storage size once the .dat file has shrunk.
+            await Task.Run(() => _recordingStore.Compact());
+            await RefreshStorageInfoAsync();
         }
 
         private async Task RefreshStorageInfoAsync()

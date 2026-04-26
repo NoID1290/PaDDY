@@ -218,6 +218,25 @@ namespace PaDDY.Services
             return new FileInfo(StorePath).Length;
         }
 
+        /// <summary>
+        /// Checkpoints the WAL file and runs VACUUM to reclaim disk space freed by deleted
+        /// BLOB rows. Blocking — call from a background thread.
+        /// </summary>
+        public void Compact()
+        {
+            try
+            {
+                using var chk = _db.CreateCommand();
+                chk.CommandText = "PRAGMA wal_checkpoint(TRUNCATE)";
+                chk.ExecuteNonQuery();
+
+                using var vac = _db.CreateCommand();
+                vac.CommandText = "VACUUM";
+                vac.ExecuteNonQuery();
+            }
+            catch { /* best-effort; don't surface compaction errors to callers */ }
+        }
+
         // ── Dispose ────────────────────────────────────────────────────────────
 
         public void Dispose()
