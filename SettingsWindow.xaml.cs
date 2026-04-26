@@ -17,7 +17,6 @@ namespace PaDDY
 
         // Resolved output values
         public string SelectedCodec { get; private set; } = "wav";
-        public string SelectedSaveFolder { get; private set; } = string.Empty;
         public int SelectedBufferDurationMs { get; private set; }
         public uint SelectedHotKeyModifiers { get; private set; }
         public uint SelectedHotKeyVk { get; private set; }
@@ -70,11 +69,6 @@ namespace PaDDY
             CodecCombo.SelectionChanged += CodecCombo_SelectionChanged;
             UpdateCodecInfo();
 
-            // Save folder
-            SaveFolderBox.Text = string.IsNullOrWhiteSpace(_settings.SaveFolder)
-                ? Path.Combine(AppContext.BaseDirectory, "recordings")
-                : _settings.SaveFolder;
-
             // Buffer duration
             double bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000.0, 0.5, 60.0);
             BufferDurationSlider.Value = bufSec;
@@ -117,18 +111,6 @@ namespace PaDDY
             int ci = CodecCombo.SelectedIndex;
             string codec = ci >= 0 && ci < _visibleCodecOptions.Count ? _visibleCodecOptions[ci].Value : "wav";
             CodecInfoText.Text = CodecDescriptions.TryGetValue(codec, out var info) ? info : string.Empty;
-        }
-
-        private void BrowseFolder_Click(object sender, RoutedEventArgs e)
-        {
-            using var dlg = new FolderBrowserDialog
-            {
-                Description = "Select folder to save recordings",
-                UseDescriptionForTitle = true,
-                SelectedPath = SaveFolderBox.Text
-            };
-            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                SaveFolderBox.Text = dlg.SelectedPath;
         }
 
         private void BufferDurationSlider_Changed(object sender,
@@ -184,7 +166,6 @@ namespace PaDDY
         {
             int ci = CodecCombo.SelectedIndex;
             SelectedCodec = ci >= 0 && ci < _visibleCodecOptions.Count ? _visibleCodecOptions[ci].Value : "wav";
-            SelectedSaveFolder = SaveFolderBox.Text;
             SelectedBufferDurationMs = (int)(BufferDurationSlider.Value * 1000);
 
             uint mods = 0;
