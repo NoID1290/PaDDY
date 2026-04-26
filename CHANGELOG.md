@@ -38,6 +38,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Fix GitHub release notes handling: write to temp file to avoid shell escaping issues
 
+## [1.0.0.0426-Pre-release_1] - 2026-04-26
+
+- Update AboutWindow and MainWindow for improved clarity and consistency; adjust SettingsWindow height and codec descriptions for better accuracy
+- Refactor RenameDialog to use XAML for UI definition and simplify code structure
+- Add drop shadow effects to close buttons in About, Audio Editor, Credits, and Settings windows for improved visual appeal
+- Add drop shadow effects to window control buttons for enhanced visual appeal
+- Refactor logo animation and remove unused elements for improved performance
+- Refactor UI elements and styles across multiple windows for improved consistency and aesthetics
+- Update UI labels and gradient colors in MainWindow.xaml
+
 ## [1.0.0.0423] - 2026-04-23
 
 - Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
