@@ -218,6 +218,7 @@
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Margin="4,4,0,0"
+                        FontSize="15"
                         ToolTip="Toggle favourite"
                         Click="FavBtn_Click"/>
 
