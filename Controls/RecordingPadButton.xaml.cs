@@ -78,10 +78,12 @@ namespace PaDDY.Controls
         /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
         public event EventHandler? DeleteRequested;
 
-        /// <summary>Fired when the user toggles the favorite (â­) button.</summary>
+        /// <summary>Fired when the user toggles the favorite (★) button.</summary>
         public event EventHandler? FavoriteToggled;
-        /// <summary>Fired after a successful rename; args are (oldFilePath, newFilePath).</summary>
-        public event Action<string, string>? FileRenamed;
+        /// <summary>Fired after a successful rename; args are (entry, newDisplayName).</summary>
+        public event Action<RecordingEntry, string>? RecordingRenamed;
+        /// <summary>Fired after an in-place editor save; arg is the updated entry.</summary>
+        public event Action<RecordingEntry>? RecordingEdited;
         /// <summary>Fired when "Save as Copy" produces a new file; args are (newFilePath, addToFavorite).</summary>
         public event Action<string, bool>? RecordingCopied;
         public RecordingPadButton()
@@ -124,11 +126,9 @@ namespace PaDDY.Controls
         public void SetEntry(RecordingEntry entry)
         {
             Entry = entry;
-            NameLabel.Text = Path.GetFileNameWithoutExtension(entry.FilePath)
-                                 .Replace("Recording_", "")
-                                 .Replace("_", " ");
+            NameLabel.Text = entry.FileName;
             DurationLabel.Text = entry.DurationLabel;
-            ToolTip = entry.FilePath;
+            ToolTip = entry.FileName;
         }
 
         // â”€â”€ Overlay button handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -176,7 +176,7 @@ namespace PaDDY.Controls
                 }
                 else
                 {
-                    // In-place save — re-read duration from the trimmed file
+                    // In-place save — re-read duration from the trimmed temp file
                     try
                     {
                         using var reader = AudioReaderFactory.Open(Entry.FilePath);
@@ -184,6 +184,7 @@ namespace PaDDY.Controls
                     }
                     catch { }
                     SetEntry(Entry);
+                    RecordingEdited?.Invoke(Entry);
 
                     if (editor.ShouldSaveToFavorite && !IsFavorite)
                     {
@@ -376,7 +377,7 @@ namespace PaDDY.Controls
         {
             if (Entry == null) return;
 
-            var dialog = new RenameDialog(Path.GetFileNameWithoutExtension(Entry.FilePath))
+            var dialog = new RenameDialog(Entry.FileName)
             {
                 Owner = Window.GetWindow(this)
             };
@@ -384,33 +385,47 @@ namespace PaDDY.Controls
 
             string newName = dialog.NewName.Trim();
             if (string.IsNullOrWhiteSpace(newName)) return;
-            string originalExt = Path.GetExtension(Entry.FilePath);
+
+            // Preserve original extension from the display name if user omits it.
+            string originalExt = Path.GetExtension(
+                string.IsNullOrEmpty(Entry.DisplayName) ? Entry.FilePath : Entry.DisplayName);
             if (!Path.HasExtension(newName))
                 newName += originalExt;
 
-            string newPath = Path.Combine(Path.GetDirectoryName(Entry.FilePath)!, newName);
-            try
-            {
-                StopPlayback();
-                string oldPath = Entry.FilePath;
-                File.Move(Entry.FilePath, newPath);
-                Entry.FilePath = newPath;
-                SetEntry(Entry);
-                FileRenamed?.Invoke(oldPath, newPath);
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show($"Rename failed:\n{ex.Message}", "PaDDY",
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-            }
+            // Update the display name in memory and notify MainWindow to persist to DB.
+            Entry.DisplayName = newName;
+            SetEntry(Entry);
+            RecordingRenamed?.Invoke(Entry, newName);
         }
 
         private void MenuDelete_Click(object sender, RoutedEventArgs e)
         {
             if (Entry == null) return;
             StopPlayback();
-            try { File.Delete(Entry.FilePath); } catch { }
+            // Temp file cleanup and DB deletion are handled by MainWindow via DeleteRequested.
             DeleteRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void ExportBtn_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (Entry == null || !File.Exists(Entry.FilePath)) return;
+
+            string ext = Path.GetExtension(Entry.FilePath);
+            string defaultName = string.IsNullOrEmpty(Entry.DisplayName)
+                ? Path.GetFileName(Entry.FilePath)
+                : Path.ChangeExtension(Entry.DisplayName, ext);
+
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Export recording",
+                FileName = defaultName,
+                DefaultExt = ext,
+                Filter = $"Audio (*{ext})|*{ext}|All files (*.*)|*.*"
+            };
+
+            if (dlg.ShowDialog() != true) return;
+            File.Copy(Entry.FilePath, dlg.FileName, overwrite: true);
         }
     }
 }

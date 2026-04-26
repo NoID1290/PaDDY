@@ -266,6 +266,17 @@
                         Margin="4,0,0,4"
                         ToolTip="Trim / Edit"
                         Click="TrimBtn_Click"/>
+
+                <!-- 💾 Export — bottom-center -->
+                <Button x:Name="ExportBtn"
+                        Style="{StaticResource OverlayBtn}"
+                        Content="💾"
+                        Foreground="#FFAAAAAA"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,0,4"
+                        ToolTip="Export…"
+                        Click="ExportBtn_Click"/>
             </Grid>
         </Grid>
     </Border>

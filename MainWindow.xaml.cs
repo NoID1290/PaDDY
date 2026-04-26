@@ -28,6 +28,7 @@ namespace PaDDY
     {
         private readonly AudioCaptureService _captureService = new();
         private readonly GlobalHotkeyService _hotkeyService = new();
+        private readonly RecordingStore _recordingStore = new();
         private AppSettings _settings = AppSettings.Load();
         private readonly List<CaptureSourceMode> _captureSourceModes = new();
         private List<(string Id, string Name)> _loopbackDevices = new();
@@ -150,8 +151,8 @@ namespace PaDDY
             PopulateRecordingModes();
             PopulateSortOrderCombo();
             ApplySettings();
-            LoadFavoritesFromSettings();
-            LoadNonFavoriteRecordingsFromDisk();
+            LoadFavoritesFromStore();
+            LoadNonFavoritesFromStore();
             _suppressSelectionEvents = false;
 
             _captureService.RmsLevelChanged += OnRmsChanged;
@@ -405,10 +406,7 @@ namespace PaDDY
             _captureService.RecordCodec = _settings.RecordCodec;
             _captureService.PastBufferDurationMs = _settings.PastBufferDurationMs;
 
-            string folder = string.IsNullOrWhiteSpace(_settings.SaveFolder)
-                ? Path.Combine(AppContext.BaseDirectory, "recordings")
-                : _settings.SaveFolder;
-            _captureService.SaveFolder = folder;
+            _captureService.SaveFolder = RecordingStore.InternalTempRecDir;
 
             _captureService.Sensitivity = _settings.Sensitivity;
             _captureService.SilenceTimeoutMs = _settings.SilenceTimeoutMs;
@@ -781,9 +779,10 @@ namespace PaDDY
 
         private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            string folder = _captureService.SaveFolder;
-            if (Directory.Exists(folder))
-                System.Diagnostics.Process.Start("explorer.exe", folder);
+            // Recordings are stored in recordings.dat; open parent folder (app directory) for reference.
+            string appDir = AppContext.BaseDirectory;
+            if (Directory.Exists(appDir))
+                System.Diagnostics.Process.Start("explorer.exe", appDir);
         }
 
         // ── Settings / About buttons ───────────────────────────────────────────
@@ -797,7 +796,6 @@ namespace PaDDY
 
             // Apply changes
             _settings.RecordCodec = win.SelectedCodec;
-            _settings.SaveFolder = win.SelectedSaveFolder;
             _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
             _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
             _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
@@ -808,7 +806,6 @@ namespace PaDDY
             App.ApplyFont(win.SelectedFontVariant);
 
             _captureService.RecordCodec = win.SelectedCodec;
-            _captureService.SaveFolder = win.SelectedSaveFolder;
             _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
 
             // Re-register hotkey with new key
@@ -987,8 +984,25 @@ namespace PaDDY
         {
             Dispatcher.InvokeAsync(() =>
             {
-                AddPadButton(entry, toFavorites: false);
-                Forget(RefreshStorageInfoAsync());
+                try
+                {
+                    // Read the raw bytes from the internal temp file, store them in the DB,
+                    // then replace FilePath with a session-scoped materialised path.
+                    byte[] audioBytes = File.ReadAllBytes(entry.FilePath);
+                    try { File.Delete(entry.FilePath); } catch { }
+
+                    string codec = Path.GetExtension(entry.FilePath).TrimStart('.');
+                    string displayName = $"Recording {entry.CreatedAt:yyyy-MM-dd HH-mm-ss}.{codec}";
+                    string id = _recordingStore.Add(displayName, codec, entry.Duration, entry.CreatedAt, audioBytes);
+
+                    entry.RecordingId = id;
+                    entry.DisplayName = displayName;
+                    entry.FilePath = _recordingStore.MaterializeToTemp(id, codec);
+
+                    AddPadButton(entry, toFavorites: false);
+                    Forget(RefreshStorageInfoAsync());
+                }
+                catch { /* recording too short or unreadable; discard silently */ }
             });
         }
 
@@ -1029,18 +1043,19 @@ namespace PaDDY
             {
                 if (s is RecordingPadButton b)
                 {
-                    // Remove from whichever panel it's in
+                    // Remove from DB + both panels
+                    if (b.Entry != null && !string.IsNullOrEmpty(b.Entry.RecordingId))
+                        _recordingStore.Delete(b.Entry.RecordingId);
                     PadPanel.Children.Remove(b);
                     FavoritesPanel.Children.Remove(b);
-                    if (b.IsFavorite && b.Entry != null)
-                        RemoveFavoriteFromSettings(b.Entry.FilePath);
                     UpdatePadState();
                 }
             };
 
-            btn.FileRenamed += (oldPath, newPath) =>
+            btn.RecordingRenamed += (entry, newDisplayName) =>
             {
-                UpdateFavoritePathAfterRename(oldPath, newPath);
+                if (string.IsNullOrEmpty(entry.RecordingId)) return;
+                _recordingStore.SetDisplayName(entry.RecordingId, newDisplayName);
             };
 
             btn.FavoriteToggled += (s, _) =>
@@ -1051,18 +1066,31 @@ namespace PaDDY
                     // Move from PadPanel to FavoritesPanel
                     PadPanel.Children.Remove(b);
                     FavoritesPanel.Children.Insert(0, b);
-                    AddFavoriteToSettings(b.Entry.FilePath);
+                    if (!string.IsNullOrEmpty(b.Entry.RecordingId))
+                        _recordingStore.SetFavorite(b.Entry.RecordingId, true);
                 }
                 else
                 {
                     // Move from FavoritesPanel to PadPanel
                     FavoritesPanel.Children.Remove(b);
                     PadPanel.Children.Insert(0, b);
-                    RemoveFavoriteFromSettings(b.Entry.FilePath);
-                    // Re-enforce limit: un-favoriting adds to PadPanel and may exceed MaxRecords
+                    if (!string.IsNullOrEmpty(b.Entry.RecordingId))
+                        _recordingStore.SetFavorite(b.Entry.RecordingId, false);
                     EnforceMaxRecords();
                 }
                 UpdatePadState();
+            };
+
+            btn.RecordingEdited += (entry) =>
+            {
+                // In-place editor save: update the stored audio bytes in DB
+                if (string.IsNullOrEmpty(entry.RecordingId) || !File.Exists(entry.FilePath)) return;
+                try
+                {
+                    byte[] updated = File.ReadAllBytes(entry.FilePath);
+                    _recordingStore.UpdateAudioData(entry.RecordingId, updated);
+                }
+                catch { }
             };
 
             btn.RecordingCopied += (copyPath, asFav) =>
@@ -1070,14 +1098,27 @@ namespace PaDDY
                 if (!File.Exists(copyPath)) return;
                 try
                 {
-                    using var reader = AudioReaderFactory.Open(copyPath);
+                    // Read duration and bytes from the copy file, then store in DB.
+                    TimeSpan duration;
+                    using (var reader = AudioReaderFactory.Open(copyPath))
+                        duration = reader.TotalTime;
+
+                    byte[] audioBytes = File.ReadAllBytes(copyPath);
+                    try { File.Delete(copyPath); } catch { }
+
+                    string codec = Path.GetExtension(copyPath).TrimStart('.');
+                    string displayName = $"Recording {DateTime.Now:yyyy-MM-dd HH-mm-ss}.{codec}";
                     var newEntry = new RecordingEntry
                     {
-                        FilePath = copyPath,
-                        Duration = reader.TotalTime,
-                        CreatedAt = File.GetCreationTime(copyPath),
+                        DisplayName = displayName,
+                        Duration = duration,
+                        CreatedAt = DateTime.Now,
                         IsFavorite = asFav
                     };
+                    string id = _recordingStore.Add(displayName, codec, newEntry.Duration, newEntry.CreatedAt, audioBytes);
+                    newEntry.RecordingId = id;
+                    newEntry.FilePath = _recordingStore.MaterializeToTemp(id, codec);
+
                     AddPadButton(newEntry, asFav);
                     Forget(RefreshStorageInfoAsync());
                 }
@@ -1092,8 +1133,7 @@ namespace PaDDY
 
         private void AddPadButton(RecordingEntry entry, bool toFavorites)
         {
-            bool isFav = _settings.FavoriteFilePaths.Contains(entry.FilePath);
-            entry.IsFavorite = isFav || toFavorites;
+            entry.IsFavorite = entry.IsFavorite || toFavorites;
 
             var btn = CreatePadButton(entry);
 
@@ -1107,105 +1147,67 @@ namespace PaDDY
 
             EnforceMaxRecords();
             UpdatePadState();
-            SetStatus($"Saved: {Path.GetFileName(entry.FilePath)}", "#FF4CAF50");
+            SetStatus($"Saved: {entry.FileName}", "#FF4CAF50");
         }
 
-        private void LoadFavoritesFromSettings()
+        private void LoadFavoritesFromStore()
         {
-            var toRemove = new List<string>();
-            foreach (var path in _settings.FavoriteFilePaths)
+            var records = _recordingStore.GetAll();
+            foreach (var rec in records)
             {
-                if (!File.Exists(path))
-                {
-                    toRemove.Add(path);
-                    continue;
-                }
+                if (!rec.IsFavorite) continue;
                 try
                 {
-                    using var reader = AudioReaderFactory.Open(path);
+                    string tempPath = _recordingStore.MaterializeToTemp(rec.Id, rec.Codec);
                     var entry = new RecordingEntry
                     {
-                        FilePath = path,
-                        Duration = reader.TotalTime,
-                        CreatedAt = File.GetCreationTime(path),
+                        RecordingId = rec.Id,
+                        FilePath = tempPath,
+                        DisplayName = rec.DisplayName,
+                        Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
+                        CreatedAt = rec.CreatedAt,
                         IsFavorite = true
                     };
                     var btn = CreatePadButton(entry);
                     FavoritesPanel.Children.Add(btn);
                 }
-                catch { /* skip unreadable files — do NOT remove from favorites */ }
+                catch { /* skip unreadable records */ }
             }
-
-            // Clean up only files confirmed missing from disk
-            foreach (var p in toRemove)
-                _settings.FavoriteFilePaths.Remove(p);
-            if (toRemove.Count > 0) _settings.Save();
-
             UpdatePadState();
         }
 
-        private void LoadNonFavoriteRecordingsFromDisk()
+        private void LoadNonFavoritesFromStore()
         {
-            string folder = _captureService.SaveFolder;
-            if (!Directory.Exists(folder)) return;
-
-            var favSet = new HashSet<string>(_settings.FavoriteFilePaths, StringComparer.OrdinalIgnoreCase);
-
-            IEnumerable<FileInfo> files = new DirectoryInfo(folder)
-                .EnumerateFiles("*.*")
-                .Where(f => IsAudioFile(f.Name) && !favSet.Contains(f.FullName))
-                .OrderByDescending(f => f.CreationTime); // initial load always newest-first; SortPadPanel applied after
-
+            var records = _recordingStore.GetAll();
             int max = _settings.MaxRecords;
-            if (max > 0)
-                files = files.Take(max);
+            int count = 0;
 
-            foreach (var fi in files)
+            // GetAll() returns newest-first from DB
+            foreach (var rec in records)
             {
+                if (rec.IsFavorite) continue;
+                if (max > 0 && count >= max) break;
                 try
                 {
-                    using var reader = AudioReaderFactory.Open(fi.FullName);
+                    string tempPath = _recordingStore.MaterializeToTemp(rec.Id, rec.Codec);
                     var entry = new RecordingEntry
                     {
-                        FilePath = fi.FullName,
-                        Duration = reader.TotalTime,
-                        CreatedAt = fi.CreationTime,
+                        RecordingId = rec.Id,
+                        FilePath = tempPath,
+                        DisplayName = rec.DisplayName,
+                        Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
+                        CreatedAt = rec.CreatedAt,
                         IsFavorite = false
                     };
                     var btn = CreatePadButton(entry);
                     PadPanel.Children.Add(btn);
+                    count++;
                 }
-                catch { /* skip unreadable files */ }
+                catch { /* skip unreadable records */ }
             }
 
             SortPadPanel();
             UpdatePadState();
-        }
-
-        private void AddFavoriteToSettings(string filePath)
-        {
-            if (!_settings.FavoriteFilePaths.Contains(filePath))
-            {
-                _settings.FavoriteFilePaths.Add(filePath);
-                _settings.Save();
-            }
-        }
-
-        private void RemoveFavoriteFromSettings(string filePath)
-        {
-            _settings.FavoriteFilePaths.Remove(filePath);
-            _settings.Save();
-        }
-
-        private void UpdateFavoritePathAfterRename(string oldPath, string newPath)
-        {
-            int idx = _settings.FavoriteFilePaths
-                .FindIndex(p => string.Equals(p, oldPath, StringComparison.OrdinalIgnoreCase));
-            if (idx >= 0)
-            {
-                _settings.FavoriteFilePaths[idx] = newPath;
-                _settings.Save();
-            }
         }
 
         private void UpdatePadState()
@@ -1244,8 +1246,8 @@ namespace PaDDY
                 if (oldest == null) break;
 
                 oldest.StopPlayback();
-                if (oldest.Entry?.FilePath is string fp)
-                    try { File.Delete(fp); } catch { }
+                if (oldest.Entry != null && !string.IsNullOrEmpty(oldest.Entry.RecordingId))
+                    _recordingStore.Delete(oldest.Entry.RecordingId);
                 PadPanel.Children.Remove(oldest);
                 removedAny = true;
             }
@@ -1283,41 +1285,20 @@ namespace PaDDY
                     toDelete.Add(child);
             }
 
+            var idsToDelete = toDelete
+                .Where(b => b.Entry != null && !string.IsNullOrEmpty(b.Entry.RecordingId))
+                .Select(b => b.Entry!.RecordingId)
+                .ToList();
+
             foreach (var btn in toDelete)
             {
                 btn.StopPlayback();
-                if (btn.Entry?.FilePath is string fp)
-                    try { File.Delete(fp); } catch { }
-
                 PadPanel.Children.Remove(btn);
                 if (!dlg.KeepFavorites)
-                {
                     FavoritesPanel.Children.Remove(btn);
-                    if (btn.Entry != null)
-                        _settings.FavoriteFilePaths.Remove(btn.Entry.FilePath);
-                }
             }
 
-            if (!dlg.KeepFavorites)
-            {
-                _settings.FavoriteFilePaths.Clear();
-                _settings.Save();
-            }
-
-            // Sweep the save folder for any orphaned .wav files not represented as pads
-            string saveFolder = _captureService.SaveFolder;
-            if (Directory.Exists(saveFolder))
-            {
-                var protectedPaths = dlg.KeepFavorites
-                    ? new HashSet<string>(_settings.FavoriteFilePaths, StringComparer.OrdinalIgnoreCase)
-                    : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                foreach (var wav in Directory.EnumerateFiles(saveFolder, "*.*").Where(f => IsAudioFile(f)))
-                {
-                    if (protectedPaths.Contains(wav)) continue;
-                    try { File.Delete(wav); } catch { }
-                }
-            }
+            _recordingStore.DeleteAll(idsToDelete);
 
             UpdatePadState();
             Forget(RefreshStorageInfoAsync());
@@ -1364,71 +1345,26 @@ namespace PaDDY
 
         private async Task RefreshStorageInfoAsync()
         {
-            string folder = _captureService.SaveFolder;
-            if (string.IsNullOrWhiteSpace(folder))
-            {
-                StorageInfoLabel.Text = "Output folder: unavailable";
-                return;
-            }
-
             try
             {
-                string summary = await Task.Run(() => BuildStorageSummary(folder));
+                long dbBytes = await Task.Run(() => _recordingStore.GetStoreSizeBytes());
+                string root = Path.GetPathRoot(RecordingStore.StorePath) ?? string.Empty;
+                string summary;
+                if (!string.IsNullOrWhiteSpace(root))
+                {
+                    var drive = new DriveInfo(root);
+                    summary = $"Recordings: {FormatByteSize(dbBytes)} | {FormatByteSize(drive.AvailableFreeSpace)} free";
+                }
+                else
+                {
+                    summary = $"Recordings: {FormatByteSize(dbBytes)}";
+                }
                 StorageInfoLabel.Text = summary;
             }
             catch
             {
-                StorageInfoLabel.Text = "Output folder: unable to read storage data";
+                StorageInfoLabel.Text = "Recordings: unable to read storage data";
             }
-        }
-
-        private static string BuildStorageSummary(string folder)
-        {
-            if (!Directory.Exists(folder))
-                return "Output folder: not found";
-
-            long folderBytes = GetFolderSizeBytes(folder);
-            string root = Path.GetPathRoot(folder) ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(root))
-                return $"Output folder: {FormatByteSize(folderBytes)} used";
-
-            var drive = new DriveInfo(root);
-            return $"Output folder: {FormatByteSize(folderBytes)} used | {FormatByteSize(drive.AvailableFreeSpace)} free";
-        }
-
-        private static long GetFolderSizeBytes(string folder)
-        {
-            long total = 0;
-            var dirs = new Stack<string>();
-            dirs.Push(folder);
-
-            while (dirs.Count > 0)
-            {
-                string current = dirs.Pop();
-                try
-                {
-                    foreach (var file in Directory.EnumerateFiles(current))
-                    {
-                        try
-                        {
-                            total += new FileInfo(file).Length;
-                        }
-                        catch
-                        {
-                            // Ignore files we cannot inspect.
-                        }
-                    }
-
-                    foreach (var subDir in Directory.EnumerateDirectories(current))
-                        dirs.Push(subDir);
-                }
-                catch
-                {
-                    // Ignore directories we cannot enumerate.
-                }
-            }
-
-            return total;
         }
 
         private async Task CheckForUpdateAsync()
@@ -1585,6 +1521,8 @@ namespace PaDDY
         {
             _hotkeyService.Dispose();
             _captureService.Dispose();
+            _recordingStore.CleanupAllTempFiles();
+            _recordingStore.Dispose();
         }
     }
 }

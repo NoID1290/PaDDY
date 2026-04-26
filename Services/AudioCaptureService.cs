@@ -43,7 +43,7 @@ namespace PaDDY.Services
         /// <summary>How long (ms) silence must persist before closing a clip (AutoVAD mode).</summary>
         public double SilenceTimeoutMs { get; set; } = 700.0;
 
-        public string SaveFolder { get; set; } = "recordings";
+        public string SaveFolder { get; set; } = RecordingStore.InternalTempRecDir;
 
         /// <summary>Mic recording: sample rate in Hz (e.g., 16000, 44100, 48000).</summary>
         public int RecordSampleRate { get; set; } = 16000;
