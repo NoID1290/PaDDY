@@ -32,7 +32,7 @@
             <Setter Property="FontWeight"      Value="SemiBold"/>
             <Setter Property="FontSize"        Value="13"/>
             <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Content"         Value="▶  Start Monitoring"/>
+            <Setter Property="Content"         Value="▶ Start Monitoring"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -271,6 +271,7 @@
                               shell:WindowChrome.IsHitTestVisibleInChrome="True"
                               Checked="MonitorToggle_Checked"
                               Unchecked="MonitorToggle_Unchecked"/>
+                                          
 
                 <!-- Action buttons + custom caption buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -424,7 +425,7 @@
                 <!-- ─── PAD MONITOR ─── -->
                 <Border Grid.Column="1" Style="{StaticResource GlassCard}" Margin="5,0,5,0">
                     <StackPanel>
-                        <TextBlock Text="PAD MONITOR" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="PAD MONITORING" Style="{StaticResource SectionTitle}"/>
 
                         <CheckBox x:Name="ListenOutputEnabledCheck"
                                   Content="Enable monitor"
@@ -446,7 +447,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Level"
+                            <TextBlock Grid.Column="0" Text="Volume"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="PadListenVolumeSlider"
                                     Grid.Column="1"
@@ -535,10 +536,10 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ─── LEVELS ─── -->
+                <!-- ─── OUTPUT ─── -->
                 <Border Grid.Column="3" Style="{StaticResource GlassCard}" Margin="5,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="LEVELS" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="OUTPUT" Style="{StaticResource SectionTitle}"/>
 
                         <DockPanel Margin="0,0,0,10">
                             <TextBlock DockPanel.Dock="Left" Text="Device"
@@ -554,7 +555,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Output"
+                            <TextBlock Grid.Column="0" Text="Volume"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="OutputVolumeSlider"
                                     Grid.Column="1"
