@@ -304,17 +304,26 @@
                     <Button Style="{StaticResource ChromeMinBtn}"
                             ToolTip="Minimize"
                             Click="ChromeMinimize_Click">
+                            <Button.Effect>
+                                <DropShadowEffect Color="#FFFFFFFF" BlurRadius="5" ShadowDepth="0"/>
+                            </Button.Effect>
                         <TextBlock Text="&#x2014;" FontSize="10" FontFamily="Segoe UI"/>
                     </Button>
                     <Button x:Name="ChromeMaxRestoreBtn"
                             Style="{StaticResource ChromeMaxBtn}"
                             ToolTip="Maximize"
                             Click="ChromeMaximize_Click">
+                            <Button.Effect>
+                                <DropShadowEffect Color="#FFFFFFFF" BlurRadius="5" ShadowDepth="0"/>
+                            </Button.Effect>
                         <TextBlock x:Name="ChromeMaxIcon" Text="&#x2610;" FontSize="11" FontFamily="Segoe UI"/>
                     </Button>
                     <Button Style="{StaticResource ChromeCloseBtn}"
                             ToolTip="Close"
                             Click="ChromeClose_Click">
+                            <Button.Effect>
+                                <DropShadowEffect Color="#FFFF5555" BlurRadius="8" ShadowDepth="0"/>
+                            </Button.Effect>
                         <TextBlock Text="&#x2715;" FontSize="11" FontFamily="Segoe UI"/>
                     </Button>
                 </StackPanel>
