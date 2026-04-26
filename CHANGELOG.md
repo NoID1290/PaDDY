@@ -48,6 +48,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Refactor UI elements and styles across multiple windows for improved consistency and aesthetics
 - Update UI labels and gradient colors in MainWindow.xaml
 
+## [1.0.0.0426-Pre-release_2] - 2026-04-26
+
+- Enhance UI elements: adjust button font size, modify window chrome thickness, and improve minimize/maximize button templates for better user experience
+
 ## [1.0.0.0423] - 2026-04-23
 
 - Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
