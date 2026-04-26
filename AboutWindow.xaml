@@ -85,7 +85,7 @@
                            Foreground="#FFBBBBD8"
                            FontSize="12"
                            LineHeight="20">
-                    <Run>PaDDY is a lightweight audio pad recorder that continuously listens to your microphone or system audio and lets you capture the last few seconds on demand — like a dashcam for sound.</Run>
+                    <Run>PaDDY is a lightweight audio pad recorder that continuously listens to your microphone or system audio and lets you capture the last few seconds on demand.</Run>
                 </TextBlock>
 
                 <Rectangle Height="1" Fill="#14FFFFFF" Margin="0,14,0,14"/>
@@ -103,37 +103,18 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Save buffer to pad" Foreground="#FF9090B8" FontSize="11"/>
                     <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                        <TextBlock Text="Ctrl + Alt + R" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                        <TextBlock Text="Ctrl + F9 (DEFAULT)" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
                     </Border>
                 </Grid>
+                
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Toggle pad monitor" Foreground="#FF9090B8" FontSize="11"/>
+                    <TextBlock Grid.Column="0" Text="Edit selected pad" Foreground="#FF9090B8" FontSize="11"/>
                     <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                        <TextBlock Text="Ctrl + Alt + M" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
-                    </Border>
-                </Grid>
-                <Grid Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Play selected pad" Foreground="#FF9090B8" FontSize="11"/>
-                    <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                        <TextBlock Text="Space" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
-                    </Border>
-                </Grid>
-                <Grid Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Delete selected pad" Foreground="#FF9090B8" FontSize="11"/>
-                    <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                        <TextBlock Text="Delete" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                        <TextBlock Text="E" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
                     </Border>
                 </Grid>
                 <Grid Margin="0,0,0,0">
@@ -143,7 +124,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Rename selected pad" Foreground="#FF9090B8" FontSize="11"/>
                     <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                        <TextBlock Text="F2" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                        <TextBlock Text="R" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
                     </Border>
                 </Grid>
 
