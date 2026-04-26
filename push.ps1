@@ -56,6 +56,11 @@ $solutionPath     = "PaDDY.sln"
 $assemblyInfoPath = "AssemblyInfo.cs"
 $changelogPath    = "CHANGELOG.md"
 
+# Freeze release timestamp once to avoid MMDD/date drift across long runs.
+$scriptStartTime = Get-Date
+$versionDateStamp = $scriptStartTime.ToString("MMdd")
+$changelogDateIso = $scriptStartTime.ToString("yyyy-MM-dd")
+
 # Will populate with changelog content to use as GitHub release notes
 $releaseNotes = $null
 
@@ -152,9 +157,7 @@ function Update-ProjectVersion {
         }
     }
 
-    $today   = Get-Date
-    $dateStr = $today.ToString("MMdd")
-    $newVer  = "$vA.$vB.$vC.$dateStr"
+    $newVer  = "$vA.$vB.$vC.$versionDateStamp"
 
     $proj.Project.PropertyGroup.Version         = $newVer
     $proj.Project.PropertyGroup.AssemblyVersion = $newVer
@@ -164,6 +167,25 @@ function Update-ProjectVersion {
     Write-Host "[$projectName] Updated to: $newVer" -ForegroundColor Green
 
     return $newVer
+}
+
+function Normalize-VersionDate {
+    param(
+        [string]$Version,
+        [string]$ExpectedDateStamp
+    )
+
+    $parts = $Version -split '\.'
+    if ($parts.Count -lt 4) {
+        return $Version
+    }
+
+    if ($parts[3] -eq $ExpectedDateStamp) {
+        return $Version
+    }
+
+    Write-Host "[WARNING] Version MMDD mismatch detected: $($parts[3]) -> $ExpectedDateStamp" -ForegroundColor Yellow
+    return "$($parts[0]).$($parts[1]).$($parts[2]).$ExpectedDateStamp"
 }
 
 function Update-ReadmeVersionBadge {
@@ -199,6 +221,13 @@ function Update-ReadmeVersionBadge {
 if (-not $SkipVersion) {
     $newVersion = Update-ProjectVersion -Path $projectFilePath -UpdateType $Type
     Update-ProjectVersion -Path $audioProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
+
+    $normalizedVersion = Normalize-VersionDate -Version $newVersion -ExpectedDateStamp $versionDateStamp
+    if ($normalizedVersion -ne $newVersion) {
+        Write-Host "[SYNC] Correcting project versions to date-stamped version: $normalizedVersion" -ForegroundColor Cyan
+        $newVersion = Update-ProjectVersion -Path $projectFilePath -UpdateType $Type -NewVersion $normalizedVersion
+        Update-ProjectVersion -Path $audioProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
+    }
 } else {
     Write-Host "[INFO] SkipVersion is set; not incrementing version" -ForegroundColor Yellow
     [xml]$p  = Get-Content $projectFilePath
@@ -234,7 +263,7 @@ if (-not $SkipVersion) {
         $assemblyInfoContent = $assemblyInfoContent -replace '\[assembly: AssemblyInformationalVersion\("[^"]*"\)\]',  "[assembly: AssemblyInformationalVersion(""$preReleaseVersion"")]"
 
         # Update copyright year dynamically (keep start year, update end year to current)
-        $currentYear = (Get-Date).Year
+        $currentYear = $scriptStartTime.Year
         $assemblyInfoContent = $assemblyInfoContent -replace '\[assembly: AssemblyCopyright\("Copyright \(c\) NoID Softwork \d{4}-\d{4}"\)\]',
             "[assembly: AssemblyCopyright(""Copyright (c) NoID Softwork 2020-$currentYear"")]"
 
@@ -262,15 +291,33 @@ if (-not $SkipVersion) {
 # ── CHANGELOG Update ─────────────────────────────────────────────────────────
 if (-not $SkipVersion) {
     Write-Host "[CHANGELOG] Updating CHANGELOG.md..." -ForegroundColor Cyan
-
-    $date = Get-Date -Format "yyyy-MM-dd"
+    $date = $changelogDateIso
 
     if (Test-Path $changelogPath) {
         $content = Get-Content $changelogPath -Raw -Encoding UTF8
 
         $versionPattern = [regex]::Escape("## [$preReleaseVersion]")
         if ($content -match $versionPattern) {
-            Write-Host "[INFO] Version $preReleaseVersion already exists in CHANGELOG.md; skipping update" -ForegroundColor Yellow
+            $entryHeaderPattern = "## \[$([regex]::Escape($preReleaseVersion))\] - (?<entryDate>\d{4}-\d{2}-\d{2})"
+            if ($content -match $entryHeaderPattern) {
+                $existingDate = $matches['entryDate']
+                if ($existingDate -ne $date) {
+                    Write-Host "[SYNC] Updating CHANGELOG date for ${preReleaseVersion}: $existingDate -> $date" -ForegroundColor Cyan
+                    $content = [regex]::Replace(
+                        $content,
+                        $entryHeaderPattern,
+                        "## [$preReleaseVersion] - $date",
+                        [System.Text.RegularExpressions.RegexOptions]::None,
+                        [TimeSpan]::FromSeconds(2)
+                    )
+                    Set-Content -Path $changelogPath -Value $content -Encoding UTF8 -NoNewline
+                } else {
+                    Write-Host "[INFO] Version $preReleaseVersion already exists in CHANGELOG.md with matching date; skipping entry creation" -ForegroundColor Yellow
+                }
+            } else {
+                Write-Host "[INFO] Version $preReleaseVersion already exists in CHANGELOG.md; skipping entry creation" -ForegroundColor Yellow
+            }
+
             $existingPattern = "(?s)(## \[$([regex]::Escape($preReleaseVersion))\].*?)(?=\n## \[|$)"
             if ($content -match $existingPattern) {
                 $releaseNotes = $matches[1].Trim()
@@ -317,7 +364,7 @@ $categorySection
 
             for ($i = 0; $i -lt $lines.Count; $i++) {
                 $line = $lines[$i].Trim()
-                if ($line -match '^\#\# \[[\d\.]+\]') {
+                if ($line -match '^\#\# \[\d+\.\d+\.\d+\.\d+(?:-Pre-release_\d+)?\]') {
                     $headerEndIndex = $i
                     break
                 }
