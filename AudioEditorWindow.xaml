@@ -58,6 +58,9 @@
                                 HorizontalAlignment="Right"
                                 ToolTip="Close"
                                 Click="ChromeClose_Click">
+                                <Button.Effect>
+                                    <DropShadowEffect Color="#FFFF5555" BlurRadius="8" ShadowDepth="0"/>
+                                </Button.Effect>
                             <TextBlock Text="&#x2715;" FontSize="11" FontFamily="Segoe UI"/>
                         </Button>
                     </Grid>
