@@ -6,22 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0.0426-Pre-release_4] - 2026-04-26
 
-- Version bump
-
-## [1.0.0.0426-Pre-release_3] - 2026-04-26
-
-- Version bump
-
-## [1.0.0.0424-Pre-release_1] - 2026-04-24
-
 - Enhance versioning logic to support 'none' type for MMDD updates and adjust pre-release versioning in AssemblyInfo and CHANGELOG
-
-## [1.0.0.0424-Pre-release_2] - 2026-04-24
-
 - Refactor pre-release versioning logic to retain numeric values in .csproj files while applying suffix to tags, release, and CHANGELOG
-
-## [1.0.0.0425-Pre-release_1] - 2026-04-25
-
 - Implement custom window chrome: Add title bars and close buttons to multiple windows for improved UI consistency
 - Refactor font loading logic: Simplify URI creation for font families in ApplyFont method
 - Refactor code structure for improved readability and maintainability
@@ -29,25 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Enhance UI and functionality: Added config panel toggle, updated settings window layout, and introduced new app theme resources.
 - Rename "CAPTURE SOURCE" to "INPUT" and add Input Volume control with slider and label
 - Enhance version display in AboutWindow to include pre-release suffix and update project file to add InformationalVersion and other metadata
-
-## [1.0.0.0425-Pre-release_2] - 2026-04-25
-
 - 3
-
-## [1.0.0.0425-Pre-release_3] - 2026-04-25
-
 - Version bump
-
-## [1.0.0.0425-Pre-release_4] - 2026-04-25
-
 - Enhance asset management: Build and attach artifacts during GitHub release creation
-
-## [1.0.0.0425-Pre-release_5] - 2026-04-25
-
 - Fix GitHub release notes handling: write to temp file to avoid shell escaping issues
-
-## [1.0.0.0426-Pre-release_1] - 2026-04-26
-
 - Update AboutWindow and MainWindow for improved clarity and consistency; adjust SettingsWindow height and codec descriptions for better accuracy
 - Refactor RenameDialog to use XAML for UI definition and simplify code structure
 - Add drop shadow effects to close buttons in About, Audio Editor, Credits, and Settings windows for improved visual appeal
@@ -55,13 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Refactor logo animation and remove unused elements for improved performance
 - Refactor UI elements and styles across multiple windows for improved consistency and aesthetics
 - Update UI labels and gradient colors in MainWindow.xaml
-
-## [1.0.0.0426-Pre-release_2] - 2026-04-26
-
 - Enhance UI elements: adjust button font size, modify window chrome thickness, and improve minimize/maximize button templates for better user experience
-
-## [1.0.0.0423] - 2026-04-23
-
+- Version bump
 - Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
 - Update MainWindow layout and add dynamic toolbar card reflow functionality
 - Add runtime info display and update check functionality in MainWindow
