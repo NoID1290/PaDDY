@@ -503,7 +503,7 @@ if ($AttachAssets -and -not $NoRelease) {
             Write-Host "[INSTALLER] iscc.exe not found at '$isccExe'; skipping installer build" -ForegroundColor Yellow
         } else {
             $scPublishDir    = Join-Path $artifactRoot "PaDDY-$newVersion-SC"
-            $installerName   = "PaDDY-$newVersion-Setup"
+            $installerName   = "PaDDY-$newVersion-Installer"
             $installerExe    = Join-Path $artifactRoot "$installerName.exe"
 
             # Clean previous SC publish
