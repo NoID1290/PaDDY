@@ -22,5 +22,4 @@ bld/
 # Generated icon scripts
 gen_icon.csx
 
-#innosetup
-.inno/
+

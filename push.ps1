@@ -475,8 +475,8 @@ if ($AttachAssets -and -not $NoRelease) {
         Write-Host "[ERROR] dotnet publish failed; skipping artifact upload" -ForegroundColor Red
     } else {
         # Remove dev files
-        Write-Host "[CLEANUP] Removing dev files (*.pdb, *.xml) from release" -ForegroundColor Cyan
-        Get-ChildItem -Path $publishDir -Include *.pdb, *.xml -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+        Write-Host "[CLEANUP] Removing dev files (*.pdb, *.xml, *.dll.config) from release" -ForegroundColor Cyan
+        Get-ChildItem -Path $publishDir -Include *.pdb, *.xml, *.dll.config -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
 
         # Remove appsettings.json (regenerated at runtime)
         $appSettingsInPublish = Join-Path $publishDir "appsettings.json"
@@ -516,7 +516,7 @@ if ($AttachAssets -and -not $NoRelease) {
                 Write-Host "[INSTALLER] dotnet publish (self-contained) failed; skipping installer build" -ForegroundColor Red
             } else {
                 # Remove dev files from SC publish
-                Get-ChildItem -Path $scPublishDir -Include *.pdb, *.xml -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+                Get-ChildItem -Path $scPublishDir -Include *.pdb, *.xml, *.dll.config -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
 
                 Write-Host "[INSTALLER] Compiling Inno Setup script..." -ForegroundColor Cyan
                 & $isccExe $innoScript `

@@ -22,6 +22,9 @@
   <ItemGroup>
     <!-- Use vendored source for deterministic single-DLL compilation. -->
     <Compile Remove="vendors/**/*.cs" />
+    <!-- Prevent any vendor app.config from being treated as this project's app.config,
+         which would otherwise produce a spurious NoIDSoftwork.AudioProcessor.dll.config. -->
+    <None Remove="vendors/**/*.config" />
     <EmbeddedResource Remove="vendors/**/*.resx" />
     <Page Remove="vendors/**/*.xaml" />
     <ApplicationDefinition Remove="vendors/**/*.xaml" />

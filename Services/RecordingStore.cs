@@ -53,18 +53,27 @@ namespace PaDDY.Services
             if (File.Exists(StorePath))
                 return;
 
-            if (!AppDataPaths.TryMigrateLegacyFile(AppDataPaths.LegacyRecordingStorePath, StorePath))
+            // Try migrating from exe-directory location (very old installs).
+            if (AppDataPaths.TryMigrateLegacyFile(AppDataPaths.LegacyRecordingStorePath, StorePath))
+            {
+                TryCopyCompanionFile("-wal", AppDataPaths.LegacyRecordingStorePath);
+                TryCopyCompanionFile("-shm", AppDataPaths.LegacyRecordingStorePath);
                 return;
+            }
 
-            TryCopyCompanionFile("-wal");
-            TryCopyCompanionFile("-shm");
+            // Try migrating from old %LocalAppData%\PaDDY location.
+            if (AppDataPaths.TryMigrateLegacyFile(AppDataPaths.LegacyAppDataRecordingStorePath, StorePath))
+            {
+                TryCopyCompanionFile("-wal", AppDataPaths.LegacyAppDataRecordingStorePath);
+                TryCopyCompanionFile("-shm", AppDataPaths.LegacyAppDataRecordingStorePath);
+            }
         }
 
-        private static void TryCopyCompanionFile(string suffix)
+        private static void TryCopyCompanionFile(string suffix, string legacyBase)
         {
             try
             {
-                string legacyCompanion = AppDataPaths.LegacyRecordingStorePath + suffix;
+                string legacyCompanion = legacyBase + suffix;
                 string targetCompanion = StorePath + suffix;
                 if (File.Exists(targetCompanion) || !File.Exists(legacyCompanion))
                     return;

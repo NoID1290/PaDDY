@@ -79,6 +79,15 @@ namespace PaDDY
                     if (s != null) return s;
                 }
 
+                // Migrate from old %LocalAppData%\PaDDY location.
+                if (AppDataPaths.TryMigrateLegacyFile(AppDataPaths.LegacyAppDataSettingsPath, AppDataPaths.SettingsPath) &&
+                    File.Exists(AppDataPaths.SettingsPath))
+                {
+                    var bytes = File.ReadAllBytes(AppDataPaths.SettingsPath);
+                    var s = MessagePackSerializer.Deserialize<AppSettings>(bytes, SerializerOptions);
+                    if (s != null) return s;
+                }
+
                 // Migrate once from legacy JSON settings if present.
                 if (File.Exists(AppDataPaths.LegacyJsonSettingsPath))
                 {
