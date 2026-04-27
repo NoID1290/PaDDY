@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0427-Pre-release_7] - 2026-04-27
+
+- Add wizard-small.bmp image for installer wizard interface
+
 ## [1.0.0.0427-Pre-release_6] - 2026-04-27
 
 - inno stage 2
