@@ -5,6 +5,7 @@ using System.Linq;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
+using PaDDY.Helpers;
 using PaDDY.Models;
 
 namespace PaDDY.Services
@@ -258,7 +259,8 @@ namespace PaDDY.Services
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string folder = Path.IsPathRooted(SaveFolder)
                 ? SaveFolder
-                : Path.Combine(AppContext.BaseDirectory, SaveFolder);
+                : Path.Combine(AppDataPaths.AppDataRoot, SaveFolder);
+            Directory.CreateDirectory(folder);
             string ext = StreamingRecorderFactory.ExtensionFor(codecToUse);
             string filePath = Path.Combine(folder, $"Recording_{timestamp}.{ext}");
 
