@@ -458,6 +458,7 @@ if (-not $existingTag) {
 
 # ── Build Assets (before release creation, so zip can be attached inline) ────
 $zipPath = $null
+$installerPath = $null
 if ($AttachAssets -and -not $NoRelease) {
     Write-Host "[ASSETS] AttachAssets requested; building artifacts before release creation" -ForegroundColor Cyan
 
@@ -491,6 +492,51 @@ if ($AttachAssets -and -not $NoRelease) {
         Write-Host "[ZIP] Creating $zipPath" -ForegroundColor Cyan
         Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Force
         Write-Host "[ZIP] Created: $zipName" -ForegroundColor Green
+
+        # ── Installer (Inno Setup, self-contained win-x64) ──────────────────
+        $innoScript = Join-Path $PSScriptRoot ".inno\PaDDY.iss"
+        $isccExe    = "C:\Program Files (x86)\Inno Setup 6\iscc.exe"
+
+        if (-not (Test-Path $innoScript)) {
+            Write-Host "[INSTALLER] .inno\PaDDY.iss not found; skipping installer build" -ForegroundColor Yellow
+        } elseif (-not (Test-Path $isccExe)) {
+            Write-Host "[INSTALLER] iscc.exe not found at '$isccExe'; skipping installer build" -ForegroundColor Yellow
+        } else {
+            $scPublishDir    = Join-Path $artifactRoot "PaDDY-$newVersion-SC"
+            $installerName   = "PaDDY-$newVersion-Setup"
+            $installerExe    = Join-Path $artifactRoot "$installerName.exe"
+
+            # Clean previous SC publish
+            if (Test-Path $scPublishDir) { Remove-Item $scPublishDir -Recurse -Force }
+
+            Write-Host "[INSTALLER] Publishing self-contained win-x64 for installer..." -ForegroundColor Cyan
+            dotnet publish $projectFilePath -c Release -o $scPublishDir -p:DebugType=None --self-contained true -r win-x64
+
+            if (-not $?) {
+                Write-Host "[INSTALLER] dotnet publish (self-contained) failed; skipping installer build" -ForegroundColor Red
+            } else {
+                # Remove dev files from SC publish
+                Get-ChildItem -Path $scPublishDir -Include *.pdb, *.xml -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+
+                Write-Host "[INSTALLER] Compiling Inno Setup script..." -ForegroundColor Cyan
+                & $isccExe $innoScript `
+                    "/DAppVersion=$newVersion" `
+                    "/DSourceDir=$scPublishDir" `
+                    "/DOutputDir=$artifactRoot" `
+                    "/DOutputName=$installerName"
+
+                if ($?) {
+                    Write-Host "[INSTALLER] Created: $installerName.exe" -ForegroundColor Green
+                    $installerPath = $installerExe
+                } else {
+                    Write-Host "[INSTALLER] iscc.exe compilation failed; skipping installer upload" -ForegroundColor Red
+                }
+
+                # Remove SC publish dir — it's only needed for the installer
+                Remove-Item $scPublishDir -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Host "[INSTALLER] Cleaned up SC publish directory" -ForegroundColor DarkGray
+            }
+        }
     }
 } elseif ($AttachAssets -and $NoRelease) {
     Write-Host "[INFO] AttachAssets was requested but NoRelease is set; skipping asset build" -ForegroundColor Yellow
@@ -552,14 +598,19 @@ if ($NoRelease) {
             Write-Host "[RELEASE] Creating GitHub $releaseType for $tagName" -ForegroundColor Cyan
             $ghReleaseArgs = @($tagName, '--title', $tagName, '--notes-file', $notesFile, '--target', $Branch)
             if ($PreRelease) { $ghReleaseArgs += '--prerelease' }
-            # Attach zip inline during creation if available
+            # Attach zip and installer inline during creation if available
             if ($zipPath -and (Test-Path $zipPath)) { $ghReleaseArgs += $zipPath }
+            if ($installerPath -and (Test-Path $installerPath)) { $ghReleaseArgs += $installerPath }
             gh release create @ghReleaseArgs
             if ($?) {
                 Write-Host "[SUCCESS] GitHub release created: $tagName" -ForegroundColor Green
                 if ($zipPath -and (Test-Path $zipPath)) {
-                    Write-Host "[SUCCESS] Asset attached during release creation" -ForegroundColor Green
+                    Write-Host "[SUCCESS] Zip attached during release creation" -ForegroundColor Green
                     $zipPath = $null  # mark as already uploaded
+                }
+                if ($installerPath -and (Test-Path $installerPath)) {
+                    Write-Host "[SUCCESS] Installer attached during release creation" -ForegroundColor Green
+                    $installerPath = $null  # mark as already uploaded
                 }
             } else {
                 Write-Host "[WARNING] Failed to create GitHub release via gh CLI" -ForegroundColor Yellow
@@ -581,6 +632,17 @@ if ($NoRelease) {
                 Write-Host "[SUCCESS] Uploaded asset: $(Split-Path $zipPath -Leaf)" -ForegroundColor Green
             } else {
                 Write-Host "[WARNING] Failed to upload asset $(Split-Path $zipPath -Leaf)" -ForegroundColor Yellow
+            }
+        }
+
+        # Upload installer separately if it wasn't attached during creation (existing release case)
+        if ($installerPath -and (Test-Path $installerPath)) {
+            Write-Host "[UPLOAD] Uploading $(Split-Path $installerPath -Leaf) to release $tagName" -ForegroundColor Cyan
+            gh release upload $tagName $installerPath --clobber
+            if ($?) {
+                Write-Host "[SUCCESS] Uploaded installer: $(Split-Path $installerPath -Leaf)" -ForegroundColor Green
+            } else {
+                Write-Host "[WARNING] Failed to upload installer $(Split-Path $installerPath -Leaf)" -ForegroundColor Yellow
             }
         }
     } else {
