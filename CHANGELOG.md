@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0426-Pre-release_6] - 2026-04-26
+
+- Update Inno Setup executable path in push.ps1 for installer build
+
 ## [1.0.0.0426-Pre-release_5] - 2026-04-26
 
 - Add installer creation and upload functionality to push.ps1
