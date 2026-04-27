@@ -20,7 +20,7 @@
   #define OutputDir "..\bin\artifacts"
 #endif
 #ifndef OutputName
-  #define OutputName "PaDDY-Setup"
+  #define OutputName "PaDDY-Installer"
 #endif
 
 ; ── Constants ──────────────────────────────────────────────────────────────
