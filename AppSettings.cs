@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using MessagePack;
 using MessagePack.Resolvers;
+using PaDDY.Helpers;
 
 namespace PaDDY
 {
@@ -54,12 +55,6 @@ namespace PaDDY
         // UI font variant: "regular", "bold", "condensed", "condensed-bold", "display", "condensed-display"
         public string AppFontVariant { get; set; } = "condensed-display";
 
-        private static readonly string SettingsPath =
-            Path.Combine(AppContext.BaseDirectory, "usrcfg.bin");
-
-        private static readonly string LegacySettingsPath =
-            Path.Combine(AppContext.BaseDirectory, "appsettings.json");
-
         private static readonly MessagePackSerializerOptions SerializerOptions =
             MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
 
@@ -67,17 +62,27 @@ namespace PaDDY
         {
             try
             {
-                if (File.Exists(SettingsPath))
+                AppDataPaths.EnsureAppDataRoot();
+
+                if (File.Exists(AppDataPaths.SettingsPath))
                 {
-                    var bytes = File.ReadAllBytes(SettingsPath);
+                    var bytes = File.ReadAllBytes(AppDataPaths.SettingsPath);
+                    var s = MessagePackSerializer.Deserialize<AppSettings>(bytes, SerializerOptions);
+                    if (s != null) return s;
+                }
+
+                if (AppDataPaths.TryMigrateLegacyFile(AppDataPaths.LegacySettingsPath, AppDataPaths.SettingsPath) &&
+                    File.Exists(AppDataPaths.SettingsPath))
+                {
+                    var bytes = File.ReadAllBytes(AppDataPaths.SettingsPath);
                     var s = MessagePackSerializer.Deserialize<AppSettings>(bytes, SerializerOptions);
                     if (s != null) return s;
                 }
 
                 // Migrate once from legacy JSON settings if present.
-                if (File.Exists(LegacySettingsPath))
+                if (File.Exists(AppDataPaths.LegacyJsonSettingsPath))
                 {
-                    var json = File.ReadAllText(LegacySettingsPath);
+                    var json = File.ReadAllText(AppDataPaths.LegacyJsonSettingsPath);
                     var migrated = JsonSerializer.Deserialize<AppSettings>(json);
                     if (migrated != null)
                     {
@@ -95,8 +100,9 @@ namespace PaDDY
         {
             try
             {
+                AppDataPaths.EnsureAppDataRoot();
                 var bytes = MessagePackSerializer.Serialize(this, SerializerOptions);
-                File.WriteAllBytes(SettingsPath, bytes);
+                File.WriteAllBytes(AppDataPaths.SettingsPath, bytes);
             }
             catch { /* non-critical */ }
         }

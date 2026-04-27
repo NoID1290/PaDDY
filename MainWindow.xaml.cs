@@ -779,10 +779,9 @@ namespace PaDDY
 
         private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            // Recordings are stored in recordings.dat; open parent folder (app directory) for reference.
-            string appDir = AppContext.BaseDirectory;
-            if (Directory.Exists(appDir))
-                System.Diagnostics.Process.Start("explorer.exe", appDir);
+            string dataDir = Path.GetDirectoryName(RecordingStore.StorePath) ?? AppDataPaths.AppDataRoot;
+            if (Directory.Exists(dataDir))
+                System.Diagnostics.Process.Start("explorer.exe", dataDir);
         }
 
         // ── Settings / About buttons ───────────────────────────────────────────

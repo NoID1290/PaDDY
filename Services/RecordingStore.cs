@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
+using PaDDY.Helpers;
 
 namespace PaDDY.Services
 {
@@ -24,14 +25,14 @@ namespace PaDDY.Services
     {
         // ── Paths ──────────────────────────────────────────────────────────────
         public static readonly string StorePath =
-            Path.Combine(AppContext.BaseDirectory, "recordings.dat");
+            AppDataPaths.RecordingStorePath;
 
         public static readonly string TempDir =
-            Path.Combine(Path.GetTempPath(), "paddy-tmp");
+            AppDataPaths.PlaybackTempDir;
 
         // Hidden folder used by AudioCaptureService while a clip is being written.
         public static readonly string InternalTempRecDir =
-            Path.Combine(AppContext.BaseDirectory, ".rec_tmp");
+            AppDataPaths.InternalRecordingTempDir;
 
         // ── SQLite connection ──────────────────────────────────────────────────
         private readonly SqliteConnection _db;
@@ -39,10 +40,41 @@ namespace PaDDY.Services
 
         public RecordingStore()
         {
+            AppDataPaths.EnsureAppDataRoot();
+            MigrateLegacyStore();
             Directory.CreateDirectory(Path.GetDirectoryName(StorePath)!);
             _db = new SqliteConnection($"Data Source={StorePath}");
             _db.Open();
             Initialize();
+        }
+
+        private static void MigrateLegacyStore()
+        {
+            if (File.Exists(StorePath))
+                return;
+
+            if (!AppDataPaths.TryMigrateLegacyFile(AppDataPaths.LegacyRecordingStorePath, StorePath))
+                return;
+
+            TryCopyCompanionFile("-wal");
+            TryCopyCompanionFile("-shm");
+        }
+
+        private static void TryCopyCompanionFile(string suffix)
+        {
+            try
+            {
+                string legacyCompanion = AppDataPaths.LegacyRecordingStorePath + suffix;
+                string targetCompanion = StorePath + suffix;
+                if (File.Exists(targetCompanion) || !File.Exists(legacyCompanion))
+                    return;
+
+                File.Copy(legacyCompanion, targetCompanion, overwrite: false);
+            }
+            catch
+            {
+                // Best-effort migration only.
+            }
         }
 
         private void Initialize()
