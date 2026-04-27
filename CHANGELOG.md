@@ -4,6 +4,12 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0427-Pre-release_5] - 2026-04-27
+
+- Inno stage 1
+- Remove unused button for opening recordings folder in the top bar
+- Update installer name in build script to "PaDDY-$newVersion-Installer"
+
 ## [1.0.0.0427-Pre-release_4] - 2026-04-27
 
 - Update output name in Inno Setup script to "PaDDY-Installer"
