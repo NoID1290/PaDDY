@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0427-Pre-release_3] - 2026-04-27
+
+- Update version and source directory i
+- Refactor confirmation message formatting for clarity in uninstall prompt
+
 ## [1.0.0.0427-Pre-release_2] - 2026-04-27
 
 - Refactor AppDataPaths for legacy migration support and update Inno Setup script for improved installer configuration
