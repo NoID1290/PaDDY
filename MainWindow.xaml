@@ -275,14 +275,6 @@
 
                 <!-- Action buttons + custom caption buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Style="{StaticResource TopBarIconBtn}"
-                            Margin="0,0,6,0"
-                            ToolTip="Open recordings folder in Explorer"
-                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                            Click="OpenFolderButton_Click">
-                        <TextBlock Text="&#x1F4C1;" FontFamily="Segoe UI Emoji" FontSize="15"
-                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Button>
                     <Button x:Name="ConfigToggleBtn"
                             Style="{StaticResource TopBarBtn}"
                             Margin="0,0,6,0"
