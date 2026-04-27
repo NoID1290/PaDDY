@@ -4,6 +4,15 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0426-Pre-release_5] - 2026-04-26
+
+- Add installer creation and upload functionality to push.ps1
+- inno gitigniore
+- Update Export button alignment and margin in RecordingPadButton for improved layout
+- Implement recording deletion and storage compaction: update ClearPadsButton to delete non-favorite recordings and add Compact method for database optimization.
+- Implement recording management with SQLite backend: add RecordingStore service, enhance RecordingEntry model, and integrate export functionality in RecordingPadButton.
+- Enhance versioning logic: freeze release timestamp to avoid MMDD/date drift and normalize version date in changelog updates
+
 ## [1.0.0.0426-Pre-release_4] - 2026-04-26
 
 - Enhance versioning logic to support 'none' type for MMDD updates and adjust pre-release versioning in AssemblyInfo and CHANGELOG
