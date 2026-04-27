@@ -495,7 +495,7 @@ if ($AttachAssets -and -not $NoRelease) {
 
         # ── Installer (Inno Setup, self-contained win-x64) ──────────────────
         $innoScript = Join-Path $PSScriptRoot ".inno\PaDDY.iss"
-        $isccExe    = "C:\Program Files (x86)\Inno Setup 6\iscc.exe"
+        $isccExe    = "C:\Users\90lec\AppData\Local\Programs\Inno Setup 6\iscc.exe"
 
         if (-not (Test-Path $innoScript)) {
             Write-Host "[INSTALLER] .inno\PaDDY.iss not found; skipping installer build" -ForegroundColor Yellow
