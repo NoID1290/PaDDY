@@ -115,9 +115,9 @@ begin
     if DirExists(AppDataPath) then
     begin
       Msg := 'Do you want to remove your PaDDY recordings and settings?' + #13#10 +
-             #13#10 +
+             '' + #13#10 +
              'Folder: ' + AppDataPath + #13#10 +
-             #13#10 +
+             '' + #13#10 +
              'This will permanently delete all your saved recordings.' + #13#10 +
              'Choose No to keep your data for a future reinstall.';
       Answer := MsgBox(Msg, mbConfirmation, MB_YESNO or MB_DEFBUTTON2);
