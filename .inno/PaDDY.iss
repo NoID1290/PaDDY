@@ -6,7 +6,7 @@
 ; These are injected at compile-time by push.ps1 via /D command-line defines.
 ;
 ; To compile manually (for testing):
-;   iscc.exe .inno\PaDDY.iss /DAppVersion=1.0.0.0426 /DSourceDir=bin\artifacts\PaDDY-1.0.0.0426-SC /DOutputDir=bin\artifacts /DOutputName=PaDDY-1.0.0.0426-Setup
+;   iscc.exe .inno\PaDDY.iss /DAppVersion=1.0.0.0427 /DSourceDir=bin\artifacts\PaDDY-1.0.0.0427 /DOutputDir=bin\artifacts /DOutputName=PaDDY-1.0.0.0427-Setup
 ; ============================================================================
 
 ; ── Defaults (allow manual compilation without /D flags) ──────────────────
@@ -14,7 +14,7 @@
   #define AppVersion "0.0.0.0000"
 #endif
 #ifndef SourceDir
-  #define SourceDir "..\bin\artifacts\PaDDY-SC"
+  #define SourceDir "..\bin\artifacts\PaDDY-1.0.0.0427"
 #endif
 #ifndef OutputDir
   #define OutputDir "..\bin\artifacts"
