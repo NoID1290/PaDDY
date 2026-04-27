@@ -18,6 +18,8 @@
     <InformationalVersion>1.0.0.0427-Pre-release_5</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <!-- Use vendored source for deterministic single-DLL compilation. -->

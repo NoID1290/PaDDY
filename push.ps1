@@ -468,8 +468,8 @@ if ($AttachAssets -and -not $NoRelease) {
     # Clean previous artifacts
     if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
 
-    Write-Host "[BUILD] dotnet publish -c Release -o $publishDir -p:DebugType=None" -ForegroundColor Cyan
-    dotnet publish $projectFilePath -c Release -o $publishDir -p:DebugType=None
+    Write-Host "[BUILD] dotnet publish -c Release -r win-x64 -o $publishDir -p:DebugType=None" -ForegroundColor Cyan
+    dotnet publish $projectFilePath -c Release -r win-x64 -o $publishDir -p:DebugType=None
 
     if (-not $?) {
         Write-Host "[ERROR] dotnet publish failed; skipping artifact upload" -ForegroundColor Red
