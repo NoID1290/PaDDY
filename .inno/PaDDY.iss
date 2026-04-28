@@ -49,9 +49,14 @@ UninstallDisplayIcon={app}\{#AppExeName}
 DefaultDirName={autopf}\NoID Softwork\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
+DisableWelcomePage=no
 
 LicenseFile=..\LICENSE
 SetupIconFile=..\PaDDY.ico
+WizardStyle=classic
+WizardImageFile=wizard-sidebar.bmp
+WizardSmallImageFile=wizard-small.bmp
+WizardImageStretch=no
 
 ; Self-contained build — no .NET prerequisite needed
 ; Requires Windows 10 1809+ (minimum for .NET 8)
