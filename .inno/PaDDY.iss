@@ -53,7 +53,7 @@ DisableWelcomePage=no
 
 LicenseFile=..\LICENSE
 SetupIconFile=..\PaDDY.ico
-WizardStyle=classic
+WizardStyle=modern
 WizardImageFile=wizard-sidebar.bmp
 WizardSmallImageFile=wizard-small.bmp
 WizardImageStretch=no
@@ -89,6 +89,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 ; ============================================================================
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "startmenuicon"; Description: "Create Start Menu shortcut"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
 
 ; ============================================================================
 [Files]
@@ -97,8 +98,8 @@ Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "*.dll.config"; Flags: ign
 
 ; ============================================================================
 [Icons]
-Name: "{group}\{#AppName}";                              Filename: "{app}\{#AppExeName}"
-Name: "{group}\{cm:UninstallProgram,{#AppName}}";        Filename: "{uninstallexe}"
+Name: "{group}\{#AppName}";                              Filename: "{app}\{#AppExeName}"; Tasks: startmenuicon
+Name: "{group}\{cm:UninstallProgram,{#AppName}}";        Filename: "{uninstallexe}"; Tasks: startmenuicon
 Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 ; ============================================================================
