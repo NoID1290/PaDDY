@@ -4,6 +4,12 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0429] - 2026-04-29
+
+- Update Inno Setup script to use modern wizard style and add Start Menu shortcut option
+- Update Inno Setup script and image assets for new wizard design
+- Remove custom wizard theming and related settings from Inno Setup script
+
 ## [1.0.0.0427-Pre-release_7] - 2026-04-27
 
 - Add wizard-small.bmp image for installer wizard interface
