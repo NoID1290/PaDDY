@@ -6,86 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0.0429] - 2026-04-29
 
-- Update Inno Setup script to use modern wizard style and add Start Menu shortcut option
-- Update Inno Setup script and image assets for new wizard design
-- Remove custom wizard theming and related settings from Inno Setup script
-
-## [1.0.0.0427-Pre-release_7] - 2026-04-27
-
-- Add wizard-small.bmp image for installer wizard interface
-
-## [1.0.0.0427-Pre-release_6] - 2026-04-27
-
-- inno stage 2
-
-## [1.0.0.0427-Pre-release_5] - 2026-04-27
-
-- Inno stage 1
-- Remove unused button for opening recordings folder in the top bar
-- Update installer name in build script to "PaDDY-$newVersion-Installer"
-
-## [1.0.0.0427-Pre-release_4] - 2026-04-27
-
-- Update output name in Inno Setup script to "PaDDY-Installer"
-
-## [1.0.0.0427-Pre-release_3] - 2026-04-27
-
-- Update version and source directory i
-- Refactor confirmation message formatting for clarity in uninstall prompt
-
-## [1.0.0.0427-Pre-release_2] - 2026-04-27
-
-- Refactor AppDataPaths for legacy migration support and update Inno Setup script for improved installer configuration
-
-## [1.0.0.0427-Pre-release_1] - 2026-04-27
-
 - Refactor file paths to use AppDataPaths helper class for better maintainability and migration support
-
-## [1.0.0.0426-Pre-release_6] - 2026-04-26
-
-- Update Inno Setup executable path in push.ps1 for installer build
-
-## [1.0.0.0426-Pre-release_5] - 2026-04-26
-
-- Add installer creation and upload functionality to push.ps1
-- inno gitigniore
-- Update Export button alignment and margin in RecordingPadButton for improved layout
-- Implement recording deletion and storage compaction: update ClearPadsButton to delete non-favorite recordings and add Compact method for database optimization.
-- Implement recording management with SQLite backend: add RecordingStore service, enhance RecordingEntry model, and integrate export functionality in RecordingPadButton.
-- Enhance versioning logic: freeze release timestamp to avoid MMDD/date drift and normalize version date in changelog updates
-
-## [1.0.0.0426-Pre-release_4] - 2026-04-26
-
-- Enhance versioning logic to support 'none' type for MMDD updates and adjust pre-release versioning in AssemblyInfo and CHANGELOG
-- Refactor pre-release versioning logic to retain numeric values in .csproj files while applying suffix to tags, release, and CHANGELOG
-- Implement custom window chrome: Add title bars and close buttons to multiple windows for improved UI consistency
-- Refactor font loading logic: Simplify URI creation for font families in ApplyFont method
+- Add Inno Setup installer script for easy installation and uninstallation of the application
+- Implement recording management with SQLite backend
 - Refactor code structure for improved readability and maintainability
-- Refactor font resource handling: Change FontFamily bindings to use DynamicResource for better runtime flexibility
-- Enhance UI and functionality: Added config panel toggle, updated settings window layout, and introduced new app theme resources.
-- Rename "CAPTURE SOURCE" to "INPUT" and add Input Volume control with slider and label
-- Enhance version display in AboutWindow to include pre-release suffix and update project file to add InformationalVersion and other metadata
-- 3
-- Version bump
-- Enhance asset management: Build and attach artifacts during GitHub release creation
-- Fix GitHub release notes handling: write to temp file to avoid shell escaping issues
-- Update AboutWindow and MainWindow for improved clarity and consistency; adjust SettingsWindow height and codec descriptions for better accuracy
-- Refactor RenameDialog to use XAML for UI definition and simplify code structure
-- Add drop shadow effects to close buttons in About, Audio Editor, Credits, and Settings windows for improved visual appeal
-- Add drop shadow effects to window control buttons for enhanced visual appeal
-- Refactor logo animation and remove unused elements for improved performance
+- Major UI overhaul with new design and layout for better user experience
+- Remove unused elements for improved performance
 - Refactor UI elements and styles across multiple windows for improved consistency and aesthetics
-- Update UI labels and gradient colors in MainWindow.xaml
-- Enhance UI elements: adjust button font size, modify window chrome thickness, and improve minimize/maximize button templates for better user experience
-- Version bump
-- Refactor toolbar layout by removing unused reflow logic and adjusting widths for better responsiveness
-- Update MainWindow layout and add dynamic toolbar card reflow functionality
 - Add runtime info display and update check functionality in MainWindow
-- Enhance PCM processing by adding support for 24-bit audio and improving gain application logic
-- Refactor code for consistent formatting in audio processing classes
+- Enhance PCM processing by adding support for 32-bit float audio and improving gain application logic
 - Added FLAC support
-- Set consistent background and foreground colors for the RenameDialog text box
-- Update CHANGELOG.md
 
 ## [0.9.2.0421] - 2026-04-21
 
