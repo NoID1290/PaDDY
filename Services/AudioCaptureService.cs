@@ -256,6 +256,14 @@ namespace PaDDY.Services
                     $"{requestedCodec.ToUpperInvariant()} is not compatible with current input format ({format.SampleRate} Hz, {format.Channels} channel(s)). {incompatibilityReason} Falling back to WAV.");
             }
 
+            if (codecToUse != "wav" && format.Channels > 2)
+            {
+                codecToUse = "wav";
+                RecordCodec = "wav";
+                CodecCompatibilityWarning?.Invoke(
+                    $"{requestedCodec.ToUpperInvariant()} is not compatible with current input format ({format.SampleRate} Hz, {format.Channels} channel(s)). Multichannel input is currently supported only with WAV. Falling back to WAV.");
+            }
+
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string folder = Path.IsPathRooted(SaveFolder)
                 ? SaveFolder
