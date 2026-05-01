@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="PaDDY — Settings"
-        Icon="PaDDY.ico"
+        Icon="/PaDDY.ico"
         Width="520"
         Height="720"
         ResizeMode="NoResize"

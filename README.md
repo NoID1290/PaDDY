@@ -59,6 +59,42 @@ dotnet restore PaDDY.sln
 dotnet build PaDDY.csproj --configuration Release
 ```
 
+## Project Structure
+
+```text
+.
+|-- App.xaml
+|-- App.xaml.cs
+|-- AssemblyInfo.cs
+|-- PaDDY.csproj
+|-- PaDDY.sln
+|-- AudioProcessor/
+|   |-- AudioProcessor.csproj
+|   |-- *.cs
+|   `-- vendors/
+|-- Controls/
+|-- Helpers/
+|-- Models/
+|-- Services/
+|-- Themes/
+|-- Views/
+|-- scripts/
+|   |-- push.ps1
+|   |-- update_version.ps1
+|   `-- gen_icon.csx
+`-- README.md
+```
+
+- `AudioProcessor` is the project folder name.
+- The audio library output remains `NoIDSoftwork.AudioProcessor.dll` for compatibility.
+
+## Scripts
+
+```powershell
+./scripts/update_version.ps1
+./scripts/push.ps1 -Type fix
+```
+
 ## Usage
 
 1. Select **Source** (Mic or Loopback) and devices.
@@ -73,26 +109,4 @@ dotnet build PaDDY.csproj --configuration Release
 
 This project is licensed under the MIT License.  
 NoID Softwork © 2020-2026.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
