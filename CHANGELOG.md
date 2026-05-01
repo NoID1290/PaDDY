@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.1.0501] - 2026-05-01
+
+- Temporary fix codec fallback to WAVE when recording source is multichannel
+- Update CHANGELOG.md to reflect recent changes
+
 ## [1.0.0.0429] - 2026-04-29
 
 - Refactor file paths to use AppDataPaths helper class for better maintainability and migration support
