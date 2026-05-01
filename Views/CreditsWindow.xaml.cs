@@ -114,7 +114,7 @@ namespace PaDDY
             string sourceTree = Path.GetFullPath(Path.Combine(
                 AppContext.BaseDirectory,
                 "..", "..", "..", "..",
-                "NoIDSoftwork.AudioProcessor",
+                "AudioProcessor",
                 "vendors",
                 "licenses"));
 

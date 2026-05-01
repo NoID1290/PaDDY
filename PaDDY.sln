@@ -4,7 +4,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaDDY", "PaDDY.csproj", "{87C23CA2-B398-60CC-9B23-C93BDF587E7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoIDSoftwork.AudioProcessor", "NoIDSoftwork.AudioProcessor\NoIDSoftwork.AudioProcessor.csproj", "{A1B2C3D4-E5F6-4789-ABCD-EF0123456789}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioProcessor", "AudioProcessor\AudioProcessor.csproj", "{A1B2C3D4-E5F6-4789-ABCD-EF0123456789}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

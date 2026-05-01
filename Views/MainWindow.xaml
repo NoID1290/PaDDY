@@ -4,7 +4,7 @@
         xmlns:controls="clr-namespace:PaDDY.Controls"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="PaDDY"
-        Icon="PaDDY.ico"
+        Icon="/PaDDY.ico"
         Height="740"
         Width="1380"
         MinWidth="1100"

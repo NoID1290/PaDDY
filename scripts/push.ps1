@@ -17,13 +17,13 @@
 #   On "fix":      c++
 #
 # Usage:
-#   .\push.ps1                                        # fix bump, default commit
-#   .\push.ps1 -Type backend -CommitMessage "My msg"
-#   .\push.ps1 -Type frontend -AttachAssets           # build zip + GitHub release
-#   .\push.ps1 -SkipVersion                           # commit without bumping
-#   .\push.ps1 -NoRelease                             # push without GitHub release
-#   .\push.ps1 -PreRelease                            # mark GitHub release as pre-release; appends -Pre-release_N suffix
-#   .\push.ps1 -Type none                             # update MMDD/CHANGELOG only, don't bump a/b/c
+#   .\scripts\push.ps1                                        # fix bump, default commit
+#   .\scripts\push.ps1 -Type backend -CommitMessage "My msg"
+#   .\scripts\push.ps1 -Type frontend -AttachAssets           # build zip + GitHub release
+#   .\scripts\push.ps1 -SkipVersion                           # commit without bumping
+#   .\scripts\push.ps1 -NoRelease                             # push without GitHub release
+#   .\scripts\push.ps1 -PreRelease                            # mark GitHub release as pre-release; appends -Pre-release_N suffix
+#   .\scripts\push.ps1 -Type none                             # update MMDD/CHANGELOG only, don't bump a/b/c
 # ============================================================================
 
 param(
@@ -50,11 +50,15 @@ param(
     [switch]$PreRelease
 )
 
-$projectFilePath  = "PaDDY.csproj"
-$audioProjectFilePath = "NoIDSoftwork.AudioProcessor/NoIDSoftwork.AudioProcessor.csproj"
-$solutionPath     = "PaDDY.sln"
-$assemblyInfoPath = "AssemblyInfo.cs"
-$changelogPath    = "CHANGELOG.md"
+$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = Split-Path -Parent $scriptRoot
+Set-Location $repoRoot
+
+$projectFilePath  = Join-Path $repoRoot "PaDDY.csproj"
+$audioProjectFilePath = Join-Path $repoRoot "AudioProcessor/AudioProcessor.csproj"
+$solutionPath     = Join-Path $repoRoot "PaDDY.sln"
+$assemblyInfoPath = Join-Path $repoRoot "AssemblyInfo.cs"
+$changelogPath    = Join-Path $repoRoot "CHANGELOG.md"
 
 # Freeze release timestamp once to avoid MMDD/date drift across long runs.
 $scriptStartTime = Get-Date
@@ -198,7 +202,7 @@ function Update-ReadmeVersionBadge {
         $simplifiedVersion = $Version
     }
 
-    $readmePath = "README.md"
+    $readmePath = Join-Path $repoRoot "README.md"
     if (Test-Path $readmePath) {
         Write-Host "[README] Updating version badge to $simplifiedVersion" -ForegroundColor Cyan
 
@@ -400,7 +404,7 @@ if (-not $SkipVersion) {
     Add-GitPath -Path $changelogPath
     Add-GitPath -Path $assemblyInfoPath
     if ($AttachAssets) {
-        Add-GitPath -Path "README.md"
+        Add-GitPath -Path (Join-Path $repoRoot "README.md")
     }
 }
 
@@ -462,7 +466,7 @@ $installerPath = $null
 if ($AttachAssets -and -not $NoRelease) {
     Write-Host "[ASSETS] AttachAssets requested; building artifacts before release creation" -ForegroundColor Cyan
 
-    $artifactRoot = Join-Path $PSScriptRoot "bin\artifacts"
+    $artifactRoot = Join-Path $repoRoot "bin\artifacts"
     $publishDir   = Join-Path $artifactRoot "PaDDY-$newVersion"
 
     # Clean previous artifacts
@@ -494,7 +498,7 @@ if ($AttachAssets -and -not $NoRelease) {
         Write-Host "[ZIP] Created: $zipName" -ForegroundColor Green
 
         # ── Installer (Inno Setup, self-contained win-x64) ──────────────────
-        $innoScript = Join-Path $PSScriptRoot ".inno\PaDDY.iss"
+        $innoScript = Join-Path $repoRoot ".inno\PaDDY.iss"
         $isccExe    = "C:\Users\90lec\AppData\Local\Programs\Inno Setup 6\iscc.exe"
 
         if (-not (Test-Path $innoScript)) {
