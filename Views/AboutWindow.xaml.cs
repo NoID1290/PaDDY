@@ -34,7 +34,6 @@ namespace PaDDY
                 }
 
                 VersionLabel.Text = displayVersion;
-                CopyrightLabel.Text = $"© {System.DateTime.Now.Year} NoID Softwork. All rights reserved.";
             };
         }
 
@@ -45,6 +44,15 @@ namespace PaDDY
         private void CreditsButton_Click(object sender, RoutedEventArgs e)
         {
             new CreditsWindow { Owner = this }.ShowDialog();
+        }
+
+        private void GitHubButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://github.com/NoID1290/PaDDY",
+                UseShellExecute = true
+            });
         }
     }
 }
