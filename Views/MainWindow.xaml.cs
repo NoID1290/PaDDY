@@ -16,10 +16,12 @@ using System.Windows.Navigation;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
+using NoIDSoftwork.EffectProcessor;
 using PaDDY.Controls;
 using PaDDY.Helpers;
 using PaDDY.Models;
 using PaDDY.Services;
+using PaDDY.Views;
 
 namespace PaDDY
 {
@@ -30,6 +32,8 @@ namespace PaDDY
         private readonly GlobalHotkeyService _hotkeyService = new();
         private readonly RecordingStore _recordingStore = new();
         private AppSettings _settings = AppSettings.Load();
+        private EffectSettings _effectSettings = EffectSettingsManager.Load();
+        private IEffectChain _globalCaptureChain = EffectChainFactory.CreateGlobal();
         private readonly List<CaptureSourceMode> _captureSourceModes = new();
         private List<(string Id, string Name)> _loopbackDevices = new();
         private List<(uint ProcessId, string ProcessName)> _appLoopbackProcesses = new();
@@ -410,6 +414,10 @@ namespace PaDDY
 
             _captureService.Sensitivity = _settings.Sensitivity;
             _captureService.SilenceTimeoutMs = _settings.SilenceTimeoutMs;
+
+            // Apply saved global effect config to the live chain and assign to capture service
+            EffectSettingsManager.ApplyConfig(_globalCaptureChain, _effectSettings.GlobalChain);
+            _captureService.CaptureEffectChain = _globalCaptureChain;
 
             // Volume settings
             InputVolumeSlider.Value = _settings.InputVolume;
@@ -1128,6 +1136,18 @@ namespace PaDDY
             btn.MouseLeave += (_, _) => { if (_hoveredPad == btn) _hoveredPad = null; };
 
             return btn;
+        }
+
+        // ── Effect chain management ───────────────────────────────────────────────
+        private void OpenGlobalEffectsWindow()
+        {
+            var win = new EffectsWindow(_globalCaptureChain, isPerClip: false) { Owner = this };
+            if (win.ShowDialog() == true)
+            {
+                _effectSettings.GlobalChain = EffectSettingsManager.ToConfig(_globalCaptureChain);
+                EffectSettingsManager.Save(_effectSettings);
+                // Live chain is already updated by CommitValues() inside the window
+            }
         }
 
         private void AddPadButton(RecordingEntry entry, bool toFavorites)

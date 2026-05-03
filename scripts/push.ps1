@@ -56,6 +56,7 @@ Set-Location $repoRoot
 
 $projectFilePath  = Join-Path $repoRoot "PaDDY.csproj"
 $audioProjectFilePath = Join-Path $repoRoot "AudioProcessor/AudioProcessor.csproj"
+$effectProjectFilePath = Join-Path $repoRoot "EffectProcessor/EffectProcessor.csproj"
 $solutionPath     = Join-Path $repoRoot "PaDDY.sln"
 $assemblyInfoPath = Join-Path $repoRoot "AssemblyInfo.cs"
 $changelogPath    = Join-Path $repoRoot "CHANGELOG.md"
@@ -224,13 +225,15 @@ function Update-ReadmeVersionBadge {
 # ── Version Update ──────────────────────────────────────────────────────────
 if (-not $SkipVersion) {
     $newVersion = Update-ProjectVersion -Path $projectFilePath -UpdateType $Type
-    Update-ProjectVersion -Path $audioProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
+    Update-ProjectVersion -Path $audioProjectFilePath  -UpdateType $Type -NewVersion $newVersion | Out-Null
+    Update-ProjectVersion -Path $effectProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
 
     $normalizedVersion = Normalize-VersionDate -Version $newVersion -ExpectedDateStamp $versionDateStamp
     if ($normalizedVersion -ne $newVersion) {
         Write-Host "[SYNC] Correcting project versions to date-stamped version: $normalizedVersion" -ForegroundColor Cyan
         $newVersion = Update-ProjectVersion -Path $projectFilePath -UpdateType $Type -NewVersion $normalizedVersion
-        Update-ProjectVersion -Path $audioProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
+        Update-ProjectVersion -Path $audioProjectFilePath  -UpdateType $Type -NewVersion $newVersion | Out-Null
+        Update-ProjectVersion -Path $effectProjectFilePath -UpdateType $Type -NewVersion $newVersion | Out-Null
     }
 } else {
     Write-Host "[INFO] SkipVersion is set; not incrementing version" -ForegroundColor Yellow
@@ -251,6 +254,12 @@ if ($PreRelease) {
         $audioCsproj.Project.PropertyGroup.InformationalVersion = $preReleaseVersion
         $audioCsproj.Save((Resolve-Path $audioProjectFilePath).Path)
         Write-Host "[PRE-RELEASE] Patched InformationalVersion in $audioProjectFilePath" -ForegroundColor Magenta
+    }
+    if (Test-Path $effectProjectFilePath) {
+        [xml]$effectCsproj = Get-Content $effectProjectFilePath
+        $effectCsproj.Project.PropertyGroup.InformationalVersion = $preReleaseVersion
+        $effectCsproj.Save((Resolve-Path $effectProjectFilePath).Path)
+        Write-Host "[PRE-RELEASE] Patched InformationalVersion in $effectProjectFilePath" -ForegroundColor Magenta
     }
 } else {
     $preReleaseVersion = $newVersion
@@ -399,6 +408,7 @@ $categorySection
 Write-Host "[STAGING] Changes..." -ForegroundColor Cyan
 Add-GitPath -Path $projectFilePath
 Add-GitPath -Path $audioProjectFilePath
+Add-GitPath -Path $effectProjectFilePath
 if (Test-Path $solutionPath) { Add-GitPath -Path $solutionPath }
 if (-not $SkipVersion) {
     Add-GitPath -Path $changelogPath
