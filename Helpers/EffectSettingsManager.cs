@@ -76,32 +76,32 @@ internal static class EffectSettingsManager
         var cfg = new EffectConfig
         {
             EffectType = effect.GetType().Name,
-            IsEnabled  = effect.IsEnabled,
+            IsEnabled = effect.IsEnabled,
             Parameters = new Dictionary<string, double>()
         };
 
         switch (effect)
         {
             case FadeEffect fade:
-                cfg.Parameters["FadeInDurationMs"]  = fade.FadeInDurationMs;
+                cfg.Parameters["FadeInDurationMs"] = fade.FadeInDurationMs;
                 cfg.Parameters["FadeOutDurationMs"] = fade.FadeOutDurationMs;
                 break;
             case EchoEffect echo:
-                cfg.Parameters["DelayMs"]  = echo.DelayMs;
+                cfg.Parameters["DelayMs"] = echo.DelayMs;
                 cfg.Parameters["Feedback"] = echo.Feedback;
-                cfg.Parameters["Mix"]      = echo.Mix;
+                cfg.Parameters["Mix"] = echo.Mix;
                 break;
             case NoiseGateEffect gate:
                 cfg.Parameters["ThresholdDb"] = gate.ThresholdDb;
-                cfg.Parameters["AttackMs"]    = gate.AttackMs;
-                cfg.Parameters["ReleaseMs"]   = gate.ReleaseMs;
+                cfg.Parameters["AttackMs"] = gate.AttackMs;
+                cfg.Parameters["ReleaseMs"] = gate.ReleaseMs;
                 break;
             case EqualizerEffect eq:
-                cfg.Parameters["SubBassDb"]  = eq.SubBassDb;
-                cfg.Parameters["BassDb"]     = eq.BassDb;
-                cfg.Parameters["MidDb"]      = eq.MidDb;
+                cfg.Parameters["SubBassDb"] = eq.SubBassDb;
+                cfg.Parameters["BassDb"] = eq.BassDb;
+                cfg.Parameters["MidDb"] = eq.MidDb;
                 cfg.Parameters["PresenceDb"] = eq.PresenceDb;
-                cfg.Parameters["TrebleDb"]   = eq.TrebleDb;
+                cfg.Parameters["TrebleDb"] = eq.TrebleDb;
                 break;
         }
 
@@ -116,25 +116,25 @@ internal static class EffectSettingsManager
         switch (effect)
         {
             case FadeEffect fade:
-                if (p.TryGetValue("FadeInDurationMs",  out var fi)) fade.FadeInDurationMs  = fi;
+                if (p.TryGetValue("FadeInDurationMs", out var fi)) fade.FadeInDurationMs = fi;
                 if (p.TryGetValue("FadeOutDurationMs", out var fo)) fade.FadeOutDurationMs = fo;
                 break;
             case EchoEffect echo:
-                if (p.TryGetValue("DelayMs",  out var delay)) echo.DelayMs  = delay;
-                if (p.TryGetValue("Feedback", out var fb))    echo.Feedback = fb;
-                if (p.TryGetValue("Mix",      out var mix))   echo.Mix      = mix;
+                if (p.TryGetValue("DelayMs", out var delay)) echo.DelayMs = delay;
+                if (p.TryGetValue("Feedback", out var fb)) echo.Feedback = fb;
+                if (p.TryGetValue("Mix", out var mix)) echo.Mix = mix;
                 break;
             case NoiseGateEffect gate:
                 if (p.TryGetValue("ThresholdDb", out var thr)) gate.ThresholdDb = thr;
-                if (p.TryGetValue("AttackMs",    out var atk)) gate.AttackMs    = atk;
-                if (p.TryGetValue("ReleaseMs",   out var rel)) gate.ReleaseMs   = rel;
+                if (p.TryGetValue("AttackMs", out var atk)) gate.AttackMs = atk;
+                if (p.TryGetValue("ReleaseMs", out var rel)) gate.ReleaseMs = rel;
                 break;
             case EqualizerEffect eq:
-                if (p.TryGetValue("SubBassDb",  out var sb))  eq.SubBassDb  = sb;
-                if (p.TryGetValue("BassDb",     out var ba))  eq.BassDb     = ba;
-                if (p.TryGetValue("MidDb",      out var mi))  eq.MidDb      = mi;
-                if (p.TryGetValue("PresenceDb", out var pr))  eq.PresenceDb = pr;
-                if (p.TryGetValue("TrebleDb",   out var tr))  eq.TrebleDb   = tr;
+                if (p.TryGetValue("SubBassDb", out var sb)) eq.SubBassDb = sb;
+                if (p.TryGetValue("BassDb", out var ba)) eq.BassDb = ba;
+                if (p.TryGetValue("MidDb", out var mi)) eq.MidDb = mi;
+                if (p.TryGetValue("PresenceDb", out var pr)) eq.PresenceDb = pr;
+                if (p.TryGetValue("TrebleDb", out var tr)) eq.TrebleDb = tr;
                 break;
         }
     }

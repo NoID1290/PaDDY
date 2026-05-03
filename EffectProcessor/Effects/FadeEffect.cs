@@ -40,7 +40,7 @@ public sealed class FadeEffect : IAudioEffect
         if (channels < 1 || count <= 0) return;
 
         int frames = count / channels;
-        double fadeInFrames  = sampleRate * FadeInDurationMs  / 1000.0;
+        double fadeInFrames = sampleRate * FadeInDurationMs / 1000.0;
         double fadeOutFrames = TotalFrames > 0
             ? sampleRate * FadeOutDurationMs / 1000.0
             : 0.0;

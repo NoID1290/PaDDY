@@ -451,16 +451,16 @@ namespace PaDDY.Services
         {
             if (format == null || count <= 0) return;
 
-            int channels       = format.Channels;
-            int bitsPerSample  = format.BitsPerSample;
-            bool isFloat32     = format.Encoding == WaveFormatEncoding.IeeeFloat && bitsPerSample == 32;
-            bool isPcm16       = format.Encoding == WaveFormatEncoding.Pcm       && bitsPerSample == 16;
+            int channels = format.Channels;
+            int bitsPerSample = format.BitsPerSample;
+            bool isFloat32 = format.Encoding == WaveFormatEncoding.IeeeFloat && bitsPerSample == 32;
+            bool isPcm16 = format.Encoding == WaveFormatEncoding.Pcm && bitsPerSample == 16;
 
             if (!isFloat32 && !isPcm16) return;
 
             int bytesPerSample = bitsPerSample / 8;
-            int sampleCount    = count / bytesPerSample;
-            float[] floatBuf   = new float[sampleCount];
+            int sampleCount = count / bytesPerSample;
+            float[] floatBuf = new float[sampleCount];
 
             // Decode to float[]
             if (isFloat32)
@@ -485,7 +485,7 @@ namespace PaDDY.Services
                 for (int i = 0; i < sampleCount; i++)
                 {
                     byte[] bytes = BitConverter.GetBytes(floatBuf[i]);
-                    buffer[i * 4]     = bytes[0];
+                    buffer[i * 4] = bytes[0];
                     buffer[i * 4 + 1] = bytes[1];
                     buffer[i * 4 + 2] = bytes[2];
                     buffer[i * 4 + 3] = bytes[3];
@@ -496,7 +496,7 @@ namespace PaDDY.Services
                 for (int i = 0; i < sampleCount; i++)
                 {
                     short s = (short)Math.Clamp((int)(floatBuf[i] * 32768.0f), short.MinValue, short.MaxValue);
-                    buffer[i * 2]     = (byte)(s & 0xFF);
+                    buffer[i * 2] = (byte)(s & 0xFF);
                     buffer[i * 2 + 1] = (byte)((s >> 8) & 0xFF);
                 }
             }

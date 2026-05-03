@@ -21,10 +21,10 @@ public sealed class EchoEffect : IAudioEffect
     public double Mix { get; set; } = 0.4;
 
     private float[][] _delayBuffers = [];
-    private int[]     _writePositions = [];
-    private int       _delaySamples;
-    private int       _lastSampleRate;
-    private int       _lastChannels;
+    private int[] _writePositions = [];
+    private int _delaySamples;
+    private int _lastSampleRate;
+    private int _lastChannels;
 
     public void Reset()
     {
@@ -42,19 +42,19 @@ public sealed class EchoEffect : IAudioEffect
         // Reallocate if format or delay length changed
         if (_lastSampleRate != sampleRate || _lastChannels != channels || _delaySamples != delaySamples)
         {
-            _delaySamples   = delaySamples;
+            _delaySamples = delaySamples;
             _lastSampleRate = sampleRate;
-            _lastChannels   = channels;
-            _delayBuffers   = new float[channels][];
+            _lastChannels = channels;
+            _delayBuffers = new float[channels][];
             _writePositions = new int[channels];
             for (int ch = 0; ch < channels; ch++)
                 _delayBuffers[ch] = new float[delaySamples + 1];
         }
 
         float feedback = (float)Math.Clamp(Feedback, 0.0, 0.99);
-        float wet      = (float)Math.Clamp(Mix,      0.0, 1.0);
-        float dry      = 1.0f - wet;
-        int   bufLen   = _delayBuffers[0].Length;
+        float wet = (float)Math.Clamp(Mix, 0.0, 1.0);
+        float dry = 1.0f - wet;
+        int bufLen = _delayBuffers[0].Length;
 
         for (int i = 0; i < count; i += channels)
         {
@@ -63,10 +63,10 @@ public sealed class EchoEffect : IAudioEffect
             {
                 float[] delayBuf = _delayBuffers[ch];
                 int writePos = _writePositions[ch];
-                int readPos  = (writePos - _delaySamples + bufLen) % bufLen;
+                int readPos = (writePos - _delaySamples + bufLen) % bufLen;
 
                 float delayed = delayBuf[readPos];
-                float input   = buffer[sampleIdx + ch];
+                float input = buffer[sampleIdx + ch];
 
                 // Write feedback-mixed signal into delay line
                 delayBuf[writePos] = input + feedback * delayed;

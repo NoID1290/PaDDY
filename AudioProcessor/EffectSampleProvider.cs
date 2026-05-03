@@ -16,7 +16,7 @@ public sealed class EffectSampleProvider : ISampleProvider
     public EffectSampleProvider(ISampleProvider source, IEffectChain chain)
     {
         _source = source ?? throw new ArgumentNullException(nameof(source));
-        _chain  = chain  ?? throw new ArgumentNullException(nameof(chain));
+        _chain = chain ?? throw new ArgumentNullException(nameof(chain));
     }
 
     /// <summary>Hot-swap the active effect chain.</summary>
