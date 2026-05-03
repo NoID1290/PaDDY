@@ -21,6 +21,7 @@
   <!-- Audio packages are now in AudioProcessor (transitive via ProjectReference) -->
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
+    <ProjectReference Include="EffectProcessor\EffectProcessor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MessagePack" Version="3.1.4" />
@@ -33,6 +34,11 @@
     <EmbeddedResource Remove="AudioProcessor\**" />
     <Page Remove="AudioProcessor\**" />
     <ApplicationDefinition Remove="AudioProcessor\**" />
+    <Compile Remove="EffectProcessor\**" />
+    <None Remove="EffectProcessor\**" />
+    <EmbeddedResource Remove="EffectProcessor\**" />
+    <Page Remove="EffectProcessor\**" />
+    <ApplicationDefinition Remove="EffectProcessor\**" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AudioProcessor\vendors\licenses\*.txt">

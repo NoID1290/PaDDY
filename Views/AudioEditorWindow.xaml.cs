@@ -13,7 +13,12 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NAudio.CoreAudioApi;
 using NoIDSoftwork.AudioProcessor;
+using NoIDSoftwork.EffectProcessor;
+using NoIDSoftwork.EffectProcessor.Effects;
+using PaDDY.Helpers;
+using PaDDY.Models;
 using PaDDY.Services;
+using PaDDY.Views;
 
 namespace PaDDY
 {
@@ -21,6 +26,8 @@ namespace PaDDY
     public partial class AudioEditorWindow : Window
     {
         private readonly string _filePath;
+        private readonly string? _recordingId;
+        private IEffectChain? _perClipChain;
         private TimeSpan _totalDuration;
         private double _trimStartFraction;  // 0.0 – 1.0
         private double _trimEndFraction = 1.0;
@@ -39,6 +46,13 @@ namespace PaDDY
         private double _waveformWidth;
         private double _gainDb = 0.0;
 
+        // Inline effects panel
+        private bool _effectsLoading = true; // suppresses slider events until LoadEffectValues() runs
+        private FadeEffect?      _fade;
+        private NoiseGateEffect? _gate;
+        private EchoEffect?      _echo;
+        private EqualizerEffect? _eq;
+
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
         // Stored waveform peaks for gain-responsive re-render
@@ -55,10 +69,11 @@ namespace PaDDY
         public string? CopyFilePath { get; private set; }
         public bool ShouldSaveToFavorite => SaveToFavCheckBox.IsChecked == true;
 
-        public AudioEditorWindow(string filePath)
+        public AudioEditorWindow(string filePath, string? recordingId = null)
         {
             InitializeComponent();
             _filePath = filePath;
+            _recordingId = recordingId;
 
             FileNameLabel.Text = Path.GetFileName(filePath);
 
@@ -91,6 +106,20 @@ namespace PaDDY
             UpdateTimeLabels();
             EnsureVertMeterChannels(2);
             ResetVertMeter();
+
+            // Load per-clip effect chain into inline panel
+            _perClipChain = GetOrLoadEffectChain();
+            foreach (var effect in _perClipChain.Effects)
+            {
+                switch (effect)
+                {
+                    case FadeEffect      f: _fade = f; break;
+                    case NoiseGateEffect g: _gate = g; break;
+                    case EchoEffect      ec: _echo = ec; break;
+                    case EqualizerEffect q: _eq   = q; break;
+                }
+            }
+            LoadEffectValues();
         }
 
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -294,6 +323,202 @@ namespace PaDDY
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
 
+        // ── Inline effects panel ────────────────────────────────────────────
+
+        private void LoadEffectValues()
+        {
+            _effectsLoading = true;
+            try
+            {
+                if (_fade != null)
+                {
+                    FadeEnabledCheck.IsChecked = _fade.IsEnabled;
+                    FadeInSlider.Value         = _fade.FadeInDurationMs;
+                    FadeOutSlider.Value        = _fade.FadeOutDurationMs;
+                }
+                if (_gate != null)
+                {
+                    GateEnabledCheck.IsChecked  = _gate.IsEnabled;
+                    GateThresholdSlider.Value   = _gate.ThresholdDb;
+                    GateAttackSlider.Value      = _gate.AttackMs;
+                    GateReleaseSlider.Value     = _gate.ReleaseMs;
+                }
+                if (_echo != null)
+                {
+                    EchoEnabledCheck.IsChecked = _echo.IsEnabled;
+                    EchoDelaySlider.Value      = _echo.DelayMs;
+                    EchoFeedbackSlider.Value   = _echo.Feedback;
+                    EchoMixSlider.Value        = _echo.Mix;
+                }
+                if (_eq != null)
+                {
+                    EqEnabledCheck.IsChecked = _eq.IsEnabled;
+                    EqSubBassSlider.Value    = _eq.SubBassDb;
+                    EqBassSlider.Value       = _eq.BassDb;
+                    EqMidSlider.Value        = _eq.MidDb;
+                    EqPresenceSlider.Value   = _eq.PresenceDb;
+                    EqTrebleSlider.Value     = _eq.TrebleDb;
+                }
+                UpdateEffectLabels();
+            }
+            finally
+            {
+                _effectsLoading = false;
+            }
+        }
+
+        private void UpdateEffectLabels()
+        {
+            FadeInLabel.Text  = $"{(int)FadeInSlider.Value}";
+            FadeOutLabel.Text = $"{(int)FadeOutSlider.Value}";
+            GateThresholdLabel.Text = $"{(int)GateThresholdSlider.Value}";
+            GateAttackLabel.Text    = $"{(int)GateAttackSlider.Value}";
+            GateReleaseLabel.Text   = $"{(int)GateReleaseSlider.Value}";
+            EchoDelayLabel.Text    = $"{(int)EchoDelaySlider.Value}";
+            EchoFeedbackLabel.Text = $"{EchoFeedbackSlider.Value:F2}";
+            EchoMixLabel.Text      = $"{EchoMixSlider.Value:F2}";
+            EqSubBassLabel.Text  = $"{(int)EqSubBassSlider.Value:+#;-#;0} dB";
+            EqBassLabel.Text     = $"{(int)EqBassSlider.Value:+#;-#;0} dB";
+            EqMidLabel.Text      = $"{(int)EqMidSlider.Value:+#;-#;0} dB";
+            EqPresenceLabel.Text = $"{(int)EqPresenceSlider.Value:+#;-#;0} dB";
+            EqTrebleLabel.Text   = $"{(int)EqTrebleSlider.Value:+#;-#;0} dB";
+        }
+
+        private void CommitEffectsToChain()
+        {
+            if (_fade != null)
+            {
+                _fade.IsEnabled         = FadeEnabledCheck.IsChecked == true;
+                _fade.FadeInDurationMs  = FadeInSlider.Value;
+                _fade.FadeOutDurationMs = FadeOutSlider.Value;
+            }
+            if (_gate != null)
+            {
+                _gate.IsEnabled   = GateEnabledCheck.IsChecked == true;
+                _gate.ThresholdDb = GateThresholdSlider.Value;
+                _gate.AttackMs    = GateAttackSlider.Value;
+                _gate.ReleaseMs   = GateReleaseSlider.Value;
+            }
+            if (_echo != null)
+            {
+                _echo.IsEnabled = EchoEnabledCheck.IsChecked == true;
+                _echo.DelayMs   = EchoDelaySlider.Value;
+                _echo.Feedback  = EchoFeedbackSlider.Value;
+                _echo.Mix       = EchoMixSlider.Value;
+            }
+            if (_eq != null)
+            {
+                _eq.IsEnabled  = EqEnabledCheck.IsChecked == true;
+                _eq.SubBassDb  = EqSubBassSlider.Value;
+                _eq.BassDb     = EqBassSlider.Value;
+                _eq.MidDb      = EqMidSlider.Value;
+                _eq.PresenceDb = EqPresenceSlider.Value;
+                _eq.TrebleDb   = EqTrebleSlider.Value;
+            }
+            SaveEffectSettings();
+        }
+
+        private void SaveEffectSettings()
+        {
+            if (string.IsNullOrEmpty(_recordingId)) return;
+            var settings = EffectSettingsManager.Load();
+            settings.PerClipChains[_recordingId!] = EffectSettingsManager.ToConfig(GetOrLoadEffectChain());
+            EffectSettingsManager.Save(settings);
+        }
+
+        private void EffectSlider_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_effectsLoading) return;
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void EffectEnabled_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_effectsLoading) return;
+            CommitEffectsToChain();
+        }
+
+        private void EffectsPanelChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            bool expand = EffectsPanelContent.Visibility == Visibility.Collapsed;
+            EffectsPanelContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            EffectsPanelChevron.Text = expand ? "\u25C4" : "\u25BA";
+        }
+
+        private void FadeChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            bool expand = FadeContent.Visibility == Visibility.Collapsed;
+            FadeContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            FadeChevron.Text = expand ? "▼" : "►";
+        }
+
+        private void GateChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            bool expand = GateContent.Visibility == Visibility.Collapsed;
+            GateContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            GateChevron.Text = expand ? "▼" : "►";
+        }
+
+        private void EchoChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            bool expand = EchoContent.Visibility == Visibility.Collapsed;
+            EchoContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            EchoChevron.Text = expand ? "▼" : "►";
+        }
+
+        private void EqChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            bool expand = EqContent.Visibility == Visibility.Collapsed;
+            EqContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            EqChevron.Text = expand ? "▼" : "►";
+        }
+
+        private void ResetEffects_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                FadeEnabledCheck.IsChecked  = false;
+                FadeInSlider.Value          = 500;
+                FadeOutSlider.Value         = 500;
+                GateEnabledCheck.IsChecked  = false;
+                GateThresholdSlider.Value   = -40;
+                GateAttackSlider.Value      = 10;
+                GateReleaseSlider.Value     = 100;
+                EchoEnabledCheck.IsChecked  = false;
+                EchoDelaySlider.Value       = 200;
+                EchoFeedbackSlider.Value    = 0.3;
+                EchoMixSlider.Value         = 0.4;
+                EqEnabledCheck.IsChecked    = false;
+                EqSubBassSlider.Value       = 0;
+                EqBassSlider.Value          = 0;
+                EqMidSlider.Value           = 0;
+                EqPresenceSlider.Value      = 0;
+                EqTrebleSlider.Value        = 0;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        /// <summary>
+        /// Returns (and lazily creates) the per-clip effect chain, populated from saved settings.
+        /// </summary>
+        private IEffectChain GetOrLoadEffectChain()
+        {
+            if (_perClipChain != null) return _perClipChain;
+
+            _perClipChain = EffectChainFactory.CreatePerClip();
+            var settings = EffectSettingsManager.Load();
+            if (!string.IsNullOrEmpty(_recordingId) &&
+                settings.PerClipChains.TryGetValue(_recordingId!, out var cfg))
+                EffectSettingsManager.ApplyConfig(_perClipChain, cfg);
+            else
+                EffectSettingsManager.ApplyConfig(_perClipChain, settings.GlobalChain);
+            return _perClipChain;
+        }
+
         private void PlayBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_isPreviewing)
@@ -324,6 +549,11 @@ namespace PaDDY
 
                 // Limit to trim region
                 sp = new OffsetSampleProvider(sp) { Take = TimeSpan.FromSeconds(endSec - startSec) };
+
+                // Apply per-clip effect chain
+                var effectChain = GetOrLoadEffectChain();
+                PrepareEffectChain(effectChain, endSec - startSec, sp.WaveFormat.SampleRate);
+                sp = new EffectSampleProvider(sp, effectChain);
 
                 // Wrap with metering
                 _meterProvider = new MeteringSampleProvider(sp);
@@ -599,9 +829,10 @@ namespace PaDDY
 
             bool noTrim = _trimStartFraction <= 0.001 && _trimEndFraction >= 0.999;
             bool noGain = Math.Abs(_gainDb) < 0.01;
+            bool noEffects = GetOrLoadEffectChain().Effects.All(e => !e.IsEnabled);
 
-            // Nothing to do — no trim and no gain
-            if (noTrim && noGain)
+            // Nothing to do — no trim, no gain, no enabled effects
+            if (noTrim && noGain && noEffects)
             {
                 DialogResult = true;
                 return;
@@ -653,6 +884,10 @@ namespace PaDDY
 
                     float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
 
+                    var effectChain = GetOrLoadEffectChain();
+                    PrepareEffectChain(effectChain, trimDuration,
+                        (double)format.SampleRate);
+
                     using var recorder = StreamingRecorderFactory.CreateForFile(_filePath);
                     recorder.BeginRecording(tempPath, format);
 
@@ -665,6 +900,7 @@ namespace PaDDY
                         if (read == 0) break;
                         if (!noGain)
                             ApplyGainToBuffer(buffer, read, format, gainFactor);
+                        ApplyEffectsToBuffer(buffer, read, format, effectChain);
                         recorder.AppendSamples(buffer, 0, read);
                         written += read;
                     }
@@ -695,6 +931,7 @@ namespace PaDDY
 
             bool noTrim = _trimStartFraction <= 0.001 && _trimEndFraction >= 0.999;
             bool noGain = Math.Abs(_gainDb) < 0.01;
+            bool noEffects = GetOrLoadEffectChain().Effects.All(e => !e.IsEnabled);
 
             // Generate a unique copy path
             string dir = Path.GetDirectoryName(_filePath)!;
@@ -705,7 +942,7 @@ namespace PaDDY
             while (File.Exists(copyPath))
                 copyPath = Path.Combine(dir, $"{nameNoExt}_copy{counter++}{ext}");
 
-            if (noTrim && noGain)
+            if (noTrim && noGain && noEffects)
             {
                 try
                 {
@@ -758,6 +995,10 @@ namespace PaDDY
 
                     float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
 
+                    var effectChain = GetOrLoadEffectChain();
+                    PrepareEffectChain(effectChain, trimDuration,
+                        (double)format.SampleRate);
+
                     using var recorder = StreamingRecorderFactory.CreateForFile(_filePath);
                     recorder.BeginRecording(tempPath, format);
 
@@ -770,6 +1011,7 @@ namespace PaDDY
                         if (read == 0) break;
                         if (!noGain)
                             ApplyGainToBuffer(buffer, read, format, gainFactor);
+                        ApplyEffectsToBuffer(buffer, read, format, effectChain);
                         recorder.AppendSamples(buffer, 0, read);
                         written += read;
                     }
@@ -788,6 +1030,92 @@ namespace PaDDY
             }
         }
         // ── Helpers ─────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Resets the chain and primes FadeEffect with the clip's total frame count.
+        /// </summary>
+        private static void PrepareEffectChain(IEffectChain chain, double durationSec, double sampleRate)
+        {
+            chain.Reset();
+            long totalFrames = (long)(durationSec * sampleRate);
+            foreach (var effect in chain.Effects)
+            {
+                if (effect is FadeEffect fade)
+                {
+                    fade.TotalFrames = totalFrames;
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Decodes <paramref name="buffer"/> to float samples, runs them through
+        /// <paramref name="chain"/>, then re-encodes back in-place.
+        /// Supports 16/24/32-bit PCM and 32-bit IEEE float. Other formats are skipped.
+        /// </summary>
+        private static void ApplyEffectsToBuffer(byte[] buffer, int count, WaveFormat format, IEffectChain chain)
+        {
+            int bps = format.BitsPerSample / 8;
+            if (bps <= 0) return;
+            count -= count % bps;
+            int sampleCount = count / bps;
+            if (sampleCount <= 0) return;
+
+            var floats = new float[sampleCount];
+
+            if (format.Encoding == WaveFormatEncoding.IeeeFloat && bps == 4)
+            {
+                Buffer.BlockCopy(buffer, 0, floats, 0, sampleCount * 4);
+            }
+            else if (format.Encoding == WaveFormatEncoding.Pcm && bps == 2)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                    floats[i] = BitConverter.ToInt16(buffer, i * 2) / 32768f;
+            }
+            else if (format.Encoding == WaveFormatEncoding.Pcm && bps == 3)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                    floats[i] = ReadPcm24(buffer, i * 3) / 8388608f;
+            }
+            else if (format.Encoding == WaveFormatEncoding.Pcm && bps == 4)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                    floats[i] = BitConverter.ToInt32(buffer, i * 4) / 2147483648f;
+            }
+            else return; // unsupported format
+
+            chain.ProcessBuffer(floats, 0, sampleCount, format.Channels, format.SampleRate);
+
+            if (format.Encoding == WaveFormatEncoding.IeeeFloat && bps == 4)
+            {
+                Buffer.BlockCopy(floats, 0, buffer, 0, sampleCount * 4);
+            }
+            else if (format.Encoding == WaveFormatEncoding.Pcm && bps == 2)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    short s = (short)Math.Clamp((int)(floats[i] * 32768f), short.MinValue, short.MaxValue);
+                    buffer[i * 2]     = (byte)(s & 0xFF);
+                    buffer[i * 2 + 1] = (byte)((s >> 8) & 0xFF);
+                }
+            }
+            else if (format.Encoding == WaveFormatEncoding.Pcm && bps == 3)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                    WritePcm24(buffer, i * 3, Math.Clamp((int)(floats[i] * 8388608f), -8388608, 8388607));
+            }
+            else if (format.Encoding == WaveFormatEncoding.Pcm && bps == 4)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    int s = (int)Math.Clamp((long)(floats[i] * 2147483648f), int.MinValue, int.MaxValue);
+                    buffer[i * 4]     = (byte)(s & 0xFF);
+                    buffer[i * 4 + 1] = (byte)((s >> 8) & 0xFF);
+                    buffer[i * 4 + 2] = (byte)((s >> 16) & 0xFF);
+                    buffer[i * 4 + 3] = (byte)((s >> 24) & 0xFF);
+                }
+            }
+        }
 
         private static string FormatTime(TimeSpan ts)
         {

@@ -5,6 +5,7 @@ using System.Linq;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
+using NoIDSoftwork.EffectProcessor;
 using PaDDY.Helpers;
 using PaDDY.Models;
 
@@ -66,6 +67,12 @@ namespace PaDDY.Services
 
         /// <summary>Input gain multiplier 0.0–1.0. Applied to captured samples before metering and recording.</summary>
         public float InputGain { get; set; } = 0.8f;
+
+        /// <summary>
+        /// Optional effect chain applied to each captured buffer after gain but before recording.
+        /// Set to null to bypass all effects.
+        /// </summary>
+        public IEffectChain? CaptureEffectChain { get; set; }
 
         /// <summary>Current active capture format, if monitoring is running.</summary>
         public WaveFormat? CurrentCaptureFormat => _captureFormat;
@@ -172,6 +179,10 @@ namespace PaDDY.Services
             // Apply input gain to the buffer before any processing
             ApplyGain(e.Buffer, e.BytesRecorded, _captureFormat, InputGain);
 
+            // Apply capture effect chain (Noise Gate, Echo, EQ, etc.) if configured
+            if (CaptureEffectChain != null)
+                ApplyCaptureEffects(e.Buffer, e.BytesRecorded, _captureFormat, CaptureEffectChain);
+
             (double L, double R) = ComputeNormalisedLevels(e.Buffer, e.BytesRecorded, _captureFormat);
             RmsLevelChanged?.Invoke(L, R);
 
@@ -274,6 +285,9 @@ namespace PaDDY.Services
 
             _recorder = StreamingRecorderFactory.Create(codecToUse);
             _recorder.BeginRecording(filePath, format);
+
+            // Reset effect state at the start of each clip so fade/envelope begins fresh
+            CaptureEffectChain?.Reset();
 
             foreach (var chunk in _preBuffer)
                 _recorder.AppendSamples(chunk, 0, chunk.Length);
@@ -424,6 +438,66 @@ namespace PaDDY.Services
                         buffer[i + 2] = bytes[2];
                         buffer[i + 3] = bytes[3];
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Converts the raw PCM buffer to float[], runs it through the effect chain,
+        /// then converts back. Supports IEEE-float-32 and PCM 16-bit buffers.
+        /// Other formats are passed through unmodified.
+        /// </summary>
+        private static void ApplyCaptureEffects(byte[] buffer, int count, WaveFormat? format, IEffectChain chain)
+        {
+            if (format == null || count <= 0) return;
+
+            int channels       = format.Channels;
+            int bitsPerSample  = format.BitsPerSample;
+            bool isFloat32     = format.Encoding == WaveFormatEncoding.IeeeFloat && bitsPerSample == 32;
+            bool isPcm16       = format.Encoding == WaveFormatEncoding.Pcm       && bitsPerSample == 16;
+
+            if (!isFloat32 && !isPcm16) return;
+
+            int bytesPerSample = bitsPerSample / 8;
+            int sampleCount    = count / bytesPerSample;
+            float[] floatBuf   = new float[sampleCount];
+
+            // Decode to float[]
+            if (isFloat32)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                    floatBuf[i] = BitConverter.ToSingle(buffer, i * 4);
+            }
+            else // PCM 16-bit
+            {
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    short s = (short)(buffer[i * 2] | (buffer[i * 2 + 1] << 8));
+                    floatBuf[i] = s / 32768.0f;
+                }
+            }
+
+            chain.ProcessBuffer(floatBuf, 0, sampleCount, channels, format.SampleRate);
+
+            // Encode back
+            if (isFloat32)
+            {
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    byte[] bytes = BitConverter.GetBytes(floatBuf[i]);
+                    buffer[i * 4]     = bytes[0];
+                    buffer[i * 4 + 1] = bytes[1];
+                    buffer[i * 4 + 2] = bytes[2];
+                    buffer[i * 4 + 3] = bytes[3];
+                }
+            }
+            else // PCM 16-bit
+            {
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    short s = (short)Math.Clamp((int)(floatBuf[i] * 32768.0f), short.MinValue, short.MaxValue);
+                    buffer[i * 2]     = (byte)(s & 0xFF);
+                    buffer[i * 2 + 1] = (byte)((s >> 8) & 0xFF);
                 }
             }
         }

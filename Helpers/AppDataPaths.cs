@@ -18,6 +18,8 @@ internal static class AppDataPaths
 
     public static string SettingsPath => Path.Combine(AppDataRoot, "usrcfg.bin");
 
+    public static string EffectSettingsPath => Path.Combine(AppDataRoot, "effectcfg.bin");
+
     // Legacy: settings stored alongside the exe (very old installs)
     public static string LegacySettingsPath => Path.Combine(AppContext.BaseDirectory, "usrcfg.bin");
 

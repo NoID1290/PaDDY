@@ -163,7 +163,7 @@ namespace PaDDY.Controls
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
             StopPlayback();
 
-            var editor = new AudioEditorWindow(Entry.FilePath)
+            var editor = new AudioEditorWindow(Entry.FilePath, Entry.RecordingId)
             {
                 Owner = Window.GetWindow(this)
             };
@@ -196,7 +196,7 @@ namespace PaDDY.Controls
             }
         }
 
-        // â”€â”€ Right-click: play on listen/monitor device only â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Right-click: play on listen/monitor device only ───────────────────────────────────
         private void OnMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (IsOverlayButton(e.OriginalSource as FrameworkElement ?? this)) return;

@@ -18,6 +18,7 @@ $scriptRoot        = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot          = Split-Path -Parent $scriptRoot
 $projectFilePath   = Join-Path $repoRoot "PaDDY.csproj"
 $audioProjectFilePath = Join-Path $repoRoot "AudioProcessor\AudioProcessor.csproj"
+$effectProjectFilePath = Join-Path $repoRoot "EffectProcessor\EffectProcessor.csproj"
 $assemblyInfoPath  = Join-Path $repoRoot "AssemblyInfo.cs"
 
 function Update-ProjectVersionDate {
@@ -73,6 +74,8 @@ Write-Host "New version:     $newVersion" -ForegroundColor Cyan
 Update-ProjectVersionDate -ProjectPath $projectFilePath -NewVersion $newVersion
 # Update AudioProcessor.csproj
 Update-ProjectVersionDate -ProjectPath $audioProjectFilePath -NewVersion $newVersion
+# Update EffectProcessor.csproj
+Update-ProjectVersionDate -ProjectPath $effectProjectFilePath -NewVersion $newVersion
 
 # Update AssemblyInfo.cs
 if (Test-Path $assemblyInfoPath) {
