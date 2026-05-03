@@ -12,11 +12,11 @@ public sealed class EqualizerEffect : IAudioEffect
     public bool IsEnabled { get; set; } = false;
 
     // Band gains in dB (clamped to ±12 on apply)
-    public double SubBassDb  { get; set; } = 0.0;   // 80 Hz
-    public double BassDb     { get; set; } = 0.0;   // 250 Hz
-    public double MidDb      { get; set; } = 0.0;   // 1 000 Hz
+    public double SubBassDb { get; set; } = 0.0;   // 80 Hz
+    public double BassDb { get; set; } = 0.0;   // 250 Hz
+    public double MidDb { get; set; } = 0.0;   // 1 000 Hz
     public double PresenceDb { get; set; } = 0.0;   // 4 000 Hz
-    public double TrebleDb   { get; set; } = 0.0;   // 12 000 Hz
+    public double TrebleDb { get; set; } = 0.0;   // 12 000 Hz
 
     private static readonly (double Freq, double Q)[] BandDefs =
     {
@@ -40,8 +40,8 @@ public sealed class EqualizerEffect : IAudioEffect
     private double[,] _s1 = new double[NumBands, 2];
     private double[,] _s2 = new double[NumBands, 2];
 
-    private double[] _lastGainDb   = new double[NumBands];
-    private int      _lastSampleRate;
+    private double[] _lastGainDb = new double[NumBands];
+    private int _lastSampleRate;
 
     public void Reset()
     {
@@ -82,7 +82,7 @@ public sealed class EqualizerEffect : IAudioEffect
                 // Apply each biquad band in sequence (Direct-Form II Transposed)
                 for (int b = 0; b < NumBands; b++)
                 {
-                    double y  = _b0[b] * x + _s1[b, ch];
+                    double y = _b0[b] * x + _s1[b, ch];
                     _s1[b, ch] = _b1[b] * x - _a1[b] * y + _s2[b, ch];
                     _s2[b, ch] = _b2[b] * x - _a2[b] * y;
                     x = y;
@@ -108,17 +108,17 @@ public sealed class EqualizerEffect : IAudioEffect
         double clampedGain = Math.Clamp(gainDb, -12.0, 12.0);
         (double freq, double q) = BandDefs[band];
 
-        double A     = Math.Pow(10.0, clampedGain / 40.0);
-        double w0    = 2.0 * Math.PI * freq / sampleRate;
+        double A = Math.Pow(10.0, clampedGain / 40.0);
+        double w0 = 2.0 * Math.PI * freq / sampleRate;
         double cosW0 = Math.Cos(w0);
         double alpha = Math.Sin(w0) / (2.0 * q);
 
-        double b0 =  1.0 + alpha * A;
+        double b0 = 1.0 + alpha * A;
         double b1 = -2.0 * cosW0;
-        double b2 =  1.0 - alpha * A;
-        double a0 =  1.0 + alpha / A;
+        double b2 = 1.0 - alpha * A;
+        double a0 = 1.0 + alpha / A;
         double a1 = -2.0 * cosW0;
-        double a2 =  1.0 - alpha / A;
+        double a2 = 1.0 - alpha / A;
 
         _b0[band] = b0 / a0;
         _b1[band] = b1 / a0;

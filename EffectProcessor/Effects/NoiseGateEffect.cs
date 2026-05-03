@@ -19,10 +19,10 @@ public sealed class NoiseGateEffect : IAudioEffect
     /// <summary>Release time in milliseconds — how fast the gate closes (default 100).</summary>
     public double ReleaseMs { get; set; } = 100.0;
 
-    private float[] _gainState  = [];
-    private float[] _envelope   = [];
-    private int     _lastSampleRate;
-    private int     _lastChannels;
+    private float[] _gainState = [];
+    private float[] _envelope = [];
+    private int _lastSampleRate;
+    private int _lastChannels;
 
     public void Reset()
     {
@@ -37,14 +37,14 @@ public sealed class NoiseGateEffect : IAudioEffect
         if (_lastSampleRate != sampleRate || _lastChannels != channels)
         {
             _lastSampleRate = sampleRate;
-            _lastChannels   = channels;
-            _gainState      = new float[channels];
-            _envelope       = new float[channels];
+            _lastChannels = channels;
+            _gainState = new float[channels];
+            _envelope = new float[channels];
             Array.Fill(_gainState, 1.0f);
         }
 
         // 1-pole IIR coefficients
-        float attackCoeff  = AttackMs  > 0 ? (float)Math.Exp(-1.0 / (sampleRate * AttackMs  / 1000.0)) : 0f;
+        float attackCoeff = AttackMs > 0 ? (float)Math.Exp(-1.0 / (sampleRate * AttackMs / 1000.0)) : 0f;
         float releaseCoeff = ReleaseMs > 0 ? (float)Math.Exp(-1.0 / (sampleRate * ReleaseMs / 1000.0)) : 0f;
 
         // dBFS threshold → linear amplitude
@@ -55,7 +55,7 @@ public sealed class NoiseGateEffect : IAudioEffect
             int sampleIdx = offset + i;
             for (int ch = 0; ch < channels; ch++)
             {
-                float sample    = buffer[sampleIdx + ch];
+                float sample = buffer[sampleIdx + ch];
                 float absSample = Math.Abs(sample);
 
                 // Leaky peak envelope follower

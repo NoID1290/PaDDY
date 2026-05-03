@@ -16,9 +16,9 @@ public partial class EffectsWindow : Window
     private readonly IEffectChain _chain;
     private readonly bool _isPerClip;
 
-    private FadeEffect?      _fade;
+    private FadeEffect? _fade;
     private NoiseGateEffect? _gate;
-    private EchoEffect?      _echo;
+    private EchoEffect? _echo;
     private EqualizerEffect? _eq;
 
     // Suppresses slider-changed callbacks while loading initial values
@@ -29,7 +29,7 @@ public partial class EffectsWindow : Window
         _loading = true;      // suppress ValueChanged events fired during XAML init
         InitializeComponent();
 
-        _chain     = chain;
+        _chain = chain;
         _isPerClip = isPerClip;
 
         // Resolve typed effect references from the chain
@@ -37,10 +37,10 @@ public partial class EffectsWindow : Window
         {
             switch (effect)
             {
-                case FadeEffect      f: _fade = f; break;
+                case FadeEffect f: _fade = f; break;
                 case NoiseGateEffect g: _gate = g; break;
-                case EchoEffect      e: _echo = e; break;
-                case EqualizerEffect q: _eq   = q; break;
+                case EchoEffect e: _echo = e; break;
+                case EqualizerEffect q: _eq = q; break;
             }
         }
 
@@ -66,28 +66,28 @@ public partial class EffectsWindow : Window
             if (_fade != null)
             {
                 FadeEnabledCheck.IsChecked = _fade.IsEnabled;
-                FadeInSlider.Value         = _fade.FadeInDurationMs;
-                FadeOutSlider.Value        = _fade.FadeOutDurationMs;
+                FadeInSlider.Value = _fade.FadeInDurationMs;
+                FadeOutSlider.Value = _fade.FadeOutDurationMs;
                 UpdateFadeLabels();
             }
 
             // Gate
             if (_gate != null)
             {
-                GateEnabledCheck.IsChecked   = _gate.IsEnabled;
-                GateThresholdSlider.Value    = _gate.ThresholdDb;
-                GateAttackSlider.Value       = _gate.AttackMs;
-                GateReleaseSlider.Value      = _gate.ReleaseMs;
+                GateEnabledCheck.IsChecked = _gate.IsEnabled;
+                GateThresholdSlider.Value = _gate.ThresholdDb;
+                GateAttackSlider.Value = _gate.AttackMs;
+                GateReleaseSlider.Value = _gate.ReleaseMs;
                 UpdateGateLabels();
             }
 
             // Echo
             if (_echo != null)
             {
-                EchoEnabledCheck.IsChecked  = _echo.IsEnabled;
-                EchoDelaySlider.Value       = _echo.DelayMs;
-                EchoFeedbackSlider.Value    = _echo.Feedback;
-                EchoMixSlider.Value         = _echo.Mix;
+                EchoEnabledCheck.IsChecked = _echo.IsEnabled;
+                EchoDelaySlider.Value = _echo.DelayMs;
+                EchoFeedbackSlider.Value = _echo.Feedback;
+                EchoMixSlider.Value = _echo.Mix;
                 UpdateEchoLabels();
             }
 
@@ -95,11 +95,11 @@ public partial class EffectsWindow : Window
             if (_eq != null)
             {
                 EqEnabledCheck.IsChecked = _eq.IsEnabled;
-                EqSubBassSlider.Value    = _eq.SubBassDb;
-                EqBassSlider.Value       = _eq.BassDb;
-                EqMidSlider.Value        = _eq.MidDb;
-                EqPresenceSlider.Value   = _eq.PresenceDb;
-                EqTrebleSlider.Value     = _eq.TrebleDb;
+                EqSubBassSlider.Value = _eq.SubBassDb;
+                EqBassSlider.Value = _eq.BassDb;
+                EqMidSlider.Value = _eq.MidDb;
+                EqPresenceSlider.Value = _eq.PresenceDb;
+                EqTrebleSlider.Value = _eq.TrebleDb;
                 UpdateEqLabels();
             }
         }
@@ -113,35 +113,35 @@ public partial class EffectsWindow : Window
     {
         if (_fade != null)
         {
-            _fade.IsEnabled         = FadeEnabledCheck.IsChecked == true;
-            _fade.FadeInDurationMs  = FadeInSlider.Value;
+            _fade.IsEnabled = FadeEnabledCheck.IsChecked == true;
+            _fade.FadeInDurationMs = FadeInSlider.Value;
             _fade.FadeOutDurationMs = FadeOutSlider.Value;
         }
 
         if (_gate != null)
         {
-            _gate.IsEnabled    = GateEnabledCheck.IsChecked == true;
-            _gate.ThresholdDb  = GateThresholdSlider.Value;
-            _gate.AttackMs     = GateAttackSlider.Value;
-            _gate.ReleaseMs    = GateReleaseSlider.Value;
+            _gate.IsEnabled = GateEnabledCheck.IsChecked == true;
+            _gate.ThresholdDb = GateThresholdSlider.Value;
+            _gate.AttackMs = GateAttackSlider.Value;
+            _gate.ReleaseMs = GateReleaseSlider.Value;
         }
 
         if (_echo != null)
         {
             _echo.IsEnabled = EchoEnabledCheck.IsChecked == true;
-            _echo.DelayMs   = EchoDelaySlider.Value;
-            _echo.Feedback  = EchoFeedbackSlider.Value;
-            _echo.Mix       = EchoMixSlider.Value;
+            _echo.DelayMs = EchoDelaySlider.Value;
+            _echo.Feedback = EchoFeedbackSlider.Value;
+            _echo.Mix = EchoMixSlider.Value;
         }
 
         if (_eq != null)
         {
-            _eq.IsEnabled   = EqEnabledCheck.IsChecked == true;
-            _eq.SubBassDb   = EqSubBassSlider.Value;
-            _eq.BassDb      = EqBassSlider.Value;
-            _eq.MidDb       = EqMidSlider.Value;
-            _eq.PresenceDb  = EqPresenceSlider.Value;
-            _eq.TrebleDb    = EqTrebleSlider.Value;
+            _eq.IsEnabled = EqEnabledCheck.IsChecked == true;
+            _eq.SubBassDb = EqSubBassSlider.Value;
+            _eq.BassDb = EqBassSlider.Value;
+            _eq.MidDb = EqMidSlider.Value;
+            _eq.PresenceDb = EqPresenceSlider.Value;
+            _eq.TrebleDb = EqTrebleSlider.Value;
         }
     }
 
@@ -149,31 +149,31 @@ public partial class EffectsWindow : Window
 
     private void UpdateFadeLabels()
     {
-        FadeInLabel.Text  = $"{(int)FadeInSlider.Value}";
+        FadeInLabel.Text = $"{(int)FadeInSlider.Value}";
         FadeOutLabel.Text = $"{(int)FadeOutSlider.Value}";
     }
 
     private void UpdateGateLabels()
     {
         GateThresholdLabel.Text = $"{(int)GateThresholdSlider.Value}";
-        GateAttackLabel.Text    = $"{(int)GateAttackSlider.Value}";
-        GateReleaseLabel.Text   = $"{(int)GateReleaseSlider.Value}";
+        GateAttackLabel.Text = $"{(int)GateAttackSlider.Value}";
+        GateReleaseLabel.Text = $"{(int)GateReleaseSlider.Value}";
     }
 
     private void UpdateEchoLabels()
     {
-        EchoDelayLabel.Text    = $"{(int)EchoDelaySlider.Value}";
+        EchoDelayLabel.Text = $"{(int)EchoDelaySlider.Value}";
         EchoFeedbackLabel.Text = $"{EchoFeedbackSlider.Value:F2}";
-        EchoMixLabel.Text      = $"{EchoMixSlider.Value:F2}";
+        EchoMixLabel.Text = $"{EchoMixSlider.Value:F2}";
     }
 
     private void UpdateEqLabels()
     {
-        EqSubBassLabel.Text  = $"{(int)EqSubBassSlider.Value:+#;-#;0} dB";
-        EqBassLabel.Text     = $"{(int)EqBassSlider.Value:+#;-#;0} dB";
-        EqMidLabel.Text      = $"{(int)EqMidSlider.Value:+#;-#;0} dB";
+        EqSubBassLabel.Text = $"{(int)EqSubBassSlider.Value:+#;-#;0} dB";
+        EqBassLabel.Text = $"{(int)EqBassSlider.Value:+#;-#;0} dB";
+        EqMidLabel.Text = $"{(int)EqMidSlider.Value:+#;-#;0} dB";
         EqPresenceLabel.Text = $"{(int)EqPresenceSlider.Value:+#;-#;0} dB";
-        EqTrebleLabel.Text   = $"{(int)EqTrebleSlider.Value:+#;-#;0} dB";
+        EqTrebleLabel.Text = $"{(int)EqTrebleSlider.Value:+#;-#;0} dB";
     }
 
     // ── Slider event handlers ─────────────────────────────────────────────────
@@ -240,26 +240,26 @@ public partial class EffectsWindow : Window
         _loading = true;
         try
         {
-            FadeEnabledCheck.IsChecked    = false;
-            FadeInSlider.Value            = 500;
-            FadeOutSlider.Value           = 500;
+            FadeEnabledCheck.IsChecked = false;
+            FadeInSlider.Value = 500;
+            FadeOutSlider.Value = 500;
 
-            GateEnabledCheck.IsChecked    = false;
-            GateThresholdSlider.Value     = -40;
-            GateAttackSlider.Value        = 10;
-            GateReleaseSlider.Value       = 100;
+            GateEnabledCheck.IsChecked = false;
+            GateThresholdSlider.Value = -40;
+            GateAttackSlider.Value = 10;
+            GateReleaseSlider.Value = 100;
 
-            EchoEnabledCheck.IsChecked    = false;
-            EchoDelaySlider.Value         = 200;
-            EchoFeedbackSlider.Value      = 0.3;
-            EchoMixSlider.Value           = 0.4;
+            EchoEnabledCheck.IsChecked = false;
+            EchoDelaySlider.Value = 200;
+            EchoFeedbackSlider.Value = 0.3;
+            EchoMixSlider.Value = 0.4;
 
-            EqEnabledCheck.IsChecked      = false;
-            EqSubBassSlider.Value         = 0;
-            EqBassSlider.Value            = 0;
-            EqMidSlider.Value             = 0;
-            EqPresenceSlider.Value        = 0;
-            EqTrebleSlider.Value          = 0;
+            EqEnabledCheck.IsChecked = false;
+            EqSubBassSlider.Value = 0;
+            EqBassSlider.Value = 0;
+            EqMidSlider.Value = 0;
+            EqPresenceSlider.Value = 0;
+            EqTrebleSlider.Value = 0;
         }
         finally
         {
