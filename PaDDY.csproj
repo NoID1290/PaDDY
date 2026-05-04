@@ -24,9 +24,48 @@
     <ProjectReference Include="EffectProcessor\EffectProcessor.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.15" />
+    <!-- ExcludeFromSingleFile keeps these DLLs as separate files when PublishSingleFile=true -->
+    <PackageReference Include="MessagePack" Version="3.1.4" ExcludeFromSingleFile="true" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.15" ExcludeFromSingleFile="true" />
   </ItemGroup>
+
+  <!--
+    When publishing as a single-file bundle (PublishSingleFile=true), keep the app's own DLLs
+    (project references + NuGet packages) as separate files on disk next to the EXE.
+    Only the .NET runtime DLLs get bundled into the EXE — that is the desired behaviour.
+
+    IMPORTANT: Use BeforeTargets="_ComputeFilesToBundle" (NOT AfterTargets="ComputeFilesToPublish").
+    ComputeFilesToPublish has GenerateSingleFileBundle in its DependsOnTargets, which calls
+    _ComputeFilesToBundle — so AfterTargets="ComputeFilesToPublish" fires AFTER the bundle
+    manifest is already computed. We must inject BEFORE _ComputeFilesToBundle.
+
+    Also: "Update" is required to modify existing items; without it the <ItemGroup> adds
+    new empty items instead of updating existing ones, so ExcludeFromSingleFile has no effect.
+  -->
+  <Target Name="ExcludeAppDllsFromSingleFile"
+          BeforeTargets="_ComputeFilesToBundle"
+          Condition="'$(PublishSingleFile)' == 'true'">
+    <ItemGroup>
+      <!-- Project-reference output DLLs -->
+      <ResolvedFileToPublish
+          Update="@(ResolvedFileToPublish)"
+          Condition="'%(Filename)' == 'NoIDSoftwork.AudioProcessor' or
+                     '%(Filename)' == 'NoIDSoftwork.EffectProcessor'"
+          ExcludeFromSingleFile="true" />
+      <!-- NuGet app-package DLLs (direct + transitive, excl. .NET runtime packages) -->
+      <ResolvedFileToPublish
+          Update="@(ResolvedFileToPublish)"
+          Condition="'%(ResolvedFileToPublish.NuGetPackageId)' == 'MessagePack' or
+                     '%(ResolvedFileToPublish.NuGetPackageId)' == 'MessagePack.Annotations' or
+                     '%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.Data.Sqlite' or
+                     '%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.Data.Sqlite.Core' or
+                     '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.bundle_e_sqlite3' or
+                     '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.core' or
+                     '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.lib.e_sqlite3' or
+                     '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.provider.e_sqlite3'"
+          ExcludeFromSingleFile="true" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <!-- Exclude the sub-project's source and obj files from this compilation -->
     <Compile Remove="AudioProcessor\**" />

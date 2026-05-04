@@ -524,7 +524,7 @@ if ($AttachAssets -and -not $NoRelease) {
             if (Test-Path $scPublishDir) { Remove-Item $scPublishDir -Recurse -Force }
 
             Write-Host "[INSTALLER] Publishing self-contained win-x64 for installer..." -ForegroundColor Cyan
-            dotnet publish $projectFilePath -c Release -o $scPublishDir -p:DebugType=None --self-contained true -r win-x64
+            dotnet publish $projectFilePath -c Release -o $scPublishDir -p:DebugType=None -p:PublishSingleFile=true --self-contained true -r win-x64
 
             if (-not $?) {
                 Write-Host "[INSTALLER] dotnet publish (self-contained) failed; skipping installer build" -ForegroundColor Red
