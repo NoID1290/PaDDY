@@ -8,9 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Testing .net embeeded
 - Enhance publishing process to support single-file output for self-contained builds
-- Fix formatting in CHANGELOG for version 1.1.0.0504
-- Update CHANGELOG.md to include new effects and processing pipeline enhancements
-- Update CHANGELOG.md to document new effects and processing pipeline enhancements
 
 ## [1.1.0.0504] - 2026-05-04
 
