@@ -4,6 +4,13 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.0.0504] - 2026-05-04
+
+- Refactor code for consistency and readability across effect classes and settings manager
+- Added new Effect Processor
+- Update AboutWindow and CreditsWindow layouts and functionality
+- Workspace cleanup
+
 ## [1.0.1.0501] - 2026-05-01
 
 - Temporary fix codec fallback to WAVE when recording source is multichannel
