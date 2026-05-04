@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.3.0504-Pre-release_1] - 2026-05-04
+
+- Added CSC
+
 ## [1.1.2.0504-Pre-release_1] - 2026-05-04
 
 - Text enhancement
