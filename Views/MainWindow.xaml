@@ -290,6 +290,7 @@
                     <Button Style="{StaticResource TopBarBtn}"
                             Content="Settings"
                             Margin="0,0,6,0"
+                            FontSize="14"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             Click="SettingsButton_Click"/>
                     <!-- Custom caption / window control buttons -->
