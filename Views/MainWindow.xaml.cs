@@ -1393,17 +1393,17 @@ namespace PaDDY
                 if (!string.IsNullOrWhiteSpace(root))
                 {
                     var drive = new DriveInfo(root);
-                    summary = $"Recordings: {FormatByteSize(dbBytes)} | {FormatByteSize(drive.AvailableFreeSpace)} free";
+                    summary = $"Storage data: {FormatByteSize(dbBytes)} | {FormatByteSize(drive.AvailableFreeSpace)} free";
                 }
                 else
                 {
-                    summary = $"Recordings: {FormatByteSize(dbBytes)}";
+                    summary = $"Storage data: {FormatByteSize(dbBytes)}";
                 }
                 StorageInfoLabel.Text = summary;
             }
             catch
             {
-                StorageInfoLabel.Text = "Recordings: unable to read storage data";
+                StorageInfoLabel.Text = "Unable to read storage data";
             }
         }
 

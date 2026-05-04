@@ -853,6 +853,7 @@
                                    Visibility="Collapsed"
                                    Margin="0,3,0,0"
                                    FontSize="10"
+                                   FontStyle="Normal"
                                    Foreground="#FFF0C04A">
                             <Hyperlink x:Name="UpdateNoticeLink"
                                        Foreground="#FFF0C04A"
