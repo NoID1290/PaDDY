@@ -4,6 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.1.0504-Pre-release_1] - 2026-05-04
+
+- Testing .net embeeded
+- Enhance publishing process to support single-file output for self-contained builds
+- Fix formatting in CHANGELOG for version 1.1.0.0504
+- Update CHANGELOG.md to include new effects and processing pipeline enhancements
+- Update CHANGELOG.md to document new effects and processing pipeline enhancements
+
 ## [1.1.0.0504] - 2026-05-04
 
  *Add new effect processing pipeline with future support for VST3 plugins (currently only in trim editor)*
