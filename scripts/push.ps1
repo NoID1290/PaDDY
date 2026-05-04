@@ -47,7 +47,13 @@ param(
     [switch]$NoRelease,
 
     [Parameter(Mandatory=$false)]
-    [switch]$PreRelease
+    [switch]$PreRelease,
+
+    # Thumbprint of the Authenticode code-signing certificate in Cert:\CurrentUser\My.
+    # Defaults to the NoID Softwork self-signed cert created during initial setup.
+    # Set to $null or empty string to skip signing.
+    [Parameter(Mandatory=$false)]
+    [string]$SigningThumbprint = "5D2B11003CC73CF8F8EEF99E66745EFCEB5950F9"
 )
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -509,7 +515,8 @@ if ($AttachAssets -and -not $NoRelease) {
 
         # ── Installer (Inno Setup, self-contained win-x64) ──────────────────
         $innoScript = Join-Path $repoRoot ".inno\PaDDY.iss"
-        $isccExe    = "C:\Users\90lec\AppData\Local\Programs\Inno Setup 6\iscc.exe"
+        $isccExe      = "C:\Users\90lec\AppData\Local\Programs\Inno Setup 6\iscc.exe"
+        $signtoolExe  = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
 
         if (-not (Test-Path $innoScript)) {
             Write-Host "[INSTALLER] .inno\PaDDY.iss not found; skipping installer build" -ForegroundColor Yellow
@@ -542,6 +549,27 @@ if ($AttachAssets -and -not $NoRelease) {
                 if ($?) {
                     Write-Host "[INSTALLER] Created: $installerName.exe" -ForegroundColor Green
                     $installerPath = $installerExe
+
+                    # ── Authenticode signing ──────────────────────────────
+                    if ($SigningThumbprint -and (Test-Path $signtoolExe)) {
+                        Write-Host "[SIGN] Signing installer with thumbprint $SigningThumbprint..." -ForegroundColor Cyan
+                        & $signtoolExe sign `
+                            /sha1 $SigningThumbprint `
+                            /fd   SHA256 `
+                            /td   SHA256 `
+                            /tr   http://timestamp.digicert.com `
+                            /v    $installerExe
+                        if ($?) {
+                            Write-Host "[SIGN] Installer signed successfully" -ForegroundColor Green
+                        } else {
+                            Write-Host "[SIGN] signtool.exe failed — installer will be unsigned" -ForegroundColor Yellow
+                        }
+                    } elseif ($SigningThumbprint -and -not (Test-Path $signtoolExe)) {
+                        Write-Host "[SIGN] signtool.exe not found at '$signtoolExe'; skipping signing" -ForegroundColor Yellow
+                    } else {
+                        Write-Host "[SIGN] No signing thumbprint provided; skipping signing" -ForegroundColor DarkGray
+                    }
+                    # ─────────────────────────────────────────────────────
                 } else {
                     Write-Host "[INSTALLER] iscc.exe compilation failed; skipping installer upload" -ForegroundColor Red
                 }
