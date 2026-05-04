@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.1.0.0504")]
-[assembly: AssemblyFileVersion("1.1.0.0504")]
-[assembly: AssemblyInformationalVersion("1.1.0.0504")]
+[assembly: AssemblyVersion("1.1.1.0504")]
+[assembly: AssemblyFileVersion("1.1.1.0504")]
+[assembly: AssemblyInformationalVersion("1.1.1.0504-Pre-release_1")]
 [assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2020-2026")]
 [assembly: AssemblyCompany("NoID Softwork")]
 [assembly: AssemblyTitle("PaDDY")]
@@ -17,6 +17,7 @@ using System.Reflection;
                                                 //(used if a resource is not found in the page,
                                                 // app, or any theme specific resource dictionaries)
 )]
+
 
 
 
