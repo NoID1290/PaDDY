@@ -4,7 +4,7 @@
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="About PaDDY"
         Icon="/PaDDY.ico"
-        Width="480" Height="550"
+        Width="480" Height="580"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource WindowGlowBrush}"
@@ -72,6 +72,12 @@
                                    FontSize="12"
                                    HorizontalAlignment="Center"
                                    Margin="0,2,0,0"/>
+                        <TextBlock x:Name="AuthorLabel"
+                                   Text="© 2020-2026 NoID Softwork. All Rights Reserved."
+                                   Foreground="#FF505080"
+                                   FontSize="9"
+                                   Margin="0,2,0,0"                                
+                                   HorizontalAlignment="Center"/>           
                     </StackPanel>
 
                     <!-- Row 1 — Content card -->
@@ -121,7 +127,7 @@
                                 </Border>
                             </Grid>
 
-                            <Grid Margin="0,0,0,0">
+                            <Grid Margin="0,0,0,4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -131,6 +137,17 @@
                                     <TextBlock Text="R" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
                                 </Border>
                             </Grid>
+
+                            <Grid Margin="0,0,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Monitor selected pad" Foreground="#FF9090B8" FontSize="11"/>
+                                <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
+                                    <TextBlock Text="MOUSE RIGHT-CLICK" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                                </Border>
+                            </Grid>    
 
                             <Rectangle Height="1" Fill="#14FFFFFF" Margin="0,14,0,14"/>
 
