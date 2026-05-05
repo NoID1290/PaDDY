@@ -8,9 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>1.1.3.0504</Version>
-    <AssemblyVersion>1.1.3.0504</AssemblyVersion>
-    <FileVersion>1.1.3.0504</FileVersion>
+    <Version>1.1.3.0505</Version>
+    <AssemblyVersion>1.1.3.0505</AssemblyVersion>
+    <FileVersion>1.1.3.0505</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
@@ -31,11 +31,11 @@
   <!--
     When publishing as a single-file bundle (PublishSingleFile=true), keep the app's own DLLs
     (project references + NuGet packages) as separate files on disk next to the EXE.
-    Only the .NET runtime DLLs get bundled into the EXE ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â that is the desired behaviour.
+    Only the .NET runtime DLLs get bundled into the EXE ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â that is the desired behaviour.
 
     IMPORTANT: Use BeforeTargets="_ComputeFilesToBundle" (NOT AfterTargets="ComputeFilesToPublish").
     ComputeFilesToPublish has GenerateSingleFileBundle in its DependsOnTargets, which calls
-    _ComputeFilesToBundle ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â so AfterTargets="ComputeFilesToPublish" fires AFTER the bundle
+    _ComputeFilesToBundle ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â so AfterTargets="ComputeFilesToPublish" fires AFTER the bundle
     manifest is already computed. We must inject BEFORE _ComputeFilesToBundle.
 
     Also: "Update" is required to modify existing items; without it the <ItemGroup> adds
