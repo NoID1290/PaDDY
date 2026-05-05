@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 #
 # push.ps1 - Auto-push to GitHub with automatic version increment
 # Copyright (c) NoID Softwork 2026-2026. All rights reserved.
@@ -505,6 +505,24 @@ if ($AttachAssets -and -not $NoRelease) {
             Write-Host "[CLEANUP] Removed appsettings.json from release" -ForegroundColor Green
         }
 
+        # ── Sign framework-dependent binaries (exe + dlls) ─────────────
+        $signtoolExe = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
+        if ($SigningThumbprint -and (Test-Path $signtoolExe)) {
+            $filesToSign = @(Get-ChildItem -Path $publishDir -Include *.exe, *.dll -Recurse | Select-Object -ExpandProperty FullName)
+            if ($filesToSign.Count -gt 0) {
+                Write-Host "[SIGN] Signing $($filesToSign.Count) binary/binaries in publish dir..." -ForegroundColor Cyan
+                & $signtoolExe sign /sha1 $SigningThumbprint /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /v @filesToSign
+                if ($?) {
+                    Write-Host "[SIGN] Binaries signed successfully" -ForegroundColor Green
+                } else {
+                    Write-Host "[SIGN] signtool.exe failed on binaries — continuing unsigned" -ForegroundColor Yellow
+                }
+            }
+        } elseif ($SigningThumbprint -and -not (Test-Path $signtoolExe)) {
+            Write-Host "[SIGN] signtool.exe not found at '$signtoolExe'; skipping binary signing" -ForegroundColor Yellow
+        }
+        # ─────────────────────────────────────────────────────────────────────
+
         # Create zip
         $zipName = "PaDDY-$newVersion.zip"
         $zipPath = Join-Path $artifactRoot $zipName
@@ -516,7 +534,6 @@ if ($AttachAssets -and -not $NoRelease) {
         # ── Installer (Inno Setup, self-contained win-x64) ──────────────────
         $innoScript = Join-Path $repoRoot ".inno\PaDDY.iss"
         $isccExe      = "C:\Users\90lec\AppData\Local\Programs\Inno Setup 6\iscc.exe"
-        $signtoolExe  = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
 
         if (-not (Test-Path $innoScript)) {
             Write-Host "[INSTALLER] .inno\PaDDY.iss not found; skipping installer build" -ForegroundColor Yellow
@@ -538,6 +555,21 @@ if ($AttachAssets -and -not $NoRelease) {
             } else {
                 # Remove dev files from SC publish
                 Get-ChildItem -Path $scPublishDir -Include *.pdb, *.xml, *.dll.config -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue
+
+                # ── Sign SC binaries before packaging into installer ──────
+                if ($SigningThumbprint -and (Test-Path $signtoolExe)) {
+                    $scFilesToSign = @(Get-ChildItem -Path $scPublishDir -Include *.exe, *.dll -Recurse | Select-Object -ExpandProperty FullName)
+                    if ($scFilesToSign.Count -gt 0) {
+                        Write-Host "[SIGN] Signing $($scFilesToSign.Count) SC binary/binaries..." -ForegroundColor Cyan
+                        & $signtoolExe sign /sha1 $SigningThumbprint /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /v @scFilesToSign
+                        if ($?) {
+                            Write-Host "[SIGN] SC binaries signed successfully" -ForegroundColor Green
+                        } else {
+                            Write-Host "[SIGN] signtool.exe failed on SC binaries — continuing unsigned" -ForegroundColor Yellow
+                        }
+                    }
+                }
+                # ─────────────────────────────────────────────────────────
 
                 Write-Host "[INSTALLER] Compiling Inno Setup script..." -ForegroundColor Cyan
                 & $isccExe $innoScript `
