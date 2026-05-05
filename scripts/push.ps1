@@ -505,10 +505,14 @@ if ($AttachAssets -and -not $NoRelease) {
             Write-Host "[CLEANUP] Removed appsettings.json from release" -ForegroundColor Green
         }
 
-        # ── Sign framework-dependent binaries (exe + dlls) ─────────────
+        # ── Sign framework-dependent binaries ─────────────────────────────
         $signtoolExe = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
         if ($SigningThumbprint -and (Test-Path $signtoolExe)) {
-            $filesToSign = @(Get-ChildItem -Path $publishDir -Include *.exe, *.dll -Recurse | Select-Object -ExpandProperty FullName)
+            $filesToSign = @(
+                Join-Path $publishDir "PaDDY.exe"
+                Join-Path $publishDir "NoIDSoftwork.AudioProcessor.dll"
+                Join-Path $publishDir "NoIDSoftwork.EffectProcessor.dll"
+            ) | Where-Object { Test-Path $_ }
             if ($filesToSign.Count -gt 0) {
                 Write-Host "[SIGN] Signing $($filesToSign.Count) binary/binaries in publish dir..." -ForegroundColor Cyan
                 & $signtoolExe sign /sha1 $SigningThumbprint /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /v @filesToSign
@@ -558,7 +562,11 @@ if ($AttachAssets -and -not $NoRelease) {
 
                 # ── Sign SC binaries before packaging into installer ──────
                 if ($SigningThumbprint -and (Test-Path $signtoolExe)) {
-                    $scFilesToSign = @(Get-ChildItem -Path $scPublishDir -Include *.exe, *.dll -Recurse | Select-Object -ExpandProperty FullName)
+                    $scFilesToSign = @(
+                        Join-Path $scPublishDir "PaDDY.exe"
+                        Join-Path $scPublishDir "NoIDSoftwork.AudioProcessor.dll"
+                        Join-Path $scPublishDir "NoIDSoftwork.EffectProcessor.dll"
+                    ) | Where-Object { Test-Path $_ }
                     if ($scFilesToSign.Count -gt 0) {
                         Write-Host "[SIGN] Signing $($scFilesToSign.Count) SC binary/binaries..." -ForegroundColor Cyan
                         & $signtoolExe sign /sha1 $SigningThumbprint /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /v @scFilesToSign
