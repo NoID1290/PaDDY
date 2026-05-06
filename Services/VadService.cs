@@ -421,6 +421,15 @@ namespace PaDDY.Services
         private static extern bool SetupDiDestroyDeviceInfoList(IntPtr deviceInfoSet);
 
         [DllImport("newdev.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern bool DiInstallDevice(
+            IntPtr hwndParent,
+            IntPtr deviceInfoSet,
+            ref SP_DEVINFO_DATA deviceInfoData,
+            IntPtr driverInfoData,
+            uint flags,
+            out bool needReboot);
+
+        [DllImport("newdev.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool UpdateDriverForPlugAndPlayDevices(
             IntPtr hwndParent,
             string hardwareId,
@@ -461,6 +470,19 @@ namespace PaDDY.Services
                 if (!SetupDiCallClassInstaller(DifRegisterDevice, set, ref did))
                 {
                     return Marshal.GetLastWin32Error();
+                }
+
+                // Explicitly configure/install the best matching function driver
+                // for this root-enumerated devnode. Without this step, some systems
+                // keep the node in CM_PROB_NOT_CONFIGURED.
+                if (!DiInstallDevice(IntPtr.Zero, set, ref did, IntPtr.Zero, 0, out bool needReboot))
+                {
+                    return Marshal.GetLastWin32Error();
+                }
+
+                if (needReboot)
+                {
+                    LogInstall("WARNING: Windows reported reboot required after DiInstallDevice.");
                 }
 
                 return 0;
