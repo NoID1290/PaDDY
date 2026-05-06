@@ -133,10 +133,16 @@ namespace PaDDY.Services
             if (bind.ExitCode != 0)
                 return bind.ExitCode;
 
-            int updateRc = ForceUpdateDriver("ROOT\\VirtualAudioDriver", infPath);
+            int updateRc = ForceUpdateDriverWithRetry("ROOT\\VirtualAudioDriver", infPath, retries: 20, delayMs: 1000);
             LogInstall($"UpdateDriverForPlugAndPlayDevices returned {updateRc}");
-            if (updateRc != 0)
+            const int ErrorNoSuchDevInst = unchecked((int)0xE000020B);
+            if (updateRc != 0 && updateRc != ErrorNoSuchDevInst)
                 return updateRc;
+
+            if (updateRc == ErrorNoSuchDevInst)
+            {
+                LogInstall("WARNING: UpdateDriverForPlugAndPlayDevices did not find a ready devnode after retries. Continuing with restart and endpoint wait.");
+            }
 
             foreach (string instanceId in EnumerateVadInstanceIds())
             {
@@ -513,15 +519,6 @@ namespace PaDDY.Services
             if (!ok)
             {
                 int win32 = Marshal.GetLastWin32Error();
-                // 259 / 0xE000020B can happen transiently if the root instance
-                // is not fully materialized yet. Continue and let endpoint
-                // readiness checks decide final success/failure.
-                const int ErrorNoSuchDevInst = unchecked((int)0xE000020B);
-                if (win32 == 259 || win32 == ErrorNoSuchDevInst)
-                {
-                    LogInstall($"WARNING: UpdateDriverForPlugAndPlayDevices skipped (win32=0x{win32:X8}). Continuing with rescan/wait.");
-                    return 0;
-                }
                 return win32 == 0 ? 1 : win32;
             }
 
@@ -529,6 +526,34 @@ namespace PaDDY.Services
                 LogInstall("WARNING: Windows reported reboot required after driver update.");
 
             return 0;
+        }
+
+        private static int ForceUpdateDriverWithRetry(string hardwareId, string infPath, int retries, int delayMs)
+        {
+            const int ErrorNoSuchDevInst = unchecked((int)0xE000020B);
+            int lastRc = 0;
+
+            for (int attempt = 1; attempt <= retries; attempt++)
+            {
+                lastRc = ForceUpdateDriver(hardwareId, infPath);
+                if (lastRc == 0)
+                {
+                    if (attempt > 1)
+                        LogInstall($"UpdateDriverForPlugAndPlayDevices succeeded on retry {attempt}/{retries}.");
+                    return 0;
+                }
+
+                if (lastRc == ErrorNoSuchDevInst || lastRc == 259)
+                {
+                    LogInstall($"UpdateDriverForPlugAndPlayDevices attempt {attempt}/{retries} returned 0x{lastRc:X8}; retrying...");
+                    Thread.Sleep(delayMs);
+                    continue;
+                }
+
+                return lastRc;
+            }
+
+            return lastRc;
         }
     }
 }
