@@ -22,6 +22,28 @@ namespace PaDDY.Services
                 && File.Exists(Path.Combine(vadDir, "install.ps1"));
         }
 
+        public static string GetInstallLogPath() =>
+            Path.Combine(Path.GetTempPath(), "PaDDY-VadInstall.log");
+
+        public static string GetInstallLogTail(int maxLines = 16)
+        {
+            try
+            {
+                string path = GetInstallLogPath();
+                if (!File.Exists(path)) return string.Empty;
+
+                var lines = File.ReadAllLines(path);
+                if (lines.Length <= maxLines) return string.Join(Environment.NewLine, lines);
+
+                return string.Join(Environment.NewLine,
+                    lines[^maxLines..]);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         public static bool IsDriverInstalled()
         {
             try

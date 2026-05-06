@@ -114,12 +114,47 @@ Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NonInteractive
 ; ============================================================================
 [Code]
 
+procedure TryUninstallVad;
+var
+  ScriptPath: string;
+  Params: string;
+  ResultCode: Integer;
+begin
+  ScriptPath := ExpandConstant('{app}\vad\uninstall.ps1');
+  if not FileExists(ScriptPath) then
+  begin
+    MsgBox('Virtual Audio Driver uninstall script was not found. You can remove the driver manually from Device Manager.', mbInformation, MB_OK);
+    exit;
+  end;
+
+  Params := '-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden -File "' + ScriptPath + '"';
+  if not Exec('powershell.exe', Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    MsgBox('Failed to start the Virtual Audio Driver uninstaller. You can remove the driver manually from Device Manager.', mbError, MB_OK);
+    exit;
+  end;
+
+  if ResultCode <> 0 then
+    MsgBox('Virtual Audio Driver uninstall completed with warnings. See %TEMP%\PaDDY-VadUninstall.log for details.', mbInformation, MB_OK);
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   AppDataPath: string;
   Msg: string;
   Answer: Integer;
 begin
+  if CurUninstallStep = usUninstall then
+  begin
+    Msg := 'Do you want to remove the Virtual Audio Driver too?' + #13#10 +
+           '' + #13#10 +
+           'Choose Yes to remove both the virtual speaker and virtual microphone.' + #13#10 +
+           'Choose No to keep the driver installed.';
+    Answer := MsgBox(Msg, mbConfirmation, MB_YESNO or MB_DEFBUTTON2);
+    if Answer = IDYES then
+      TryUninstallVad;
+  end;
+
   if CurUninstallStep = usPostUninstall then
   begin
     AppDataPath := ExpandConstant('{localappdata}') + '\NoID Softwork\PaDDY';

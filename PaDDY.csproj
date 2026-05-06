@@ -86,6 +86,10 @@
       <Link>vad\virtualaudiodriver.cat</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Vad\uninstall.ps1">
+      <Link>vad\uninstall.ps1</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <!-- Virtual Audio Driver license files -->
     <None Include="Vad\LICENSE.txt">
       <Link>licenses\VirtualAudioDriver-LICENSE.txt</Link>

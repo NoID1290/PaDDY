@@ -182,7 +182,7 @@ namespace PaDDY
             else if (_vadFilesPresent)
             {
                 VadStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xC1, 0x07)); // amber
-                VadStatusText.Text = "Not installed";
+                VadStatusText.Text = "Not installed or endpoints unavailable";
                 InstallDriverButton.Visibility = Visibility.Visible;
                 VadNoFilesText.Visibility = Visibility.Collapsed;
             }
@@ -204,11 +204,17 @@ namespace PaDDY
             InstallDriverButton.Content = "Install Driver";
             RefreshVadStatus();
             if (!success)
+            {
+                string logTail = VadService.GetInstallLogTail();
+                string details = string.IsNullOrWhiteSpace(logTail)
+                    ? ""
+                    : $"\n\nRecent installer log:\n{logTail}";
                 System.Windows.MessageBox.Show(this,
-                    "Driver installation failed or was cancelled.",
+                    "Driver installation failed, was cancelled, or endpoints did not become available." + details,
                     "Virtual Audio Driver",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
+            }
         }
 
         private void VadHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
