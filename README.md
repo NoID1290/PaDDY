@@ -1,7 +1,7 @@
 ﻿# PaDDY
 
 [![Version](https://img.shields.io/badge/version-1.1.3-blue)](CHANGELOG.md)
-[![Build](https://img.shields.io/github/workflow/status/NoID1290/PaDDY/CI)](https://github.com/NoID1290/PaDDY/actions)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/NoID1290/PaDDY/actions)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
