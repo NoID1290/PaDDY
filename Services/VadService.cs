@@ -477,7 +477,14 @@ namespace PaDDY.Services
                 // keep the node in CM_PROB_NOT_CONFIGURED.
                 if (!DiInstallDevice(IntPtr.Zero, set, ref did, IntPtr.Zero, 0, out bool needReboot))
                 {
-                    return Marshal.GetLastWin32Error();
+                    int win32 = Marshal.GetLastWin32Error();
+                    const int ErrorNoDriverSelected = unchecked((int)0xE0000203);
+                    if (win32 != ErrorNoDriverSelected)
+                    {
+                        return win32;
+                    }
+
+                    LogInstall("WARNING: DiInstallDevice reported no selected driver (0xE0000203). Continuing with post-node bind steps.");
                 }
 
                 if (needReboot)
