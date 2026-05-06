@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0.0506-Pre-release_8] - 2026-05-06
+
+- Add DiInstallDevice P/Invoke and handle reboot requirement in driver installation
+
 ## [1.2.0.0506-Pre-release_7] - 2026-05-06
 
 - Added post-bind restart attempts for detected VAD instances
