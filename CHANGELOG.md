@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0.0506-Pre-release_1] - 2026-05-06
+
+- Test driver installation
+
 ## [1.1.4.0506-Pre-release_1] - 2026-05-06
 
 - Test driver installation
