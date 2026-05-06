@@ -106,29 +106,26 @@ Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppE
 ; ============================================================================
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-; pnputil alone cannot create a root-enumerated device node — install.ps1 does
-; both: stages the driver package AND creates ROOT\VirtualAudioDriver via SetupAPI
-; (equivalent to "Add Legacy Hardware" in Device Manager).
-Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden -File ""{app}\vad\install.ps1"" -InfPath ""{app}\vad\VirtualAudioDriver.inf"""; StatusMsg: "Installing Virtual Audio Driver…"; Tasks: installvad; Flags: waituntilterminated
+Filename: "{app}\{#AppExeName}"; Parameters: "--vad-install --vad-quiet"; StatusMsg: "Installing Virtual Audio Driver…"; Tasks: installvad; Flags: waituntilterminated
 
 ; ============================================================================
 [Code]
 
 procedure TryUninstallVad;
 var
-  ScriptPath: string;
-  Params: string;
+  AppPath: string;
+  Args: string;
   ResultCode: Integer;
 begin
-  ScriptPath := ExpandConstant('{app}\vad\uninstall.ps1');
-  if not FileExists(ScriptPath) then
+  AppPath := ExpandConstant('{app}\{#AppExeName}');
+  if not FileExists(AppPath) then
   begin
-    MsgBox('Virtual Audio Driver uninstall script was not found. You can remove the driver manually from Device Manager.', mbInformation, MB_OK);
+    MsgBox('PaDDY executable was not found. You can remove the Virtual Audio Driver manually from Device Manager.', mbInformation, MB_OK);
     exit;
   end;
 
-  Params := '-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden -File "' + ScriptPath + '"';
-  if not Exec('powershell.exe', Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  Args := '--vad-uninstall --vad-quiet';
+  if not Exec(AppPath, Args, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
   begin
     MsgBox('Failed to start the Virtual Audio Driver uninstaller. You can remove the driver manually from Device Manager.', mbError, MB_OK);
     exit;

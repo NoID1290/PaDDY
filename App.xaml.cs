@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using PaDDY.Services;
 using WpfApplication = System.Windows.Application;
 
 namespace PaDDY;
@@ -43,6 +44,9 @@ public partial class App : WpfApplication
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (HandleVadCli(e.Args))
+            return;
+
         _instanceMutex = new Mutex(true, "PaDDY_SingleInstance", out bool isNewInstance);
         if (!isNewInstance)
         {
@@ -60,6 +64,28 @@ public partial class App : WpfApplication
         _instanceMutex?.ReleaseMutex();
         _instanceMutex?.Dispose();
         base.OnExit(e);
+    }
+
+    private bool HandleVadCli(string[] args)
+    {
+        bool install = args.Any(a => string.Equals(a, "--vad-install", StringComparison.OrdinalIgnoreCase));
+        bool uninstall = args.Any(a => string.Equals(a, "--vad-uninstall", StringComparison.OrdinalIgnoreCase));
+        bool quiet = args.Any(a => string.Equals(a, "--vad-quiet", StringComparison.OrdinalIgnoreCase));
+
+        if (!install && !uninstall) return false;
+
+        int exitCode;
+        if (install)
+        {
+            exitCode = VadService.InstallDriverNative(quiet);
+        }
+        else
+        {
+            exitCode = VadService.UninstallDriverNative(quiet);
+        }
+
+        Shutdown(exitCode);
+        return true;
     }
 }
 
