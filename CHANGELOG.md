@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0.0506-Pre-release_5] - 2026-05-06
+
+- Uninstall driver test
+- Implement command-line options for Virtual Audio Driver installation and uninstallation
+
 ## [1.2.0.0506-Pre-release_4] - 2026-05-06
 
 - Force VAD binding
