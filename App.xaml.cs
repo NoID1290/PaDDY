@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using WpfApplication = System.Windows.Application;
@@ -11,6 +12,8 @@ namespace PaDDY;
 /// </summary>
 public partial class App : WpfApplication
 {
+    private Mutex? _instanceMutex;
+
     /// <summary>Maps variant key → (embedded file name, display name).</summary>
     internal static readonly IReadOnlyList<(string Key, string FileName, string DisplayName)> FontVariants =
     [
@@ -40,8 +43,23 @@ public partial class App : WpfApplication
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        _instanceMutex = new Mutex(true, "PaDDY_SingleInstance", out bool isNewInstance);
+        if (!isNewInstance)
+        {
+            System.Windows.MessageBox.Show("PaDDY is already running.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Information);
+            Shutdown();
+            return;
+        }
+
         base.OnStartup(e);
         ApplyFont(AppSettings.Load().AppFontVariant);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _instanceMutex?.ReleaseMutex();
+        _instanceMutex?.Dispose();
+        base.OnExit(e);
     }
 }
 
