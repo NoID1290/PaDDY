@@ -138,6 +138,12 @@ namespace PaDDY.Services
             if (updateRc != 0)
                 return updateRc;
 
+            foreach (string instanceId in EnumerateVadInstanceIds())
+            {
+                var restart = RunProcessCapture("pnputil.exe", $"/restart-device \"{instanceId}\"");
+                LogInstall($"pnputil /restart-device {instanceId} exit={restart.ExitCode} {CondenseForLog(restart.Output)}");
+            }
+
             LogInstall("VAD device snapshot after bind attempt: " + GetVadDeviceSnapshot());
 
             bool ready = WaitForVadEndpoints(timeoutMs: 45000);
@@ -323,15 +329,21 @@ namespace PaDDY.Services
                 string stderr = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
-                string merged = string.Join(" ", new[] { stdout, stderr }
+                string merged = string.Join(Environment.NewLine, new[] { stdout, stderr }
                     .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .Select(s => s.Replace("\r", " ").Replace("\n", " ").Trim()));
+                    .Select(s => s.TrimEnd()));
                 return (process.ExitCode, merged);
             }
             catch (Exception ex)
             {
                 return (-1, ex.Message);
             }
+        }
+
+        private static string CondenseForLog(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            return text.Replace("\r", " ").Replace("\n", " ").Trim();
         }
 
         private static void LogInstall(string message) =>
