@@ -50,7 +50,7 @@ namespace PaDDY.Services
         {
             string vadDir = GetVadDirectory();
             string scriptPath = Path.Combine(vadDir, "install.ps1");
-            string infPath    = Path.Combine(vadDir, "VirtualAudioDriver.inf");
+            string infPath = Path.Combine(vadDir, "VirtualAudioDriver.inf");
 
             if (!File.Exists(scriptPath) || !File.Exists(infPath)) return false;
 
@@ -59,10 +59,10 @@ namespace PaDDY.Services
             // "Add Legacy Hardware" in Device Manager performs manually.
             var psi = new ProcessStartInfo
             {
-                FileName        = "powershell.exe",
-                Arguments       = $"-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden" +
+                FileName = "powershell.exe",
+                Arguments = $"-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden" +
                                   $" -File \"{scriptPath}\" -InfPath \"{infPath}\"",
-                Verb            = "runas",
+                Verb = "runas",
                 UseShellExecute = true,
             };
 
