@@ -88,8 +88,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 ; ============================================================================
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "startmenuicon"; Description: "Create Start Menu shortcut"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
+Name: "desktopicon";    Description: "{cm:CreateDesktopIcon}";                                      GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "startmenuicon";  Description: "Create Start Menu shortcut";                                  GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
+Name: "installvad";     Description: "Install Virtual Audio Driver (virtual speaker and microphone)"; GroupDescription: "Optional components:"; Flags: unchecked
 
 ; ============================================================================
 [Files]
@@ -105,6 +106,10 @@ Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppE
 ; ============================================================================
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+; pnputil alone cannot create a root-enumerated device node — install.ps1 does
+; both: stages the driver package AND creates ROOT\VirtualAudioDriver via SetupAPI
+; (equivalent to "Add Legacy Hardware" in Device Manager).
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden -File ""{app}\vad\install.ps1"" -InfPath ""{app}\vad\VirtualAudioDriver.inf"""; StatusMsg: "Installing Virtual Audio Driver…"; Tasks: installvad; Flags: waituntilterminated
 
 ; ============================================================================
 [Code]

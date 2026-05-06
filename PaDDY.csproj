@@ -73,6 +73,30 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <!-- Virtual Audio Driver — optional bundled driver files -->
+    <None Include="Vad\VirtualAudioDriver.inf">
+      <Link>vad\VirtualAudioDriver.inf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Vad\VirtualAudioDriver.sys">
+      <Link>vad\VirtualAudioDriver.sys</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Vad\virtualaudiodriver.cat">
+      <Link>vad\virtualaudiodriver.cat</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- Virtual Audio Driver license files -->
+    <None Include="Vad\LICENSE.txt">
+      <Link>licenses\VirtualAudioDriver-LICENSE.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Vad\THIRD_PARTY_NOTICES.txt">
+      <Link>licenses\VirtualAudioDriver-THIRD_PARTY_NOTICES.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="PaDDY.ico" />
     <Resource Include="Themes\Fonts\ari-w9500.ttf" />
     <Resource Include="Themes\Fonts\ari-w9500-bold.ttf" />
