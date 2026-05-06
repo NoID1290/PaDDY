@@ -6,36 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.1.4.0506] - 2026-05-06
 
-- Add Single Instance, preventing PaDDY to be launch twice
-- fix wrong badge link
-- Enhance readme
-- Add local scripts directory to .gitignore
-- Remove local scripts
-
-## [1.1.3.0505-Pre-release_2] - 2026-05-05
-
-- Testing SIGN_2
-- exclude files dosent need sign
-
-## [1.1.3.0505-Pre-release_1] - 2026-05-05
-
-- Testing SIGN
-- Added Sign into file
-
-## [1.1.3.0504-Pre-release_1] - 2026-05-04
-
-- Added CSC
-
-## [1.1.2.0504-Pre-release_1] - 2026-05-04
-
-- Text enhancement
+- Preventing PaDDY to be launch twice
 - UI enhancement
-- UI Adjustement
-
-## [1.1.1.0504-Pre-release_1] - 2026-05-04
-
-- Testing .net embeeded
-- Enhance publishing process to support single-file output for self-contained builds
 
 ## [1.1.0.0504] - 2026-05-04
 
