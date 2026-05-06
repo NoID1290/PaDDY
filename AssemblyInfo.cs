@@ -3,7 +3,7 @@ using System.Reflection;
 
 [assembly: AssemblyVersion("1.2.0.0506")]
 [assembly: AssemblyFileVersion("1.2.0.0506")]
-[assembly: AssemblyInformationalVersion("1.2.0.0506-Pre-release_9")]
+[assembly: AssemblyInformationalVersion("1.2.0.0506-Pre-release_10")]
 [assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2020-2026")]
 [assembly: AssemblyCompany("NoID Softwork")]
 [assembly: AssemblyTitle("PaDDY")]
@@ -17,6 +17,7 @@ using System.Reflection;
                                                 //(used if a resource is not found in the page,
                                                 // app, or any theme specific resource dictionaries)
 )]
+
 
 
 

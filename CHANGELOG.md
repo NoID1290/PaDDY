@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0.0506-Pre-release_10] - 2026-05-06
+
+- Implement retry logic for driver updates and log warnings for missing device instances
+
 ## [1.2.0.0506-Pre-release_9] - 2026-05-06
 
 - Handle DiInstallDevice error for no driver selected and log a warning message
