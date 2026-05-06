@@ -18,6 +18,7 @@ namespace PaDDY.Services
         private const string DriverFriendlyNameFragment = "Virtual Audio Driver";
         private const string MicFriendlyNameFragment = "Virtual Mic Driver";
         private const string VadHardwareIdUpper = "ROOT\\VIRTUALAUDIODRIVER";
+        private static readonly Encoding LogEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
         public static string GetVadDirectory() =>
             Path.Combine(AppContext.BaseDirectory, "vad");
@@ -95,6 +96,8 @@ namespace PaDDY.Services
 
         public static int InstallDriverNative(bool quiet)
         {
+            ResetLog(GetInstallLogPath(), "=== VadInstall start ===");
+
             string infPath = Path.Combine(GetVadDirectory(), "VirtualAudioDriver.inf");
             if (!File.Exists(infPath))
             {
@@ -102,7 +105,6 @@ namespace PaDDY.Services
                 return 1;
             }
 
-            LogInstall("=== VadInstall start ===");
             LogInstall("INF path: " + infPath);
 
             var addDriver = RunProcessCapture("pnputil.exe", $"/add-driver \"{infPath}\" /install");
@@ -147,7 +149,9 @@ namespace PaDDY.Services
 
         public static int UninstallDriverNative(bool quiet)
         {
-            LogUninstall("=== VadUninstall start ===");
+            string uninstallLogPath = Path.Combine(Path.GetTempPath(), "PaDDY-VadUninstall.log");
+            ResetLog(uninstallLogPath, "=== VadUninstall start ===");
+
             bool hadErrors = false;
 
             foreach (string instanceId in EnumerateVadInstanceIds())
@@ -341,7 +345,20 @@ namespace PaDDY.Services
             try
             {
                 string ts = DateTime.Now.ToString("HH:mm:ss");
-                File.AppendAllText(path, $"{ts}  {message}{Environment.NewLine}");
+                File.AppendAllText(path, $"{ts}  {message}{Environment.NewLine}", LogEncoding);
+            }
+            catch
+            {
+                // best effort logging
+            }
+        }
+
+        private static void ResetLog(string path, string header)
+        {
+            try
+            {
+                string ts = DateTime.Now.ToString("HH:mm:ss");
+                File.WriteAllText(path, $"{ts}  {header}{Environment.NewLine}", LogEncoding);
             }
             catch
             {
@@ -455,8 +472,15 @@ namespace PaDDY.Services
             if (!ok)
             {
                 int win32 = Marshal.GetLastWin32Error();
-                // 259 = no matching present device found yet. Let endpoint wait logic decide final outcome.
-                if (win32 == 259) return 0;
+                // 259 / 0xE000020B can happen transiently if the root instance
+                // is not fully materialized yet. Continue and let endpoint
+                // readiness checks decide final success/failure.
+                const int ErrorNoSuchDevInst = unchecked((int)0xE000020B);
+                if (win32 == 259 || win32 == ErrorNoSuchDevInst)
+                {
+                    LogInstall($"WARNING: UpdateDriverForPlugAndPlayDevices skipped (win32=0x{win32:X8}). Continuing with rescan/wait.");
+                    return 0;
+                }
                 return win32 == 0 ? 1 : win32;
             }
 
