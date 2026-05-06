@@ -1,6 +1,7 @@
 ﻿# PaDDY
 
 [![Version](https://img.shields.io/badge/version-1.1.3-blue)](CHANGELOG.md)
+[![Build](https://img.shields.io/github/workflow/status/NoID1290/PaDDY/CI)](https://github.com/NoID1290/PaDDY/actions)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -57,42 +58,6 @@ PaDDY is designed for fast voice/audio capture with minimal friction:
 ```powershell
 dotnet restore PaDDY.sln
 dotnet build PaDDY.csproj --configuration Release
-```
-
-## Project Structure
-
-```text
-.
-|-- App.xaml
-|-- App.xaml.cs
-|-- AssemblyInfo.cs
-|-- PaDDY.csproj
-|-- PaDDY.sln
-|-- AudioProcessor/
-|   |-- AudioProcessor.csproj
-|   |-- *.cs
-|   `-- vendors/
-|-- Controls/
-|-- Helpers/
-|-- Models/
-|-- Services/
-|-- Themes/
-|-- Views/
-|-- scripts/
-|   |-- push.ps1
-|   |-- update_version.ps1
-|   `-- gen_icon.csx
-`-- README.md
-```
-
-- `AudioProcessor` is the project folder name.
-- The audio library output remains `NoIDSoftwork.AudioProcessor.dll` for compatibility.
-
-## Scripts
-
-```powershell
-./scripts/update_version.ps1
-./scripts/push.ps1 -Type fix
 ```
 
 ## Usage
