@@ -4,6 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.4.0506] - 2026-05-06
+
+- Add Single Instance, preventing PaDDY to be launch twice
+- fix wrong badge link
+- Enhance readme
+- Add local scripts directory to .gitignore
+- Remove local scripts
+
 ## [1.1.3.0505-Pre-release_2] - 2026-05-05
 
 - Testing SIGN_2
