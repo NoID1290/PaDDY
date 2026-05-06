@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0.0506-Pre-release_6] - 2026-05-06
+
+- UTF-8 encoding foce
+- Enhance logging functionality in VadService with log reset and encoding improvements
+
 ## [1.2.0.0506-Pre-release_5] - 2026-05-06
 
 - Uninstall driver test
