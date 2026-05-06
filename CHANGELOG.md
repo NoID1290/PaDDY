@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0.0506-Pre-release_11] - 2026-05-06
+
+- Update DllImport attribute to use Unicode character set for SetupDiSetDeviceRegistryProperty
+
 ## [1.2.0.0506-Pre-release_10] - 2026-05-06
 
 - Implement retry logic for driver updates and log warnings for missing device instances
