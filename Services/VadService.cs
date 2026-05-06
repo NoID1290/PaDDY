@@ -409,7 +409,7 @@ namespace PaDDY.Services
             uint creationFlags,
             ref SP_DEVINFO_DATA deviceInfoData);
 
-        [DllImport("setupapi.dll", SetLastError = true)]
+        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool SetupDiSetDeviceRegistryProperty(
             IntPtr deviceInfoSet,
             ref SP_DEVINFO_DATA deviceInfoData,
