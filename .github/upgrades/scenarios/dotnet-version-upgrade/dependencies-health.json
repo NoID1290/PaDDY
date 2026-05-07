@@ -1,0 +1,165 @@
+{
+  "packageGovernance": {
+    "totalDistinctPackages": 2,
+    "totalVersionDriftInstances": 0,
+    "targetFramework": "net10.0",
+    "packages": [
+      {
+        "name": "MessagePack",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "3.1.4",
+            "projects": [
+              "PaDDY"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Microsoft.Data.Sqlite",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.7",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.15",
+            "projects": [
+              "PaDDY"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.7"
+        }
+      }
+    ]
+  },
+  "projects": [
+    {
+      "name": "AudioProcessor",
+      "path": "AudioProcessor\\AudioProcessor.csproj",
+      "isSdk": true,
+      "currentFrameworks": [
+        "net8.0-windows"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [],
+        "assemblies": [],
+        "projectReferences": [
+          {
+            "name": "EffectProcessor",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "AudioProcessor\\AudioProcessor.csproj"
+              }
+            ],
+            "referencedProjectPath": "EffectProcessor\\EffectProcessor.csproj",
+            "compatibility": "valid"
+          }
+        ],
+        "frameworkReferences": []
+      }
+    },
+    {
+      "name": "EffectProcessor",
+      "path": "EffectProcessor\\EffectProcessor.csproj",
+      "isSdk": true,
+      "currentFrameworks": [
+        "net8.0-windows"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [],
+        "assemblies": [],
+        "projectReferences": [],
+        "frameworkReferences": []
+      }
+    },
+    {
+      "name": "PaDDY",
+      "path": "PaDDY.csproj",
+      "isSdk": true,
+      "currentFrameworks": [
+        "net8.0-windows"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [
+          {
+            "name": "MessagePack",
+            "version": "3.1.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "PaDDY.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Data.Sqlite",
+            "version": "8.0.15",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "PaDDY.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.7",
+            "upgrade": {
+              "newVersion": "10.0.7"
+            }
+          }
+        ],
+        "assemblies": [],
+        "projectReferences": [
+          {
+            "name": "AudioProcessor",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "PaDDY.csproj"
+              }
+            ],
+            "referencedProjectPath": "AudioProcessor\\AudioProcessor.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "EffectProcessor",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "PaDDY.csproj"
+              }
+            ],
+            "referencedProjectPath": "EffectProcessor\\EffectProcessor.csproj",
+            "compatibility": "valid"
+          }
+        ],
+        "frameworkReferences": []
+      }
+    }
+  ]
+}
