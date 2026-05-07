@@ -1072,7 +1072,7 @@ namespace Concentus.Common
         {
             get
             {
-                return TimeSpan.FromTicks(OutputLatencySamples * TimeSpan.TicksPerSecond / this.out_rate); 
+                return TimeSpan.FromTicks(OutputLatencySamples * TimeSpan.TicksPerSecond / this.out_rate);
             }
         }
 

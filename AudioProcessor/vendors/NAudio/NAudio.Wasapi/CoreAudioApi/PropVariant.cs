@@ -185,7 +185,7 @@ namespace NAudio.CoreAudioApi.Interfaces
         /// </summary>
         public static PropVariant FromLong(long value)
         {
-            return new PropVariant() {vt = (short) VarEnum.VT_I8, hVal = value};
+            return new PropVariant() { vt = (short)VarEnum.VT_I8, hVal = value };
         }
 
         /// <summary>
@@ -205,15 +205,15 @@ namespace NAudio.CoreAudioApi.Interfaces
         {
             var blobByteLength = blobVal.Length;
             var structSize = Marshal.SizeOf(typeof(T));
-            if (blobByteLength%structSize != 0)
+            if (blobByteLength % structSize != 0)
             {
                 throw new InvalidDataException(String.Format("Blob size {0} not a multiple of struct size {1}", blobByteLength, structSize));
             }
-            var items = blobByteLength/structSize;
+            var items = blobByteLength / structSize;
             var array = new T[items];
             for (int n = 0; n < items; n++)
             {
-                array[n] = Marshal.PtrToStructure<T>(new IntPtr((long) blobVal.Data + n*structSize));
+                array[n] = Marshal.PtrToStructure<T>(new IntPtr((long)blobVal.Data + n * structSize));
             }
             return array;
         }
@@ -221,7 +221,7 @@ namespace NAudio.CoreAudioApi.Interfaces
         /// <summary>
         /// Gets the type of data in this PropVariant
         /// </summary>
-        public VarEnum DataType => (VarEnum) vt;
+        public VarEnum DataType => (VarEnum)vt;
 
         /// <summary>
         /// Property value

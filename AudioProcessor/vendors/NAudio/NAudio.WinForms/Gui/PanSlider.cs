@@ -18,14 +18,14 @@ namespace NAudio.Gui
 		private System.ComponentModel.Container components = null;
 		private float pan;
 
-        /// <summary>
-        /// True when pan value changed
-        /// </summary>
+		/// <summary>
+		/// True when pan value changed
+		/// </summary>
 		public event EventHandler PanChanged;
 
-        /// <summary>
-        /// Creates a new PanSlider control
-        /// </summary>
+		/// <summary>
+		/// Creates a new PanSlider control
+		/// </summary>
 		public PanSlider()
 		{
 			// This call is required by the Windows.Forms Form Designer.
@@ -37,14 +37,14 @@ namespace NAudio.Gui
 		/// <summary>
 		/// Clean up any resources being used.
 		/// </summary>
-		protected override void Dispose( bool disposing )
+		protected override void Dispose(bool disposing)
 		{
-			if( disposing )
+			if (disposing)
 			{
-				if( components != null )
+				if (components != null)
 					components.Dispose();
 			}
-			base.Dispose( disposing );
+			base.Dispose(disposing);
 		}
 
 		#region Component Designer generated code
@@ -63,68 +63,68 @@ namespace NAudio.Gui
 		}
 		#endregion
 
-        /// <summary>
-        /// <see cref="Control.OnPaint"/>
-        /// </summary>
+		/// <summary>
+		/// <see cref="Control.OnPaint"/>
+		/// </summary>
 		protected override void OnPaint(PaintEventArgs pe)
 		{
 			StringFormat format = new StringFormat();
 			format.LineAlignment = StringAlignment.Center;
 			format.Alignment = StringAlignment.Center;
 			string panValue;
-			if(pan == 0.0)
+			if (pan == 0.0)
 			{
-				pe.Graphics.FillRectangle(Brushes.Orange,(this.Width/2) - 1  ,1,3,this.Height-2);
+				pe.Graphics.FillRectangle(Brushes.Orange, (this.Width / 2) - 1, 1, 3, this.Height - 2);
 				panValue = "C";
 			}
-			else if(pan > 0)
+			else if (pan > 0)
 			{
-				pe.Graphics.FillRectangle(Brushes.Orange,(this.Width/2),1,(int) ((this.Width/2) * pan),this.Height-2);
-				panValue = String.Format("{0:F0}%R",pan*100);
+				pe.Graphics.FillRectangle(Brushes.Orange, (this.Width / 2), 1, (int)((this.Width / 2) * pan), this.Height - 2);
+				panValue = String.Format("{0:F0}%R", pan * 100);
 			}
 			else
 			{
-				pe.Graphics.FillRectangle(Brushes.Orange,(int)((this.Width/2) * (pan+1)),1,(int) ((this.Width/2) * (0-pan)),this.Height-2);
-				panValue = String.Format("{0:F0}%L",pan*-100);
+				pe.Graphics.FillRectangle(Brushes.Orange, (int)((this.Width / 2) * (pan + 1)), 1, (int)((this.Width / 2) * (0 - pan)), this.Height - 2);
+				panValue = String.Format("{0:F0}%L", pan * -100);
 			}
-			pe.Graphics.DrawRectangle(Pens.Black,0,0,this.Width-1,this.Height-1);
+			pe.Graphics.DrawRectangle(Pens.Black, 0, 0, this.Width - 1, this.Height - 1);
 
-			pe.Graphics.DrawString(panValue,this.Font,
-				Brushes.Black,this.ClientRectangle,format);
+			pe.Graphics.DrawString(panValue, this.Font,
+				Brushes.Black, this.ClientRectangle, format);
 			// Calling the base class OnPaint
 			//base.OnPaint(pe);
 		}
 
-        /// <summary>
-        /// <see cref="Control.OnMouseMove"/>
-        /// </summary>
-        protected override void OnMouseMove(MouseEventArgs e)
+		/// <summary>
+		/// <see cref="Control.OnMouseMove"/>
+		/// </summary>
+		protected override void OnMouseMove(MouseEventArgs e)
 		{
-			if(e.Button == MouseButtons.Left)
+			if (e.Button == MouseButtons.Left)
 			{
 				SetPanFromMouse(e.X);
 			}
-			base.OnMouseMove (e);
+			base.OnMouseMove(e);
 		}
 
 		/// <summary>
 		/// <see cref="Control.OnMouseDown"/>
 		/// </summary>
 		/// <param name="e"></param>
-        protected override void OnMouseDown(MouseEventArgs e)
-		{			
+		protected override void OnMouseDown(MouseEventArgs e)
+		{
 			SetPanFromMouse(e.X);
-			base.OnMouseDown (e);			
+			base.OnMouseDown(e);
 		}
 
 		private void SetPanFromMouse(int x)
 		{
-			Pan = (((float) x / this.Width) * 2.0f) - 1.0f;
+			Pan = (((float)x / this.Width) * 2.0f) - 1.0f;
 		}
 
-        /// <summary>
-        /// The current Pan setting
-        /// </summary>
+		/// <summary>
+		/// The current Pan setting
+		/// </summary>
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public float Pan
 		{
@@ -134,18 +134,18 @@ namespace NAudio.Gui
 			}
 			set
 			{
-				if(value < -1.0f)
+				if (value < -1.0f)
 					value = -1.0f;
-				if(value > 1.0f)
+				if (value > 1.0f)
 					value = 1.0f;
-				if(value != pan)
+				if (value != pan)
 				{
 					pan = value;
-					if(PanChanged != null)
-						PanChanged(this,EventArgs.Empty);
+					if (PanChanged != null)
+						PanChanged(this, EventArgs.Empty);
 					Invalidate();
 				}
-				
+
 			}
 		}
 	}

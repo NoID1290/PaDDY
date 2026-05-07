@@ -26,7 +26,7 @@ namespace NAudio.Vorbis
                 _sampleProvider?.Dispose();
                 _sampleProvider = null;
             }
-            
+
             base.Dispose(disposing);
         }
 

@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace CUETools.Codecs.FLAKE
 {
-    public class FlakeWriterSettings
+	public class FlakeWriterSettings
 	{
 		public FlakeWriterSettings() { DoVerify = false; DoMD5 = true; }
 		[DefaultValue(false)]
@@ -25,14 +25,14 @@ namespace CUETools.Codecs.FLAKE
 	public class FlakeWriter : IAudioDest, IDisposable
 	{
 		Stream _IO = null;
-        private readonly int channels;
-        private int ch_code;
-        private int sr_code0;
+		private readonly int channels;
+		private int ch_code;
+		private int sr_code0;
 
-        // sample size in bits
-        // set by use"audio/x-flac; rate=16000" prior to calling flake_encode_init
-        // only 16-bit is currently supported
-        int bps_code;
+		// sample size in bits
+		// set by use"audio/x-flac; rate=16000" prior to calling flake_encode_init
+		// only 16-bit is currently supported
+		int bps_code;
 
 		// total stream samples
 		// set by user prior to calling flake_encode_init
@@ -59,16 +59,16 @@ namespace CUETools.Codecs.FLAKE
 		// header bytes
 		// allocated by flake_encode_init and freed by flake_encode_close
 		byte[] header;
-        readonly int[] samplesBuffer;
+		readonly int[] samplesBuffer;
 		int[] verifyBuffer;
-        readonly int[] residualBuffer;
-        readonly float[] windowBuffer;
-        readonly double[] windowScale;
+		readonly int[] residualBuffer;
+		readonly float[] windowBuffer;
+		readonly double[] windowScale;
 		int samplesInBuffer = 0;
 
 		int _compressionLevel = 7;
 		int _blocksize = 0;
-        int _windowsize = 0, _windowcount = 0;
+		int _windowsize = 0, _windowcount = 0;
 
 		Crc8 crc8;
 		Crc16 crc16;
@@ -82,7 +82,7 @@ namespace CUETools.Codecs.FLAKE
 
 		bool inited = false;
 
-        public FlakeWriter(string path, Stream IO, AudioPCMConfig pcm)
+		public FlakeWriter(string path, Stream IO, AudioPCMConfig pcm)
 		{
 			PCM = pcm;
 
@@ -109,9 +109,9 @@ namespace CUETools.Codecs.FLAKE
 		{
 		}
 
-        public int TotalSize { get; private set; } = 0;
+		public int TotalSize { get; private set; } = 0;
 
-        public int CompressionLevel
+		public int CompressionLevel
 		{
 			get
 			{
@@ -163,41 +163,41 @@ namespace CUETools.Codecs.FLAKE
 				inited = false;
 			}
 		}
-		
+
 		public void WriteHeader()
-	       {
-		   while (samplesInBuffer > 0)
-		   {
-		       eparams.block_size = samplesInBuffer;
-		       Output_frame();
-		   }
+		{
+			while (samplesInBuffer > 0)
+			{
+				eparams.block_size = samplesInBuffer;
+				Output_frame();
+			}
 
-		   if (_IO.CanSeek)
-		   {
-		       if (sample_count <= 0 && Position != 0)
-		       {
-			   BitWriter bitwriter = new BitWriter(header, 0, 4);
-			   bitwriter.Writebits(32, (int)Position);
-			   bitwriter.Flush();
-			   _IO.Position = 22;
-			   _IO.Write(header, 0, 4);
-		       }
+			if (_IO.CanSeek)
+			{
+				if (sample_count <= 0 && Position != 0)
+				{
+					BitWriter bitwriter = new BitWriter(header, 0, 4);
+					bitwriter.Writebits(32, (int)Position);
+					bitwriter.Flush();
+					_IO.Position = 22;
+					_IO.Write(header, 0, 4);
+				}
 
-		       if (md5 != null)
-		       {
-			   md5.TransformFinalBlock(frame_buffer, 0, 0);
-			   _IO.Position = 26;
-			   _IO.Write(md5.Hash, 0, md5.Hash.Length);
-		       }
+				if (md5 != null)
+				{
+					md5.TransformFinalBlock(frame_buffer, 0, 0);
+					_IO.Position = 26;
+					_IO.Write(md5.Hash, 0, md5.Hash.Length);
+				}
 
-		       if (seek_table != null)
-		       {
-			   _IO.Position = seek_table_offset;
-			   int len = Write_seekpoints(header, 0, 0);
-			   _IO.Write(header, 4, len - 4);
-		       }
-		   }
-	       }
+				if (seek_table != null)
+				{
+					_IO.Position = seek_table_offset;
+					int len = Write_seekpoints(header, 0, 0);
+					_IO.Write(header, 4, len - 4);
+				}
+			}
+		}
 
 		public void Close()
 		{
@@ -218,9 +218,9 @@ namespace CUETools.Codecs.FLAKE
 				File.Delete(Path);
 		}
 
-        public long Position { get; private set; }
+		public long Position { get; private set; }
 
-        public long FinalSampleCount
+		public long FinalSampleCount
 		{
 			set { sample_count = (int)value; }
 		}
@@ -427,9 +427,9 @@ namespace CUETools.Codecs.FLAKE
 			}
 		}
 
-        public AudioPCMConfig PCM { get; }
+		public AudioPCMConfig PCM { get; }
 
-        unsafe int Get_wasted_bits(int* signal, int samples)
+		unsafe int Get_wasted_bits(int* signal, int samples)
 		{
 			int i, shift;
 			int x = 0;
@@ -462,7 +462,7 @@ namespace CUETools.Codecs.FLAKE
 		/// <param name="samples"></param>
 		/// <param name="pos"></param>
 		/// <param name="block"></param>
- 		unsafe void Copy_samples(int[,] samples, int pos, int block)
+		unsafe void Copy_samples(int[,] samples, int pos, int block)
 		{
 			fixed (int* fsamples = samplesBuffer, src = &samples[pos, 0])
 			{
@@ -509,7 +509,7 @@ namespace CUETools.Codecs.FLAKE
 
 		unsafe void Encode_residual_verbatim(int* res, int* smp, uint n)
 		{
-			AudioSamples.MemCpy(res, smp, (int) n);
+			AudioSamples.MemCpy(res, smp, (int)n);
 		}
 
 		unsafe void Encode_residual_fixed(int* res, int* smp, int n, int order)
@@ -687,7 +687,7 @@ namespace CUETools.Codecs.FLAKE
 			//assert(pmin <= pmax);
 
 			for (uint i = 0; i < n; i++)
-				udata[i] = (uint) ((data[i] << 1) ^ (data[i] >> 31));
+				udata[i] = (uint)((data[i] << 1) ^ (data[i] >> 31));
 
 			// sums for highest level
 			if ((n >> pmax) == 18)
@@ -957,7 +957,7 @@ namespace CUETools.Codecs.FLAKE
 			if (frame.ch_mode == ChannelMode.NotStereo)
 				bitwriter.Writebits(4, ch_code);
 			else
-				bitwriter.Writebits(4, (int) frame.ch_mode);
+				bitwriter.Writebits(4, (int)frame.ch_mode);
 			bitwriter.Writebits(3, bps_code);
 			bitwriter.Writebits(1, 0);
 			bitwriter.Write_utf8(frame_count);
@@ -993,15 +993,15 @@ namespace CUETools.Codecs.FLAKE
 			// residual
 			int j = sub.best.order;
 			fixed (byte* fixbuf = &frame_buffer[0])
-			for (int p = 0; p < (1 << porder); p++)
-			{
-				int k = sub.best.rc.rparams[p];
-				bitwriter.Writebits(rice_len, k);
-				if (p == 1) res_cnt = psize;
-				int cnt = Math.Min(res_cnt, frame.blocksize - j);
-				bitwriter.Write_rice_block_signed(fixbuf, k, sub.best.residual + j, cnt);
-				j += cnt;
-			}
+				for (int p = 0; p < (1 << porder); p++)
+				{
+					int k = sub.best.rc.rparams[p];
+					bitwriter.Writebits(rice_len, k);
+					if (p == 1) res_cnt = psize;
+					int cnt = Math.Min(res_cnt, frame.blocksize - j);
+					bitwriter.Write_rice_block_signed(fixbuf, k, sub.best.residual + j, cnt);
+					j += cnt;
+				}
 		}
 
 		unsafe void Output_subframe_constant(FlacFrame frame, BitWriter bitwriter, FlacSubframeInfo sub)
@@ -1053,7 +1053,7 @@ namespace CUETools.Codecs.FLAKE
 			{
 				FlacSubframeInfo sub = frame.subframes[ch];
 				// subframe header
-				int type_code = (int) sub.best.type;
+				int type_code = (int)sub.best.type;
 				if (sub.best.type == SubframeType.Fixed)
 					type_code |= sub.best.order;
 				if (sub.best.type == SubframeType.LPC)
@@ -1174,7 +1174,7 @@ namespace CUETools.Codecs.FLAKE
 					break;
 				case StereoMethod.Search:
 					for (int ch = 0; ch < subframes; ch++)
-					    Encode_residual_pass2(frame, ch);
+						Encode_residual_pass2(frame, ch);
 					break;
 			}
 		}
@@ -1384,10 +1384,10 @@ namespace CUETools.Codecs.FLAKE
 			}
 
 			int fs;
-            //if (0 != eparams.variable_block_size && 0 == (eparams.block_size & 7) && eparams.block_size >= 128)
-            //    fs = encode_frame_vbs();
-            //else
-            fs = Encode_frame(out int bs);
+			//if (0 != eparams.variable_block_size && 0 == (eparams.block_size & 7) && eparams.block_size >= 128)
+			//    fs = encode_frame_vbs();
+			//else
+			fs = Encode_frame(out int bs);
 
 			if (seek_table != null && _IO.CanSeek)
 			{
@@ -1469,9 +1469,9 @@ namespace CUETools.Codecs.FLAKE
 				md5.TransformBlock(buff.Bytes, 0, buff.ByteLength, null, 0);
 		}
 
-        public string Path { get; }
+		public string Path { get; }
 
-        string vendor_string = "Flake#0.1";
+		string vendor_string = "Flake#0.1";
 
 		int Select_blocksize(int samplerate, int time_ms)
 		{
@@ -1692,13 +1692,13 @@ namespace CUETools.Codecs.FLAKE
 			header = new byte[eparams.padding_size + 1024 + (seek_table == null ? 0 : seek_table.Length * 18)];
 			header_len = Write_headers();
 
-            // initialize CRC & MD5
+			// initialize CRC & MD5
 #pragma warning disable SCS0006
-            if (_IO.CanSeek && _settings.DoMD5)
+			if (_IO.CanSeek && _settings.DoMD5)
 				md5 = MD5.Create();
 #pragma warning restore SCS0006
 
-            if (_settings.DoVerify)
+			if (_settings.DoVerify)
 			{
 				verify = new FlakeReader(PCM);
 				verifyBuffer = new int[Flake.MAX_BLOCKSIZE * channels];
@@ -1709,11 +1709,11 @@ namespace CUETools.Codecs.FLAKE
 			return header_len;
 		}
 
-        public void Dispose()
-        {
-            Close();
-        }
-    }
+		public void Dispose()
+		{
+			Close();
+		}
+	}
 
 	struct FlakeEncodeParams
 	{
