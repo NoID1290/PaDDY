@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.Versioning;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Navigation;
 using PaDDY.Helpers;
-using PaDDY.Services;
 
 namespace PaDDY
 {
@@ -47,8 +43,6 @@ namespace PaDDY
 
         private uint _capturedVk;
         private bool _capturingKey;
-        private bool _vadInstalled;
-        private bool _vadFilesPresent;
 
         // Win32 ModKey flags
         private const uint MOD_SHIFT = 0x0004;
@@ -64,7 +58,6 @@ namespace PaDDY
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            RefreshVadStatus();
             // Codec
             _visibleCodecOptions = new List<(string Value, string Label)>(CodecOptions);
             CodecCombo.Items.Clear();
@@ -165,56 +158,6 @@ namespace PaDDY
             _capturedVk = (uint)KeyInterop.VirtualKeyFromKey(key);
             HotkeyKeyBox.Text = KeyHelper.VkToLabel(_capturedVk);
             Keyboard.ClearFocus();
-        }
-
-        private void RefreshVadStatus()
-        {
-            _vadFilesPresent = VadService.AreDriverFilesPresent();
-            _vadInstalled = _vadFilesPresent && VadService.IsDriverInstalled();
-
-            if (_vadInstalled)
-            {
-                VadStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x4C, 0xAF, 0x50)); // green
-                VadStatusText.Text = "Installed";
-                InstallDriverButton.Visibility = Visibility.Collapsed;
-                VadNoFilesText.Visibility = Visibility.Collapsed;
-            }
-            else if (_vadFilesPresent)
-            {
-                VadStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xC1, 0x07)); // amber
-                VadStatusText.Text = "Not installed";
-                InstallDriverButton.Visibility = Visibility.Visible;
-                VadNoFilesText.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                VadStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x80, 0x80, 0x80)); // grey
-                VadStatusText.Text = "Driver files not found";
-                InstallDriverButton.Visibility = Visibility.Collapsed;
-                VadNoFilesText.Visibility = Visibility.Visible;
-            }
-        }
-
-        private async void InstallDriverButton_Click(object sender, RoutedEventArgs e)
-        {
-            InstallDriverButton.IsEnabled = false;
-            InstallDriverButton.Content = "Installing…";
-            bool success = await VadService.InstallDriverAsync();
-            InstallDriverButton.IsEnabled = true;
-            InstallDriverButton.Content = "Install Driver";
-            RefreshVadStatus();
-            if (!success)
-                System.Windows.MessageBox.Show(this,
-                    "Driver installation failed or was cancelled.",
-                    "Virtual Audio Driver",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-        }
-
-        private void VadHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-            e.Handled = true;
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();

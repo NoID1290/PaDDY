@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.2.0.0506")]
-[assembly: AssemblyFileVersion("1.2.0.0506")]
-[assembly: AssemblyInformationalVersion("1.2.0.0506-Pre-release_1")]
+[assembly: AssemblyVersion("1.1.4.0506")]
+[assembly: AssemblyFileVersion("1.1.4.0506")]
+[assembly: AssemblyInformationalVersion("1.1.4.0506")]
 [assembly: AssemblyCopyright("Copyright (c) NoID Softwork 2020-2026")]
 [assembly: AssemblyCompany("NoID Softwork")]
 [assembly: AssemblyTitle("PaDDY")]

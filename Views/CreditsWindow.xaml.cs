@@ -26,8 +26,6 @@ namespace PaDDY
             new() { Name = "Concentus (opus-fix)", License = "BSD", Usage = "Additional Opus licensing notices", LicenseFile = "Concentus-opus-fix-COPYING.txt" },
             new() { Name = "Concentus.OggFile", License = "MIT", Usage = "Ogg/Opus stream container support", LicenseFile = "Concentus.OggFile-LICENSE.txt" },
             new() { Name = "OggVorbisEncoder", License = "MIT", Usage = "Ogg Vorbis encoding", LicenseFile = "OggVorbisEncoder-LICENSE.txt" },
-            new() { Name = "Virtual Audio Driver",          License = "MIT",   Usage = "Optional bundled virtual speaker/mic driver",                        LicenseFile = "VirtualAudioDriver-LICENSE.txt" },
-            new() { Name = "Virtual Audio Driver (Sysvad)", License = "MS-PL", Usage = "Microsoft Sysvad/WDK sample code (third-party component of driver)", LicenseFile = "VirtualAudioDriver-THIRD_PARTY_NOTICES.txt" },
         };
 
         public CreditsWindow()

@@ -8,9 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>1.2.0.0506</Version>
-    <AssemblyVersion>1.2.0.0506</AssemblyVersion>
-    <FileVersion>1.2.0.0506</FileVersion>
+    <Version>1.1.4.0506</Version>
+    <AssemblyVersion>1.1.4.0506</AssemblyVersion>
+    <FileVersion>1.1.4.0506</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
@@ -69,30 +69,6 @@
     </None>
     <None Include="AudioProcessor\vendors\VENDORING_MANIFEST.md">
       <Link>licenses\VENDORING_MANIFEST.md</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <!-- Virtual Audio Driver ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â optional bundled driver files -->
-    <None Include="Vad\VirtualAudioDriver.inf">
-      <Link>vad\VirtualAudioDriver.inf</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Vad\VirtualAudioDriver.sys">
-      <Link>vad\VirtualAudioDriver.sys</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Vad\virtualaudiodriver.cat">
-      <Link>vad\virtualaudiodriver.cat</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <!-- Virtual Audio Driver license files -->
-    <None Include="Vad\LICENSE.txt">
-      <Link>licenses\VirtualAudioDriver-LICENSE.txt</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Vad\THIRD_PARTY_NOTICES.txt">
-      <Link>licenses\VirtualAudioDriver-THIRD_PARTY_NOTICES.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
