@@ -163,7 +163,7 @@ namespace CUETools.Codecs
                 if (_encoderProcess.HasExited)
                     throw new IOException(string.Format("{0} has exited prematurely with code {1}", _encoder, _encoderProcess.ExitCode), ex);
                 else
-                    throw ex;
+                    throw;
             }
             //_sampleLen += sampleCount;
         }

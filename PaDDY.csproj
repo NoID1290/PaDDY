@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -26,7 +26,7 @@
   <ItemGroup>
     <!-- ExcludeFromSingleFile keeps these DLLs as separate files when PublishSingleFile=true -->
     <PackageReference Include="MessagePack" Version="3.1.4" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.15" ExcludeFromSingleFile="true" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.7" ExcludeFromSingleFile="true" />
   </ItemGroup>
   <!--
     When publishing as a single-file bundle (PublishSingleFile=true), keep the app's own DLLs

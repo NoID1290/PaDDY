@@ -98,7 +98,7 @@ namespace CUETools.Codecs
         {
         }
 
-        private void Decompress(object o)
+        private void Decompress(object? o)
         {
 #if !DEBUG
 			try

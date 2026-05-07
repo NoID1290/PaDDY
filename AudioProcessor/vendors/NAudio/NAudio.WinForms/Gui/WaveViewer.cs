@@ -35,6 +35,7 @@ namespace NAudio.Gui
         /// <summary>
         /// sets the associated wavestream
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public WaveStream WaveStream
         {
             get
@@ -55,6 +56,7 @@ namespace NAudio.Gui
         /// <summary>
         /// The zoom level, in samples per pixel
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int SamplesPerPixel
         {
             get
@@ -71,6 +73,7 @@ namespace NAudio.Gui
         /// <summary>
         /// Start position (currently in bytes)
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public long StartPosition
         {
             get

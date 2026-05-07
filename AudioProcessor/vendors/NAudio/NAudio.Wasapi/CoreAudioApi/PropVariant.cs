@@ -204,8 +204,7 @@ namespace NAudio.CoreAudioApi.Interfaces
         public T[] GetBlobAsArrayOf<T>()
         {
             var blobByteLength = blobVal.Length;
-            var singleInstance = (T) Activator.CreateInstance(typeof (T));
-            var structSize = Marshal.SizeOf(singleInstance);
+            var structSize = Marshal.SizeOf(typeof(T));
             if (blobByteLength%structSize != 0)
             {
                 throw new InvalidDataException(String.Format("Blob size {0} not a multiple of struct size {1}", blobByteLength, structSize));
@@ -214,8 +213,7 @@ namespace NAudio.CoreAudioApi.Interfaces
             var array = new T[items];
             for (int n = 0; n < items; n++)
             {
-                array[n] = (T) Activator.CreateInstance(typeof (T));
-                Marshal.PtrToStructure(new IntPtr((long) blobVal.Data + n*structSize), array[n]);
+                array[n] = Marshal.PtrToStructure<T>(new IntPtr((long) blobVal.Data + n*structSize));
             }
             return array;
         }

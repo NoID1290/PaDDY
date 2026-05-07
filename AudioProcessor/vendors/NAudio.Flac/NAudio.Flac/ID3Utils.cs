@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 
 namespace NAudio.Flac
@@ -152,8 +153,8 @@ namespace NAudio.Flac
             MemoryStream stream;
             if (mimetype.Trim() == MimeURL)
             {
-                var client = new WebClient();
-                var data = client.DownloadData(GetURL(rawdata, mimetype));
+                using var client = new HttpClient();
+                var data = client.GetByteArrayAsync(GetURL(rawdata, mimetype)).GetAwaiter().GetResult();
                 stream = new MemoryStream(data);
             }
             else

@@ -1695,7 +1695,7 @@ namespace CUETools.Codecs.FLAKE
             // initialize CRC & MD5
 #pragma warning disable SCS0006
             if (_IO.CanSeek && _settings.DoMD5)
-				md5 = new MD5CryptoServiceProvider();
+				md5 = MD5.Create();
 #pragma warning restore SCS0006
 
             if (_settings.DoVerify)

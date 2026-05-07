@@ -69,7 +69,7 @@ namespace NAudio.Wave
                 device.Guid = new Guid(guidBytes);
             }
             device.Description =  Marshal.PtrToStringAnsi(lpcstrDescription);
-            if (lpcstrModule != null)
+            if (lpcstrModule != IntPtr.Zero)
             {
                 device.ModuleName = Marshal.PtrToStringAnsi(lpcstrModule);
             }
@@ -164,12 +164,8 @@ namespace NAudio.Wave
             }
             else
             {
-                // No joy - abort the thread!
-                if (notifyThread != null)
-                {
-                    notifyThread.Abort();
-                    notifyThread = null;
-                }
+                // Could not acquire lock quickly; request stop without forcing thread abort.
+                playbackState = PlaybackState.Stopped;
             }
         }
 

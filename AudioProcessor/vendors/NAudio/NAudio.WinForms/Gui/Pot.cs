@@ -48,6 +48,7 @@ namespace NAudio.Gui
         /// <summary>
         /// Minimum Value of the Pot
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public double Minimum
         {
             get
@@ -67,6 +68,7 @@ namespace NAudio.Gui
         /// <summary>
         /// Maximum Value of the Pot
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public double Maximum
         {
             get
@@ -86,6 +88,7 @@ namespace NAudio.Gui
         /// <summary>
         /// The current value of the pot
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public double Value
         {
             get

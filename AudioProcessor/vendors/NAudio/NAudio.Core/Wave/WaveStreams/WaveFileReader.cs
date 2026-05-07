@@ -79,7 +79,7 @@ namespace NAudio.Wave
             long oldPosition = waveStream.Position;
             waveStream.Position = chunk.StreamPosition;
             byte[] data = new byte[chunk.Length];
-            waveStream.Read(data, 0, data.Length);
+            waveStream.ReadExactly(data, 0, data.Length);
             waveStream.Position = oldPosition;
             return data;
         }

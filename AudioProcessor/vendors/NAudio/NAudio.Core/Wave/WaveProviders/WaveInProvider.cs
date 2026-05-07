@@ -20,7 +20,7 @@
             bufferedWaveProvider = new BufferedWaveProvider(WaveFormat);
         }
 
-        private void OnDataAvailable(object sender, WaveInEventArgs e)
+        private void OnDataAvailable(object? sender, WaveInEventArgs e)
         {
             bufferedWaveProvider.AddSamples(e.Buffer, 0, e.BytesRecorded);
         }

@@ -73,19 +73,19 @@ namespace CUETools.Codecs
             _writeThread.Start(to);
         }
 
-        private void CloseOutputToStream(object to)
+        private void CloseOutputToStream(object? to)
         {
-            ((Stream)to).Close();
+            ((Stream)to!).Close();
         }
 
-        private void FlushOutputToStream(byte[] buffer, int pos, int chunk, object to)
+        private void FlushOutputToStream(byte[] buffer, int pos, int chunk, object? to)
         {
-            ((Stream)to).Write(buffer, pos, chunk);
+            ((Stream)to!).Write(buffer, pos, chunk);
         }
 
-        private void PumpRead(object o)
+        private void PumpRead(object? o)
         {
-            while (Read((Stream)o))
+            while (Read((Stream)o!))
                 ;
             SetEOF();
         }
@@ -188,7 +188,7 @@ namespace CUETools.Codecs
             }
         }
 
-        private void FlushThread(object to)
+        private void FlushThread(object? to)
         {
             while (true)
             {

@@ -889,7 +889,7 @@ public class PsyLookup
         // effect.  There's no need to [re]populate *q in these areas 
         for (j = 0; j < start; j++)
         {
-            if ((flags != null) && flags[offset + j])
+            if (flags[offset + j])
                 continue;
 
             // Lossless coupling already quantized.
@@ -904,7 +904,7 @@ public class PsyLookup
 
         // sort magnitudes for noise norm portion of partition 
         for (; j < n; j++)
-            if ((flags == null) || !flags[offset + j])
+            if (!flags[offset + j])
             {
                 // can't noise norm elements that have
                 // already been losslessly coupled; we can
@@ -916,7 +916,7 @@ public class PsyLookup
                 // consider promotions to unit magnitude from 0.  In addition
                 // the only energy error counted is quantizations to zero.
                 // also-- the original point code only applied noise norm at > pointlimit
-                if ((ve < .25f) && ((flags == null) || (j >= limit - i)))
+                if ((ve < .25f) && (j >= limit - i))
                 {
                     acc += ve;
                     _sort.Add(new OffsetMemory<float>(qMemory, j)); // q is fabs(r) for unflagged element

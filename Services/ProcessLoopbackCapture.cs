@@ -188,10 +188,12 @@ namespace PaDDY.Services
             var handler = RecordingStopped;
             if (handler == null) return;
 
+            var stoppedArgs = e is null ? new StoppedEventArgs() : new StoppedEventArgs(e);
+
             if (_syncContext != null)
-                _syncContext.Post(_ => handler(this, new StoppedEventArgs(e)), null);
+                _syncContext.Post(_ => handler(this, stoppedArgs), null);
             else
-                handler(this, new StoppedEventArgs(e));
+                handler(this, stoppedArgs);
         }
     }
 }

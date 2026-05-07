@@ -38,7 +38,7 @@ namespace NVorbis.Ogg
                 // this will force the reader to attempt to read all pages
                 _reader.GetPage(int.MaxValue, out _, out _, out _, out _, out _, out _);
             }
-            return _reader.MaxGranulePosition.Value;
+            return _reader.MaxGranulePosition ?? 0;
         }
 
         public IPacket GetNextPacket()

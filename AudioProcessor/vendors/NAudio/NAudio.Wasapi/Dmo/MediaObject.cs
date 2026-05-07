@@ -137,7 +137,7 @@ namespace NAudio.Dmo
                 }
                 else
                 {
-                    throw Marshal.GetExceptionForHR(hresult);
+                    throw Marshal.GetExceptionForHR(hresult) ?? new COMException("Unhandled COM error", hresult);
                 }
             }
         }
@@ -316,7 +316,7 @@ namespace NAudio.Dmo
             }
             else
             {
-                throw Marshal.GetExceptionForHR(hresult);
+                throw Marshal.GetExceptionForHR(hresult) ?? new COMException("Unhandled COM error", hresult);
             }
         }
 

@@ -151,6 +151,7 @@ namespace NAudio.Gui
         /// <summary>
         /// Minimum value of this fader
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Minimum
         {
             get
@@ -166,6 +167,7 @@ namespace NAudio.Gui
         /// <summary>
         /// Maximum value of this fader
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Maximum
         {
             get
@@ -181,6 +183,7 @@ namespace NAudio.Gui
         /// <summary>
         /// Current value of this fader
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Value
         {
             get
@@ -196,6 +199,7 @@ namespace NAudio.Gui
         /// <summary>
         /// Fader orientation
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Orientation Orientation
         {
             get

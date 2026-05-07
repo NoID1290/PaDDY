@@ -725,7 +725,7 @@ namespace Concentus.Common
                     int ichunk = (ilen > xlen) ? xlen : ilen;
                     int ochunk = olen;
 
-                    if (input != null)
+                    if (!input.IsEmpty)
                     {
                         for (j = 0; j < ichunk; ++j)
                         {
@@ -744,7 +744,7 @@ namespace Concentus.Common
                     ilen -= ichunk;
                     olen -= ochunk;
                     output_ptr += ochunk * this.out_stride;
-                    if (input != null)
+                    if (!input.IsEmpty)
                     {
                         input_ptr += ichunk * istride;
                     }
@@ -790,7 +790,7 @@ namespace Concentus.Common
                 }
                 if (this.magic_samples[channel_index] == 0)
                 {
-                    if (input != null)
+                    if (!input.IsEmpty)
                     {
                         for (j = 0; j < ichunk; ++j)
                             this.mem[x + j + this.filt_len - 1] = input[input_ptr + j * istride_save];
@@ -817,7 +817,7 @@ namespace Concentus.Common
                 ilen -= ichunk;
                 olen -= ochunk;
                 output_ptr += ((ochunk + omagic) * ostride_save);
-                if (input != null)
+                if (!input.IsEmpty)
                 {
                     input_ptr += ichunk * istride_save;
                 }
@@ -842,10 +842,10 @@ namespace Concentus.Common
             {
                 out_len = bak_out_len;
                 in_len = bak_in_len;
-                if (input != null)
+                if (!input.IsEmpty)
                     this.Process(i, input, i, ref in_len, output, i, ref out_len);
                 else
-                    this.Process(i, null, 0, ref in_len, output, i, ref out_len);
+                    this.Process(i, default, 0, ref in_len, output, i, ref out_len);
             }
             this.in_stride = istride_save;
             this.out_stride = ostride_save;
@@ -865,10 +865,10 @@ namespace Concentus.Common
             {
                 out_len = bak_out_len;
                 in_len = bak_in_len;
-                if (input != null)
+                if (!input.IsEmpty)
                     this.Process(i, input, i, ref in_len, output, i, ref out_len);
                 else
-                    this.Process(i, null, 0, ref in_len, output, i, ref out_len);
+                    this.Process(i, default, 0, ref in_len, output, i, ref out_len);
             }
             this.in_stride = istride_save;
             this.out_stride = ostride_save;

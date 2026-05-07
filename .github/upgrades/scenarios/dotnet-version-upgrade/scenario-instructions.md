@@ -31,3 +31,9 @@
 - **Source Branch**: dotNet10
 - **Working Branch**: upgrade-dotnet-10
 - **Commit Strategy**: Single Commit at End
+
+## Build Tool Decisions
+- **PaDDY.csproj**: dotnet build (SDK-style net8.0-windows WPF project builds successfully with .NET 10 SDK installed)
+
+## Decisions
+- Proceed with .NET 10 migration completion while accepting existing warnings in vendored AudioProcessor upstream sources.

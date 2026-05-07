@@ -125,6 +125,7 @@ namespace NAudio.Gui
         /// <summary>
         /// The current Pan setting
         /// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public float Pan
 		{
 			get

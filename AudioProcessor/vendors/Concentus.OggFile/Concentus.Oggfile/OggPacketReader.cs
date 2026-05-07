@@ -353,6 +353,10 @@ namespace Concentus.Oggfile
                     }
                     else
                     {
+                        if (packet.Next == null || !packet.Next.GranuleCount.HasValue)
+                        {
+                            throw new InvalidOperationException("Unable to determine granule count for next packet.");
+                        }
                         packet.GranulePosition = packet.Next.GranulePosition - packet.Next.GranuleCount.Value;
                     }
 
@@ -371,7 +375,11 @@ namespace Concentus.Oggfile
                     else
                     {
                         // probably the first data packet...
-                        if (packet.GranulePosition > packet.Next.GranulePosition - packet.Next.GranuleCount)
+                        if (packet.Next == null || !packet.Next.GranuleCount.HasValue)
+                        {
+                            throw new InvalidOperationException("First data packet granule information missing");
+                        }
+                        if (packet.GranulePosition > packet.Next.GranulePosition - packet.Next.GranuleCount.Value)
                         {
                             throw new InvalidOperationException("First data packet size mismatch");
                         }
@@ -383,7 +391,7 @@ namespace Concentus.Oggfile
                 if (targetGranulePos <= packet.GranulePosition && targetGranulePos > packet.GranulePosition - packet.GranuleCount)
                 {
                     // make sure the previous packet has a position too
-                    if (packet.Prev != null && !packet.Prev.GranuleCount.HasValue)
+                    if (packet.Prev != null && !packet.Prev.GranuleCount.HasValue && packet.GranuleCount.HasValue)
                     {
                         packet.Prev.GranulePosition = packet.GranulePosition - packet.GranuleCount.Value;
                     }

@@ -74,7 +74,7 @@ namespace NVorbis.Ogg
                     HasAllPages = true;
                 }
 
-                if (_reader.IsResync.Value || (_lastSeqNbr != 0 && _lastSeqNbr + 1 != _reader.SequenceNumber))
+                if (_reader.IsResync.GetValueOrDefault() || (_lastSeqNbr != 0 && _lastSeqNbr + 1 != _reader.SequenceNumber))
                 {
                     // as a practical matter, if the sequence numbers are "wrong", our logical stream is now out of sync
                     // so whether the page header sync was lost or we just got an out of order page / sequence jump, we're counting it as a resync
@@ -312,7 +312,7 @@ namespace NVorbis.Ogg
                         // if we found our page, return it from here so we don't have to do further processing
                         if (pageIndex < _pageOffsets.Count)
                         {
-                            isResync = _reader.IsResync.Value;
+                            isResync = _reader.IsResync.GetValueOrDefault();
                             ReadPageData(pageIndex, out granulePos, out isContinuation, out isContinued, out packetCount, out pageOverhead);
                             return true;
                         }

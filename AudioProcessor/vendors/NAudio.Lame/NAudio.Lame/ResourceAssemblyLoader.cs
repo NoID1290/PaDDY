@@ -28,7 +28,7 @@ namespace NAudio.Lame
 			}
 		}
 
-		private static Assembly LoadLameWrapper(object sender, ResolveEventArgs args)
+		private static Assembly? LoadLameWrapper(object? sender, ResolveEventArgs args)
 		{
 			var asmName = new AssemblyName(args.Name).Name + ".dll";
 			var srcAssembly = typeof(ResourceAssemblyLoader).Assembly;
@@ -48,7 +48,7 @@ namespace NAudio.Lame
 				using (var strm = srcAssembly.GetManifestResourceStream(resName))
 				{
 					src = new byte[strm.Length];
-					strm.Read(src, 0, (int)strm.Length);
+					strm.ReadExactly(src, 0, (int)strm.Length);
 					break;
 				}
 			}
