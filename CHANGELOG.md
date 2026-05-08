@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.5.0508-Pre-release_1] - 2026-05-08
+
+- Version bump
+
 ## [1.1.5.0507-Pre-release_2] - 2026-05-07
 
 - Testing dotnet10 first push
