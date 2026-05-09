@@ -50,12 +50,18 @@ namespace NoIDSoftwork.AudioProcessor
             if (bytesPerSample <= 0)
                 return (Array.Empty<byte>(), 0);
 
-            int sourceFrames = sourceByteCount / (_sourceChannels * bytesPerSample);
+            int frameBytes = _sourceChannels * bytesPerSample;
+            if (frameBytes <= 0)
+                return (Array.Empty<byte>(), 0);
+
+            int usableBytes = Math.Min(sourceByteCount, sourceBuffer.Length);
+            usableBytes -= usableBytes % frameBytes;
+            int sourceFrames = usableBytes / frameBytes;
             if (sourceFrames == 0)
                 return (Array.Empty<byte>(), 0);
 
             // Step 1: Downmix to stereo float
-            float[] stereoSamples = DownmixToStereo(sourceBuffer, sourceByteCount, sourceFrames);
+            float[] stereoSamples = DownmixToStereo(sourceBuffer, usableBytes, sourceFrames);
 
             // Step 2: Resample if needed
             float[] outputSamples;
@@ -141,7 +147,10 @@ namespace NoIDSoftwork.AudioProcessor
 
         private static float ReadSampleAsFloat(byte[] buffer, int byteOffset, int bytesPerSample, bool isFloat)
         {
-            if (isFloat)
+            if (byteOffset < 0 || bytesPerSample <= 0 || !HasWholeSample(buffer, byteOffset, bytesPerSample))
+                return 0f;
+
+            if (isFloat && bytesPerSample == 4)
                 return Math.Clamp(BitConverter.ToSingle(buffer, byteOffset), -1f, 1f);
 
             return bytesPerSample switch
@@ -155,10 +164,18 @@ namespace NoIDSoftwork.AudioProcessor
 
         private static int ReadPcm24(byte[] buffer, int byteOffset)
         {
+            if (!HasWholeSample(buffer, byteOffset, 3))
+                return 0;
+
             int sample = buffer[byteOffset] | (buffer[byteOffset + 1] << 8) | (buffer[byteOffset + 2] << 16);
             if ((sample & 0x800000) != 0)
                 sample |= unchecked((int)0xFF000000);
             return sample;
+        }
+
+        private static bool HasWholeSample(byte[] buffer, int byteOffset, int bytesPerSample)
+        {
+            return byteOffset >= 0 && bytesPerSample > 0 && byteOffset <= buffer.Length - bytesPerSample;
         }
 
         private float[] Resample(float[] stereoInput)

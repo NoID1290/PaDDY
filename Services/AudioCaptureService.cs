@@ -91,6 +91,7 @@ namespace PaDDY.Services
 
         // KeyBuffer trigger flag (set from any thread, consumed on audio thread)
         private volatile bool _captureBufferNow;
+        private bool _recorderFaulted;
 
         private bool _disposed;
 
@@ -203,8 +204,8 @@ namespace PaDDY.Services
                 if (_captureBufferNow)
                 {
                     _captureBufferNow = false;
-                    StartClip();
-                    FinaliseClip();
+                    if (StartClip())
+                        FinaliseClip();
                 }
                 return;
             }
@@ -219,16 +220,21 @@ namespace PaDDY.Services
             if (hasVoice)
             {
                 if (!_isRecording)
-                    StartClip();
+                {
+                    if (!StartClip())
+                        return;
+                }
 
                 _lastVoiceTime = DateTime.UtcNow;
-                _recorder.AppendSamples(e.Buffer, 0, e.BytesRecorded);
+                if (!TryAppendSamples(e.Buffer, e.BytesRecorded))
+                    return;
             }
             else
             {
                 if (_isRecording)
                 {
-                    _recorder.AppendSamples(e.Buffer, 0, e.BytesRecorded);
+                    if (!TryAppendSamples(e.Buffer, e.BytesRecorded))
+                        return;
 
                     double silentMs = (DateTime.UtcNow - _lastVoiceTime).TotalMilliseconds;
                     if (silentMs >= SilenceTimeoutMs)
@@ -250,51 +256,87 @@ namespace PaDDY.Services
             }
         }
 
-        private void StartClip()
+        private bool StartClip()
         {
-            _isRecording = true;
-            _lastVoiceTime = DateTime.UtcNow;
-
-            var format = _captureFormat ?? new WaveFormat(16000, 16, 1);
-            string requestedCodec = (RecordCodec ?? "wav").ToLowerInvariant();
-            string codecToUse = requestedCodec;
-
-            if (!IsCodecCompatibleWithFormat(requestedCodec, format, out string incompatibilityReason))
+            try
             {
-                codecToUse = "wav";
-                RecordCodec = "wav";
-                CodecCompatibilityWarning?.Invoke(
-                    $"{requestedCodec.ToUpperInvariant()} is not compatible with current input format ({format.SampleRate} Hz, {format.Channels} channel(s)). {incompatibilityReason} Falling back to WAV.");
-            }
+                _isRecording = true;
+                _recorderFaulted = false;
+                _lastVoiceTime = DateTime.UtcNow;
 
-            if (codecToUse != "wav" && format.Channels > 2)
+                var format = _captureFormat ?? new WaveFormat(16000, 16, 1);
+                string requestedCodec = (RecordCodec ?? "wav").ToLowerInvariant();
+                string codecToUse = requestedCodec;
+
+                if (!IsCodecCompatibleWithFormat(requestedCodec, format, out string incompatibilityReason))
+                {
+                    codecToUse = "wav";
+                    RecordCodec = "wav";
+                    CodecCompatibilityWarning?.Invoke(
+                        $"{requestedCodec.ToUpperInvariant()} is not compatible with current input format ({format.SampleRate} Hz, {format.Channels} channel(s)). {incompatibilityReason} Falling back to WAV.");
+                }
+
+                if (codecToUse != "wav" && format.Channels > 2)
+                {
+                    codecToUse = "wav";
+                    RecordCodec = "wav";
+                    CodecCompatibilityWarning?.Invoke(
+                        $"{requestedCodec.ToUpperInvariant()} is not compatible with current input format ({format.SampleRate} Hz, {format.Channels} channel(s)). Multichannel input is currently supported only with WAV. Falling back to WAV.");
+                }
+
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string folder = Path.IsPathRooted(SaveFolder)
+                    ? SaveFolder
+                    : Path.Combine(AppDataPaths.AppDataRoot, SaveFolder);
+                Directory.CreateDirectory(folder);
+                string ext = StreamingRecorderFactory.ExtensionFor(codecToUse);
+                string filePath = Path.Combine(folder, $"Recording_{timestamp}.{ext}");
+
+                _recorder = StreamingRecorderFactory.Create(codecToUse);
+                _recorder.BeginRecording(filePath, format);
+
+                // Reset effect state at the start of each clip so fade/envelope begins fresh
+                CaptureEffectChain?.Reset();
+
+                foreach (var chunk in _preBuffer)
+                {
+                    if (!TryAppendSamples(chunk, chunk.Length))
+                        return false;
+                }
+
+                _preBuffer.Clear();
+                _preBufferBytes = 0;
+                RecordingStateChanged?.Invoke(true);
+                return true;
+            }
+            catch (Exception ex)
             {
-                codecToUse = "wav";
-                RecordCodec = "wav";
-                CodecCompatibilityWarning?.Invoke(
-                    $"{requestedCodec.ToUpperInvariant()} is not compatible with current input format ({format.SampleRate} Hz, {format.Channels} channel(s)). Multichannel input is currently supported only with WAV. Falling back to WAV.");
+                _isRecording = false;
+                _recorderFaulted = true;
+                CodecCompatibilityWarning?.Invoke($"Failed to start recorder ({RecordCodec.ToUpperInvariant()}): {ex.Message}");
+                try { _recorder.Dispose(); } catch { }
+                return false;
             }
+        }
 
-            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            string folder = Path.IsPathRooted(SaveFolder)
-                ? SaveFolder
-                : Path.Combine(AppDataPaths.AppDataRoot, SaveFolder);
-            Directory.CreateDirectory(folder);
-            string ext = StreamingRecorderFactory.ExtensionFor(codecToUse);
-            string filePath = Path.Combine(folder, $"Recording_{timestamp}.{ext}");
+        private bool TryAppendSamples(byte[] buffer, int count)
+        {
+            if (_recorderFaulted) return false;
 
-            _recorder = StreamingRecorderFactory.Create(codecToUse);
-            _recorder.BeginRecording(filePath, format);
-
-            // Reset effect state at the start of each clip so fade/envelope begins fresh
-            CaptureEffectChain?.Reset();
-
-            foreach (var chunk in _preBuffer)
-                _recorder.AppendSamples(chunk, 0, chunk.Length);
-            _preBuffer.Clear();
-            _preBufferBytes = 0;
-
-            RecordingStateChanged?.Invoke(true);
+            try
+            {
+                _recorder.AppendSamples(buffer, 0, count);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _recorderFaulted = true;
+                _isRecording = false;
+                CodecCompatibilityWarning?.Invoke($"Recorder write failed ({RecordCodec.ToUpperInvariant()}): {ex.Message}");
+                try { _recorder.Dispose(); } catch { }
+                RecordingStateChanged?.Invoke(false);
+                return false;
+            }
         }
 
         private static bool IsCodecCompatibleWithFormat(string codec, WaveFormat format, out string reason)
@@ -346,7 +388,21 @@ namespace PaDDY.Services
         {
             _isRecording = false;
             string? path = _recorder.CurrentFilePath;
-            TimeSpan duration = _recorder.Finish();
+            TimeSpan duration = TimeSpan.Zero;
+
+            try
+            {
+                if (!_recorderFaulted)
+                    duration = _recorder.Finish();
+                else
+                    _recorder.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _recorderFaulted = true;
+                CodecCompatibilityWarning?.Invoke($"Recorder finalize failed ({RecordCodec.ToUpperInvariant()}): {ex.Message}");
+                try { _recorder.Dispose(); } catch { }
+            }
 
             RecordingStateChanged?.Invoke(false);
 

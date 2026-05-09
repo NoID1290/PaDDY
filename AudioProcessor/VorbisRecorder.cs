@@ -43,7 +43,7 @@ namespace NoIDSoftwork.AudioProcessor
 
             _vorbisInfo = VorbisInfo.InitVariableBitRate(_encodeChannels, format.SampleRate, 0.5f);
             _processingState = ProcessingState.Create(_vorbisInfo);
-            _oggStream = new OggStream(new Random().Next());
+            _oggStream = new OggStream(Random.Shared.Next());
             _fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
 
             // Write the three required Ogg/Vorbis header packets
@@ -58,25 +58,35 @@ namespace NoIDSoftwork.AudioProcessor
         public void AppendSamples(byte[] buffer, int offset, int count)
         {
             if (_processingState == null || _oggStream == null || _format == null || !_headersWritten) return;
+            if (count <= 0 || offset < 0 || offset >= buffer.Length) return;
+
+            int available = Math.Min(count, buffer.Length - offset);
+            if (available <= 0) return;
+
+            int sourceFrameBytes = Math.Max(1, _format.BlockAlign);
+            int alignedAvailable = available - (available % sourceFrameBytes);
+            if (alignedAvailable <= 0) return;
 
             if (_converter != null)
             {
                 byte[] input;
-                if (offset == 0)
+                if (offset == 0 && alignedAvailable == buffer.Length)
                 {
                     input = buffer;
                 }
                 else
                 {
-                    input = new byte[count];
-                    Buffer.BlockCopy(buffer, offset, input, 0, count);
+                    input = new byte[alignedAvailable];
+                    Buffer.BlockCopy(buffer, offset, input, 0, alignedAvailable);
                 }
 
-                var (outBuf, outCount) = _converter.Process(input, count);
+                var (outBuf, outCount) = _converter.Process(input, alignedAvailable);
                 int convBytesPerSample = _converter.OutputFormat.BitsPerSample / 8;
                 int convChannels = _converter.OutputFormat.Channels;
+                if (convBytesPerSample <= 0 || convChannels <= 0) return;
                 int convInterleaved = outCount / convBytesPerSample;
                 int convFrames = convInterleaved / convChannels;
+                if (convFrames <= 0) return;
                 bool convIsFloat = _converter.OutputFormat.Encoding == WaveFormatEncoding.IeeeFloat && _converter.OutputFormat.BitsPerSample == 32;
 
                 var convPcm = new float[convChannels][];
@@ -99,9 +109,12 @@ namespace NoIDSoftwork.AudioProcessor
             }
 
             int bytesPerSample = _format.BitsPerSample / 8;
-            int interleaved = count / bytesPerSample;
+            if (bytesPerSample <= 0) return;
+            int interleaved = alignedAvailable / bytesPerSample;
             int channels = _format.Channels;
+            if (channels <= 0) return;
             int frames = interleaved / channels;
+            if (frames <= 0) return;
             bool isFloat = _format.Encoding == WaveFormatEncoding.IeeeFloat && _format.BitsPerSample == 32;
 
             // Convert to float[][] planar
@@ -169,7 +182,10 @@ namespace NoIDSoftwork.AudioProcessor
 
         private static float ReadSampleAsFloat(byte[] buffer, int byteOffset, int bytesPerSample, bool isFloat)
         {
-            if (isFloat)
+            if (byteOffset < 0 || bytesPerSample <= 0 || !HasWholeSample(buffer, byteOffset, bytesPerSample))
+                return 0f;
+
+            if (isFloat && bytesPerSample == 4)
                 return Math.Clamp(BitConverter.ToSingle(buffer, byteOffset), -1f, 1f);
 
             return bytesPerSample switch
@@ -183,10 +199,18 @@ namespace NoIDSoftwork.AudioProcessor
 
         private static int ReadPcm24(byte[] buffer, int byteOffset)
         {
+            if (!HasWholeSample(buffer, byteOffset, 3))
+                return 0;
+
             int sample = buffer[byteOffset] | (buffer[byteOffset + 1] << 8) | (buffer[byteOffset + 2] << 16);
             if ((sample & 0x800000) != 0)
                 sample |= unchecked((int)0xFF000000);
             return sample;
+        }
+
+        private static bool HasWholeSample(byte[] buffer, int byteOffset, int bytesPerSample)
+        {
+            return byteOffset >= 0 && bytesPerSample > 0 && byteOffset <= buffer.Length - bytesPerSample;
         }
 
         public void Dispose()

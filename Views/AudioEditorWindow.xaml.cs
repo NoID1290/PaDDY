@@ -898,11 +898,13 @@ namespace PaDDY
                         int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
+                        int alignedRead = AlignRecordedByteCount(read, format);
+                        if (alignedRead <= 0) continue;
                         if (!noGain)
-                            ApplyGainToBuffer(buffer, read, format, gainFactor);
-                        ApplyEffectsToBuffer(buffer, read, format, effectChain);
-                        recorder.AppendSamples(buffer, 0, read);
-                        written += read;
+                            ApplyGainToBuffer(buffer, alignedRead, format, gainFactor);
+                        ApplyEffectsToBuffer(buffer, alignedRead, format, effectChain);
+                        recorder.AppendSamples(buffer, 0, alignedRead);
+                        written += alignedRead;
                     }
                     recorder.Finish();
                 }
@@ -1009,11 +1011,13 @@ namespace PaDDY
                         int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
+                        int alignedRead = AlignRecordedByteCount(read, format);
+                        if (alignedRead <= 0) continue;
                         if (!noGain)
-                            ApplyGainToBuffer(buffer, read, format, gainFactor);
-                        ApplyEffectsToBuffer(buffer, read, format, effectChain);
-                        recorder.AppendSamples(buffer, 0, read);
-                        written += read;
+                            ApplyGainToBuffer(buffer, alignedRead, format, gainFactor);
+                        ApplyEffectsToBuffer(buffer, alignedRead, format, effectChain);
+                        recorder.AppendSamples(buffer, 0, alignedRead);
+                        written += alignedRead;
                     }
                     recorder.Finish();
                 }
@@ -1046,6 +1050,13 @@ namespace PaDDY
                     break;
                 }
             }
+        }
+
+        private static int AlignRecordedByteCount(int count, WaveFormat format)
+        {
+            if (count <= 0) return 0;
+            int blockAlign = Math.Max(1, format.BlockAlign);
+            return count - (count % blockAlign);
         }
 
         /// <summary>
