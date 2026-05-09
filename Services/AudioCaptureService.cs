@@ -91,6 +91,7 @@ namespace PaDDY.Services
 
         // KeyBuffer trigger flag (set from any thread, consumed on audio thread)
         private volatile bool _captureBufferNow;
+        private volatile bool _suppressDataAvailable;
         private bool _recorderFaulted;
 
         private bool _disposed;
@@ -129,6 +130,8 @@ namespace PaDDY.Services
         {
             if (_captureIn != null) Stop();
 
+            _suppressDataAvailable = false;
+
             WaveFormat micFormat = RecordBitDepth == 32
                 ? WaveFormat.CreateIeeeFloatWaveFormat(RecordSampleRate, RecordChannels)
                 : new WaveFormat(RecordSampleRate, RecordBitDepth, RecordChannels);
@@ -160,6 +163,7 @@ namespace PaDDY.Services
 
         public void Stop()
         {
+            _suppressDataAvailable = true;
             _captureIn?.StopRecording();
         }
 
@@ -175,6 +179,7 @@ namespace PaDDY.Services
         // â”€â”€ Audio processing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private void OnDataAvailable(object? sender, WaveInEventArgs e)
         {
+            if (_suppressDataAvailable) return;
             if (e.BytesRecorded == 0) return;
 
             // Apply input gain to the buffer before any processing

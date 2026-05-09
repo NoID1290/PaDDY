@@ -40,6 +40,7 @@ namespace PaDDY
         private int _outputDeviceIndex = 0;
         private bool _suppressSelectionEvents = true;
         private bool _developerModeEnabled;
+        private bool _inputMeterUpdatesEnabled;
         private RecordingPadButton? _hoveredPad;
 
         // Volume controls
@@ -59,6 +60,7 @@ namespace PaDDY
 
         // Meter decay animation (input)
         private System.Windows.Threading.DispatcherTimer? _meterDecayTimer;
+        private System.Windows.Threading.DispatcherTimer? _inputMeterResetTimer;
         private double _decayTargetL;
         private double _decayTargetR;
         private double _decayCurrentL;
@@ -506,8 +508,10 @@ namespace PaDDY
         private void RestartMonitoringIfActive()
         {
             if (MonitorToggle.IsChecked != true) return;
+            _inputMeterUpdatesEnabled = false;
             _captureService.Stop();
             StartMonitoringWithCurrentSelection();
+            _inputMeterUpdatesEnabled = true;
         }
 
         private void StartMonitoringWithCurrentSelection()
@@ -637,6 +641,8 @@ namespace PaDDY
         // ── Monitoring toggle ──────────────────────────────────────────────────
         private void MonitorToggle_Checked(object sender, RoutedEventArgs e)
         {
+            _inputMeterUpdatesEnabled = false;
+
             if (GetSelectedCaptureMode() == CaptureSourceMode.Microphone && WaveInEvent.DeviceCount == 0)
             {
                 System.Windows.MessageBox.Show("No microphone detected.", "PaDDY",
@@ -664,9 +670,11 @@ namespace PaDDY
             try
             {
                 StartMonitoringWithCurrentSelection();
+                _inputMeterUpdatesEnabled = true;
             }
             catch (Exception ex)
             {
+                _inputMeterUpdatesEnabled = false;
                 System.Windows.MessageBox.Show($"Unable to start monitoring:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 MonitorToggle.IsChecked = false;
@@ -675,14 +683,38 @@ namespace PaDDY
 
         private void MonitorToggle_Unchecked(object sender, RoutedEventArgs e)
         {
+            _inputMeterUpdatesEnabled = false;
             _captureService.Stop();
             SetStatus("Idle — press Start to begin", "#FF757575");
             RefreshInputFormatInfo();
+            ForceResetInputMeter();
+            StartMeterDecay();
+
+            _inputMeterResetTimer ??= new System.Windows.Threading.DispatcherTimer();
+            _inputMeterResetTimer.Stop();
+            _inputMeterResetTimer.Interval = TimeSpan.FromMilliseconds(380);
+            _inputMeterResetTimer.Tick -= InputMeterResetTimerTick;
+            _inputMeterResetTimer.Tick += InputMeterResetTimerTick;
+            _inputMeterResetTimer.Start();
+        }
+
+        private void InputMeterResetTimerTick(object? sender, EventArgs e)
+        {
+            _inputMeterResetTimer?.Stop();
+            if (_inputMeterUpdatesEnabled || MonitorToggle.IsChecked == true)
+                return;
+
+            ForceResetInputMeter();
+        }
+
+        private void ForceResetInputMeter()
+        {
             RmsValueLabel.Text = "-∞";
             RmsValueLabelR.Text = "-∞";
             PeakIndicatorL.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
             PeakIndicatorR.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-            StartMeterDecay();
+            MeterOverlayL.Width = 10000;
+            MeterOverlayR.Width = 10000;
         }
 
         private void StartMeterDecay()
@@ -859,6 +891,9 @@ namespace PaDDY
         {
             Dispatcher.InvokeAsync(() =>
             {
+                if (!_inputMeterUpdatesEnabled || MonitorToggle.IsChecked != true)
+                    return;
+
                 // Cancel any running decay animation — we have live data
                 _meterDecayTimer?.Stop();
 
