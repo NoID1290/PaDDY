@@ -49,8 +49,8 @@
     <Compile Include="vendors/NAudio.Flac/**/*.cs" />
     <Compile Remove="vendors/**/bin/**/*.cs;vendors/**/obj/**/*.cs;vendors/**/tests/**/*.cs;vendors/**/test/**/*.cs;vendors/**/example/**/*.cs;vendors/**/examples/**/*.cs;vendors/**/benchmark/**/*.cs" />
     <!-- NAudio.Lame depends on native libmp3lame binaries at runtime. -->
-    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.32.dll" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.64.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.32.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.64.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <!-- Keep upstream vendored sources untouched while limiting warning noise to app-owned code. -->

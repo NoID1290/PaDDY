@@ -170,7 +170,7 @@ namespace NoIDSoftwork.AudioProcessor
 
         public ISampleProvider AsSampleProvider()
         {
-            // VorbisWaveReader is a 16-bit provider; wrap in a sample provider
+            // VorbisWaveReader outputs IEEE float (32-bit); ToSampleProvider() wraps it correctly.
             return _reader.ToSampleProvider();
         }
 
