@@ -4,6 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.5.0509-Pre-release_1] - 2026-05-09
+
+- Update color styles for IN and MON labels, and adjust gradient stops in RMS meter visuals
+- Add monitor playback RMS meter
+- Added meeter reset when stoping monitoring
+- Ogg-critical patches and fix libmp3lame publish error
+- Refactor audio processing for improved error handling and alignment in recording
+
 ## [1.1.5.0508-Pre-release_3] - 2026-05-08
 
 - Version bump
