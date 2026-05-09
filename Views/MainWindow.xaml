@@ -453,6 +453,7 @@
                                            Text="100" FontSize="10" Width="26" TextAlignment="Center"/>
                             </Border>
                         </Grid>
+
                     </StackPanel>
                 </Border>
 
@@ -593,6 +594,14 @@
                                Height="28"
                                Padding="0,5,0,0"/>
                     <TextBlock Text="OUT"
+                               Foreground="#FF42A5F5"
+                               FontSize="9"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Right"
+                               Height="28"
+                               Margin="0,5,0,0"
+                               Padding="0,5,0,0"/>
+                    <TextBlock Text="MON"
                                Foreground="#FF42A5F5"
                                FontSize="9"
                                FontWeight="Bold"
@@ -742,6 +751,71 @@
                                        Width="1000"/>
                         </Grid>
                     </Grid>
+
+                    <StackPanel x:Name="PadMonitorMeterPanel" Margin="0,0,0,0" Opacity="0.35">
+                        <!-- Separator -->
+                        <Rectangle Height="1" Fill="#1AFFFFFF" Margin="14,4,0,4"/>
+
+                        <!-- Monitor L channel -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="L" Grid.Column="0"
+                                       Foreground="#FF505070" FontSize="9"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Grid x:Name="PadMonitorMeterHostL" Grid.Column="1" ClipToBounds="True">
+                                <Rectangle Height="14">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#FF000000" Offset="0.0"/>
+                                            <GradientStop Color="#FF1565C0" Offset="0.015"/>
+                                            <GradientStop Color="#FF42A5F5" Offset="0.35"/>
+                                            <GradientStop Color="#FF80DEEA" Offset="0.70"/>
+                                            <GradientStop Color="#FFFDD835" Offset="0.85"/>
+                                            <GradientStop Color="#FFF44336" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Rectangle x:Name="PadMonitorMeterOverlayL"
+                                           Height="14"
+                                           Fill="#FF0D0D18"
+                                           HorizontalAlignment="Right"
+                                           Width="1000"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- Monitor R channel -->
+                        <Grid Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="R" Grid.Column="0"
+                                       Foreground="#FF505070" FontSize="9"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Grid x:Name="PadMonitorMeterHostR" Grid.Column="1" ClipToBounds="True">
+                                <Rectangle Height="14">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#FF000000" Offset="0.0"/>
+                                            <GradientStop Color="#FF1565C0" Offset="0.015"/>
+                                            <GradientStop Color="#FF42A5F5" Offset="0.35"/>
+                                            <GradientStop Color="#FF80DEEA" Offset="0.70"/>
+                                            <GradientStop Color="#FFFDD835" Offset="0.85"/>
+                                            <GradientStop Color="#FFF44336" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Rectangle x:Name="PadMonitorMeterOverlayR"
+                                           Height="14"
+                                           Fill="#FF0D0D18"
+                                           HorizontalAlignment="Right"
+                                           Width="1000"/>
+                            </Grid>
+                        </Grid>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- dB values + peak indicators -->
@@ -805,6 +879,7 @@
                                 VerticalAlignment="Center"
                                 ToolTip="Output peak clip indicator"/>
                     </StackPanel>
+
                 </StackPanel>
 
                 <!-- Runtime status panel -->

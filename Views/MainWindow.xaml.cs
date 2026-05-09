@@ -88,6 +88,8 @@ namespace PaDDY
             ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
+            PadMonitorMeterHostL.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
+            PadMonitorMeterHostR.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
         }
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
@@ -432,6 +434,7 @@ namespace PaDDY
             UpdateInputControlsForSource();
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
             ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
+            UpdatePadMonitorMeterAvailability();
             RefreshPadOutputRouting();
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
@@ -616,7 +619,22 @@ namespace PaDDY
             _settings.Save();
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
             ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
+            UpdatePadMonitorMeterAvailability();
             RefreshPadOutputRouting();
+        }
+
+        private void UpdatePadMonitorMeterAvailability()
+        {
+            bool enabled = _settings.ListenOutputEnabled;
+            PadMonitorMeterPanel.Opacity = enabled ? 1.0 : 0.35;
+            if (!enabled)
+                ResetPadMonitorMeter();
+        }
+
+        private void ResetPadMonitorMeter()
+        {
+            PadMonitorMeterOverlayL.Width = 10000;
+            PadMonitorMeterOverlayR.Width = 10000;
         }
 
         private void ListenOutputDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -970,6 +988,35 @@ namespace PaDDY
             });
         }
 
+        private void UpdatePadMonitorMeter(double left, double right)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                if (!_settings.ListenOutputEnabled)
+                {
+                    ResetPadMonitorMeter();
+                    return;
+                }
+
+                double dbL = LinearToDb(left);
+                double dbR = LinearToDb(right);
+
+                double meterWidthL = PadMonitorMeterHostL.ActualWidth;
+                if (meterWidthL > 0)
+                {
+                    double filledL = DbToMeterFraction(dbL) * meterWidthL;
+                    PadMonitorMeterOverlayL.Width = Math.Max(0, meterWidthL - filledL);
+                }
+
+                double meterWidthR = PadMonitorMeterHostR.ActualWidth;
+                if (meterWidthR > 0)
+                {
+                    double filledR = DbToMeterFraction(dbR) * meterWidthR;
+                    PadMonitorMeterOverlayR.Width = Math.Max(0, meterWidthR - filledR);
+                }
+            });
+        }
+
         private void StartOutputMeterDecay()
         {
             double meterWidth = ThresholdCanvas.ActualWidth;
@@ -1080,6 +1127,7 @@ namespace PaDDY
             btn.IsFavorite = entry.IsFavorite;
 
             btn.PlaybackRmsChanged += UpdateOutputMeter;
+            btn.ListenPlaybackRmsChanged += UpdatePadMonitorMeter;
 
             btn.DeleteRequested += (s, e) =>
             {

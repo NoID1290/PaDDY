@@ -49,6 +49,8 @@ namespace PaDDY.Controls
 
         /// <summary>Fired with (left, right) normalised 0-100 values during playback on the main output.</summary>
         public event Action<double, double>? PlaybackRmsChanged;
+        /// <summary>Fired with (left, right) normalised 0-100 values during playback on the monitor output.</summary>
+        public event Action<double, double>? ListenPlaybackRmsChanged;
 
         private bool _isFavorite;
         public bool IsFavorite
@@ -73,6 +75,7 @@ namespace PaDDY.Controls
         private IWavePlayer? _listenPlayer;
         private IUnifiedAudioReader? _listenReader;
         private VolumeSampleProvider? _listenVolumeProvider;
+        private PlaybackMeterProvider? _listenMeterProvider;
         private bool _isPlaying;
 
         /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
@@ -240,8 +243,10 @@ namespace PaDDY.Controls
                     {
                         Volume = Math.Clamp(ListenVolume, 0.0f, 1.0f)
                     };
+                    _listenMeterProvider = new PlaybackMeterProvider(_listenVolumeProvider);
+                    _listenMeterProvider.RmsLevelChanged += (l, r) => ListenPlaybackRmsChanged?.Invoke(l, r);
                     _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
-                    _listenPlayer.Init(_listenVolumeProvider.ToWaveProvider16());
+                    _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
                     _listenPlayer.Volume = 1.0f;
                     _listenPlayer.Play();
                 }
@@ -271,8 +276,10 @@ namespace PaDDY.Controls
                 {
                     Volume = Math.Clamp(ListenVolume, 0.0f, 1.0f)
                 };
+                _listenMeterProvider = new PlaybackMeterProvider(_listenVolumeProvider);
+                _listenMeterProvider.RmsLevelChanged += (l, r) => ListenPlaybackRmsChanged?.Invoke(l, r);
                 _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
-                _listenPlayer.Init(_listenVolumeProvider.ToWaveProvider16());
+                _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
                 _listenPlayer.Volume = 1.0f;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _listenPlayer.Play();
@@ -303,7 +310,9 @@ namespace PaDDY.Controls
             _listenReader?.Dispose();
             _listenReader = null;
             _listenVolumeProvider = null;
+            _listenMeterProvider = null;
             PlaybackRmsChanged?.Invoke(0, 0);
+            ListenPlaybackRmsChanged?.Invoke(0, 0);
             SetPlayingVisual(false);
         }
 
