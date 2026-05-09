@@ -587,7 +587,7 @@
                             VerticalAlignment="Center"
                             Margin="0,0,8,0">
                     <TextBlock Text="IN"
-                               Foreground="#5e31ff9e"
+                               Foreground="#B431FF9F"
                                FontSize="9"
                                FontWeight="Bold"
                                HorizontalAlignment="Right"
@@ -602,7 +602,7 @@
                                Margin="0,5,0,0"
                                Padding="0,5,0,0"/>
                     <TextBlock Text="MON"
-                               Foreground="#FF42A5F5"
+                               Foreground="#81F54242"
                                FontSize="9"
                                FontWeight="Bold"
                                HorizontalAlignment="Right"
@@ -770,11 +770,11 @@
                                     <Rectangle.Fill>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                             <GradientStop Color="#FF000000" Offset="0.0"/>
-                                            <GradientStop Color="#FF1565C0" Offset="0.015"/>
-                                            <GradientStop Color="#FF42A5F5" Offset="0.35"/>
-                                            <GradientStop Color="#FF80DEEA" Offset="0.70"/>
-                                            <GradientStop Color="#FFFDD835" Offset="0.85"/>
-                                            <GradientStop Color="#FFF44336" Offset="1.0"/>
+                                            <GradientStop Color="#75C01515" Offset="0.015"/>
+                                            <GradientStop Color="#9CF54242" Offset="0.35"/>
+                                            <GradientStop Color="#FFCA23BC" Offset="0.70"/>
+                                            <GradientStop Color="#CCFF00BF" Offset="0.85"/>
+                                            <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
@@ -800,11 +800,11 @@
                                     <Rectangle.Fill>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                             <GradientStop Color="#FF000000" Offset="0.0"/>
-                                            <GradientStop Color="#FF1565C0" Offset="0.015"/>
-                                            <GradientStop Color="#FF42A5F5" Offset="0.35"/>
-                                            <GradientStop Color="#FF80DEEA" Offset="0.70"/>
-                                            <GradientStop Color="#FFFDD835" Offset="0.85"/>
-                                            <GradientStop Color="#FFF44336" Offset="1.0"/>
+                                            <GradientStop Color="#75C01515" Offset="0.015"/>
+                                            <GradientStop Color="#9CF54242" Offset="0.35"/>
+                                            <GradientStop Color="#FFCA23BC" Offset="0.70"/>
+                                            <GradientStop Color="#CCFF00BF" Offset="0.85"/>
+                                            <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
