@@ -13,7 +13,7 @@ namespace NAudio.Flac
     ///     Provides a decoder for decoding flac (Free Lostless Audio Codec) data.
     /// </summary>
     public class FlacReader : WaveStream, IDisposable, ISampleProvider, IWaveProvider
-    
+
     {
         private readonly Stream _stream;
         private readonly WaveFormat _waveFormat;
@@ -130,8 +130,8 @@ namespace NAudio.Flac
                     throw new FlacException("No StreamInfo-Metadata found.", FlacLayer.Metadata);
 
                 _streamInfo = streamInfo;
-                _waveFormat = new WaveFormat(streamInfo.SampleRate, (short) streamInfo.BitsPerSample,
-                    (short) streamInfo.Channels);
+                _waveFormat = new WaveFormat(streamInfo.SampleRate, (short)streamInfo.BitsPerSample,
+                    (short)streamInfo.Channels);
                 Debug.WriteLine("Flac StreamInfo found -> WaveFormat: " + _waveFormat);
                 Debug.WriteLine("Flac-File-Metadata read.");
             }
@@ -293,7 +293,7 @@ namespace NAudio.Flac
         /// </summary>
         public override long Length
         {
-            get {return (long) _scan.TotalSamples * WaveFormat.BlockAlign;}
+            get { return (long)_scan.TotalSamples * WaveFormat.BlockAlign; }
         }
 
         /// <summary>
