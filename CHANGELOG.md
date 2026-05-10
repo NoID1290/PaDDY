@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.5.0510-Pre-release_1] - 2026-05-10
+
+- Refactor FlacReader: format code for consistency and improve readability
+- Enhance audio processing: add x64 define constants, improve FLAC seeking accuracy, validate OGG sample rates, and adjust SettingsWindow height
+
 ## [1.1.5.0509-Pre-release_1] - 2026-05-09
 
 - Update color styles for IN and MON labels, and adjust gradient stops in RMS meter visuals
