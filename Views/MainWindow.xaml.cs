@@ -58,6 +58,10 @@ namespace PaDDY
         private DateTime _outputPeakHoldTimeL = DateTime.MinValue;
         private DateTime _outputPeakHoldTimeR = DateTime.MinValue;
 
+        // Peak hold state (monitor)
+        private DateTime _monitorPeakHoldTimeL = DateTime.MinValue;
+        private DateTime _monitorPeakHoldTimeR = DateTime.MinValue;
+
         // Meter decay animation (input)
         private System.Windows.Threading.DispatcherTimer? _meterDecayTimer;
         private System.Windows.Threading.DispatcherTimer? _inputMeterResetTimer;
@@ -635,6 +639,12 @@ namespace PaDDY
         {
             PadMonitorMeterOverlayL.Width = 10000;
             PadMonitorMeterOverlayR.Width = 10000;
+            MonitorRmsValueLabel.Text = "-∞";
+            MonitorRmsValueLabelR.Text = "-∞";
+            MonitorPeakIndicatorL.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+            MonitorPeakIndicatorR.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+            _monitorPeakHoldTimeL = DateTime.MinValue;
+            _monitorPeakHoldTimeR = DateTime.MinValue;
         }
 
         private void ListenOutputDeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1014,6 +1024,22 @@ namespace PaDDY
                     double filledR = DbToMeterFraction(dbR) * meterWidthR;
                     PadMonitorMeterOverlayR.Width = Math.Max(0, meterWidthR - filledR);
                 }
+
+                MonitorRmsValueLabel.Text = left > 0 ? $"{dbL:0}" : "-∞";
+                MonitorRmsValueLabelR.Text = right > 0 ? $"{dbR:0}" : "-∞";
+
+                var now = DateTime.UtcNow;
+                if (dbL >= PeakThresholdDb)
+                    _monitorPeakHoldTimeL = now;
+                if (dbR >= PeakThresholdDb)
+                    _monitorPeakHoldTimeR = now;
+
+                MonitorPeakIndicatorL.Background = (now - _monitorPeakHoldTimeL).TotalSeconds < PeakHoldSeconds
+                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
+                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+                MonitorPeakIndicatorR.Background = (now - _monitorPeakHoldTimeR).TotalSeconds < PeakHoldSeconds
+                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
+                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
             });
         }
 

@@ -64,29 +64,41 @@ namespace NoIDSoftwork.AudioProcessor
             if (_writer == null || _format == null || _pcmConfig == null || count <= 0)
                 return;
 
+            if (offset < 0 || offset >= buffer.Length)
+                return;
+
+            int available = Math.Min(count, buffer.Length - offset);
+            if (available <= 0)
+                return;
+
             if (_converter != null)
             {
+                int sourceFrameBytes = Math.Max(1, _format.BlockAlign);
+                int alignedAvailable = available - (available % sourceFrameBytes);
+                if (alignedAvailable <= 0)
+                    return;
+
                 byte[] input;
-                if (offset == 0)
+                if (offset == 0 && alignedAvailable == buffer.Length)
                 {
                     input = buffer;
                 }
                 else
                 {
-                    input = new byte[count];
-                    Buffer.BlockCopy(buffer, offset, input, 0, count);
+                    input = new byte[alignedAvailable];
+                    Buffer.BlockCopy(buffer, offset, input, 0, alignedAvailable);
                 }
 
-                var (convertedBuffer, convertedCount) = _converter.Process(input, count);
+                var (convertedBuffer, convertedCount) = _converter.Process(input, alignedAvailable);
                 WriteConvertedSamples(convertedBuffer, convertedCount);
                 return;
             }
 
             // Align to a whole source frame.
-            count -= count % _format.BlockAlign;
-            if (count <= 0) return;
+            available -= available % _format.BlockAlign;
+            if (available <= 0) return;
 
-            int frameCount = count / _format.BlockAlign;
+            int frameCount = available / _format.BlockAlign;
             bool srcIsFloat = _format.Encoding == WaveFormatEncoding.IeeeFloat && _format.BitsPerSample == 32;
             bool srcIs32Int = _format.Encoding == WaveFormatEncoding.Pcm && _format.BitsPerSample == 32;
 
@@ -94,8 +106,8 @@ namespace NoIDSoftwork.AudioProcessor
             {
                 // 16-bit or 24-bit integer PCM: copy bytes and pass directly.
                 // AudioBuffer.BytesToFLACSamples() handles 16-bit and 24-bit natively.
-                byte[] data = new byte[count];
-                Buffer.BlockCopy(buffer, offset, data, 0, count);
+                byte[] data = new byte[available];
+                Buffer.BlockCopy(buffer, offset, data, 0, available);
                 _writer.Write(new AudioBuffer(_pcmConfig, data, frameCount));
             }
             else

@@ -134,7 +134,12 @@ public class ResidueLookup
                         {
                             var statebook = _partitionBooks[partword[j][i]][s];
                             if (statebook != null)
+                            {
+                                // Defensive guard for runtime bounds checks (seen in newer runtimes).
+                                if (offset < 0 || offset >= work[j].Length)
+                                    continue;
                                 EncodePart(buffer, work[j], offset, _residue.Grouping, statebook);
+                            }
                         }
                 }
             }
@@ -145,16 +150,25 @@ public class ResidueLookup
     private static void EncodePart(EncodeBuffer buffer, int[] vec, int offset, int n, CodeBook book)
     {
         var step = n / book.Dimensions;
+        if (offset < 0 || offset >= vec.Length)
+            return;
 
         for (var i = 0; i < step; i++)
         {
-            var entry = LocalBookBestError(book, vec, offset + i * book.Dimensions);
+            var currentOffset = offset + i * book.Dimensions;
+            if (currentOffset < 0 || currentOffset + book.Dimensions > vec.Length)
+                break;
+
+            var entry = LocalBookBestError(book, vec, currentOffset);
             buffer.WriteBook(book, entry);
         }
     }
 
     private static int LocalBookBestError(CodeBook book, int[] vec, int offset)
     {
+        if (offset < 0 || offset + book.Dimensions > vec.Length)
+            return 0;
+
         int i;
         int o;
         var ze = book.QuantValues >> 1;

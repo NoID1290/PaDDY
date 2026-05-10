@@ -880,6 +880,37 @@
                                 ToolTip="Output peak clip indicator"/>
                     </StackPanel>
 
+                    <!-- Separator spacing -->
+                    <Rectangle Height="9" Fill="Transparent"/>
+
+                    <!-- Monitor dB -->
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="MonitorRmsValueLabel"
+                                   Text="-∞"
+                                   FontSize="10"
+                                   Foreground="#FF805080"
+                                   Width="38"/>
+                        <Border x:Name="MonitorPeakIndicatorL"
+                                Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#FF252535"
+                                VerticalAlignment="Center"
+                                ToolTip="Monitor peak clip indicator"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                        <TextBlock x:Name="MonitorRmsValueLabelR"
+                                   Text="-∞"
+                                   FontSize="10"
+                                   Foreground="#FF805080"
+                                   Width="38"/>
+                        <Border x:Name="MonitorPeakIndicatorR"
+                                Width="8" Height="8"
+                                CornerRadius="4"
+                                Background="#FF252535"
+                                VerticalAlignment="Center"
+                                ToolTip="Monitor peak clip indicator"/>
+                    </StackPanel>
+
                 </StackPanel>
 
                 <!-- Runtime status panel -->

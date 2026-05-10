@@ -85,6 +85,9 @@ namespace NoIDSoftwork.AudioProcessor
                 int convChannels = _converter.OutputFormat.Channels;
                 if (convBytesPerSample <= 0 || convChannels <= 0) return;
                 int convInterleaved = outCount / convBytesPerSample;
+                if (convInterleaved <= 0) return;
+                convInterleaved -= convInterleaved % convChannels;
+                if (convInterleaved <= 0) return;
                 int convFrames = convInterleaved / convChannels;
                 if (convFrames <= 0) return;
                 bool convIsFloat = _converter.OutputFormat.Encoding == WaveFormatEncoding.IeeeFloat && _converter.OutputFormat.BitsPerSample == 32;

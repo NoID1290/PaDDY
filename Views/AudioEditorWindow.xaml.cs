@@ -972,7 +972,7 @@ namespace PaDDY
                     string fileExt = ext.TrimStart('.').ToLowerInvariant();
                     if (startSec > 0.001)
                     {
-                        if (fileExt == "opus")
+                        if (fileExt == "opus" || fileExt == "flac")
                         {
                             long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
                             skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
