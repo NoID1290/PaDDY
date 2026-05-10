@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.5.0510-Pre-release_2] - 2026-05-10
+
+- Enhance audio processing: add defensive checks for buffer offsets and improve peak hold functionality in the audio monitoring system
+
 ## [1.1.5.0510-Pre-release_1] - 2026-05-10
 
 - Refactor FlacReader: format code for consistency and improve readability
