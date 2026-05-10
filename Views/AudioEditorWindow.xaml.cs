@@ -849,11 +849,14 @@ namespace PaDDY
                     // For Opus files, OpusOggReadStream.SeekTo does not clear its internal
                     // _nextDataPacket after seeking, so the first decoded frame is stale audio
                     // from before the seek.  SeekTo(0) also corrupts stream state entirely.
-                    // Avoid both issues by decoding-and-discarding up to startSec instead.
+                    // For FLAC, FlacReader.Position silently fails to seek when the target sample
+                    // falls within the final block (no frame has SampleOffset >= target), leaving
+                    // the reader at position 0 and causing the wrong region to be encoded.
+                    // Use decode-and-discard for both Opus and FLAC to guarantee exact seek accuracy.
                     string fileExt = Path.GetExtension(_filePath).TrimStart('.').ToLowerInvariant();
                     if (startSec > 0.001)
                     {
-                        if (fileExt == "opus")
+                        if (fileExt == "opus" || fileExt == "flac")
                         {
                             // Decode-and-discard to reach startSec (guarantees correct position).
                             int blockAlignSkip = format.BlockAlign;

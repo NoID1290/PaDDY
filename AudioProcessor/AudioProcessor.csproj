@@ -21,6 +21,9 @@
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(PlatformTarget)' == 'x64'">
+    <DefineConstants>$(DefineConstants);X64</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\EffectProcessor\EffectProcessor.csproj" />
   </ItemGroup>
@@ -49,8 +52,9 @@
     <Compile Include="vendors/NAudio.Flac/**/*.cs" />
     <Compile Remove="vendors/**/bin/**/*.cs;vendors/**/obj/**/*.cs;vendors/**/tests/**/*.cs;vendors/**/test/**/*.cs;vendors/**/example/**/*.cs;vendors/**/examples/**/*.cs;vendors/**/benchmark/**/*.cs" />
     <!-- NAudio.Lame depends on native libmp3lame binaries at runtime. -->
-    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.32.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.64.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- Link="..." flattens the output path so the DLL lands in the app root, where DllImport can find it. -->
+    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.32.dll" Link="libmp3lame.32.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.64.dll" Link="libmp3lame.64.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <!-- Keep upstream vendored sources untouched while limiting warning noise to app-owned code. -->

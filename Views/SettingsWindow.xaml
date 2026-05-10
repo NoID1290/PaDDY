@@ -5,7 +5,7 @@
         Title="PaDDY — Settings"
         Icon="/PaDDY.ico"
         Width="520"
-        Height="620"
+        Height="680"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource WindowGlowBrush}"

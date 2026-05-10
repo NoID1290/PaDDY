@@ -259,21 +259,30 @@ namespace NAudio.Flac
                     value = Math.Min(value, Length);
                     value = value > 0 ? value : 0;
 
+                    // Find the first frame whose SampleOffset >= the target sample.
+                    // If no such frame exists (target is inside or past the last block),
+                    // fall back to the last frame so the seek never silently stays at 0.
+                    int seekIndex = _scan.Frames.Count - 1;
                     for (int i = 0; i < _scan.Frames.Count; i++)
                     {
                         if ((value / WaveFormat.BlockAlign) <= _scan.Frames[i].SampleOffset)
                         {
-                            _stream.Position = _scan.Frames[i].StreamOffset;
-                            _frameIndex = i;
-                            if (_stream.Position >= _stream.Length)
-                                throw new EndOfStreamException("Stream got EOF.");
-#if DIAGNOSTICS
-                            _position = _scan.Frames[i].SampleOffset * WaveFormat.BlockAlign;
-#endif
-                            _overflowCount = 0;
-                            _overflowOffset = 0;
+                            seekIndex = i;
                             break;
                         }
+                    }
+
+                    if (seekIndex >= 0 && seekIndex < _scan.Frames.Count)
+                    {
+                        _stream.Position = _scan.Frames[seekIndex].StreamOffset;
+                        _frameIndex = seekIndex;
+                        if (_stream.Position >= _stream.Length)
+                            throw new EndOfStreamException("Stream got EOF.");
+#if DIAGNOSTICS
+                        _position = _scan.Frames[seekIndex].SampleOffset * WaveFormat.BlockAlign;
+#endif
+                        _overflowCount = 0;
+                        _overflowOffset = 0;
                     }
                 }
             }

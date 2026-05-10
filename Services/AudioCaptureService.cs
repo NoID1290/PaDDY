@@ -386,6 +386,19 @@ namespace PaDDY.Services
                 return true;
             }
 
+            if (codec == "ogg")
+            {
+                int[] validRates = { 8000, 11025, 16000, 22050, 32000, 44100, 48000 };
+
+                if (!validRates.Contains(format.SampleRate))
+                {
+                    reason = "OGG/Vorbis requires one of these sample rates: 8k, 11.025k, 16k, 22.05k, 32k, 44.1k, 48k.";
+                    return false;
+                }
+
+                return true;
+            }
+
             return true;
         }
 
