@@ -263,6 +263,17 @@ public class ResidueLookup
 
         var valueCount = n / _residue.Grouping;
 
+        for (var channel = 0; channel < channels; channel++)
+        {
+            if (couples[channel].Length <= _residue.Begin)
+                return null;
+
+            valueCount = Math.Min(valueCount, (couples[channel].Length - _residue.Begin) / _residue.Grouping);
+        }
+
+        if (valueCount <= 0)
+            return null;
+
         var partword = new int[channels][];
         for (int c = 0; c < channels; c++)
             partword[c] = new int[valueCount];
@@ -278,9 +289,17 @@ public class ResidueLookup
                 int k;
                 for (k = 0; k < _residue.Grouping; k++)
                 {
-                    if (MathExtensions.SafeAbs(couples[j][offset + k]) > max) max = MathExtensions.SafeAbs(couples[j][offset + k]);
-                    ent += MathExtensions.SafeAbs(couples[j][offset + k]);
+                    int sampleIndex = offset + k;
+                    if (sampleIndex >= couples[j].Length)
+                        break;
+
+                    if (MathExtensions.SafeAbs(couples[j][sampleIndex]) > max) max = MathExtensions.SafeAbs(couples[j][sampleIndex]);
+                    ent += MathExtensions.SafeAbs(couples[j][sampleIndex]);
                 }
+
+                if (k == 0)
+                    return null;
+
                 ent = (int)(ent * (100.0f / _residue.Grouping));
 
                 for (k = 0; k < _residue.Partitions - 1; k++)
@@ -301,6 +320,17 @@ public class ResidueLookup
 
         var valueCount = n / _residue.Grouping;
 
+        for (var channel = 0; channel < channels; channel++)
+        {
+            if (couples[channel].Length * channels <= _residue.Begin)
+                return null;
+
+            valueCount = Math.Min(valueCount, ((couples[channel].Length * channels) - _residue.Begin) / _residue.Grouping);
+        }
+
+        if (valueCount <= 0)
+            return null;
+
         var partword = new int[1][];
         partword[0] = new int[valueCount];
 
@@ -310,12 +340,18 @@ public class ResidueLookup
             var angMax = 0;
             for (var g = 0; g < _residue.Grouping; g += channels)
             {
+                if (l >= couples[0].Length)
+                    return null;
+
                 var abs = MathExtensions.SafeAbs(couples[0][l]);
                 if (abs > magMax)
                     magMax = abs;
 
                 for (var k = 1; k < channels; k++)
                 {
+                    if (l >= couples[k].Length)
+                        return null;
+
                     abs = MathExtensions.SafeAbs(couples[k][l]);
                     if (abs > angMax)
                         angMax = abs;

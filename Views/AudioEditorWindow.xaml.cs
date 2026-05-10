@@ -858,18 +858,25 @@ namespace PaDDY
                     {
                         if (fileExt == "opus" || fileExt == "flac")
                         {
-                            // Decode-and-discard to reach startSec (guarantees correct position).
-                            int blockAlignSkip = format.BlockAlign;
-                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
-                            skipBytes = skipBytes / blockAlignSkip * blockAlignSkip;
-                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
-                            long skipped = 0;
-                            while (skipped < skipBytes)
+                            if (fileExt == "flac")
                             {
-                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
-                                int readSkip = reader.Read(skipBuf, 0, toSkip);
-                                if (readSkip == 0) break;
-                                skipped += readSkip;
+                                reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+                            }
+                            else
+                            {
+                                // Opus still needs decode-and-discard because SeekTo can surface stale packets.
+                                int blockAlignSkip = format.BlockAlign;
+                                long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                                skipBytes = skipBytes / blockAlignSkip * blockAlignSkip;
+                                byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                                long skipped = 0;
+                                while (skipped < skipBytes)
+                                {
+                                    int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                    int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                    if (readSkip == 0) break;
+                                    skipped += readSkip;
+                                }
                             }
                         }
                         else
@@ -974,16 +981,23 @@ namespace PaDDY
                     {
                         if (fileExt == "opus" || fileExt == "flac")
                         {
-                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
-                            skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
-                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
-                            long skipped = 0;
-                            while (skipped < skipBytes)
+                            if (fileExt == "flac")
                             {
-                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
-                                int readSkip = reader.Read(skipBuf, 0, toSkip);
-                                if (readSkip == 0) break;
-                                skipped += readSkip;
+                                reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+                            }
+                            else
+                            {
+                                long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                                skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
+                                byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                                long skipped = 0;
+                                while (skipped < skipBytes)
+                                {
+                                    int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                    int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                    if (readSkip == 0) break;
+                                    skipped += readSkip;
+                                }
                             }
                         }
                         else
