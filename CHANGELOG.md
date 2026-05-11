@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0.0511] - 2026-05-11
+
+- DotNET10 migration
+- Add trim editor output device settings and new pad naming features
+
 ## [1.1.5.0511-Pre-release_1] - 2026-05-11
 
 - Fixing OGG IndexOutOfRangeException
