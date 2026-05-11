@@ -251,6 +251,13 @@ namespace PaDDY.Services
             try { Directory.Delete(TempDir, recursive: true); } catch { }
         }
 
+        // Delete the folder used for in-progress recordings, which may contain orphaned temp files if the app crashed during recording. Call on startup and shutdown.
+        public void CleanupInternalTempRecordings()
+        {
+            if (!Directory.Exists(InternalTempRecDir)) return;
+            try { Directory.Delete(InternalTempRecDir, recursive: true); } catch { }
+        }
+
         // ── Storage info ───────────────────────────────────────────────────────
 
         public long GetStoreSizeBytes()

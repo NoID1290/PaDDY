@@ -1677,6 +1677,7 @@ namespace PaDDY
             _hotkeyService.Dispose();
             _captureService.Dispose();
             _recordingStore.CleanupAllTempFiles();
+            _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();
         }
     }
