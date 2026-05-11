@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using NAudio.CoreAudioApi;
 using PaDDY.Helpers;
 
 namespace PaDDY
@@ -22,6 +23,9 @@ namespace PaDDY
         public uint SelectedHotKeyVk { get; private set; }
         public int SelectedMaxRecords { get; private set; }
         public string SelectedFontVariant { get; private set; } = "condensed-display";
+        public string SelectedDefaultPadTitleTemplate { get; private set; } = "Recording {timestamp}";
+        public bool SelectedUseFocusedAppForPadTitle { get; private set; }
+        public int SelectedTrimEditorOutputDeviceIndex { get; private set; }
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -97,6 +101,31 @@ namespace PaDDY
                 if (v.Key == _settings.AppFontVariant) fontIdx = i;
             }
             FontVariantCombo.SelectedIndex = fontIdx;
+
+            // New pad naming
+            DefaultPadTitleBox.Text = string.IsNullOrWhiteSpace(_settings.DefaultPadTitleTemplate)
+                ? "Recording {timestamp}"
+                : _settings.DefaultPadTitleTemplate;
+            UseFocusedAppNameCheck.IsChecked = _settings.UseFocusedAppForPadTitle;
+
+            // Trim editor output
+            PopulateTrimOutputDevices();
+        }
+
+        private void PopulateTrimOutputDevices()
+        {
+            TrimOutputDeviceCombo.Items.Clear();
+            TrimOutputDeviceCombo.Items.Add("Default Output");
+
+            using (var enumerator = new MMDeviceEnumerator())
+            {
+                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                foreach (var device in devices)
+                    TrimOutputDeviceCombo.Items.Add(device.FriendlyName);
+            }
+
+            int selected = Math.Clamp(_settings.TrimEditorOutputDeviceIndex, 0, TrimOutputDeviceCombo.Items.Count - 1);
+            TrimOutputDeviceCombo.SelectedIndex = selected;
         }
 
         private void CodecCombo_SelectionChanged(object sender,
@@ -180,6 +209,12 @@ namespace PaDDY
             SelectedFontVariant = (fi >= 0 && fi < App.FontVariants.Count)
                 ? App.FontVariants[fi].Key
                 : "condensed-display";
+
+            SelectedDefaultPadTitleTemplate = string.IsNullOrWhiteSpace(DefaultPadTitleBox.Text)
+                ? "Recording {timestamp}"
+                : DefaultPadTitleBox.Text.Trim();
+            SelectedUseFocusedAppForPadTitle = UseFocusedAppNameCheck.IsChecked == true;
+            SelectedTrimEditorOutputDeviceIndex = TrimOutputDeviceCombo.SelectedIndex;
 
             DialogResult = true;
         }

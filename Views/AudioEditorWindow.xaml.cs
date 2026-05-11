@@ -11,7 +11,6 @@ using System.Windows.Media.Imaging;
 using WpfRectangle = System.Windows.Shapes.Rectangle;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using NAudio.CoreAudioApi;
 using NoIDSoftwork.AudioProcessor;
 using NoIDSoftwork.EffectProcessor;
 using NoIDSoftwork.EffectProcessor.Effects;
@@ -27,12 +26,13 @@ namespace PaDDY
     {
         private readonly string _filePath;
         private readonly string? _recordingId;
+        private readonly int _outputDeviceIndex;
         private IEffectChain? _perClipChain;
         private TimeSpan _totalDuration;
         private double _trimStartFraction;  // 0.0 – 1.0
         private double _trimEndFraction = 1.0;
 
-        private WasapiOut? _player;
+        private IWavePlayer? _player;
         private IUnifiedAudioReader? _reader;
         private bool _isPreviewing;
         private bool _isStoppingPreview;
@@ -69,11 +69,12 @@ namespace PaDDY
         public string? CopyFilePath { get; private set; }
         public bool ShouldSaveToFavorite => SaveToFavCheckBox.IsChecked == true;
 
-        public AudioEditorWindow(string filePath, string? recordingId = null)
+        public AudioEditorWindow(string filePath, string? recordingId = null, int outputDeviceIndex = -1)
         {
             InitializeComponent();
             _filePath = filePath;
             _recordingId = recordingId;
+            _outputDeviceIndex = outputDeviceIndex;
 
             FileNameLabel.Text = Path.GetFileName(filePath);
 
@@ -562,7 +563,7 @@ namespace PaDDY
                 EnsureVertMeterChannels(_meterProvider.WaveFormat.Channels);
                 ResetVertMeter();
 
-                _player = new WasapiOut(AudioClientShareMode.Shared, true, 100);
+                _player = AudioOutputDeviceResolver.CreateWasapiPlayer(_outputDeviceIndex, 100);
                 _player.PlaybackStopped += Player_PlaybackStopped;
                 _player.Init(BuildPlaybackSource(_meterProvider).ToWaveProvider16());
                 _player.Play();

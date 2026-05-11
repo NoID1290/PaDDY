@@ -55,6 +55,13 @@ namespace PaDDY
         // UI font variant: "regular", "bold", "condensed", "condensed-bold", "display", "condensed-display"
         public string AppFontVariant { get; set; } = "condensed-display";
 
+        // New pad naming
+        public string DefaultPadTitleTemplate { get; set; } = "Recording {timestamp}";
+        public bool UseFocusedAppForPadTitle { get; set; } = false;
+
+        // Trim Editor output device (0 = default, 1..N = devices 0..N-1)
+        public int TrimEditorOutputDeviceIndex { get; set; } = 0;
+
         private static readonly MessagePackSerializerOptions SerializerOptions =
             MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
 

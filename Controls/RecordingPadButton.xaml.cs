@@ -9,7 +9,6 @@ using WpfControl = System.Windows.Controls.UserControl;
 using WpfButton = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
 using System.Windows.Media.Animation;
-using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NoIDSoftwork.AudioProcessor;
@@ -42,6 +41,9 @@ namespace PaDDY.Controls
 
         // Listen device: -2 = disabled, -1 = default, 0..N = specific
         public int ListenDeviceIndex { get; set; } = -2;
+
+        // 0 = default, 1..N = devices 0..N-1
+        public int TrimEditorOutputDeviceIndex { get; set; } = 0;
 
         // Volume controls (0.0–1.0)
         public float OutputVolume { get; set; } = 1.0f;
@@ -166,7 +168,10 @@ namespace PaDDY.Controls
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
             StopPlayback();
 
-            var editor = new AudioEditorWindow(Entry.FilePath, Entry.RecordingId)
+            var editor = new AudioEditorWindow(
+                Entry.FilePath,
+                Entry.RecordingId,
+                TrimEditorOutputDeviceIndex - 1)
             {
                 Owner = Window.GetWindow(this)
             };
@@ -229,7 +234,7 @@ namespace PaDDY.Controls
                 };
                 _meterProvider = new PlaybackMeterProvider(_outputVolumeProvider);
                 _meterProvider.RmsLevelChanged += (l, r) => PlaybackRmsChanged?.Invoke(l, r);
-                _player = CreateWasapiPlayer(OutputDeviceIndex, 100);
+                _player = AudioOutputDeviceResolver.CreateWasapiPlayer(OutputDeviceIndex, 100);
                 _player.Init(_meterProvider.ToWaveProvider16());
                 _player.Volume = 1.0f;
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
@@ -245,7 +250,7 @@ namespace PaDDY.Controls
                     };
                     _listenMeterProvider = new PlaybackMeterProvider(_listenVolumeProvider);
                     _listenMeterProvider.RmsLevelChanged += (l, r) => ListenPlaybackRmsChanged?.Invoke(l, r);
-                    _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
+                    _listenPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(ListenDeviceIndex, 120);
                     _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
                     _listenPlayer.Volume = 1.0f;
                     _listenPlayer.Play();
@@ -278,7 +283,7 @@ namespace PaDDY.Controls
                 };
                 _listenMeterProvider = new PlaybackMeterProvider(_listenVolumeProvider);
                 _listenMeterProvider.RmsLevelChanged += (l, r) => ListenPlaybackRmsChanged?.Invoke(l, r);
-                _listenPlayer = CreateWasapiPlayer(ListenDeviceIndex, 120);
+                _listenPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(ListenDeviceIndex, 120);
                 _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
                 _listenPlayer.Volume = 1.0f;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
@@ -337,24 +342,6 @@ namespace PaDDY.Controls
             TileBorder.BorderBrush = playing
                 ? BrushPlaying
                 : (_isFavorite ? BrushFavorite : BrushNormal);
-        }
-
-        private static IWavePlayer CreateWasapiPlayer(int deviceIndex, int latencyMs)
-        {
-            MMDevice? device = ResolveRenderDevice(deviceIndex);
-            return device != null
-                ? new WasapiOut(device, AudioClientShareMode.Shared, true, latencyMs)
-                : new WasapiOut(AudioClientShareMode.Shared, true, latencyMs);
-        }
-
-        private static MMDevice? ResolveRenderDevice(int deviceIndex)
-        {
-            if (deviceIndex < 0)
-                return null;
-
-            var enumerator = new MMDeviceEnumerator();
-            var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            return deviceIndex < devices.Count ? devices[deviceIndex] : null;
         }
 
         private static ISampleProvider BuildPlaybackSource(ISampleProvider source)

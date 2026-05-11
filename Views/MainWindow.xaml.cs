@@ -467,6 +467,7 @@ namespace PaDDY
                     {
                         pad.OutputDeviceIndex = _outputDeviceIndex;
                         pad.ListenDeviceIndex = listenDevice;
+                        pad.TrimEditorOutputDeviceIndex = _settings.TrimEditorOutputDeviceIndex;
                         pad.OutputVolume = _outputVolume;
                         pad.ListenVolume = _padListenVolume;
                         pad.RefreshLiveVolumes();
@@ -868,6 +869,9 @@ namespace PaDDY
             _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
             _settings.MaxRecords = win.SelectedMaxRecords;
             _settings.AppFontVariant = win.SelectedFontVariant;
+            _settings.DefaultPadTitleTemplate = win.SelectedDefaultPadTitleTemplate;
+            _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
+            _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
             _settings.Save();
 
             App.ApplyFont(win.SelectedFontVariant);
@@ -883,6 +887,7 @@ namespace PaDDY
             RestartMonitoringIfActive();
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
+            RefreshPadOutputRouting();
             Forget(RefreshStorageInfoAsync());
         }
 
@@ -1107,7 +1112,7 @@ namespace PaDDY
                     try { File.Delete(entry.FilePath); } catch { }
 
                     string codec = Path.GetExtension(entry.FilePath).TrimStart('.');
-                    string displayName = $"Recording {entry.CreatedAt:yyyy-MM-dd HH-mm-ss}.{codec}";
+                    string displayName = RecordingNameGenerator.BuildDisplayName(_settings, entry.CreatedAt, codec);
                     string id = _recordingStore.Add(displayName, codec, entry.Duration, entry.CreatedAt, audioBytes);
 
                     entry.RecordingId = id;
@@ -1146,6 +1151,7 @@ namespace PaDDY
                 Margin = new Thickness(6),
                 OutputDeviceIndex = _outputDeviceIndex,
                 ListenDeviceIndex = GetCurrentListenDeviceIndex(),
+                TrimEditorOutputDeviceIndex = _settings.TrimEditorOutputDeviceIndex,
                 OutputVolume = _outputVolume,
                 ListenVolume = _padListenVolume
             };
@@ -1223,7 +1229,7 @@ namespace PaDDY
                     try { File.Delete(copyPath); } catch { }
 
                     string codec = Path.GetExtension(copyPath).TrimStart('.');
-                    string displayName = $"Recording {DateTime.Now:yyyy-MM-dd HH-mm-ss}.{codec}";
+                    string displayName = RecordingNameGenerator.BuildDisplayName(_settings, DateTime.Now, codec);
                     var newEntry = new RecordingEntry
                     {
                         DisplayName = displayName,

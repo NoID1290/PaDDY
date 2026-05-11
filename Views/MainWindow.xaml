@@ -1013,7 +1013,11 @@
                     Background="#0AFFC107"
                     Visibility="Collapsed"
                     Padding="12,6,12,6">
-                <WrapPanel x:Name="FavoritesPanel" Orientation="Horizontal"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              MaxHeight="318">
+                    <WrapPanel x:Name="FavoritesPanel" Orientation="Horizontal"/>
+                </ScrollViewer>
             </Border>
 
             <!-- ── Recordings header ── -->

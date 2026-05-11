@@ -250,6 +250,77 @@
                     </Grid>
                 </Border>
 
+            </StackPanel>
+        </ScrollViewer>
+            </TabItem>
+
+            <!-- ══ NAMING TAB ══════════════════════════════════════ -->
+            <TabItem Header="Naming">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- ── New Pad Naming ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="NEW PAD NAMING" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Default title:"
+                                       Style="{StaticResource SettingsLabel}"/>
+                            <TextBox x:Name="DefaultPadTitleBox"
+                                     Grid.Column="1"
+                                     ToolTip="Supports placeholders: {timestamp}, {codec}, {app}"/>
+                        </Grid>
+                        <CheckBox x:Name="UseFocusedAppNameCheck"
+                                  Content="Use focused app name when available"
+                                  Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+            </TabItem>
+
+            <!-- ══ PLAYBACK TAB ═════════════════════════════════════ -->
+            <TabItem Header="Playback">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- ── Trim Editor Output ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="TRIM EDITOR OUTPUT" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="Output device:"
+                                   Style="{StaticResource SettingsLabel}"/>
+                        <ComboBox x:Name="TrimOutputDeviceCombo"
+                                  Grid.Column="1"/>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+            </TabItem>
+
+            <!-- ══ APPEARANCE TAB ═══════════════════════════════════ -->
+            <TabItem Header="Appearance">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
                 <!-- ── Font Variant ── -->
                 <StackPanel Style="{StaticResource GroupHeader}">
                     <Rectangle Style="{StaticResource HeaderAccentBar}"/>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NAudio.CoreAudioApi;
 
 namespace PaDDY.Services
@@ -11,6 +12,12 @@ namespace PaDDY.Services
     /// </summary>
     public static class AudioSessionHelper
     {
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
         /// <summary>
         /// Returns a list of (ProcessId, ProcessName) for all processes that have
         /// an active audio session on any active render device.
@@ -60,6 +67,39 @@ namespace PaDDY.Services
                 .Select(kv => (kv.Key, kv.Value))
                 .OrderBy(x => x.Value, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+        }
+
+        /// <summary>
+        /// Attempts to resolve a label for the app currently owning the foreground window.
+        /// Prefers window title, then falls back to process name.
+        /// </summary>
+        public static bool TryGetFocusedApplicationLabel(out string label)
+        {
+            label = string.Empty;
+            try
+            {
+                IntPtr hwnd = GetForegroundWindow();
+                if (hwnd == IntPtr.Zero)
+                    return false;
+
+                _ = GetWindowThreadProcessId(hwnd, out uint pid);
+                if (pid == 0)
+                    return false;
+
+                using var process = Process.GetProcessById((int)pid);
+                string title = process.MainWindowTitle?.Trim() ?? string.Empty;
+                string processName = process.ProcessName?.Trim() ?? string.Empty;
+
+                label = !string.IsNullOrWhiteSpace(title)
+                    ? title
+                    : processName;
+
+                return !string.IsNullOrWhiteSpace(label);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
