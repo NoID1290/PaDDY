@@ -6,69 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0.0511] - 2026-05-11
 
-- DotNET10 migration
-- Add trim editor output device settings and new pad naming features
-
-## [1.1.5.0511-Pre-release_1] - 2026-05-11
-
+- .Net10 migration
+- Add trim editor output device settings
+- New pad naming features
 - Fixing OGG IndexOutOfRangeException
-- Enhance Vorbis encoding: enforce stereo layout and add validation checks for PCM data
-
-## [1.1.5.0510-Pre-release_3] - 2026-05-10
-
-- Enhance audio playback: optimize seeking logic for FLAC and Opus formats
-
-## [1.1.5.0510-Pre-release_2] - 2026-05-10
-
-- Enhance audio processing: add defensive checks for buffer offsets and improve peak hold functionality in the audio monitoring system
-
-## [1.1.5.0510-Pre-release_1] - 2026-05-10
-
-- Refactor FlacReader: format code for consistency and improve readability
-- Enhance audio processing: add x64 define constants, improve FLAC seeking accuracy, validate OGG sample rates, and adjust SettingsWindow height
-
-## [1.1.5.0509-Pre-release_1] - 2026-05-09
-
-- Update color styles for IN and MON labels, and adjust gradient stops in RMS meter visuals
+- Enhance audio playback
 - Add monitor playback RMS meter
 - Added meeter reset when stoping monitoring
 - Ogg-critical patches and fix libmp3lame publish error
 - Refactor audio processing for improved error handling and alignment in recording
-
-## [1.1.5.0508-Pre-release_3] - 2026-05-08
-
-- Version bump
-
-## [1.1.5.0508-Pre-release_2] - 2026-05-08
-
-- Update project file for .NET 10 compatibility
-
-## [1.1.5.0508-Pre-release_1] - 2026-05-08
-
-- Version bump
-
-## [1.1.5.0507-Pre-release_2] - 2026-05-07
-
-- Testing dotnet10 first push
-- dotnet10
-- dotnet10 migration
-- Commit changes before fixing global.json file(s).
-
-## [1.1.5.0507-Pre-release_1] - 2026-05-07
-
-- Cleanup after Virtual Audio Driver removal
-- Remove VadServices
-- Remove Virtual Audio Driver support and downgrade version to 1.1.4.0506
-
-## [1.2.0.0506-Pre-release_1] - 2026-05-06
-
-- Test driver installation
-
-## [1.1.4.0506-Pre-release_1] - 2026-05-06
-
-- Test driver installation
-- Creating main installation service for VAD
-- Embeeded Virtual Audio Driver
 
 ## [1.1.4.0506] - 2026-05-06
 
