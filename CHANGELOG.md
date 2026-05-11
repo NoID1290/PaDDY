@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.5.0511-Pre-release_1] - 2026-05-11
+
+- Fixing OGG IndexOutOfRangeException
+- Enhance Vorbis encoding: enforce stereo layout and add validation checks for PCM data
+
 ## [1.1.5.0510-Pre-release_3] - 2026-05-10
 
 - Enhance audio playback: optimize seeking logic for FLAC and Opus formats
