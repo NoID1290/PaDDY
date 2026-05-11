@@ -58,12 +58,37 @@ public class ProcessingState
     /// <param name="read_offset">Where to start reading from.</param>
     public void WriteData(float[][] data, int length, int read_offset = 0)
     {
+        if (data == null)
+            throw new ArgumentNullException(nameof(data));
+
+        if (read_offset < 0)
+            throw new ArgumentOutOfRangeException(nameof(read_offset), "Read offset cannot be negative.");
+
         if (length <= 0)
             return;
 
+        if (data.Length != _pcm.Length)
+            throw new InvalidOperationException($"Vorbis channel mismatch. Encoder expects {_pcm.Length} channel(s), input provided {data.Length}.");
+
+        for (var i = 0; i < _pcm.Length; ++i)
+        {
+            if (data[i] == null)
+                throw new ArgumentException($"Input channel {i} is null.", nameof(data));
+
+            if (read_offset > data[i].Length)
+                throw new ArgumentOutOfRangeException(nameof(read_offset), $"Read offset {read_offset} exceeds input channel {i} length {data[i].Length}.");
+
+            if (length > data[i].Length - read_offset)
+            {
+                throw new ArgumentException(
+                    $"Input channel {i} does not contain {length} sample(s) at read offset {read_offset}. Available samples: {data[i].Length - read_offset}.",
+                    nameof(data));
+            }
+        }
+
         EnsureBufferSize(length);
 
-        for (var i = 0; i < data.Length; ++i)
+        for (var i = 0; i < _pcm.Length; ++i)
             Array.Copy(data[i], read_offset, _pcm[i], _pcmCurrent, length);
 
         var vi = _vorbisInfo;

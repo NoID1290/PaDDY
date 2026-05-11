@@ -35,9 +35,10 @@ namespace NoIDSoftwork.AudioProcessor
             _samplesWritten = 0;
             _headersWritten = false;
 
-            // Keep Vorbis encoder on a stable mono/stereo layout for loopback sources.
-            _encodeChannels = Math.Clamp(format.Channels, 1, 2);
-            _converter = format.Channels > 2
+            // Keep Vorbis encoder on a stable stereo layout.
+            // Mono and multichannel inputs are normalized through the converter.
+            _encodeChannels = 2;
+            _converter = format.Channels != _encodeChannels
                 ? new LoopbackFormatConverter(format, format.SampleRate)
                 : null;
 
@@ -84,6 +85,12 @@ namespace NoIDSoftwork.AudioProcessor
                 int convBytesPerSample = _converter.OutputFormat.BitsPerSample / 8;
                 int convChannels = _converter.OutputFormat.Channels;
                 if (convBytesPerSample <= 0 || convChannels <= 0) return;
+                if (convChannels != _encodeChannels)
+                {
+                    throw new InvalidOperationException(
+                        $"OGG converter channel mismatch. Expected {_encodeChannels} channel(s), got {convChannels}.");
+                }
+
                 int convInterleaved = outCount / convBytesPerSample;
                 if (convInterleaved <= 0) return;
                 convInterleaved -= convInterleaved % convChannels;
@@ -105,16 +112,17 @@ namespace NoIDSoftwork.AudioProcessor
                     }
                 }
 
-                _processingState.WriteData(convPcm, convFrames);
-                DrainPackets();
+                ValidatePlanarPcm(convPcm, convChannels, convFrames, "converter");
+                WriteAndDrain(convPcm, convFrames, "converter");
                 _samplesWritten += convFrames;
                 return;
             }
 
             int bytesPerSample = _format.BitsPerSample / 8;
             if (bytesPerSample <= 0) return;
+
             int interleaved = alignedAvailable / bytesPerSample;
-            int channels = _format.Channels;
+            int channels = _encodeChannels;
             if (channels <= 0) return;
             int frames = interleaved / channels;
             if (frames <= 0) return;
@@ -135,9 +143,56 @@ namespace NoIDSoftwork.AudioProcessor
                 }
             }
 
-            _processingState.WriteData(pcm, frames);
-            DrainPackets();
+            ValidatePlanarPcm(pcm, channels, frames, "direct");
+            WriteAndDrain(pcm, frames, "direct");
             _samplesWritten += frames;
+        }
+
+        private void WriteAndDrain(float[][] pcm, int frames, string stage)
+        {
+            if (_processingState == null)
+                throw new InvalidOperationException("OGG processing state is not initialized.");
+
+            try
+            {
+                _processingState.WriteData(pcm, frames);
+            }
+            catch (Exception ex) when (ex is IndexOutOfRangeException || ex is ArgumentException || ex is InvalidOperationException)
+            {
+                throw new InvalidOperationException(
+                    $"OGG write failed during {stage} stage (channels={pcm.Length}, frames={frames}, encodeChannels={_encodeChannels}, sampleRate={_format?.SampleRate ?? 0}, bits={_format?.BitsPerSample ?? 0}).",
+                    ex);
+            }
+
+            try
+            {
+                DrainPackets();
+            }
+            catch (Exception ex) when (ex is IndexOutOfRangeException || ex is ArgumentException || ex is InvalidOperationException)
+            {
+                throw new InvalidOperationException(
+                    $"OGG packet drain failed during {stage} stage (channels={pcm.Length}, frames={frames}, encodeChannels={_encodeChannels}, sampleRate={_format?.SampleRate ?? 0}, bits={_format?.BitsPerSample ?? 0}).",
+                    ex);
+            }
+        }
+
+        private static void ValidatePlanarPcm(float[][] pcm, int expectedChannels, int expectedFrames, string stage)
+        {
+            if (pcm.Length != expectedChannels)
+            {
+                throw new InvalidOperationException(
+                    $"OGG planar PCM channel mismatch during {stage}. Expected {expectedChannels}, got {pcm.Length}.");
+            }
+
+            for (int ch = 0; ch < pcm.Length; ch++)
+            {
+                if (pcm[ch] == null || pcm[ch].Length < expectedFrames)
+                {
+                    int actualFrames = pcm[ch]?.Length ?? 0;
+                    throw new InvalidOperationException(
+                        $"OGG planar PCM frame mismatch during {stage}. Channel {ch} has {actualFrames} frame(s), expected at least {expectedFrames}.");
+                }
+            }
         }
 
         public TimeSpan Finish()

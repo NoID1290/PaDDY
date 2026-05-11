@@ -876,6 +876,21 @@ public class PsyLookup
         _sort.Clear();
 
         var q = qMemory.Span;
+        var hasFlags = !flags.IsEmpty;
+
+        int available = Math.Min(Math.Min(r.Length, q.Length), f.Length) - offset;
+        if (available <= 0 || i >= output.Length)
+            return 0f;
+
+        if (n > available)
+            n = available;
+
+        int writable = output.Length - i;
+        if (n > writable)
+            n = writable;
+
+        if (n <= 0)
+            return 0f;
 
         int j;
         var start = _psyInfo.Normalize ? _psyInfo.NormalStart - i : n;
@@ -889,7 +904,7 @@ public class PsyLookup
         // effect.  There's no need to [re]populate *q in these areas 
         for (j = 0; j < start; j++)
         {
-            if (flags[offset + j])
+            if (hasFlags && flags[offset + j])
                 continue;
 
             // Lossless coupling already quantized.
@@ -904,7 +919,7 @@ public class PsyLookup
 
         // sort magnitudes for noise norm portion of partition 
         for (; j < n; j++)
-            if (!flags[offset + j])
+            if (!hasFlags || !flags[offset + j])
             {
                 // can't noise norm elements that have
                 // already been losslessly coupled; we can
