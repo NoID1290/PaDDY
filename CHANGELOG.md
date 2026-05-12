@@ -4,6 +4,16 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.7.0512] - 2026-05-12
+
+- Fixing push corruption
+- Fixing push corruption (v1.1.6.0512)
+- Corrupted files cleanup
+- Fix csproj corruption
+- Update CHANGELOG.md
+- Remove temporary OGG repro project from solution
+- Add cleanup method for internal temp recordings on startup and shutdown
+
 ## [1.1.6.0512] - 2026-05-12
 
 - Fixing push corruption
