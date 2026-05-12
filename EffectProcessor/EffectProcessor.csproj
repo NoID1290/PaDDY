@@ -10,10 +10,10 @@
     <Product>NoIDSoftwork.EffectProcessor</Product>
     <Company>NoID Softwork</Company>
     <Copyright>Copyright (c) NoID Softwork 2020-2026. All rights reserved.</Copyright>
-    <Version>1.1.8.0512</Version>
-    <AssemblyVersion>1.1.8.0512</AssemblyVersion>
-    <FileVersion>1.1.8.0512</FileVersion>
-    <InformationalVersion>1.1.8.0512-Pre-release_1</InformationalVersion>
+    <Version>2.1.0.0512</Version>
+    <AssemblyVersion>2.1.0.0512</AssemblyVersion>
+    <FileVersion>2.1.0.0512</FileVersion>
+    <InformationalVersion>2.1.0.0512-Pre-release_1</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <PlatformTarget>x64</PlatformTarget>
