@@ -1,4 +1,4 @@
-# PaDDY
+﻿# PaDDY
 
 [![Version](https://img.shields.io/badge/version-1.2.1-blue)](CHANGELOG.md)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/NoID1290/PaDDY/actions)
