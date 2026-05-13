@@ -276,8 +276,12 @@
                                        Style="{StaticResource SettingsLabel}"/>
                             <TextBox x:Name="DefaultPadTitleBox"
                                      Grid.Column="1"
-                                     ToolTip="Supports placeholders: {timestamp}, {codec}, {app}"/>
+                                  ToolTip="Use curly-brace placeholders only: {timestamp}, {codec}, {app}. Example: Recording {timestamp}. Parentheses like (timestamp) stay as literal text."/>
                         </Grid>
+                           <TextBlock Text="Placeholders must use curly braces: {timestamp}, {codec}, {app}. Parentheses like (timestamp) are treated as normal text."
+                                TextWrapping="Wrap"
+                                Foreground="#FF606090"
+                                FontSize="11"/>
                         <CheckBox x:Name="UseFocusedAppNameCheck"
                                   Content="Use focused app name when available"
                                   Margin="0,2,0,0"/>

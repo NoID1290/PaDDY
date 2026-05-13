@@ -1352,9 +1352,30 @@ namespace PaDDY
 
             int favCount = FavoritesPanel.Children.Count;
             FavoriteCountLabel.Text = $" — {favCount}";
-            var favVis = favCount > 0 ? Visibility.Visible : Visibility.Collapsed;
-            FavoritesHeader.Visibility = favVis;
-            FavoritesPanelBorder.Visibility = favVis;
+            bool hasFavorites = favCount > 0;
+            FavoritesHeader.Visibility = hasFavorites ? Visibility.Visible : Visibility.Collapsed;
+
+            if (!hasFavorites)
+            {
+                FavoritesPanelBorder.Visibility = Visibility.Collapsed;
+                FavoritesCollapseIcon.Text = "▼";
+                FavoritesCollapseButton.ToolTip = "Expand favorites";
+                return;
+            }
+
+            bool isCollapsed = _settings.FavoritesPanelCollapsed;
+            FavoritesPanelBorder.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            FavoritesCollapseIcon.Text = isCollapsed ? "►" : "▼";
+            FavoritesCollapseButton.ToolTip = isCollapsed ? "Expand favorites" : "Collapse favorites";
+        }
+
+        private void FavoritesCollapseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (FavoritesPanel.Children.Count == 0) return;
+
+            _settings.FavoritesPanelCollapsed = !_settings.FavoritesPanelCollapsed;
+            _settings.Save();
+            UpdatePadState();
         }
 
         /// <summary>
