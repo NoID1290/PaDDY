@@ -27,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.1.0.0504] - 2026-05-04
 
- *Add new effect processing pipeline with future support for VST3 plugins (currently only in trim editor)*
+ **Add new effect processing pipeline with future support for VST3 plugins (currently only in trim editor)**
 
 - Add Echo effect with delay and feedback parameters
 - Add 5-band equalizer
