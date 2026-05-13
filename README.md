@@ -1,6 +1,6 @@
-﻿# PaDDY
+# PaDDY
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue)](CHANGELOG.md)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/NoID1290/PaDDY/actions)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
@@ -74,27 +74,3 @@ dotnet build PaDDY.csproj --configuration Release
 
 This project is licensed under the MIT License.  
 NoID Softwork © 2020-2026.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
