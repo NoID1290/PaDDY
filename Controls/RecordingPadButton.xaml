@@ -77,14 +77,14 @@
     <Border x:Name="TileBorder"
             Background="#FF2D2D2D"
             BorderBrush="#FF555555"
-            BorderThickness="2"
-            CornerRadius="8"
+            BorderThickness="0.8"
+            CornerRadius="6"
             SnapsToDevicePixels="True">
         <Border.Effect>
             <DropShadowEffect Color="Black"
-                    BlurRadius="6"
-                    ShadowDepth="2"
-                    Opacity="0.4"/>
+                    BlurRadius="20"
+                    ShadowDepth="10"
+                    Opacity="0.7"/>
         </Border.Effect>
 
         <Border.Triggers>
