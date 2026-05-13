@@ -447,28 +447,28 @@ namespace PaDDY
             EffectsPanelChevron.Text = expand ? "\u25C4" : "\u25BA";
         }
 
-        private void FadeChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void FadeHeaderButton_Click(object sender, RoutedEventArgs e)
         {
             bool expand = FadeContent.Visibility == Visibility.Collapsed;
             FadeContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
             FadeChevron.Text = expand ? "▼" : "►";
         }
 
-        private void GateChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void GateHeaderButton_Click(object sender, RoutedEventArgs e)
         {
             bool expand = GateContent.Visibility == Visibility.Collapsed;
             GateContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
             GateChevron.Text = expand ? "▼" : "►";
         }
 
-        private void EchoChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void EchoHeaderButton_Click(object sender, RoutedEventArgs e)
         {
             bool expand = EchoContent.Visibility == Visibility.Collapsed;
             EchoContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
             EchoChevron.Text = expand ? "▼" : "►";
         }
 
-        private void EqChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void EqHeaderButton_Click(object sender, RoutedEventArgs e)
         {
             bool expand = EqContent.Visibility == Visibility.Collapsed;
             EqContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;

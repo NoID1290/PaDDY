@@ -280,25 +280,34 @@
                             <!-- Fade In / Fade Out -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="22"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                        <TextBlock Grid.Column="1" Text="Fade In / Fade Out"
-                                                   Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
-                                        <CheckBox Grid.Column="2" x:Name="FadeEnabledCheck" Content="Enable"
+                                    <DockPanel LastChildFill="True">
+                                        <CheckBox DockPanel.Dock="Right" x:Name="FadeEnabledCheck" Content="Enable"
                                                   Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <TextBlock Grid.Column="3" x:Name="FadeChevron" Text="&#x25BA;"
-                                                   FontSize="9" Foreground="#FF6060A0"
-                                                   VerticalAlignment="Center" Margin="4,0,0,0"
-                                                   Cursor="Hand" MouseLeftButtonUp="FadeChevron_Click"/>
-                                    </Grid>
+                                        <Button x:Name="FadeHeaderButton"
+                                                Background="Transparent"
+                                                BorderBrush="Transparent"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                Cursor="Hand"
+                                                HorizontalContentAlignment="Stretch"
+                                                Click="FadeHeaderButton_Click">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="22"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                <TextBlock Grid.Column="1" Text="Fade In / Fade Out"
+                                                           Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="2" x:Name="FadeChevron" Text="&#x25BA;"
+                                                           FontSize="9" Foreground="#FF6060A0"
+                                                           VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </Button>
+                                    </DockPanel>
                                     <StackPanel x:Name="FadeContent" Visibility="Collapsed" Margin="0,8,0,0">
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
@@ -341,25 +350,34 @@
                             <!-- Noise Gate -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="22"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                        <TextBlock Grid.Column="1" Text="Noise Gate"
-                                                   Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
-                                        <CheckBox Grid.Column="2" x:Name="GateEnabledCheck" Content="Enable"
+                                    <DockPanel LastChildFill="True">
+                                        <CheckBox DockPanel.Dock="Right" x:Name="GateEnabledCheck" Content="Enable"
                                                   Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <TextBlock Grid.Column="3" x:Name="GateChevron" Text="&#x25BA;"
-                                                   FontSize="9" Foreground="#FF6060A0"
-                                                   VerticalAlignment="Center" Margin="4,0,0,0"
-                                                   Cursor="Hand" MouseLeftButtonUp="GateChevron_Click"/>
-                                    </Grid>
+                                        <Button x:Name="GateHeaderButton"
+                                                Background="Transparent"
+                                                BorderBrush="Transparent"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                Cursor="Hand"
+                                                HorizontalContentAlignment="Stretch"
+                                                Click="GateHeaderButton_Click">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="22"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                <TextBlock Grid.Column="1" Text="Noise Gate"
+                                                           Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="2" x:Name="GateChevron" Text="&#x25BA;"
+                                                           FontSize="9" Foreground="#FF6060A0"
+                                                           VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </Button>
+                                    </DockPanel>
                                     <StackPanel x:Name="GateContent" Visibility="Collapsed" Margin="0,8,0,0">
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
@@ -419,25 +437,34 @@
                             <!-- Echo -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="22"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                        <TextBlock Grid.Column="1" Text="Echo"
-                                                   Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
-                                        <CheckBox Grid.Column="2" x:Name="EchoEnabledCheck" Content="Enable"
+                                    <DockPanel LastChildFill="True">
+                                        <CheckBox DockPanel.Dock="Right" x:Name="EchoEnabledCheck" Content="Enable"
                                                   Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <TextBlock Grid.Column="3" x:Name="EchoChevron" Text="&#x25BA;"
-                                                   FontSize="9" Foreground="#FF6060A0"
-                                                   VerticalAlignment="Center" Margin="4,0,0,0"
-                                                   Cursor="Hand" MouseLeftButtonUp="EchoChevron_Click"/>
-                                    </Grid>
+                                        <Button x:Name="EchoHeaderButton"
+                                                Background="Transparent"
+                                                BorderBrush="Transparent"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                Cursor="Hand"
+                                                HorizontalContentAlignment="Stretch"
+                                                Click="EchoHeaderButton_Click">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="22"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                <TextBlock Grid.Column="1" Text="Echo"
+                                                           Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="2" x:Name="EchoChevron" Text="&#x25BA;"
+                                                           FontSize="9" Foreground="#FF6060A0"
+                                                           VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </Button>
+                                    </DockPanel>
                                     <StackPanel x:Name="EchoContent" Visibility="Collapsed" Margin="0,8,0,0">
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
@@ -497,25 +524,34 @@
                             <!-- Equalizer -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="22"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                        <TextBlock Grid.Column="1" Text="Equalizer (5-Band)"
-                                                   Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
-                                        <CheckBox Grid.Column="2" x:Name="EqEnabledCheck" Content="Enable"
+                                    <DockPanel LastChildFill="True">
+                                        <CheckBox DockPanel.Dock="Right" x:Name="EqEnabledCheck" Content="Enable"
                                                   Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <TextBlock Grid.Column="3" x:Name="EqChevron" Text="&#x25BA;"
-                                                   FontSize="9" Foreground="#FF6060A0"
-                                                   VerticalAlignment="Center" Margin="4,0,0,0"
-                                                   Cursor="Hand" MouseLeftButtonUp="EqChevron_Click"/>
-                                    </Grid>
+                                        <Button x:Name="EqHeaderButton"
+                                                Background="Transparent"
+                                                BorderBrush="Transparent"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                Cursor="Hand"
+                                                HorizontalContentAlignment="Stretch"
+                                                Click="EqHeaderButton_Click">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="22"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                <TextBlock Grid.Column="1" Text="Equalizer (5-Band)"
+                                                           Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="2" x:Name="EqChevron" Text="&#x25BA;"
+                                                           FontSize="9" Foreground="#FF6060A0"
+                                                           VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </Button>
+                                    </DockPanel>
                                     <!-- Horizontal 5-band EQ -->
                                     <Grid x:Name="EqContent" Visibility="Collapsed" Margin="0,8,0,0">
                                         <Grid.ColumnDefinitions>

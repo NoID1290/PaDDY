@@ -47,6 +47,9 @@ namespace PaDDY
         // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest
         public int PadSortOrder { get; set; } = 0;
 
+        // Favorites section UI state
+        public bool FavoritesPanelCollapsed { get; set; } = false;
+
         // Volume controls (0–100 range)
         public double InputVolume { get; set; } = 80.0;
         public double OutputVolume { get; set; } = 100.0;

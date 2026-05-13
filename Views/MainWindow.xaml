@@ -993,18 +993,42 @@
                     <DropShadowEffect ShadowDepth="0" BlurRadius="8"
                                       Color="#FFFFC107" Opacity="0.15"/>
                 </Border.Effect>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="★ FAVORITES"
-                               Foreground="#FFFFC107"
-                               FontSize="10"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"/>
-                    <TextBlock x:Name="FavoriteCountLabel"
-                               Text=" — 0"
-                               Foreground="#FF8A8A60"
-                               FontSize="10"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="★ FAVORITES"
+                                   Foreground="#FFFFC107"
+                                   FontSize="10"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock x:Name="FavoriteCountLabel"
+                                   Text=" — 0"
+                                   Foreground="#FF8A8A60"
+                                   FontSize="10"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button x:Name="FavoritesCollapseButton"
+                            Grid.Column="1"
+                            Width="22"
+                            Height="22"
+                            Margin="8,0,0,0"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            ToolTip="Collapse favorites"
+                            Click="FavoritesCollapseButton_Click">
+                        <TextBlock x:Name="FavoritesCollapseIcon"
+                                   Text="▼"
+                                   Foreground="#FFFFC107"
+                                   FontSize="10"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
             </Border>
 
             <!-- ── Favorites WrapPanel ── -->
