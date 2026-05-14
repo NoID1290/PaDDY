@@ -203,17 +203,10 @@
 
     <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="#2AFFFFFF"/>
-<<<<<<< HEAD
-        <Setter Property="Width" Value="14"/>
-        <Setter Property="Height" Value="14"/>
-        <Style.Triggers>
-            <Trigger Property="Orientation" Value="Vertical">
-=======
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Vertical">
                 <Setter Property="Width" Value="14"/>
                 <Setter Property="Height" Value="Auto"/>
->>>>>>> 524e7c092b4fa58027ccb48f006e38dd3856317b
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ScrollBar">
@@ -246,11 +239,8 @@
             </Trigger>
 
             <Trigger Property="Orientation" Value="Horizontal">
-<<<<<<< HEAD
-=======
                 <Setter Property="Height" Value="14"/>
                 <Setter Property="Width" Value="Auto"/>
->>>>>>> 524e7c092b4fa58027ccb48f006e38dd3856317b
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ScrollBar">
