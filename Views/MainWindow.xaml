@@ -1094,8 +1094,10 @@
             <ScrollViewer Grid.Row="3"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
-                          Background="#FF0D0D14">
-                <StackPanel>
+                          Background="#FF0D0D14"
+                          VerticalAlignment="Stretch"
+                          HorizontalAlignment="Stretch">
+                <StackPanel VerticalAlignment="Top">
                     <WrapPanel x:Name="PadPanel"
                                Margin="12"
                                Orientation="Horizontal"/>
