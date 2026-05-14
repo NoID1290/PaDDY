@@ -4,6 +4,13 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.3.0514] - 2026-05-14
+
+- Refactor ScrollBar style - adjust height for vertical orientation and remove redundant width setting
+- Slider
+- Fix vertical scrollbar height constrained to 14px
+- Add ToolTip style with custom background, foreground, and border properties
+
 ## [1.2.2.0513-Pre-release_1] - 2026-05-13
 
 - Update RecordingPadButton style: adjust border thickness and corner radius, enhance drop shadow effect
