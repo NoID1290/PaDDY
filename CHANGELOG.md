@@ -6,20 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.3.0514] - 2026-05-14
 
-- Refactor ScrollBar style - adjust height for vertical orientation and remove redundant width setting
-- Slider
-- Fix vertical scrollbar height constrained to 14px
-- Add ToolTip style with custom background, foreground, and border properties
-
-## [1.2.2.0513-Pre-release_1] - 2026-05-13
-
-- Update RecordingPadButton style: adjust border thickness and corner radius, enhance drop shadow effect
-- fix 2
-- changelog fix
-
-## [1.2.1.0513-Pre-release_1] - 2026-05-13
-
-- Enhance UI, Add collapsible favorites section and update related settings
+- Updated UI
+- Favorites section can now being collapsed
 
 ## [1.2.0.0511] - 2026-05-11
 
