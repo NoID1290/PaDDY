@@ -4,6 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.4.0515] - 2026-05-15
+
+- Fix EQ sliders being stuck at 0db
+- Delete .github/upgrades/scenarios/dotnet-version-upgrade directory
+- Delete .github/workflows/jekyll-gh-pages.yml
+- Add GitHub Actions workflow for Jekyll deployment
+- Update CHANGELOG.md
+
 ## [1.2.3.0514] - 2026-05-14
 
 - Updated UI
