@@ -44,6 +44,8 @@ public partial class EffectsWindow : Window
             }
         }
 
+
+
         // Hide Fade section when editing the global chain
         FadeSection.Visibility = isPerClip ? Visibility.Visible : Visibility.Collapsed;
 
@@ -94,16 +96,33 @@ public partial class EffectsWindow : Window
             // EQ
             if (_eq != null)
             {
-                EqEnabledCheck.IsChecked = _eq.IsEnabled;
-                EqSubBassSlider.Value = _eq.SubBassDb;
-                EqBassSlider.Value = _eq.BassDb;
-                EqMidSlider.Value = _eq.MidDb;
-                EqPresenceSlider.Value = _eq.PresenceDb;
-                EqTrebleSlider.Value = _eq.TrebleDb;
-                UpdateEqLabels();
+                try
+                {
+
+                    EqEnabledCheck.IsChecked = _eq.IsEnabled;
+                    EqSubBassSlider.Value = _eq.SubBassDb;
+                    EqBassSlider.Value = _eq.BassDb;
+                    EqMidSlider.Value = _eq.MidDb;
+                    EqPresenceSlider.Value = _eq.PresenceDb;
+                    EqTrebleSlider.Value = _eq.TrebleDb;
+
+                    UpdateEqLabels();
+                }
+                catch
+                {
+                    throw;
+                }
+            }
+            else
+            {
+
             }
         }
         finally
+        {
+            _loading = false;
+
+        }
         {
             _loading = false;
         }

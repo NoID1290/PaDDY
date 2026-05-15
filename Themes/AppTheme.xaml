@@ -107,11 +107,20 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
                     <Grid Margin="0,2">
+                        <!-- Horizontal track background -->
                         <Border x:Name="TrackBg"
                                 Height="4"
                                 VerticalAlignment="Center"
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="2"/>
+                        <!-- Vertical track background (hidden by default) -->
+                        <Border x:Name="TrackBgVertical"
+                                Width="4"
+                                HorizontalAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="2"
+                                Visibility="Collapsed"/>
+                        
                         <Track x:Name="PART_Track"
                                VerticalAlignment="Center"
                                IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
@@ -122,10 +131,27 @@
                                               Focusable="False">
                                     <RepeatButton.Template>
                                         <ControlTemplate TargetType="RepeatButton">
-                                            <Border Height="4"
-                                                    VerticalAlignment="Center"
-                                                    Background="{TemplateBinding Background}"
-                                                    CornerRadius="2"/>
+                                            <Grid>
+                                                <!-- Horizontal: Height for progress bar -->
+                                                <Border x:Name="HorizontalTrack"
+                                                        Height="4"
+                                                        VerticalAlignment="Center"
+                                                        Background="{TemplateBinding Background}"
+                                                        CornerRadius="2"/>
+                                                <!-- Vertical: Width for progress bar (shown via trigger) -->
+                                                <Border x:Name="VerticalTrack"
+                                                        Width="4"
+                                                        HorizontalAlignment="Center"
+                                                        Background="{TemplateBinding Background}"
+                                                        CornerRadius="2"
+                                                        Visibility="Collapsed"/>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Slider}, Path=Orientation}" Value="Vertical">
+                                                    <Setter TargetName="HorizontalTrack" Property="Visibility" Value="Collapsed"/>
+                                                    <Setter TargetName="VerticalTrack" Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </RepeatButton.Template>
                                 </RepeatButton>
@@ -140,10 +166,27 @@
                                               Focusable="False">
                                     <RepeatButton.Template>
                                         <ControlTemplate TargetType="RepeatButton">
-                                            <Border Height="4"
-                                                    VerticalAlignment="Center"
-                                                    Background="Transparent"
-                                                    CornerRadius="2"/>
+                                            <Grid>
+                                                <!-- Horizontal: Height for background -->
+                                                <Border x:Name="HorizontalTrackIncrease"
+                                                        Height="4"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent"
+                                                        CornerRadius="2"/>
+                                                <!-- Vertical: Width for background (shown via trigger) -->
+                                                <Border x:Name="VerticalTrackIncrease"
+                                                        Width="4"
+                                                        HorizontalAlignment="Center"
+                                                        Background="Transparent"
+                                                        CornerRadius="2"
+                                                        Visibility="Collapsed"/>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Slider}, Path=Orientation}" Value="Vertical">
+                                                    <Setter TargetName="HorizontalTrackIncrease" Property="Visibility" Value="Collapsed"/>
+                                                    <Setter TargetName="VerticalTrackIncrease" Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </RepeatButton.Template>
                                 </RepeatButton>
@@ -151,6 +194,12 @@
                         </Track>
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="Orientation" Value="Vertical">
+                            <Setter TargetName="TrackBg" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="TrackBgVertical" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="PART_Track" Property="VerticalAlignment" Value="Stretch"/>
+                            <Setter TargetName="PART_Track" Property="HorizontalAlignment" Value="Center"/>
+                        </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>
                         </Trigger>
