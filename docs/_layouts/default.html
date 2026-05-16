@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  {% seo %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="{{ '/' | relative_url }}">
+        <img src="{{ '/assets/img/wordmark.png' | relative_url }}" alt="PaDDY wordmark">
+      </a>
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="https://github.com/NoID1290/PaDDY/releases">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {{ content }}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>PaDDY is licensed under MIT. NoID Softwork © 2020-2026.</p>
+      <p>
+        <a href="https://github.com/NoID1290/PaDDY">GitHub</a>
+        <a href="https://github.com/NoID1290/PaDDY/blob/main/CHANGELOG.md">Changelog</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,9 @@
+title: PaDDY
+description: Windows audio capture pad for fast clip recording and playback.
+url: https://noid1290.github.io
+baseurl: /PaDDY
+markdown: kramdown
+kramdown:
+  input: GFM
+plugins:
+  - jekyll-seo-tag
