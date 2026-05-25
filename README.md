@@ -3,101 +3,192 @@
 ![PaDDY Hero](logo/github/PaDDY-wordmark-font-transparent-2x.png)
 
 [![Version](https://img.shields.io/badge/version-1.2.4.0515-blue)](CHANGELOG.md)
-[![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/NoID1290/PaDDY/actions)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Windows recording pad for quickly capturing, organizing, and replaying short audio clips.
+Fast voice and system-audio capture for Windows, built around a pad-based workflow for recording, organizing, monitoring, trimming, and replaying short clips.
 
-Latest app version: **1.2.4.0515**
+## Overview
 
-## Quick Links
+PaDDY is a Windows desktop recorder focused on low-friction capture.
+It supports microphone input, system loopback capture, and app-specific loopback capture, then lets you manage clips from a visual pad interface with favorites, trimming, naming rules, monitoring, and playback routing.
 
-- [Why PaDDY](#why-paddy)
-- [Features](#features)
-- [Install](#install)
-- [Build from Source](#build-from-source)
-- [Usage](#usage)
-- [Screenshots](#screenshots)
-- [Changelog](#changelog)
-- [License](#license)
-
-## Why PaDDY
-
-PaDDY is built for fast capture with minimal friction:
-
-- monitor microphone or system output
-- auto-save clips with voice activity detection (AutoVAD)
-- capture a rolling buffer on demand with a global hotkey (Key Buffer mode)
-- play, favorite, rename, trim, and delete clips from a pad-style UI
-
-## Features
+## Highlights
 
 - **Two recording modes**
-  - **AutoVAD:** starts and stops clips based on sensitivity and silence timeout
-  - **Key Buffer:** saves the last _N_ seconds when the hotkey is pressed
-- **Input sources**
-  - microphone capture
-  - output loopback capture
-- **Output formats**
-  - WAV, MP3, Opus, Ogg Vorbis
-- **Audio controls**
-  - sensitivity slider with threshold marker
-  - silence timeout control
-  - live L/R RMS meter with peak indicators
-- **Clip management**
-  - favorites panel
-  - trim editor
-  - rename, delete single clip, clear pads, delete all files
-  - optional max-record auto cleanup (favorites exempt)
-- **Playback routing**
-  - choose playback output device
-  - optional separate listen/monitor output
+  - **AutoVAD**: automatically starts and stops clips based on input activity
+  - **Key Buffer**: saves the last _N_ seconds using a global hotkey
+- **Multiple capture sources**
+  - microphone / line input
+  - full system loopback
+  - app-specific loopback capture
+- **Flexible recording formats**
+  - WAV
+  - MP3
+  - Opus
+  - Ogg Vorbis
+  - FLAC
+- **Modern monitoring and metering**
+  - live input, output, and monitor RMS meters
+  - threshold indicator and peak indicators
+  - optional separate monitor output device
+- **Pad-based clip workflow**
+  - instant playback from recording pads
+  - favorites section with collapsible panel
+  - rename, delete, clear, and sort recordings
+  - SQLite-backed recording management
+- **Built-in trim editor**
+  - waveform-based trimming
+  - preview playback
+  - save trim in place or as a copy
+  - optionally add trimmed output to favorites
+- **Effects processing**
+  - gain
+  - fade in / fade out
+  - noise gate
+  - echo
+  - 5-band equalizer
+- **Customization and convenience**
+  - configurable buffer duration
+  - global hotkey assignment
+  - automatic cleanup with favorites exemption
+  - custom naming templates with placeholders
+  - focused app naming support
+  - trim editor output device selection
+  - font variant selection
+  - single-instance protection
+  - update notice in the main window
 
-## Install
+## Main Features
 
-### Option 1: Download the latest release
+### Recording modes
+
+#### AutoVAD
+AutoVAD watches the incoming signal and creates clips automatically based on sensitivity and silence timeout settings.
+This is useful when you want hands-free voice capture.
+
+#### Key Buffer
+Key Buffer continuously keeps a rolling buffer and saves the most recent audio when you press the configured global hotkey.
+This is useful when you want to capture something that already happened.
+
+### Input and capture
+
+PaDDY supports several audio input flows:
+
+- **Mic / line capture** for voice or external input devices
+- **System loopback** for recording what Windows is playing
+- **App loopback** for targeting a specific audio-producing application
+
+The UI includes source selection, input device switching, input volume control, and mode-aware controls.
+
+### Playback and monitoring
+
+Playback can be routed to a selected output device, and pad monitoring can be enabled separately with its own device and volume control.
+The main window also exposes dedicated RMS meters for:
+
+- input
+- playback output
+- monitor output
+
+### Trim editor and effects
+
+The trim editor provides waveform-based editing with draggable trim handles, live preview, and quick save actions.
+You can save the edited result directly or create a copy.
+
+Available processing and editing controls include:
+
+- gain
+- fade in / fade out
+- noise gate
+- echo
+- 5-band EQ at **80Hz**, **250Hz**, **1kHz**, **4kHz**, and **12kHz**
+
+## Settings
+
+PaDDY includes settings for:
+
+- recording codec selection
+- past buffer duration
+- buffer trigger hotkey
+- max recordings auto-cleanup
+- default pad naming template
+- focused app naming
+- trim editor output device
+- font variant / appearance
+
+Naming placeholders currently include:
+
+- `{timestamp}`
+- `{codec}`
+- `{app}`
+
+## Installation
+
+### Download a release
 
 1. Open [Releases](https://github.com/NoID1290/PaDDY/releases).
-2. Download the latest artifact or zip package.
+2. Download the latest package.
 3. Extract the files.
 4. Run `PaDDY.exe`.
 
-## Build from Source
+## Build from source
 
 ### Requirements
 
-- **OS:** Windows 10/11
-- **SDK:** [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- Windows 10 or Windows 11
+- .NET 10 SDK
+- x64 environment
 
-### Build commands
+### Build
 
 ```powershell
 dotnet restore PaDDY.sln
 dotnet build PaDDY.csproj --configuration Release
 ```
 
+### Project details
+
+- **Framework:** `net10.0-windows`
+- **UI:** WPF
+- **Architecture:** `win-x64`
+- **Deployment:** self-contained
+
 ## Usage
 
-1. Select **Source** (Mic or Loopback) and devices.
-2. Choose **Mode**:
-   - **AutoVAD** for automatic clipping
+1. Choose an input source.
+2. Select the relevant input or loopback device.
+3. Pick a recording mode:
+   - **AutoVAD** for automatic clip detection
    - **Key Buffer** for hotkey-triggered capture
-3. Click **Start**.
-4. New clips appear as pads in the recordings area.
-5. Click a pad to play or stop. Use pad actions to favorite, rename, trim, or delete.
+4. Configure output, monitoring, or sensitivity settings as needed.
+5. Start monitoring / recording from the main window.
+6. Use recording pads to play, favorite, rename, trim, or delete clips.
+7. Open Settings to customize codecs, naming, cleanup, hotkeys, and editor playback.
 
 ## Screenshots
 
-![Main Windows](logo/github/PaDDY_1tpzjJSm1D.png)
+![Main Window](logo/github/PaDDY_1tpzjJSm1D.png)
 ![Trim Editor](logo/github/PaDDY_1fndG4WBlK.png)
 
+## Recent additions
 
+Some of the newer capabilities added after the original README include:
+
+- FLAC support
+- .NET 10 migration
+- app-specific loopback capture
+- SQLite-backed recording storage
+- improved playback and monitoring meters
+- new naming features and placeholders
+- collapsible favorites section
+- trim editor output device settings
+- effect processing pipeline for editing
+- single-instance protection
 
 ## Changelog
 
-Release history is maintained in [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ## License
 
