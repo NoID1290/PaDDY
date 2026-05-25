@@ -9,6 +9,22 @@
 
 Fast voice and system-audio capture for Windows, built around a pad-based workflow for recording, organizing, monitoring, trimming, and replaying short clips.
 
+- Website: <https://noid1290.github.io/PaDDY/>
+- Releases: <https://github.com/NoID1290/PaDDY/releases>
+
+## Contents
+
+- [Overview](#overview)
+- [Highlights](#highlights)
+- [Feature Details](#feature-details)
+- [Settings](#settings)
+- [Installation](#installation)
+- [Build from Source](#build-from-source)
+- [Usage](#usage)
+- [Screenshots](#screenshots)
+- [Changelog](#changelog)
+- [License](#license)
+
 ## Overview
 
 PaDDY is a Windows desktop recorder focused on low-friction capture.
@@ -60,7 +76,7 @@ It supports microphone input, system loopback capture, and app-specific loopback
   - single-instance protection
   - update notice in the main window
 
-## Main Features
+## Feature Details
 
 ### Recording modes
 
@@ -109,7 +125,7 @@ Available processing and editing controls include:
 PaDDY includes settings for:
 
 - recording codec selection
-- past buffer duration
+- buffer duration
 - buffer trigger hotkey
 - max recordings auto-cleanup
 - default pad naming template
@@ -128,7 +144,7 @@ Naming placeholders currently include:
 ### Download a release
 
 1. Open [Releases](https://github.com/NoID1290/PaDDY/releases).
-2. Download the latest package.
+2. Download the latest zip package.
 3. Extract the files.
 4. Run `PaDDY.exe`.
 
