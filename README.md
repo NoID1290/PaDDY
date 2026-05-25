@@ -125,7 +125,7 @@ Available processing and editing controls include:
 PaDDY includes settings for:
 
 - recording codec selection
-- buffer duration
+- buffer history duration
 - buffer trigger hotkey
 - max recordings auto-cleanup
 - default pad naming template
