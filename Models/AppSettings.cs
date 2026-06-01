@@ -65,6 +65,37 @@ namespace PaDDY
         // Trim Editor output device (0 = default, 1..N = devices 0..N-1)
         public int TrimEditorOutputDeviceIndex { get; set; } = 0;
 
+        // ---- Appearance ----
+        // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink"
+        public string Theme { get; set; } = "dark";
+        // Audio meter skin: "default", "8bit", "70s"
+        public string MeterSkin { get; set; } = "default";
+        // Performance mode: CPU-only rendering, limited animations
+        public bool PerformanceMode { get; set; } = false;
+
+        // ---- System tray / startup ----
+        public bool RunOnWindowsStartup { get; set; } = false;
+        public bool StartMinimizedInTray { get; set; } = false;
+        public bool MinimizeToTray { get; set; } = false;
+        public bool CloseToTray { get; set; } = false;
+
+        // ---- Detection ----
+        // 0 = RMS threshold (classic), 1 = Adaptive/spectral VAD (noise-floor calibrating)
+        public int DetectionAlgorithm { get; set; } = 0;
+
+        // ---- Speech-to-text auto-rename ----
+        public bool AutoRenameWithSpeech { get; set; } = false;
+        // Whisper model size: "tiny", "base", "small"
+        public string SpeechModel { get; set; } = "base";
+        // Language code (e.g. "en", "auto")
+        public string SpeechLanguage { get; set; } = "en";
+
+        // ---- Custom pad pages ----
+        // Ordered list of user pad pages. The first page is the default ("Favorites" semantics).
+        public List<PadPage> PadPages { get; set; } = new();
+        // Id of the currently active pad page (empty = first/all view).
+        public string ActivePadPageId { get; set; } = string.Empty;
+
         private static readonly MessagePackSerializerOptions SerializerOptions =
             MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
 
@@ -124,6 +155,36 @@ namespace PaDDY
                 File.WriteAllBytes(AppDataPaths.SettingsPath, bytes);
             }
             catch { /* non-critical */ }
+        }
+
+        /// <summary>
+        /// Guarantees a default "Favorites" pad page exists and that
+        /// <see cref="ActivePadPageId"/> points at a real page. Returns the default page.
+        /// </summary>
+        public PadPage EnsurePadPages()
+        {
+            PadPages ??= new List<PadPage>();
+
+            PadPage? favorites = PadPages.Find(p => p.IsFavorites);
+            if (favorites == null)
+            {
+                favorites = new PadPage
+                {
+                    Id = Guid.NewGuid().ToString("N"),
+                    Name = "Favorites",
+                    Order = 0,
+                    IsFavorites = true
+                };
+                PadPages.Insert(0, favorites);
+            }
+
+            if (string.IsNullOrEmpty(ActivePadPageId) ||
+                PadPages.Find(p => p.Id == ActivePadPageId) == null)
+            {
+                ActivePadPageId = favorites.Id;
+            }
+
+            return favorites;
         }
     }
 }

@@ -52,7 +52,11 @@ public partial class App : WpfApplication
         }
 
         base.OnStartup(e);
-        ApplyFont(AppSettings.Load().AppFontVariant);
+        var settings = AppSettings.Load();
+        ApplyFont(settings.AppFontVariant);
+        Helpers.ThemeManager.ApplyTheme(settings.Theme);
+        Helpers.ThemeManager.ApplyMeterSkin(settings.MeterSkin);
+        Helpers.ThemeManager.ApplyPerformanceMode(settings.PerformanceMode);
     }
 
     protected override void OnExit(ExitEventArgs e)

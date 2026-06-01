@@ -9,8 +9,8 @@
         Width="1380"
         MinWidth="1100"
         MinHeight="600"
-        Background="#FF0D0D14"
-        Foreground="#FFE0E8F0"
+        Background="{DynamicResource WindowBgBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
         FontFamily="{DynamicResource AppFont}">
 
     <WindowChrome.WindowChrome>
@@ -625,19 +625,7 @@
                                    Foreground="#FF7070A0" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <Grid Grid.Column="1" ClipToBounds="True">
-                            <Rectangle Height="14">
-                                <Rectangle.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#FF000000" Offset="0.0"/>
-                                        <GradientStop Color="#FF2E7D32" Offset="0.015"/>
-                                        <GradientStop Color="#FF4CAF50" Offset="0.35"/>
-                                        <GradientStop Color="#FFFDD835" Offset="0.70"/>
-                                        <GradientStop Color="#FFFF9800" Offset="0.85"/>
-                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
-                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
-                                    </LinearGradientBrush>
-                                </Rectangle.Fill>
-                            </Rectangle>
+                            <Rectangle Height="14" Fill="{DynamicResource MeterInBrush}"/>
                             <Rectangle x:Name="MeterOverlayL"
                                        Height="14"
                                        Fill="#FF0D0D18"
@@ -661,19 +649,7 @@
                                    Foreground="#FF7070A0" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <Grid Grid.Column="1" ClipToBounds="True">
-                            <Rectangle Height="14">
-                                <Rectangle.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#FF000000" Offset="0.0"/>
-                                        <GradientStop Color="#FF2E7D32" Offset="0.015"/>
-                                        <GradientStop Color="#FF4CAF50" Offset="0.35"/>
-                                        <GradientStop Color="#FFFDD835" Offset="0.70"/>
-                                        <GradientStop Color="#FFFF9800" Offset="0.85"/>
-                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
-                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
-                                    </LinearGradientBrush>
-                                </Rectangle.Fill>
-                            </Rectangle>
+                            <Rectangle Height="14" Fill="{DynamicResource MeterInBrush}"/>
                             <Rectangle x:Name="MeterOverlayR"
                                        Height="14"
                                        Fill="#FF0D0D18"
@@ -701,19 +677,7 @@
                                    Foreground="#FF505070" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <Grid Grid.Column="1" ClipToBounds="True">
-                            <Rectangle Height="14">
-                                <Rectangle.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#FF000000" Offset="0.0"/>
-                                        <GradientStop Color="#FF1565C0" Offset="0.015"/>
-                                        <GradientStop Color="#FF42A5F5" Offset="0.35"/>
-                                        <GradientStop Color="#FF80DEEA" Offset="0.70"/>
-                                        <GradientStop Color="#FFFDD835" Offset="0.85"/>
-                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
-                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
-                                    </LinearGradientBrush>
-                                </Rectangle.Fill>
-                            </Rectangle>
+                            <Rectangle Height="14" Fill="{DynamicResource MeterOutBrush}"/>
                             <Rectangle x:Name="OutputMeterOverlayL"
                                        Height="14"
                                        Fill="#FF0D0D18"
@@ -731,19 +695,7 @@
                                    Foreground="#FF505070" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <Grid Grid.Column="1" ClipToBounds="True">
-                            <Rectangle Height="14">
-                                <Rectangle.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#FF000000" Offset="0.0"/>
-                                        <GradientStop Color="#FF1565C0" Offset="0.015"/>
-                                        <GradientStop Color="#FF42A5F5" Offset="0.35"/>
-                                        <GradientStop Color="#FF80DEEA" Offset="0.70"/>
-                                        <GradientStop Color="#FFFDD835" Offset="0.85"/>
-                                        <GradientStop Color="#FFF44336" Offset="0.95"/>
-                                        <GradientStop Color="#FFD50000" Offset="1.0"/>
-                                    </LinearGradientBrush>
-                                </Rectangle.Fill>
-                            </Rectangle>
+                            <Rectangle Height="14" Fill="{DynamicResource MeterOutBrush}"/>
                             <Rectangle x:Name="OutputMeterOverlayR"
                                        Height="14"
                                        Fill="#FF0D0D18"
@@ -766,18 +718,7 @@
                                        Foreground="#FF505070" FontSize="9"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             <Grid x:Name="PadMonitorMeterHostL" Grid.Column="1" ClipToBounds="True">
-                                <Rectangle Height="14">
-                                    <Rectangle.Fill>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#FF000000" Offset="0.0"/>
-                                            <GradientStop Color="#75C01515" Offset="0.015"/>
-                                            <GradientStop Color="#9CF54242" Offset="0.35"/>
-                                            <GradientStop Color="#FFCA23BC" Offset="0.70"/>
-                                            <GradientStop Color="#CCFF00BF" Offset="0.85"/>
-                                            <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
-                                        </LinearGradientBrush>
-                                    </Rectangle.Fill>
-                                </Rectangle>
+                                <Rectangle Height="14" Fill="{DynamicResource MeterMonBrush}"/>
                                 <Rectangle x:Name="PadMonitorMeterOverlayL"
                                            Height="14"
                                            Fill="#FF0D0D18"
@@ -796,18 +737,7 @@
                                        Foreground="#FF505070" FontSize="9"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             <Grid x:Name="PadMonitorMeterHostR" Grid.Column="1" ClipToBounds="True">
-                                <Rectangle Height="14">
-                                    <Rectangle.Fill>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#FF000000" Offset="0.0"/>
-                                            <GradientStop Color="#75C01515" Offset="0.015"/>
-                                            <GradientStop Color="#9CF54242" Offset="0.35"/>
-                                            <GradientStop Color="#FFCA23BC" Offset="0.70"/>
-                                            <GradientStop Color="#CCFF00BF" Offset="0.85"/>
-                                            <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
-                                        </LinearGradientBrush>
-                                    </Rectangle.Fill>
-                                </Rectangle>
+                                <Rectangle Height="14" Fill="{DynamicResource MeterMonBrush}"/>
                                 <Rectangle x:Name="PadMonitorMeterOverlayR"
                                            Height="14"
                                            Fill="#FF0D0D18"
@@ -998,36 +928,83 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <TextBlock Text="★ FAVORITES"
-                                   Foreground="#FFFFC107"
-                                   FontSize="10"
-                                   FontWeight="Bold"
-                                   VerticalAlignment="Center"/>
-                        <TextBlock x:Name="FavoriteCountLabel"
-                                   Text=" — 0"
-                                   Foreground="#FF8A8A60"
-                                   FontSize="10"
-                                   VerticalAlignment="Center"/>
+                    <ScrollViewer Grid.Column="0"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="★"
+                                       Foreground="#FFFFC107"
+                                       FontSize="11"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"/>
+                            <StackPanel x:Name="PadPageTabBar"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center"/>
+                            <Button x:Name="AddPadPageButton"
+                                    Width="20" Height="20"
+                                    Margin="6,0,0,0"
+                                    Padding="0"
+                                    Background="Transparent"
+                                    BorderBrush="#33FFC107"
+                                    BorderThickness="1"
+                                    Foreground="#FFFFC107"
+                                    Content="+"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    ToolTip="Add a new pad page"
+                                    Click="AddPadPageButton_Click"/>
+                            <TextBlock x:Name="FavoriteCountLabel"
+                                       Text=" — 0"
+                                       Foreground="#FF8A8A60"
+                                       FontSize="10"
+                                       VerticalAlignment="Center"
+                                       Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button x:Name="RenamePadPageButton"
+                                Width="22" Height="22"
+                                Margin="4,0,0,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                Foreground="#FFFFC107"
+                                Content="✎"
+                                FontSize="11"
+                                ToolTip="Rename current page"
+                                Click="RenamePadPageButton_Click"/>
+                        <Button x:Name="DeletePadPageButton"
+                                Width="22" Height="22"
+                                Margin="2,0,0,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                Foreground="#FFE57373"
+                                Content="🗑"
+                                FontSize="11"
+                                ToolTip="Delete current page (pads move to Favorites)"
+                                Click="DeletePadPageButton_Click"/>
+                        <Button x:Name="FavoritesCollapseButton"
+                                Width="22"
+                                Height="22"
+                                Margin="4,0,0,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                ToolTip="Collapse favorites"
+                                Click="FavoritesCollapseButton_Click">
+                            <TextBlock x:Name="FavoritesCollapseIcon"
+                                       Text="▼"
+                                       Foreground="#FFFFC107"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Button>
                     </StackPanel>
-                    <Button x:Name="FavoritesCollapseButton"
-                            Grid.Column="1"
-                            Width="22"
-                            Height="22"
-                            Margin="8,0,0,0"
-                            Padding="0"
-                            Background="Transparent"
-                            BorderBrush="Transparent"
-                            BorderThickness="0"
-                            ToolTip="Collapse favorites"
-                            Click="FavoritesCollapseButton_Click">
-                        <TextBlock x:Name="FavoritesCollapseIcon"
-                                   Text="▼"
-                                   Foreground="#FFFFC107"
-                                   FontSize="10"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-                    </Button>
                 </Grid>
             </Border>
 

@@ -38,6 +38,16 @@ namespace PaDDY
         private List<(string Id, string Name)> _loopbackDevices = new();
         private List<(uint ProcessId, string ProcessName)> _appLoopbackProcesses = new();
         private int _outputDeviceIndex = 0;
+        private Services.TrayIconService? _trayIcon;
+        private bool _forceExit;
+        private PadPage? _activePadPage;
+        private Services.SpeechRecognitionService? _speechService;
+        private bool _performanceMode;
+        private DateTime _lastInputMeterTick;
+        private DateTime _lastOutputMeterTick;
+        private DateTime _lastMonitorMeterTick;
+        private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36));
+        private static readonly SolidColorBrush PeakColdBrush = new(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
         private bool _suppressSelectionEvents = true;
         private bool _developerModeEnabled;
         private bool _inputMeterUpdatesEnabled;
@@ -89,6 +99,7 @@ namespace PaDDY
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
+            StateChanged += MainWindow_StateChanged;
             ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
@@ -163,6 +174,7 @@ namespace PaDDY
             PopulateRecordingModes();
             PopulateSortOrderCombo();
             ApplySettings();
+            InitializePadPages();
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
             _suppressSelectionEvents = false;
@@ -180,6 +192,50 @@ namespace PaDDY
             // Register global hotkey
             _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
             _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
+
+            InitializeTrayIcon();
+            if (_settings.StartMinimizedInTray && (_settings.MinimizeToTray || _settings.CloseToTray))
+            {
+                Hide();
+                if (_trayIcon != null) _trayIcon.Visible = true;
+            }
+        }
+
+        // ── System tray ────────────────────────────────────────────────────────
+        private void InitializeTrayIcon()
+        {
+            _trayIcon = new Services.TrayIconService("PaDDY");
+            _trayIcon.ShowRequested += RestoreFromTray;
+            _trayIcon.SettingsRequested += () =>
+            {
+                RestoreFromTray();
+                SettingsButton_Click(this, new RoutedEventArgs());
+            };
+            _trayIcon.ExitRequested += () =>
+            {
+                _forceExit = true;
+                Close();
+            };
+        }
+
+        private void RestoreFromTray()
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+            Topmost = true;
+            Topmost = false;
+            if (_trayIcon != null && !_settings.StartMinimizedInTray)
+                _trayIcon.Visible = false;
+        }
+
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized && _settings.MinimizeToTray)
+            {
+                Hide();
+                if (_trayIcon != null) _trayIcon.Visible = true;
+            }
         }
 
         private void PopulateCaptureSourceModes()
@@ -242,7 +298,43 @@ namespace PaDDY
         {
             RecordingModeCombo.Items.Clear();
             RecordingModeCombo.Items.Add("Auto VAD");
+            RecordingModeCombo.Items.Add("Adaptive VAD");
             RecordingModeCombo.Items.Add("Key Buffer");
+        }
+
+        // Mode combo maps to a (RecordingMode, DetectionAlgorithm) pair:
+        //   0 = Auto VAD      → AutoVAD,  RMS (0)
+        //   1 = Adaptive VAD  → AutoVAD,  Adaptive (1)
+        //   2 = Key Buffer    → KeyBuffer
+        private const int ModeComboKeyBufferIndex = 2;
+
+        private static int ModeToComboIndex(int recordingMode, int detectionAlgorithm)
+        {
+            if (recordingMode == (int)AudioRecordingMode.KeyBuffer) return ModeComboKeyBufferIndex;
+            return detectionAlgorithm == 1 ? 1 : 0;
+        }
+
+        private void ApplyModeComboIndex(int idx)
+        {
+            switch (idx)
+            {
+                case 1: // Adaptive VAD
+                    _captureService.RecordingMode = AudioRecordingMode.AutoVAD;
+                    _captureService.DetectionAlgorithm = 1;
+                    _settings.RecordingMode = (int)AudioRecordingMode.AutoVAD;
+                    _settings.DetectionAlgorithm = 1;
+                    break;
+                case ModeComboKeyBufferIndex: // Key Buffer
+                    _captureService.RecordingMode = AudioRecordingMode.KeyBuffer;
+                    _settings.RecordingMode = (int)AudioRecordingMode.KeyBuffer;
+                    break;
+                default: // Auto VAD
+                    _captureService.RecordingMode = AudioRecordingMode.AutoVAD;
+                    _captureService.DetectionAlgorithm = 0;
+                    _settings.RecordingMode = (int)AudioRecordingMode.AutoVAD;
+                    _settings.DetectionAlgorithm = 0;
+                    break;
+            }
         }
 
         private static readonly string[] SortOrderLabels =
@@ -405,10 +497,10 @@ namespace PaDDY
             SilenceSlider.Value = _settings.SilenceTimeoutMs;
 
             // Recording mode combo
-            int modeIdx = Math.Clamp(_settings.RecordingMode, 0, RecordingModeCombo.Items.Count - 1);
+            int modeIdx = ModeToComboIndex(_settings.RecordingMode, _settings.DetectionAlgorithm);
             RecordingModeCombo.SelectedIndex = modeIdx;
-            _captureService.RecordingMode = (AudioRecordingMode)modeIdx;
-            KeyBufferHint.Visibility = modeIdx == 1 ? Visibility.Visible : Visibility.Collapsed;
+            ApplyModeComboIndex(modeIdx);
+            KeyBufferHint.Visibility = modeIdx == ModeComboKeyBufferIndex ? Visibility.Visible : Visibility.Collapsed;
             UpdateHotkeyLabel();
 
             // Format settings
@@ -422,6 +514,9 @@ namespace PaDDY
 
             _captureService.Sensitivity = _settings.Sensitivity;
             _captureService.SilenceTimeoutMs = _settings.SilenceTimeoutMs;
+            _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
+
+            _performanceMode = _settings.PerformanceMode;
 
             // Apply saved global effect config to the live chain and assign to capture service
             EffectSettingsManager.ApplyConfig(_globalCaptureChain, _effectSettings.GlobalChain);
@@ -660,10 +755,9 @@ namespace PaDDY
         {
             if (_suppressSelectionEvents) return;
             int idx = RecordingModeCombo.SelectedIndex;
-            _captureService.RecordingMode = (AudioRecordingMode)idx;
-            _settings.RecordingMode = idx;
+            ApplyModeComboIndex(idx);
             _settings.Save();
-            KeyBufferHint.Visibility = idx == 1 ? Visibility.Visible : Visibility.Collapsed;
+            KeyBufferHint.Visibility = idx == ModeComboKeyBufferIndex ? Visibility.Visible : Visibility.Collapsed;
             RefreshOutputFormatInfo();
         }
 
@@ -872,9 +966,32 @@ namespace PaDDY
             _settings.DefaultPadTitleTemplate = win.SelectedDefaultPadTitleTemplate;
             _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
             _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
+
+            // Appearance
+            _settings.Theme = win.SelectedTheme;
+            _settings.MeterSkin = win.SelectedMeterSkin;
+            _settings.PerformanceMode = win.SelectedPerformanceMode;
+
+            // System tray / startup
+            _settings.MinimizeToTray = win.SelectedMinimizeToTray;
+            _settings.CloseToTray = win.SelectedCloseToTray;
+            _settings.StartMinimizedInTray = win.SelectedStartMinimizedInTray;
+            _settings.RunOnWindowsStartup = win.SelectedRunOnWindowsStartup;
+
+            // Detection / speech
+            _settings.DetectionAlgorithm = win.SelectedDetectionAlgorithm;
+            _settings.AutoRenameWithSpeech = win.SelectedAutoRenameWithSpeech;
+            _settings.SpeechModel = win.SelectedSpeechModel;
+            _settings.SpeechLanguage = win.SelectedSpeechLanguage;
             _settings.Save();
 
             App.ApplyFont(win.SelectedFontVariant);
+            Helpers.ThemeManager.ApplyTheme(_settings.Theme);
+            Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin);
+            Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
+            Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
+            _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
+            _performanceMode = _settings.PerformanceMode;
 
             _captureService.RecordCodec = win.SelectedCodec;
             _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
@@ -927,6 +1044,15 @@ namespace PaDDY
                 if (!_inputMeterUpdatesEnabled || MonitorToggle.IsChecked != true)
                     return;
 
+                // In performance mode, cap meter refreshes to ~30 fps to cut UI load.
+                if (_performanceMode)
+                {
+                    var tick = DateTime.UtcNow;
+                    if ((tick - _lastInputMeterTick).TotalMilliseconds < 33)
+                        return;
+                    _lastInputMeterTick = tick;
+                }
+
                 // Cancel any running decay animation — we have live data
                 _meterDecayTimer?.Stop();
 
@@ -955,11 +1081,9 @@ namespace PaDDY
                     _peakHoldTimeR = now;
 
                 PeakIndicatorL.Background = (now - _peakHoldTimeL).TotalSeconds < PeakHoldSeconds
-                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
-                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+                    ? PeakHotBrush : PeakColdBrush;
                 PeakIndicatorR.Background = (now - _peakHoldTimeR).TotalSeconds < PeakHoldSeconds
-                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
-                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+                    ? PeakHotBrush : PeakColdBrush;
             });
         }
 
@@ -967,6 +1091,14 @@ namespace PaDDY
         {
             Dispatcher.InvokeAsync(() =>
             {
+                if (_performanceMode)
+                {
+                    var tick = DateTime.UtcNow;
+                    if ((tick - _lastOutputMeterTick).TotalMilliseconds < 33)
+                        return;
+                    _lastOutputMeterTick = tick;
+                }
+
                 _outputMeterDecayTimer?.Stop();
 
                 double dbL = LinearToDb(left);
@@ -1011,6 +1143,14 @@ namespace PaDDY
                 {
                     ResetPadMonitorMeter();
                     return;
+                }
+
+                if (_performanceMode)
+                {
+                    var tick = DateTime.UtcNow;
+                    if ((tick - _lastMonitorMeterTick).TotalMilliseconds < 33)
+                        return;
+                    _lastMonitorMeterTick = tick;
                 }
 
                 double dbL = LinearToDb(left);
@@ -1121,9 +1261,63 @@ namespace PaDDY
 
                     AddPadButton(entry, toFavorites: false);
                     Forget(RefreshStorageInfoAsync());
+
+                    if (_settings.AutoRenameWithSpeech)
+                        Forget(AutoRenameFromSpeechAsync(entry));
                 }
                 catch { /* recording too short or unreadable; discard silently */ }
             });
+        }
+
+        private async Task AutoRenameFromSpeechAsync(RecordingEntry entry)
+        {
+            if (string.IsNullOrEmpty(entry.RecordingId) || string.IsNullOrEmpty(entry.FilePath))
+                return;
+
+            string recordingId = entry.RecordingId;
+            string filePath = entry.FilePath;
+
+            try
+            {
+                _speechService ??= new Services.SpeechRecognitionService();
+
+                string text = await Task.Run(() =>
+                    _speechService.TranscribeAsync(filePath, _settings.SpeechModel, _settings.SpeechLanguage))
+                    .ConfigureAwait(true);
+
+                text = SanitizeSpeechName(text);
+                if (string.IsNullOrWhiteSpace(text))
+                    return;
+
+                _recordingStore.SetDisplayName(recordingId, text);
+                entry.DisplayName = text;
+
+                foreach (var btn in FindPadButtons(recordingId))
+                    btn.SetEntry(entry);
+
+                Forget(RefreshStorageInfoAsync());
+            }
+            catch { /* STT unavailable or failed; keep generated name */ }
+        }
+
+        private static string SanitizeSpeechName(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            text = text.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            foreach (char c in Path.GetInvalidFileNameChars())
+                text = text.Replace(c, ' ');
+            text = string.Join(" ", text.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            if (text.Length > 60)
+                text = text.Substring(0, 60).Trim();
+            return text;
+        }
+
+        private IEnumerable<RecordingPadButton> FindPadButtons(string recordingId)
+        {
+            foreach (var panel in new[] { FavoritesPanel.Children, PadPanel.Children })
+                foreach (var child in panel)
+                    if (child is RecordingPadButton b && b.Entry?.RecordingId == recordingId)
+                        yield return b;
         }
 
         private void OnCodecCompatibilityWarning(string message)
@@ -1178,6 +1372,7 @@ namespace PaDDY
             {
                 if (string.IsNullOrEmpty(entry.RecordingId)) return;
                 _recordingStore.SetDisplayName(entry.RecordingId, newDisplayName);
+                Forget(RefreshStorageInfoAsync());
             };
 
             btn.FavoriteToggled += (s, _) =>
@@ -1185,22 +1380,32 @@ namespace PaDDY
                 if (s is not RecordingPadButton b || b.Entry == null) return;
                 if (b.IsFavorite)
                 {
-                    // Move from PadPanel to FavoritesPanel
+                    // Move from PadPanel to FavoritesPanel, pinning to the active page.
                     PadPanel.Children.Remove(b);
                     FavoritesPanel.Children.Insert(0, b);
                     if (!string.IsNullOrEmpty(b.Entry.RecordingId))
+                    {
                         _recordingStore.SetFavorite(b.Entry.RecordingId, true);
+                        string pageId = (_activePadPage != null && !_activePadPage.IsFavorites)
+                            ? _activePadPage.Id
+                            : string.Empty;
+                        _recordingStore.SetPadPage(b.Entry.RecordingId, pageId);
+                    }
                 }
                 else
                 {
-                    // Move from FavoritesPanel to PadPanel
+                    // Move from FavoritesPanel to PadPanel, clearing its page.
                     FavoritesPanel.Children.Remove(b);
                     PadPanel.Children.Insert(0, b);
                     if (!string.IsNullOrEmpty(b.Entry.RecordingId))
+                    {
                         _recordingStore.SetFavorite(b.Entry.RecordingId, false);
+                        _recordingStore.SetPadPage(b.Entry.RecordingId, string.Empty);
+                    }
                     EnforceMaxRecords();
                 }
                 UpdatePadState();
+                Forget(RefreshStorageInfoAsync());
             };
 
             btn.RecordingEdited += (entry) =>
@@ -1213,6 +1418,7 @@ namespace PaDDY
                     _recordingStore.UpdateAudioData(entry.RecordingId, updated);
                 }
                 catch { }
+                Forget(RefreshStorageInfoAsync());
             };
 
             btn.RecordingCopied += (copyPath, asFav) =>
@@ -1283,6 +1489,116 @@ namespace PaDDY
             UpdatePadState();
             SetStatus($"Saved: {entry.FileName}", "#FF4CAF50");
         }
+        // ── Pad pages (tabs) ───────────────────────────────────────────────────
+        private void InitializePadPages()
+        {
+            _activePadPage = _settings.EnsurePadPages();
+            _settings.Save();
+            BuildPadPageTabs();
+        }
+
+        private void BuildPadPageTabs()
+        {
+            PadPageTabBar.Children.Clear();
+            var pages = _settings.PadPages
+                .OrderBy(p => p.IsFavorites ? 0 : 1)
+                .ThenBy(p => p.Order)
+                .ToList();
+            foreach (var page in pages)
+            {
+                bool isActive = _activePadPage != null && page.Id == _activePadPage.Id;
+                var tab = new System.Windows.Controls.Button
+                {
+                    Content = page.IsFavorites ? "★ " + page.Name : page.Name,
+                    Tag = page.Id,
+                    Padding = new Thickness(8, 2, 8, 2),
+                    Margin = new Thickness(2, 0, 0, 0),
+                    FontSize = 10,
+                    FontWeight = isActive ? FontWeights.Bold : FontWeights.Normal,
+                    Background = isActive
+                        ? new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07))
+                        : System.Windows.Media.Brushes.Transparent,
+                    Foreground = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xFF, 0xFF, 0xC1, 0x07)),
+                    BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07)),
+                    BorderThickness = new Thickness(1),
+                    Cursor = System.Windows.Input.Cursors.Hand
+                };
+                string pageId = page.Id;
+                tab.Click += (_, _) => SwitchToPadPage(pageId);
+                PadPageTabBar.Children.Add(tab);
+            }
+
+            bool canEdit = _activePadPage != null && !_activePadPage.IsFavorites;
+            RenamePadPageButton.Visibility = canEdit ? Visibility.Visible : Visibility.Collapsed;
+            DeletePadPageButton.Visibility = canEdit ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void SwitchToPadPage(string pageId)
+        {
+            var page = _settings.PadPages.FirstOrDefault(p => p.Id == pageId);
+            if (page == null) return;
+            _activePadPage = page;
+            _settings.ActivePadPageId = pageId;
+            _settings.Save();
+            BuildPadPageTabs();
+            ReloadFavoritesPanel();
+        }
+
+        private void ReloadFavoritesPanel()
+        {
+            FavoritesPanel.Children.Clear();
+            LoadFavoritesFromStore();
+        }
+
+        private void AddPadPageButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Controls.RenameDialog("New Page") { Owner = this };
+            if (dlg.ShowDialog() != true) return;
+            string name = dlg.NewName.Trim();
+            if (string.IsNullOrEmpty(name)) return;
+
+            var page = new PadPage
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Name = name,
+                Order = _settings.PadPages.Count,
+                IsFavorites = false
+            };
+            _settings.PadPages.Add(page);
+            _settings.Save();
+            SwitchToPadPage(page.Id);
+        }
+
+        private void RenamePadPageButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activePadPage == null || _activePadPage.IsFavorites) return;
+            var dlg = new Controls.RenameDialog(_activePadPage.Name) { Owner = this };
+            if (dlg.ShowDialog() != true) return;
+            string name = dlg.NewName.Trim();
+            if (string.IsNullOrEmpty(name)) return;
+
+            _activePadPage.Name = name;
+            _settings.Save();
+            BuildPadPageTabs();
+        }
+
+        private void DeletePadPageButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activePadPage == null || _activePadPage.IsFavorites) return;
+
+            var confirm = System.Windows.MessageBox.Show(
+                $"Delete page \"{_activePadPage.Name}\"? Its pads will move back to Favorites.",
+                "Delete Pad Page", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes) return;
+
+            string deletedId = _activePadPage.Id;
+            _recordingStore.ClearPadPage(deletedId);
+            _settings.PadPages.RemoveAll(p => p.Id == deletedId);
+            var favorites = _settings.EnsurePadPages();
+            _settings.ActivePadPageId = favorites.Id;
+            _settings.Save();
+            SwitchToPadPage(favorites.Id);
+        }
 
         private void LoadFavoritesFromStore()
         {
@@ -1290,6 +1606,7 @@ namespace PaDDY
             foreach (var rec in records)
             {
                 if (!rec.IsFavorite) continue;
+                if (!BelongsToActivePage(rec)) continue;
                 try
                 {
                     string tempPath = _recordingStore.MaterializeToTemp(rec.Id, rec.Codec);
@@ -1308,6 +1625,16 @@ namespace PaDDY
                 catch { /* skip unreadable records */ }
             }
             UpdatePadState();
+        }
+
+        /// <summary>True when a favourite recording should appear on the active pad page.</summary>
+        private bool BelongsToActivePage(RecordingRecord rec)
+        {
+            if (!rec.IsFavorite) return false;
+            string pp = rec.PadPage ?? string.Empty;
+            if (_activePadPage == null || _activePadPage.IsFavorites)
+                return pp.Length == 0 || _activePadPage == null || pp == _activePadPage.Id;
+            return pp == _activePadPage.Id;
         }
 
         private void LoadNonFavoritesFromStore()
@@ -1353,7 +1680,8 @@ namespace PaDDY
             int favCount = FavoritesPanel.Children.Count;
             FavoriteCountLabel.Text = $" — {favCount}";
             bool hasFavorites = favCount > 0;
-            FavoritesHeader.Visibility = hasFavorites ? Visibility.Visible : Visibility.Collapsed;
+            bool hasExtraPages = _settings.PadPages != null && _settings.PadPages.Count > 1;
+            FavoritesHeader.Visibility = (hasFavorites || hasExtraPages) ? Visibility.Visible : Visibility.Collapsed;
 
             if (!hasFavorites)
             {
@@ -1695,6 +2023,16 @@ namespace PaDDY
         // ── Shutdown ───────────────────────────────────────────────────────────
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (_settings.CloseToTray && !_forceExit)
+            {
+                e.Cancel = true;
+                Hide();
+                if (_trayIcon != null) _trayIcon.Visible = true;
+                return;
+            }
+
+            _trayIcon?.Dispose();
+            _speechService?.Dispose();
             _hotkeyService.Dispose();
             _captureService.Dispose();
             _recordingStore.CleanupAllTempFiles();

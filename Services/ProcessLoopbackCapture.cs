@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
-using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
 namespace PaDDY.Services
@@ -21,9 +20,11 @@ namespace PaDDY.Services
 
         private readonly uint _processId;
         private readonly bool _includeTree;
+        private readonly int _targetSampleRate;
+        private readonly int _targetChannels;
         private AudioClientHandle? _audioClient;
         private CaptureClientHandle? _captureClient;
-        private WaveFormat? _captureFormat;  // raw multi-channel format from device
+        private WaveFormat? _captureFormat;  // explicit PCM format requested from the engine
         private Thread? _captureThread;
         private volatile bool _isCapturing;
         private SynchronizationContext? _syncContext;
@@ -33,14 +34,17 @@ namespace PaDDY.Services
 
         public WaveFormat WaveFormat
         {
-            get => _captureFormat ?? new WaveFormat(48000, 32, 2);
+            get => _captureFormat ?? new WaveFormat(48000, 16, 2);
             set { /* format is dictated by the audio engine; ignore external set */ }
         }
 
-        public ProcessLoopbackCapture(uint processId, bool includeProcessTree = true)
+        public ProcessLoopbackCapture(uint processId, bool includeProcessTree = true,
+            int targetSampleRate = 48000, int targetChannels = 2)
         {
             _processId = processId;
             _includeTree = includeProcessTree;
+            _targetSampleRate = targetSampleRate > 0 ? targetSampleRate : 48000;
+            _targetChannels = targetChannels == 1 ? 1 : 2;
         }
 
         public void StartRecording()
@@ -59,31 +63,35 @@ namespace PaDDY.Services
                 task.Wait();
                 _audioClient = task.Result;
 
-                // The process-loopback virtual device does NOT implement GetMixFormat.
-                // Query the default render endpoint's mix format — that's the native
-                // format the audio engine delivers for loopback streams.
-                step = "querying default render device mix format";
-                using (var enumerator = new MMDeviceEnumerator())
-                using (var renderDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console))
-                {
-                    _captureFormat = renderDevice.AudioClient.MixFormat;
-                }
-
-                // Expose native multi-channel format directly to consumers.
-                // Downstream recorders handle channel conversion as needed.
+                // Process-loopback streams are initialized with an EXPLICIT PCM format
+                // that WE choose; the audio engine converts/mixes the captured render
+                // streams down to this format. Querying the render endpoint's mix format
+                // (often a multi-channel WAVEFORMATEXTENSIBLE / IEEE float) and feeding it
+                // back produced a layout the downstream PCM pipeline misread — that was the
+                // cause of the "garbled raw bytes". A plain 16-bit PCM stereo WAVEFORMATEX
+                // is universally understood by the recorders and meters.
+                step = "building explicit PCM capture format";
+                _captureFormat = new WaveFormat(_targetSampleRate, 16, _targetChannels);
 
                 // The virtual loopback device is a render-type endpoint internally,
-                // so AUDCLNT_STREAMFLAGS_LOOPBACK is required.
+                // so AUDCLNT_STREAMFLAGS_LOOPBACK is required. AUTOCONVERTPCM lets the
+                // engine resample/convert its native mix to our requested PCM format.
                 const int AUDCLNT_SHAREMODE_SHARED = 0;
                 const int AUDCLNT_STREAMFLAGS_LOOPBACK = 0x00020000;
+                const uint AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM = 0x80000000;
+                const uint AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY = 0x08000000;
                 const long REFTIMES_PER_SEC = 10_000_000;
+
+                int initFlags = AUDCLNT_STREAMFLAGS_LOOPBACK
+                    | unchecked((int)AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM)
+                    | unchecked((int)AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY);
 
                 step = $"calling Initialize (shared, loopback, format={_captureFormat})";
                 IntPtr formatPtr = WaveFormat.MarshalToPtr(_captureFormat);
                 try
                 {
                     _audioClient.Initialize(AUDCLNT_SHAREMODE_SHARED,
-                        AUDCLNT_STREAMFLAGS_LOOPBACK, REFTIMES_PER_SEC, formatPtr);
+                        initFlags, REFTIMES_PER_SEC, formatPtr);
                 }
                 finally
                 {

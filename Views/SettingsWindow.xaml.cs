@@ -27,6 +27,19 @@ namespace PaDDY
         public bool SelectedUseFocusedAppForPadTitle { get; private set; }
         public int SelectedTrimEditorOutputDeviceIndex { get; private set; }
 
+        // Appearance / system
+        public string SelectedTheme { get; private set; } = "dark";
+        public string SelectedMeterSkin { get; private set; } = "default";
+        public bool SelectedPerformanceMode { get; private set; }
+        public bool SelectedMinimizeToTray { get; private set; }
+        public bool SelectedCloseToTray { get; private set; }
+        public bool SelectedStartMinimizedInTray { get; private set; }
+        public bool SelectedRunOnWindowsStartup { get; private set; }
+        public int SelectedDetectionAlgorithm { get; private set; }
+        public bool SelectedAutoRenameWithSpeech { get; private set; }
+        public string SelectedSpeechModel { get; private set; } = "base";
+        public string SelectedSpeechLanguage { get; private set; } = "en";
+
         private static readonly (string Value, string Label)[] CodecOptions =
         {
             ("wav",  "WAV (LCPM FORMAT)"),
@@ -110,6 +123,70 @@ namespace PaDDY
 
             // Trim editor output
             PopulateTrimOutputDevices();
+
+            // Appearance: theme + meter skin
+            ThemeCombo.SelectionChanged -= ThemeCombo_SelectionChanged;
+            ThemeCombo.Items.Clear();
+            int themeIdx = 0;
+            for (int i = 0; i < ThemeManager.Themes.Count; i++)
+            {
+                ThemeCombo.Items.Add(ThemeManager.Themes[i].Label);
+                if (ThemeManager.Themes[i].Key == _settings.Theme) themeIdx = i;
+            }
+            ThemeCombo.SelectedIndex = themeIdx;
+            ThemeCombo.SelectionChanged += ThemeCombo_SelectionChanged;
+
+            MeterSkinCombo.SelectionChanged -= MeterSkinCombo_SelectionChanged;
+            MeterSkinCombo.Items.Clear();
+            int skinIdx = 0;
+            for (int i = 0; i < ThemeManager.MeterSkins.Count; i++)
+            {
+                MeterSkinCombo.Items.Add(ThemeManager.MeterSkins[i].Label);
+                if (ThemeManager.MeterSkins[i].Key == _settings.MeterSkin) skinIdx = i;
+            }
+            MeterSkinCombo.SelectedIndex = skinIdx;
+            MeterSkinCombo.SelectionChanged += MeterSkinCombo_SelectionChanged;
+
+            PerformanceModeCheck.IsChecked = _settings.PerformanceMode;
+
+            // System tray / startup
+            MinimizeToTrayCheck.IsChecked = _settings.MinimizeToTray;
+            CloseToTrayCheck.IsChecked = _settings.CloseToTray;
+            StartMinimizedCheck.IsChecked = _settings.StartMinimizedInTray;
+            RunOnStartupCheck.IsChecked = _settings.RunOnWindowsStartup;
+
+            // Detection algorithm is chosen from the main window's Mode combo;
+            // preserve the current value so committing settings won't change it.
+            SelectedDetectionAlgorithm = _settings.DetectionAlgorithm;
+
+            // Speech-to-text
+            AutoRenameSpeechCheck.IsChecked = _settings.AutoRenameWithSpeech;
+            SpeechModelCombo.Items.Clear();
+            string[] models = { "tiny", "base", "small" };
+            int modelIdx = 1;
+            for (int i = 0; i < models.Length; i++)
+            {
+                SpeechModelCombo.Items.Add(models[i]);
+                if (models[i] == _settings.SpeechModel) modelIdx = i;
+            }
+            SpeechModelCombo.SelectedIndex = modelIdx;
+            SpeechLanguageBox.Text = string.IsNullOrWhiteSpace(_settings.SpeechLanguage) ? "en" : _settings.SpeechLanguage;
+        }
+
+        private void ThemeCombo_SelectionChanged(object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            int i = ThemeCombo.SelectedIndex;
+            if (i >= 0 && i < ThemeManager.Themes.Count)
+                ThemeManager.ApplyTheme(ThemeManager.Themes[i].Key); // live preview
+        }
+
+        private void MeterSkinCombo_SelectionChanged(object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            int i = MeterSkinCombo.SelectedIndex;
+            if (i >= 0 && i < ThemeManager.MeterSkins.Count)
+                ThemeManager.ApplyMeterSkin(ThemeManager.MeterSkins[i].Key); // live preview
         }
 
         private void PopulateTrimOutputDevices()
@@ -216,12 +293,39 @@ namespace PaDDY
             SelectedUseFocusedAppForPadTitle = UseFocusedAppNameCheck.IsChecked == true;
             SelectedTrimEditorOutputDeviceIndex = TrimOutputDeviceCombo.SelectedIndex;
 
+            int ti = ThemeCombo.SelectedIndex;
+            SelectedTheme = (ti >= 0 && ti < ThemeManager.Themes.Count)
+                ? ThemeManager.Themes[ti].Key : "dark";
+            int si = MeterSkinCombo.SelectedIndex;
+            SelectedMeterSkin = (si >= 0 && si < ThemeManager.MeterSkins.Count)
+                ? ThemeManager.MeterSkins[si].Key : "default";
+            SelectedPerformanceMode = PerformanceModeCheck.IsChecked == true;
+
+            SelectedMinimizeToTray = MinimizeToTrayCheck.IsChecked == true;
+            SelectedCloseToTray = CloseToTrayCheck.IsChecked == true;
+            SelectedStartMinimizedInTray = StartMinimizedCheck.IsChecked == true;
+            SelectedRunOnWindowsStartup = RunOnStartupCheck.IsChecked == true;
+            SelectedAutoRenameWithSpeech = AutoRenameSpeechCheck.IsChecked == true;
+            SelectedSpeechModel = SpeechModelCombo.SelectedItem?.ToString() ?? "base";
+            SelectedSpeechLanguage = string.IsNullOrWhiteSpace(SpeechLanguageBox.Text) ? "en" : SpeechLanguageBox.Text.Trim();
+
             DialogResult = true;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            // If the dialog was not confirmed, revert any live theme/meter preview.
+            if (DialogResult != true)
+            {
+                ThemeManager.ApplyTheme(_settings.Theme);
+                ThemeManager.ApplyMeterSkin(_settings.MeterSkin);
+            }
+            base.OnClosing(e);
         }
     }
 }

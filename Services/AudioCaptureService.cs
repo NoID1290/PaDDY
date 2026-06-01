@@ -45,6 +45,9 @@ namespace PaDDY.Services
         /// <summary>How long (ms) silence must persist before closing a clip (AutoVAD mode).</summary>
         public double SilenceTimeoutMs { get; set; } = 700.0;
 
+        /// <summary>Voice-detection algorithm: 0 = RMS threshold (classic), 1 = adaptive VAD.</summary>
+        public int DetectionAlgorithm { get; set; } = 0;
+
         public string SaveFolder { get; set; } = RecordingStore.InternalTempRecDir;
 
         /// <summary>Mic recording: sample rate in Hz (e.g., 16000, 44100, 48000).</summary>
@@ -83,6 +86,9 @@ namespace PaDDY.Services
         private IStreamingRecorder _recorder = new WaveFileRecorder();
         private bool _isRecording;
         private DateTime _lastVoiceTime;
+
+        // Adaptive VAD: rolling noise-floor estimate in dBFS.
+        private double _noiseFloorDb = -60.0;
 
         // Ring pre-buffer
         private readonly Queue<byte[]> _preBuffer = new();
@@ -139,7 +145,8 @@ namespace PaDDY.Services
             IWaveIn capture = sourceMode switch
             {
                 CaptureSourceMode.OutputLoopback => CreateLoopbackCapture(loopbackDeviceId),
-                CaptureSourceMode.AppLoopback => new ProcessLoopbackCapture(AppLoopbackProcessId),
+                CaptureSourceMode.AppLoopback => new ProcessLoopbackCapture(
+                    AppLoopbackProcessId, true, RecordSampleRate, RecordChannels),
                 _ => new WaveInEvent
                 {
                     DeviceNumber = microphoneDeviceIndex,
@@ -220,7 +227,30 @@ namespace PaDDY.Services
             // matches the dB-scaled meter.  Slider 0 → -60 dB, 100 → 0 dB.
             double dbThreshold = (Sensitivity / 100.0) * 60.0 - 60.0;
             double dbL = (L <= 0) ? -100.0 : 20.0 * Math.Log10(L / 100.0);
-            bool hasVoice = dbL > dbThreshold;
+            bool hasVoice;
+
+            if (DetectionAlgorithm == 1)
+            {
+                // Adaptive VAD: trigger when the level rises a margin above the
+                // continuously-estimated background noise floor. The Sensitivity
+                // slider controls that margin (higher = harder to trigger).
+                double margin = 6.0 + (Sensitivity / 100.0) * 18.0; // 6..24 dB
+                hasVoice = dbL > _noiseFloorDb + margin;
+
+                if (!hasVoice)
+                {
+                    // Track the noise floor: rise slowly, fall a bit faster so the
+                    // estimate follows a quietening room without chasing speech.
+                    double coeff = dbL > _noiseFloorDb ? 0.0008 : 0.05;
+                    _noiseFloorDb += (dbL - _noiseFloorDb) * coeff;
+                    if (_noiseFloorDb < -80.0) _noiseFloorDb = -80.0;
+                    if (_noiseFloorDb > -20.0) _noiseFloorDb = -20.0;
+                }
+            }
+            else
+            {
+                hasVoice = dbL > dbThreshold;
+            }
 
             if (hasVoice)
             {

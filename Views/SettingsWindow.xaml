@@ -344,6 +344,126 @@
                     </Grid>
                 </Border>
 
+                <!-- ── Theme ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="THEME" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Overall theme:"
+                                       Style="{StaticResource SettingsLabel}"/>
+                            <ComboBox x:Name="ThemeCombo" Grid.Column="1"
+                                      SelectionChanged="ThemeCombo_SelectionChanged"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Audio meter:"
+                                       Style="{StaticResource SettingsLabel}"/>
+                            <ComboBox x:Name="MeterSkinCombo" Grid.Column="1"
+                                      SelectionChanged="MeterSkinCombo_SelectionChanged"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Performance ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="PERFORMANCE" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <CheckBox x:Name="PerformanceModeCheck"
+                                  Content="Performance mode (CPU-only rendering, limited animations)"/>
+                        <TextBlock Text="Disables hardware acceleration and decorative animations to reduce GPU/CPU load on low-end machines. Takes full effect after restart."
+                                   TextWrapping="Wrap"
+                                   Foreground="#FF606090"
+                                   FontSize="11"
+                                   Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+            </TabItem>
+
+            <!-- ══ SYSTEM TAB ═══════════════════════════════════════ -->
+            <TabItem Header="System">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- ── System Tray ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="SYSTEM TRAY" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <CheckBox x:Name="MinimizeToTrayCheck"
+                                  Content="Minimize to system tray"
+                                  Margin="0,0,0,8"/>
+                        <CheckBox x:Name="CloseToTrayCheck"
+                                  Content="Close button minimizes to system tray"
+                                  Margin="0,0,0,8"/>
+                        <CheckBox x:Name="StartMinimizedCheck"
+                                  Content="Start minimized in system tray"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Startup ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="STARTUP" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <CheckBox x:Name="RunOnStartupCheck"
+                              Content="Start PaDDY when Windows starts"/>
+                </Border>
+
+                <!-- ── Speech-to-text ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="SPEECH-TO-TEXT" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <CheckBox x:Name="AutoRenameSpeechCheck"
+                                  Content="Auto-rename new recordings from detected speech"
+                                  Margin="0,0,0,10"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Model:"
+                                       Style="{StaticResource SettingsLabel}"/>
+                            <ComboBox x:Name="SpeechModelCombo" Grid.Column="1"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Language:"
+                                       Style="{StaticResource SettingsLabel}"/>
+                            <TextBox x:Name="SpeechLanguageBox" Grid.Column="1"
+                                     ToolTip="Language code, e.g. en, fr, de, or 'auto' to detect."/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
             </TabItem>
