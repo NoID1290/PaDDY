@@ -35,6 +35,36 @@
         <GradientStop Color="#FF11131D" Offset="1"/>
     </LinearGradientBrush>
 
+    <!-- Audio meter fill gradients (swapped at runtime by ThemeManager.ApplyMeterSkin) -->
+    <LinearGradientBrush x:Key="MeterInBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FF000000" Offset="0.0"/>
+        <GradientStop Color="#FF2E7D32" Offset="0.015"/>
+        <GradientStop Color="#FF4CAF50" Offset="0.35"/>
+        <GradientStop Color="#FFFDD835" Offset="0.70"/>
+        <GradientStop Color="#FFFF9800" Offset="0.85"/>
+        <GradientStop Color="#FFF44336" Offset="0.95"/>
+        <GradientStop Color="#FFD50000" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="MeterOutBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FF000000" Offset="0.0"/>
+        <GradientStop Color="#FF1565C0" Offset="0.015"/>
+        <GradientStop Color="#FF42A5F5" Offset="0.35"/>
+        <GradientStop Color="#FF80DEEA" Offset="0.70"/>
+        <GradientStop Color="#FFFDD835" Offset="0.85"/>
+        <GradientStop Color="#FFF44336" Offset="0.95"/>
+        <GradientStop Color="#FFD50000" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="MeterMonBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FF000000" Offset="0.0"/>
+        <GradientStop Color="#75C01515" Offset="0.015"/>
+        <GradientStop Color="#9CF54242" Offset="0.35"/>
+        <GradientStop Color="#FFCA23BC" Offset="0.70"/>
+        <GradientStop Color="#CCFF00BF" Offset="0.85"/>
+        <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
+    </LinearGradientBrush>
+
     <DropShadowEffect x:Key="SecondaryWindowShadow"
                       ShadowDepth="0"
                       BlurRadius="26"

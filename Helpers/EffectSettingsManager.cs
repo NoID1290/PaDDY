@@ -91,6 +91,23 @@ internal static class EffectSettingsManager
                 cfg.Parameters["Feedback"] = echo.Feedback;
                 cfg.Parameters["Mix"] = echo.Mix;
                 break;
+            case CompressorEffect comp:
+                cfg.Parameters["ThresholdDb"] = comp.ThresholdDb;
+                cfg.Parameters["Ratio"] = comp.Ratio;
+                cfg.Parameters["AttackMs"] = comp.AttackMs;
+                cfg.Parameters["ReleaseMs"] = comp.ReleaseMs;
+                cfg.Parameters["MakeupDb"] = comp.MakeupDb;
+                break;
+            case DistortionEffect dist:
+                cfg.Parameters["Drive"] = dist.Drive;
+                cfg.Parameters["Mix"] = dist.Mix;
+                cfg.Parameters["OutputLevel"] = dist.OutputLevel;
+                break;
+            case ReverbEffect rev:
+                cfg.Parameters["RoomSize"] = rev.RoomSize;
+                cfg.Parameters["Damping"] = rev.Damping;
+                cfg.Parameters["Mix"] = rev.Mix;
+                break;
             case NoiseGateEffect gate:
                 cfg.Parameters["ThresholdDb"] = gate.ThresholdDb;
                 cfg.Parameters["AttackMs"] = gate.AttackMs;
@@ -123,6 +140,23 @@ internal static class EffectSettingsManager
                 if (p.TryGetValue("DelayMs", out var delay)) echo.DelayMs = delay;
                 if (p.TryGetValue("Feedback", out var fb)) echo.Feedback = fb;
                 if (p.TryGetValue("Mix", out var mix)) echo.Mix = mix;
+                break;
+            case CompressorEffect comp:
+                if (p.TryGetValue("ThresholdDb", out var cthr)) comp.ThresholdDb = cthr;
+                if (p.TryGetValue("Ratio", out var ratio)) comp.Ratio = ratio;
+                if (p.TryGetValue("AttackMs", out var catk)) comp.AttackMs = catk;
+                if (p.TryGetValue("ReleaseMs", out var crel)) comp.ReleaseMs = crel;
+                if (p.TryGetValue("MakeupDb", out var mk)) comp.MakeupDb = mk;
+                break;
+            case DistortionEffect dist:
+                if (p.TryGetValue("Drive", out var drive)) dist.Drive = drive;
+                if (p.TryGetValue("Mix", out var dmix)) dist.Mix = dmix;
+                if (p.TryGetValue("OutputLevel", out var lvl)) dist.OutputLevel = lvl;
+                break;
+            case ReverbEffect rev:
+                if (p.TryGetValue("RoomSize", out var room)) rev.RoomSize = room;
+                if (p.TryGetValue("Damping", out var damp)) rev.Damping = damp;
+                if (p.TryGetValue("Mix", out var rmix)) rev.Mix = rmix;
                 break;
             case NoiseGateEffect gate:
                 if (p.TryGetValue("ThresholdDb", out var thr)) gate.ThresholdDb = thr;

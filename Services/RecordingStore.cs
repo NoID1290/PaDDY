@@ -14,8 +14,10 @@ namespace PaDDY.Services
         public long DurationMs { get; init; }
         public DateTime CreatedAt { get; init; }
         public bool IsFavorite { get; set; }
-    }
 
+        /// <summary>Id of the pad page this recording is pinned to (empty = unassigned).</summary>
+        public string PadPage { get; set; } = string.Empty;
+    }
     /// <summary>
     /// Persistent recording storage backed by a SQLite database (recordings.dat).
     /// Audio bytes are stored as BLOBs; temp files are materialised on demand
@@ -104,6 +106,33 @@ namespace PaDDY.Services
                 CREATE INDEX IF NOT EXISTS idx_created ON recordings(created_at DESC);
                 """;
             cmd.ExecuteNonQuery();
+
+            EnsurePadPageColumn();
+        }
+
+        /// <summary>Adds the pad_page column to older databases that predate pad pages.</summary>
+        private void EnsurePadPageColumn()
+        {
+            bool exists = false;
+            using (var info = _db.CreateCommand())
+            {
+                info.CommandText = "PRAGMA table_info(recordings)";
+                using var reader = info.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (string.Equals(reader.GetString(1), "pad_page", StringComparison.OrdinalIgnoreCase))
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (exists) return;
+
+            using var alter = _db.CreateCommand();
+            alter.CommandText = "ALTER TABLE recordings ADD COLUMN pad_page TEXT NOT NULL DEFAULT ''";
+            alter.ExecuteNonQuery();
         }
 
         // ── Write operations ───────────────────────────────────────────────────
@@ -141,6 +170,25 @@ namespace PaDDY.Services
             cmd.CommandText = "UPDATE recordings SET is_favorite=@fav WHERE id=@id";
             cmd.Parameters.AddWithValue("@fav", isFavorite ? 1L : 0L);
             cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        /// <summary>Assigns the recording to a pad page (empty string clears the assignment).</summary>
+        public void SetPadPage(string id, string padPageId)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET pad_page=@pp WHERE id=@id";
+            cmd.Parameters.AddWithValue("@pp", padPageId ?? string.Empty);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        /// <summary>Clears the pad-page assignment for all recordings pinned to a deleted page.</summary>
+        public void ClearPadPage(string padPageId)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET pad_page='' WHERE pad_page=@pp";
+            cmd.Parameters.AddWithValue("@pp", padPageId);
             cmd.ExecuteNonQuery();
         }
 
@@ -184,7 +232,7 @@ namespace PaDDY.Services
             var list = new List<RecordingRecord>();
             using var cmd = _db.CreateCommand();
             cmd.CommandText = """
-                SELECT id, display_name, codec, duration_ms, created_at, is_favorite
+                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page
                 FROM recordings
                 ORDER BY created_at DESC
                 """;
@@ -198,7 +246,8 @@ namespace PaDDY.Services
                     Codec = reader.GetString(2),
                     DurationMs = reader.GetInt64(3),
                     CreatedAt = DateTime.Parse(reader.GetString(4)),
-                    IsFavorite = reader.GetInt64(5) != 0
+                    IsFavorite = reader.GetInt64(5) != 0,
+                    PadPage = reader.IsDBNull(6) ? string.Empty : reader.GetString(6)
                 });
             }
             return list;

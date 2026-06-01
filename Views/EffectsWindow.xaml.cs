@@ -20,6 +20,9 @@ public partial class EffectsWindow : Window
     private NoiseGateEffect? _gate;
     private EchoEffect? _echo;
     private EqualizerEffect? _eq;
+    private CompressorEffect? _comp;
+    private DistortionEffect? _dist;
+    private ReverbEffect? _reverb;
 
     // Suppresses slider-changed callbacks while loading initial values
     private bool _loading;
@@ -41,6 +44,9 @@ public partial class EffectsWindow : Window
                 case NoiseGateEffect g: _gate = g; break;
                 case EchoEffect e: _echo = e; break;
                 case EqualizerEffect q: _eq = q; break;
+                case CompressorEffect c: _comp = c; break;
+                case DistortionEffect d: _dist = d; break;
+                case ReverbEffect r: _reverb = r; break;
             }
         }
 
@@ -91,6 +97,38 @@ public partial class EffectsWindow : Window
                 EchoFeedbackSlider.Value = _echo.Feedback;
                 EchoMixSlider.Value = _echo.Mix;
                 UpdateEchoLabels();
+            }
+
+            // Compressor
+            if (_comp != null)
+            {
+                CompEnabledCheck.IsChecked = _comp.IsEnabled;
+                CompThresholdSlider.Value = _comp.ThresholdDb;
+                CompRatioSlider.Value = _comp.Ratio;
+                CompAttackSlider.Value = _comp.AttackMs;
+                CompReleaseSlider.Value = _comp.ReleaseMs;
+                CompMakeupSlider.Value = _comp.MakeupDb;
+                UpdateCompLabels();
+            }
+
+            // Distortion
+            if (_dist != null)
+            {
+                DistEnabledCheck.IsChecked = _dist.IsEnabled;
+                DistDriveSlider.Value = _dist.Drive;
+                DistMixSlider.Value = _dist.Mix;
+                DistLevelSlider.Value = _dist.OutputLevel;
+                UpdateDistLabels();
+            }
+
+            // Reverb
+            if (_reverb != null)
+            {
+                ReverbEnabledCheck.IsChecked = _reverb.IsEnabled;
+                ReverbRoomSlider.Value = _reverb.RoomSize;
+                ReverbDampSlider.Value = _reverb.Damping;
+                ReverbMixSlider.Value = _reverb.Mix;
+                UpdateReverbLabels();
             }
 
             // EQ
@@ -153,6 +191,32 @@ public partial class EffectsWindow : Window
             _echo.Mix = EchoMixSlider.Value;
         }
 
+        if (_comp != null)
+        {
+            _comp.IsEnabled = CompEnabledCheck.IsChecked == true;
+            _comp.ThresholdDb = CompThresholdSlider.Value;
+            _comp.Ratio = CompRatioSlider.Value;
+            _comp.AttackMs = CompAttackSlider.Value;
+            _comp.ReleaseMs = CompReleaseSlider.Value;
+            _comp.MakeupDb = CompMakeupSlider.Value;
+        }
+
+        if (_dist != null)
+        {
+            _dist.IsEnabled = DistEnabledCheck.IsChecked == true;
+            _dist.Drive = DistDriveSlider.Value;
+            _dist.Mix = DistMixSlider.Value;
+            _dist.OutputLevel = DistLevelSlider.Value;
+        }
+
+        if (_reverb != null)
+        {
+            _reverb.IsEnabled = ReverbEnabledCheck.IsChecked == true;
+            _reverb.RoomSize = ReverbRoomSlider.Value;
+            _reverb.Damping = ReverbDampSlider.Value;
+            _reverb.Mix = ReverbMixSlider.Value;
+        }
+
         if (_eq != null)
         {
             _eq.IsEnabled = EqEnabledCheck.IsChecked == true;
@@ -184,6 +248,29 @@ public partial class EffectsWindow : Window
         EchoDelayLabel.Text = $"{(int)EchoDelaySlider.Value}";
         EchoFeedbackLabel.Text = $"{EchoFeedbackSlider.Value:F2}";
         EchoMixLabel.Text = $"{EchoMixSlider.Value:F2}";
+    }
+
+    private void UpdateCompLabels()
+    {
+        CompThresholdLabel.Text = $"{(int)CompThresholdSlider.Value}";
+        CompRatioLabel.Text = $"{CompRatioSlider.Value:F1}";
+        CompAttackLabel.Text = $"{(int)CompAttackSlider.Value}";
+        CompReleaseLabel.Text = $"{(int)CompReleaseSlider.Value}";
+        CompMakeupLabel.Text = $"{(int)CompMakeupSlider.Value}";
+    }
+
+    private void UpdateDistLabels()
+    {
+        DistDriveLabel.Text = $"{(int)DistDriveSlider.Value}";
+        DistMixLabel.Text = $"{DistMixSlider.Value:F2}";
+        DistLevelLabel.Text = $"{DistLevelSlider.Value:F2}";
+    }
+
+    private void UpdateReverbLabels()
+    {
+        ReverbRoomLabel.Text = $"{ReverbRoomSlider.Value:F2}";
+        ReverbDampLabel.Text = $"{ReverbDampSlider.Value:F2}";
+        ReverbMixLabel.Text = $"{ReverbMixSlider.Value:F2}";
     }
 
     private void UpdateEqLabels()
@@ -245,6 +332,24 @@ public partial class EffectsWindow : Window
         UpdateEchoLabels();
     }
 
+    private void CompSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        UpdateCompLabels();
+    }
+
+    private void DistSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        UpdateDistLabels();
+    }
+
+    private void ReverbSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        UpdateReverbLabels();
+    }
+
     private void EqSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (_loading) return;
@@ -273,6 +378,23 @@ public partial class EffectsWindow : Window
             EchoFeedbackSlider.Value = 0.3;
             EchoMixSlider.Value = 0.4;
 
+            CompEnabledCheck.IsChecked = false;
+            CompThresholdSlider.Value = -18;
+            CompRatioSlider.Value = 4;
+            CompAttackSlider.Value = 10;
+            CompReleaseSlider.Value = 120;
+            CompMakeupSlider.Value = 0;
+
+            DistEnabledCheck.IsChecked = false;
+            DistDriveSlider.Value = 8;
+            DistMixSlider.Value = 0.6;
+            DistLevelSlider.Value = 0.8;
+
+            ReverbEnabledCheck.IsChecked = false;
+            ReverbRoomSlider.Value = 0.5;
+            ReverbDampSlider.Value = 0.5;
+            ReverbMixSlider.Value = 0.3;
+
             EqEnabledCheck.IsChecked = false;
             EqSubBassSlider.Value = 0;
             EqBassSlider.Value = 0;
@@ -288,6 +410,9 @@ public partial class EffectsWindow : Window
         UpdateFadeLabels();
         UpdateGateLabels();
         UpdateEchoLabels();
+        UpdateCompLabels();
+        UpdateDistLabels();
+        UpdateReverbLabels();
         UpdateEqLabels();
     }
 
@@ -322,6 +447,27 @@ public partial class EffectsWindow : Window
         bool expand = EchoContent.Visibility == Visibility.Collapsed;
         EchoContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         EchoChevron.Text = expand ? "\u25BC" : "\u25BA";
+    }
+
+    private void CompChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        bool expand = CompContent.Visibility == Visibility.Collapsed;
+        CompContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+        CompChevron.Text = expand ? "\u25BC" : "\u25BA";
+    }
+
+    private void DistChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        bool expand = DistContent.Visibility == Visibility.Collapsed;
+        DistContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+        DistChevron.Text = expand ? "\u25BC" : "\u25BA";
+    }
+
+    private void ReverbChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        bool expand = ReverbContent.Visibility == Visibility.Collapsed;
+        ReverbContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+        ReverbChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 
     private void EqChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
