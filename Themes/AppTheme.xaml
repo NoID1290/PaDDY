@@ -19,6 +19,20 @@
     <SolidColorBrush x:Key="WindowEdgeBrush"     Color="#2CFFFFFF"/>
     <SolidColorBrush x:Key="WindowGlowBrush"     Color="#FF1A2030"/>
 
+    <!-- Extended semantic surfaces (swapped at runtime by ThemeManager.ApplyTheme) -->
+    <SolidColorBrush x:Key="ControlTextBrush"    Color="#FFD0D0E0"/>
+    <SolidColorBrush x:Key="ButtonBgBrush"       Color="#FF1C1C2C"/>
+    <SolidColorBrush x:Key="ButtonHoverBgBrush"  Color="#FF282840"/>
+    <SolidColorBrush x:Key="ButtonPressedBgBrush" Color="#FF0F0F1C"/>
+    <SolidColorBrush x:Key="MenuBgBrush"         Color="#FF10101E"/>
+    <SolidColorBrush x:Key="MenuHighlightBrush"  Color="#FF3E4A5A"/>
+    <SolidColorBrush x:Key="MenuSelectedBrush"   Color="#FF2A5A8E"/>
+    <SolidColorBrush x:Key="DividerBrush"        Color="#1AFFFFFF"/>
+    <SolidColorBrush x:Key="BadgeBgBrush"        Color="#FF0C0C18"/>
+    <SolidColorBrush x:Key="AccentTitleBrush"    Color="#FF5A9070"/>
+    <SolidColorBrush x:Key="ChromeButtonFgBrush" Color="#FFB0B8D0"/>
+    <SolidColorBrush x:Key="ScrollThumbBrush"    Color="#FFE9EDF9"/>
+
     <LinearGradientBrush x:Key="TitleBarGradient" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#FF18182A" Offset="0"/>
         <GradientStop Color="#FF10101C" Offset="1"/>
@@ -84,14 +98,14 @@
     <!-- TextBlock -->
     <Style TargetType="TextBlock">
         <Setter Property="FontFamily"        Value="{DynamicResource AppFont}"/>
-        <Setter Property="Foreground"        Value="#FFD0D0E0"/>
+        <Setter Property="Foreground"        Value="{DynamicResource ControlTextBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
     <!-- Label -->
     <Style TargetType="Label">
         <Setter Property="FontFamily"        Value="{DynamicResource AppFont}"/>
-        <Setter Property="Foreground"        Value="#FFB0B0CC"/>
+        <Setter Property="Foreground"        Value="{DynamicResource SecondaryTextBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Padding"           Value="0"/>
     </Style>
@@ -104,7 +118,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
                     <Border x:Name="ThumbBd"
-                            Background="#FFE9EDF9"
+                            Background="{DynamicResource ScrollThumbBrush}"
                             BorderBrush="#66FFFFFF"
                             BorderThickness="1"
                             CornerRadius="3"
@@ -119,7 +133,7 @@
                             <Setter TargetName="ThumbBd" Property="BorderBrush" Value="#99FFFFFF"/>
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
-                            <Setter TargetName="ThumbBd" Property="Background" Value="#FF4CAF50"/>
+                            <Setter TargetName="ThumbBd" Property="Background" Value="{DynamicResource AccentGreenBrush}"/>
                             <Setter TargetName="ThumbBd" Property="BorderBrush" Value="#AA7CFF7F"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -130,8 +144,8 @@
 
     <Style TargetType="Slider">
         <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Foreground"        Value="#FF4CAF50"/>
-        <Setter Property="Background"        Value="#2AFFFFFF"/>
+        <Setter Property="Foreground"        Value="{DynamicResource AccentGreenBrush}"/>
+        <Setter Property="Background"        Value="{DynamicResource InputBorderBrush}"/>
         <Setter Property="MinHeight"         Value="20"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -254,7 +268,7 @@
     </Style>
 
     <Style x:Key="DarkScrollBarThumb" TargetType="Thumb">
-        <Setter Property="Background" Value="#FFE9EDF9"/>
+        <Setter Property="Background" Value="{DynamicResource ScrollThumbBrush}"/>
         <Setter Property="BorderBrush" Value="#66FFFFFF"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Template">
@@ -271,7 +285,7 @@
                             <Setter TargetName="Bd" Property="Background" Value="#FFFFFFFF"/>
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#FF4CAF50"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentGreenBrush}"/>
                             <Setter TargetName="Bd" Property="BorderBrush" Value="#88FFFFFF"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -281,7 +295,7 @@
     </Style>
 
     <Style TargetType="ScrollBar">
-        <Setter Property="Background" Value="#2AFFFFFF"/>
+        <Setter Property="Background" Value="{DynamicResource InputBorderBrush}"/>
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Vertical">
                 <Setter Property="Width" Value="14"/>
@@ -358,14 +372,14 @@
 
     <!-- CheckBox -->
     <Style TargetType="CheckBox">
-        <Setter Property="Foreground"        Value="#FFD0D0E0"/>
+        <Setter Property="Foreground"        Value="{DynamicResource ControlTextBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
     <!-- ToolTip -->
     <Style TargetType="ToolTip">
-        <Setter Property="Background" Value="#FF1A1A28"/>
-        <Setter Property="Foreground" Value="#FFE8E8F4"/>
+        <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
         <Setter Property="BorderBrush" Value="#44FFFFFF"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="8,4"/>
@@ -388,9 +402,9 @@
 
     <!-- TextBox -->
     <Style TargetType="TextBox">
-        <Setter Property="Background"              Value="#FF141420"/>
-        <Setter Property="Foreground"              Value="#FFE8E8F4"/>
-        <Setter Property="BorderBrush"             Value="#2AFFFFFF"/>
+        <Setter Property="Background"              Value="{DynamicResource InputBgBrush}"/>
+        <Setter Property="Foreground"              Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="BorderBrush"             Value="{DynamicResource InputBorderBrush}"/>
         <Setter Property="BorderThickness"         Value="1"/>
         <Setter Property="Height"                  Value="28"/>
         <Setter Property="Padding"                 Value="7,4"/>
@@ -400,9 +414,9 @@
 
     <!-- Button -->
     <Style TargetType="Button">
-        <Setter Property="Background"      Value="#FF1C1C2C"/>
-        <Setter Property="Foreground"      Value="#FFD0D0E0"/>
-        <Setter Property="BorderBrush"     Value="#2AFFFFFF"/>
+        <Setter Property="Background"      Value="{DynamicResource ButtonBgBrush}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource ControlTextBrush}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource InputBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding"         Value="12,5"/>
         <Setter Property="Height"          Value="30"/>
@@ -420,11 +434,11 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background"   Value="#FF282840"/>
+                            <Setter TargetName="Bd" Property="Background"   Value="{DynamicResource ButtonHoverBgBrush}"/>
                             <Setter TargetName="Bd" Property="BorderBrush"  Value="#44FFFFFF"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background"   Value="#FF0F0F1C"/>
+                            <Setter TargetName="Bd" Property="Background"   Value="{DynamicResource ButtonPressedBgBrush}"/>
                             <Setter TargetName="Bd" Property="BorderBrush"  Value="#18FFFFFF"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
@@ -438,9 +452,9 @@
 
     <!-- ComboBox (fully retemplated glass dark) -->
     <Style TargetType="ComboBox">
-        <Setter Property="Background"               Value="#FF141420"/>
-        <Setter Property="Foreground"               Value="#FFE8E8F4"/>
-        <Setter Property="BorderBrush"              Value="#2AFFFFFF"/>
+        <Setter Property="Background"               Value="{DynamicResource InputBgBrush}"/>
+        <Setter Property="Foreground"               Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="BorderBrush"              Value="{DynamicResource InputBorderBrush}"/>
         <Setter Property="Height"                   Value="28"/>
         <Setter Property="Padding"                  Value="7,3"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -448,8 +462,8 @@
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style TargetType="ComboBoxItem">
-                    <Setter Property="Foreground"              Value="#FFE8E8F4"/>
-                    <Setter Property="Background"              Value="#FF10101E"/>
+                    <Setter Property="Foreground"              Value="{DynamicResource PrimaryTextBrush}"/>
+                    <Setter Property="Background"              Value="{DynamicResource MenuBgBrush}"/>
                     <Setter Property="Padding"                 Value="9,6"/>
                     <Setter Property="HorizontalContentAlignment" Value="Left"/>
                     <Setter Property="Template">
@@ -467,11 +481,11 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#FF3E4A5A"/>
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource MenuHighlightBrush}"/>
                                         <Setter Property="Foreground"                 Value="#FFFFFFFF"/>
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#FF2A5A8E"/>
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource MenuSelectedBrush}"/>
                                         <Setter Property="Foreground"                 Value="#FFFFFFFF"/>
                                     </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
@@ -499,8 +513,8 @@
                                         <Setter.Value>
                                             <ControlTemplate TargetType="ToggleButton">
                                                 <Border x:Name="Bd"
-                                                        Background="#FF141420"
-                                                        BorderBrush="#2AFFFFFF"
+                                                        Background="{DynamicResource InputBgBrush}"
+                                                        BorderBrush="{DynamicResource InputBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="6">
                                                     <Grid>
@@ -512,7 +526,7 @@
                                                               Width="10" Height="6"
                                                               HorizontalAlignment="Center"
                                                               VerticalAlignment="Center"
-                                                              Fill="#FF8090B0"
+                                                              Fill="{DynamicResource SubtleTextBrush}"
                                                               Data="M 0 0 L 10 0 L 5 6 Z"/>
                                                     </Grid>
                                                 </Border>
@@ -521,7 +535,7 @@
                                                         <Setter TargetName="Bd" Property="BorderBrush" Value="#604CAF50"/>
                                                     </Trigger>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Bd" Property="Background"  Value="#FF1C1C2C"/>
+                                                        <Setter TargetName="Bd" Property="Background"  Value="{DynamicResource ButtonBgBrush}"/>
                                                         <Setter TargetName="Bd" Property="BorderBrush" Value="#44FFFFFF"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
@@ -546,7 +560,7 @@
                                AllowsTransparency="True"
                                Focusable="False"
                                PopupAnimation="Slide">
-                            <Border Background="#FF10101E"
+                            <Border Background="{DynamicResource MenuBgBrush}"
                                     BorderBrush="#38FFFFFF"
                                     BorderThickness="1"
                                     CornerRadius="6"
@@ -574,8 +588,8 @@
 
     <!-- GlassCard: main card surface with subtle glow border -->
     <Style x:Key="GlassCard" TargetType="Border">
-        <Setter Property="Background"      Value="#FF181826"/>
-        <Setter Property="BorderBrush"     Value="#28FFFFFF"/>
+        <Setter Property="Background"      Value="{DynamicResource CardBgBrush}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius"    Value="9"/>
         <Setter Property="Padding"         Value="14,10"/>
@@ -597,12 +611,12 @@
     </Style>
 
     <Style x:Key="SecondaryWindowHeaderCard" TargetType="Border" BasedOn="{StaticResource GlassCard}">
-        <Setter Property="Background" Value="#FF1B1D2E"/>
+        <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
     </Style>
 
     <!-- SectionTitle: uppercase glassmorphic card title -->
     <Style x:Key="SectionTitle" TargetType="TextBlock">
-        <Setter Property="Foreground"   Value="#FF5A9070"/>
+        <Setter Property="Foreground"   Value="{DynamicResource AccentTitleBrush}"/>
         <Setter Property="FontSize"     Value="10"/>
         <Setter Property="FontWeight"   Value="SemiBold"/>
         <Setter Property="Margin"       Value="0,0,0,8"/>
@@ -624,21 +638,21 @@
     </Style>
 
     <Style x:Key="HeaderText" TargetType="TextBlock">
-        <Setter Property="Foreground"  Value="#FF5A9070"/>
+        <Setter Property="Foreground"  Value="{DynamicResource AccentTitleBrush}"/>
         <Setter Property="FontSize"    Value="10"/>
         <Setter Property="FontWeight"  Value="SemiBold"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
     <Style x:Key="SettingsLabel" TargetType="TextBlock">
-        <Setter Property="Foreground"        Value="#FF9090B8"/>
+        <Setter Property="Foreground"        Value="{DynamicResource SecondaryTextBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="FontSize"          Value="11"/>
     </Style>
 
     <!-- ConfigLabel: label beside a control inside the config panel -->
     <Style x:Key="ConfigLabel" TargetType="TextBlock">
-        <Setter Property="Foreground"        Value="#FF8080A8"/>
+        <Setter Property="Foreground"        Value="{DynamicResource SubtleTextBrush}"/>
         <Setter Property="FontSize"          Value="10"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Margin"            Value="0,0,6,0"/>
@@ -646,8 +660,8 @@
 
     <!-- ValueBadge: small readout box next to sliders -->
     <Style x:Key="ValueBadge" TargetType="Border">
-        <Setter Property="Background"      Value="#FF0C0C18"/>
-        <Setter Property="BorderBrush"     Value="#28FFFFFF"/>
+        <Setter Property="Background"      Value="{DynamicResource BadgeBgBrush}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius"    Value="5"/>
         <Setter Property="Padding"         Value="5,1"/>
@@ -657,7 +671,7 @@
 
     <!-- InfoLineLabel: compact info text in the status bar -->
     <Style x:Key="InfoLineLabel" TargetType="TextBlock">
-        <Setter Property="Foreground"    Value="#FF606088"/>
+        <Setter Property="Foreground"    Value="{DynamicResource SubtleTextBrush}"/>
         <Setter Property="FontSize"      Value="10"/>
         <Setter Property="Margin"        Value="0,2,0,0"/>
         <Setter Property="TextTrimming"  Value="CharacterEllipsis"/>
@@ -673,7 +687,7 @@
         <Setter Property="Height"          Value="30"/>
         <Setter Property="Background"      Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Foreground"      Value="#FFB0B8D0"/>
+        <Setter Property="Foreground"      Value="{DynamicResource ChromeButtonFgBrush}"/>
         <Setter Property="FontSize"        Value="11"/>
         <Setter Property="Cursor"          Value="Arrow"/>
         <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
