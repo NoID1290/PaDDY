@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0.0601-Pre-release_2] - 2026-06-01
+
+- feat: Enhance theme customization with new color resources and dynamic bindings
+
 ## [1.3.0.0601-Pre-release_1] - 2026-06-01
 
 - feat: Add settings for appearance and system behavior in SettingsWindow
