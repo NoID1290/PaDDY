@@ -4,6 +4,17 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0.0601-Pre-release_1] - 2026-06-01
+
+- feat: Add settings for appearance and system behavior in SettingsWindow
+- chore: add .hintrc to .gitignore
+- Refine README buffer setting wording
+- Polish README and complete GitHub Pages content
+- docs: rewrite README with current app features
+- Add hero image asset in PNG format
+- Add GitHub source wordmark logo as a PNG file
+- updated
+
 ## [1.2.4.0515] - 2026-05-15
 
 - Fix EQ sliders being stuck at 0db
