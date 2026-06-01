@@ -62,6 +62,18 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#2AFFFFFF",
                 ["WindowEdgeBrush"] = "#2CFFFFFF",
                 ["WindowGlowBrush"] = "#FF1A2030",
+                ["ControlTextBrush"] = "#FFD0D0E0",
+                ["ButtonBgBrush"] = "#FF1C1C2C",
+                ["ButtonHoverBgBrush"] = "#FF282840",
+                ["ButtonPressedBgBrush"] = "#FF0F0F1C",
+                ["MenuBgBrush"] = "#FF10101E",
+                ["MenuHighlightBrush"] = "#FF3E4A5A",
+                ["MenuSelectedBrush"] = "#FF2A5A8E",
+                ["DividerBrush"] = "#1AFFFFFF",
+                ["BadgeBgBrush"] = "#FF0C0C18",
+                ["AccentTitleBrush"] = "#FF5A9070",
+                ["ChromeButtonFgBrush"] = "#FFB0B8D0",
+                ["ScrollThumbBrush"] = "#FFE9EDF9",
             },
             ["light"] = new()
             {
@@ -78,6 +90,18 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#33000000",
                 ["WindowEdgeBrush"] = "#22000000",
                 ["WindowGlowBrush"] = "#FFC7D0E0",
+                ["ControlTextBrush"] = "#FF1A1A24",
+                ["ButtonBgBrush"] = "#FFFFFFFF",
+                ["ButtonHoverBgBrush"] = "#FFEDEFF5",
+                ["ButtonPressedBgBrush"] = "#FFDDE0EA",
+                ["MenuBgBrush"] = "#FFFFFFFF",
+                ["MenuHighlightBrush"] = "#FFE3E8F2",
+                ["MenuSelectedBrush"] = "#FFBCD4F0",
+                ["DividerBrush"] = "#14000000",
+                ["BadgeBgBrush"] = "#FFE9ECF3",
+                ["AccentTitleBrush"] = "#FF2E7D32",
+                ["ChromeButtonFgBrush"] = "#FF4A4A5A",
+                ["ScrollThumbBrush"] = "#FF8A8AA0",
             },
             ["dark-green"] = new()
             {
@@ -94,6 +118,18 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#2A66BB6A",
                 ["WindowEdgeBrush"] = "#2C66BB6A",
                 ["WindowGlowBrush"] = "#FF12301C",
+                ["ControlTextBrush"] = "#FFCFE6D5",
+                ["ButtonBgBrush"] = "#FF16261C",
+                ["ButtonHoverBgBrush"] = "#FF1E3528",
+                ["ButtonPressedBgBrush"] = "#FF0E1A13",
+                ["MenuBgBrush"] = "#FF0F1A13",
+                ["MenuHighlightBrush"] = "#FF2A4A35",
+                ["MenuSelectedBrush"] = "#FF2E6E40",
+                ["DividerBrush"] = "#1A66BB6A",
+                ["BadgeBgBrush"] = "#FF0B130D",
+                ["AccentTitleBrush"] = "#FF66BB6A",
+                ["ChromeButtonFgBrush"] = "#FFADCFB6",
+                ["ScrollThumbBrush"] = "#FFCFE6D5",
             },
             ["dark-blue"] = new()
             {
@@ -110,6 +146,18 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#2A42A5F5",
                 ["WindowEdgeBrush"] = "#2C42A5F5",
                 ["WindowGlowBrush"] = "#FF14233A",
+                ["ControlTextBrush"] = "#FFCFD8EC",
+                ["ButtonBgBrush"] = "#FF161E2E",
+                ["ButtonHoverBgBrush"] = "#FF1E2C42",
+                ["ButtonPressedBgBrush"] = "#FF0E1626",
+                ["MenuBgBrush"] = "#FF0F1626",
+                ["MenuHighlightBrush"] = "#FF2A3E5A",
+                ["MenuSelectedBrush"] = "#FF2A5A8E",
+                ["DividerBrush"] = "#1A42A5F5",
+                ["BadgeBgBrush"] = "#FF0B1320",
+                ["AccentTitleBrush"] = "#FF5A90C0",
+                ["ChromeButtonFgBrush"] = "#FFAFBEDA",
+                ["ScrollThumbBrush"] = "#FFCFD8EC",
             },
             ["sepia"] = new()
             {
@@ -126,6 +174,18 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#44805030",
                 ["WindowEdgeBrush"] = "#33805030",
                 ["WindowGlowBrush"] = "#FFD8C4A0",
+                ["ControlTextBrush"] = "#FF3A2C1A",
+                ["ButtonBgBrush"] = "#FFFBF3E6",
+                ["ButtonHoverBgBrush"] = "#FFF2E6D2",
+                ["ButtonPressedBgBrush"] = "#FFE6D5BC",
+                ["MenuBgBrush"] = "#FFFBF3E6",
+                ["MenuHighlightBrush"] = "#FFEDDCC2",
+                ["MenuSelectedBrush"] = "#FFD8B98A",
+                ["DividerBrush"] = "#22805030",
+                ["BadgeBgBrush"] = "#FFEFE2CC",
+                ["AccentTitleBrush"] = "#FFB5651D",
+                ["ChromeButtonFgBrush"] = "#FF5E4A30",
+                ["ScrollThumbBrush"] = "#FF8A7350",
             },
             ["dark-pink"] = new()
             {
@@ -142,6 +202,18 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#2AF54292",
                 ["WindowEdgeBrush"] = "#2CF54292",
                 ["WindowGlowBrush"] = "#FF301425",
+                ["ControlTextBrush"] = "#FFE6CFDB",
+                ["ButtonBgBrush"] = "#FF261620",
+                ["ButtonHoverBgBrush"] = "#FF351E2C",
+                ["ButtonPressedBgBrush"] = "#FF1A0F16",
+                ["MenuBgBrush"] = "#FF1A0F16",
+                ["MenuHighlightBrush"] = "#FF4A2A3C",
+                ["MenuSelectedBrush"] = "#FF8E2A5E",
+                ["DividerBrush"] = "#1AF54292",
+                ["BadgeBgBrush"] = "#FF130B10",
+                ["AccentTitleBrush"] = "#FFEC407A",
+                ["ChromeButtonFgBrush"] = "#FFD8AFC6",
+                ["ScrollThumbBrush"] = "#FFE6CFDB",
             },
         };
 
@@ -157,9 +229,52 @@ namespace PaDDY.Helpers
 
             foreach (var kvp in palette)
             {
+                var color = ParseColor(kvp.Value);
                 if (res[kvp.Key] is SolidColorBrush brush && !brush.IsFrozen)
-                    brush.Color = ParseColor(kvp.Value);
+                    brush.Color = color;        // mutable: updates Static + Dynamic consumers live
+                else
+                    res[kvp.Key] = new SolidColorBrush(color); // frozen/missing: shadow at app level
             }
+
+            // Retheme the gradient chrome brushes in place so secondary windows
+            // (Settings/Effects) and the title bar follow the active theme too.
+            // Derived from the palette's window/card colours.
+            if (palette.TryGetValue("CardBgBrush", out var cardHex) &&
+                palette.TryGetValue("WindowBgBrush", out var winHex))
+            {
+                var card = ParseColor(cardHex);
+                var win = ParseColor(winHex);
+                var mid = Blend(card, win, 0.5);
+
+                SetGradientStops(res, "TitleBarGradient", card, win);
+                SetGradientStops(res, "SecondaryWindowBackgroundBrush", card, mid, win);
+                SetGradientStops(res, "SecondaryFooterBackgroundBrush", card, win);
+            }
+        }
+
+        private static void SetGradientStops(ResourceDictionary res, string key, params Color[] colors)
+        {
+            if (res[key] is not LinearGradientBrush brush) return;
+            if (brush.GradientStops.Count != colors.Length) return;
+
+            if (brush.IsFrozen)
+            {
+                // Frozen resources can't be mutated: clone, recolour, and shadow at app level.
+                var clone = brush.Clone();
+                for (int i = 0; i < colors.Length; i++)
+                    clone.GradientStops[i].Color = colors[i];
+                res[key] = clone;
+                return;
+            }
+
+            for (int i = 0; i < colors.Length; i++)
+                brush.GradientStops[i].Color = colors[i];
+        }
+
+        private static Color Blend(Color a, Color b, double t)
+        {
+            byte Lerp(byte x, byte y) => (byte)Math.Round(x + (y - x) * t);
+            return Color.FromArgb(Lerp(a.A, b.A), Lerp(a.R, b.R), Lerp(a.G, b.G), Lerp(a.B, b.B));
         }
 
         /// <summary>Replaces the meter gradient brush resources for the chosen skin.</summary>

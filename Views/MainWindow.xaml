@@ -240,13 +240,8 @@
         <!-- ═══════════════════════ Row 0: Compact Top Bar ═══════════════════════ -->
         <Border Grid.Row="0"
                 BorderBrush="#1AFFFFFF"
-                BorderThickness="0,0,0,1">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#FF141422" Offset="0"/>
-                    <GradientStop Color="#FF0F0F1A" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
+                BorderThickness="0,0,0,1"
+                Background="{DynamicResource TitleBarGradient}">
             <Grid Margin="16,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -327,7 +322,7 @@
         <!-- ═════════════════════ Row 1: Collapsible Config Panel ═════════════════════ -->
         <Border x:Name="ConfigPanelBorder"
                 Grid.Row="1"
-                Background="#FF111120"
+                Background="{DynamicResource CardBgBrush}"
                 BorderBrush="#14FFFFFF"
                 BorderThickness="0,0,0,1"
                 MaxHeight="290"
@@ -569,7 +564,7 @@
 
         <!-- ═════════════════════ Row 2: Status + IN/OUT RMS meters ═════════════════════ -->
         <Border Grid.Row="2"
-                Background="#FF0F0F1C"
+                Background="{DynamicResource CardBgBrush}"
                 BorderBrush="#15FFFFFF"
                 BorderThickness="0,0,0,1"
                 Padding="14,8">
@@ -1023,7 +1018,7 @@
 
             <!-- ── Recordings header ── -->
             <Border Grid.Row="2"
-                    Background="#FF141420"
+                    Background="{DynamicResource InputBgBrush}"
                     BorderBrush="#18FFFFFF"
                     BorderThickness="0,0,0,1"
                     Padding="14,7">
@@ -1033,7 +1028,7 @@
                                    VerticalAlignment="Center" RadiusX="1" RadiusY="1"
                                    Margin="0,0,7,0"/>
                         <TextBlock Text="RECORDINGS"
-                                   Foreground="#FF5A9070"
+                                   Foreground="{DynamicResource AccentTitleBrush}"
                                    FontSize="10"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"/>
@@ -1071,7 +1066,7 @@
             <ScrollViewer Grid.Row="3"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
-                          Background="#FF0D0D14"
+                          Background="{DynamicResource WindowBgBrush}"
                           VerticalAlignment="Stretch"
                           HorizontalAlignment="Stretch">
                 <StackPanel VerticalAlignment="Top">
