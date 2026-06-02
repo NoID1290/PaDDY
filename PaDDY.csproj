@@ -76,4 +76,16 @@
   <Target Name="RenameExeAfterPublish" AfterTargets="Publish">
     <Move SourceFiles="$(PublishDir)NoIDSoftwork.Core.exe" DestinationFiles="$(PublishDir)PaDDY.exe" Condition="Exists('$(PublishDir)NoIDSoftwork.Core.exe')" />
   </Target>
+  <!--
+    The app only ships for win-x64, but Whisper.net.Runtime drops native DLLs for
+    win-arm64 and win-x86 as well. Whisper.net's loader requires the win-x64
+    natives to stay under runtimes\win-x64\, so we cannot flatten those to the
+    root, but we can prune the unused architecture folders to declutter output.
+  -->
+  <Target Name="PruneUnusedRuntimeFolders" AfterTargets="Build">
+    <RemoveDir Directories="$(OutputPath)runtimes\win-arm64;$(OutputPath)runtimes\win-x86" Condition="Exists('$(OutputPath)runtimes')" />
+  </Target>
+  <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)runtimes\win-arm64;$(PublishDir)runtimes\win-x86" Condition="Exists('$(PublishDir)runtimes')" />
+  </Target>
 </Project>

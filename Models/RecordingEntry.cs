@@ -25,6 +25,9 @@ namespace PaDDY.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool IsFavorite { get; set; } = false;
 
+        /// <summary>Manual sort position within its panel/page (lower = earlier).</summary>
+        public long SortOrder { get; set; } = 0;
+
         public string DurationLabel =>
             Duration.TotalSeconds < 60
                 ? $"{Duration.TotalSeconds:0.0}s"

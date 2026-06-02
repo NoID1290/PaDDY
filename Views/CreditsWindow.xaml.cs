@@ -26,6 +26,12 @@ namespace PaDDY
             new() { Name = "Concentus (opus-fix)", License = "BSD", Usage = "Additional Opus licensing notices", LicenseFile = "Concentus-opus-fix-COPYING.txt" },
             new() { Name = "Concentus.OggFile", License = "MIT", Usage = "Ogg/Opus stream container support", LicenseFile = "Concentus.OggFile-LICENSE.txt" },
             new() { Name = "OggVorbisEncoder", License = "MIT", Usage = "Ogg Vorbis encoding", LicenseFile = "OggVorbisEncoder-LICENSE.txt" },
+            new() { Name = "NAudio.Flac", License = "Unlicense", Usage = "FLAC decoding for playback and editing", LicenseFile = "NAudio.Flac.Unlicense.txt" },
+            new() { Name = "CUETools.Flake (libFLAC)", License = "BSD-3-Clause", Usage = "Lossless FLAC encoding", LicenseFile = "libFLAC.BSD.txt" },
+            new() { Name = "MessagePack-CSharp", License = "MIT", Usage = "Binary serialization of application settings", LicenseFile = "MessagePack-LICENSE.txt" },
+            new() { Name = "Microsoft.Data.Sqlite", License = "MIT", Usage = "Recordings metadata database", LicenseFile = "Microsoft.Data.Sqlite-LICENSE.txt" },
+            new() { Name = "SQLitePCLRaw", License = "Apache-2.0", Usage = "Native SQLite provider for the recordings database", LicenseFile = "SQLitePCLRaw-LICENSE.txt" },
+            new() { Name = "Whisper.net", License = "MIT", Usage = "On-device speech-to-text for auto-renaming", LicenseFile = "Whisper.net-LICENSE.txt" },
         };
 
         public CreditsWindow()

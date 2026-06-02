@@ -49,7 +49,6 @@ namespace PaDDY
         private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36));
         private static readonly SolidColorBrush PeakColdBrush = new(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
         private bool _suppressSelectionEvents = true;
-        private bool _developerModeEnabled;
         private bool _inputMeterUpdatesEnabled;
         private RecordingPadButton? _hoveredPad;
 
@@ -96,6 +95,21 @@ namespace PaDDY
 
         public MainWindow()
         {
+            // Decide up-front whether we should start hidden in the tray. When we do,
+            // open the window minimized, non-activated and off the taskbar BEFORE the
+            // first paint so the OS never flashes a black/unpainted window on screen.
+            _startHiddenInTray = _settings.StartMinimizedInTray &&
+                                 (_settings.MinimizeToTray || _settings.CloseToTray);
+            if (_startHiddenInTray)
+            {
+                // Open minimized (and without stealing focus) so no black/unpainted
+                // window flashes on screen, but keep the taskbar entry so the user can
+                // still find and restore the app from the taskbar.
+                ShowActivated = false;
+                WindowState = WindowState.Minimized;
+                _initialTrayMinimize = true;
+            }
+
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
@@ -146,14 +160,6 @@ namespace PaDDY
 
         private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) == (ModifierKeys.Control | ModifierKeys.Shift)
-                && e.Key == Key.D)
-            {
-                e.Handled = true;
-                ToggleDeveloperMode();
-                return;
-            }
-
             if (_hoveredPad == null) return;
             // Don't intercept when a text-entry control has keyboard focus
             if (Keyboard.FocusedElement is System.Windows.Controls.TextBox ||
@@ -194,11 +200,24 @@ namespace PaDDY
             _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
 
             InitializeTrayIcon();
-            if (_settings.StartMinimizedInTray && (_settings.MinimizeToTray || _settings.CloseToTray))
+            if (_startHiddenInTray)
             {
-                Hide();
+                // Stay minimized in the taskbar and also surface the tray icon so the
+                // user can restore the app from either place.
                 if (_trayIcon != null) _trayIcon.Visible = true;
             }
+        }
+
+        // When configured to start in the tray, the window is opened minimized in the
+        // constructor to avoid a brief black/unpainted window flashing on screen while
+        // still keeping a taskbar entry.
+        private bool _startHiddenInTray;
+        // Suppresses the automatic minimize-to-tray on the very first startup minimize
+        // so the window remains visible in the taskbar.
+        private bool _initialTrayMinimize;
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
         }
 
         // ── System tray ────────────────────────────────────────────────────────
@@ -220,6 +239,7 @@ namespace PaDDY
 
         private void RestoreFromTray()
         {
+            ShowInTaskbar = true;
             Show();
             WindowState = WindowState.Normal;
             Activate();
@@ -231,10 +251,21 @@ namespace PaDDY
 
         private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
-            if (WindowState == WindowState.Minimized && _settings.MinimizeToTray)
+            if (WindowState == WindowState.Minimized)
             {
-                Hide();
-                if (_trayIcon != null) _trayIcon.Visible = true;
+                // Don't collapse the initial tray-start minimize into the tray; keep it
+                // visible in the taskbar so the user can see the app is running.
+                if (_initialTrayMinimize)
+                {
+                    _initialTrayMinimize = false;
+                    return;
+                }
+
+                if (_settings.MinimizeToTray)
+                {
+                    Hide();
+                    if (_trayIcon != null) _trayIcon.Visible = true;
+                }
             }
         }
 
@@ -245,53 +276,13 @@ namespace PaDDY
 
             AddCaptureSourceMode(CaptureSourceMode.Microphone, "Mic/Line input");
             AddCaptureSourceMode(CaptureSourceMode.OutputLoopback, "Output loopback");
-
-            if (_developerModeEnabled)
-                AddCaptureSourceMode(CaptureSourceMode.AppLoopback, "App loopback");
+            AddCaptureSourceMode(CaptureSourceMode.AppLoopback, "App loopback");
         }
 
         private void AddCaptureSourceMode(CaptureSourceMode mode, string label)
         {
             _captureSourceModes.Add(mode);
             CaptureSourceCombo.Items.Add(label);
-        }
-
-        private void ToggleDeveloperMode()
-        {
-            _developerModeEnabled = !_developerModeEnabled;
-
-            var previousMode = GetSelectedCaptureMode();
-            RefreshCaptureSourceModes(previousMode, persistSelection: true);
-
-            string status = _developerModeEnabled
-                ? "Developer mode enabled. App loopback is now visible."
-                : "Developer mode disabled. App loopback is now hidden.";
-            SetStatus(status, _developerModeEnabled ? "#FFFFB300" : "#FF757575");
-        }
-
-        private void RefreshCaptureSourceModes(CaptureSourceMode preferredMode, bool persistSelection)
-        {
-            bool wasSuppressing = _suppressSelectionEvents;
-            _suppressSelectionEvents = true;
-
-            PopulateCaptureSourceModes();
-
-            CaptureSourceMode nextMode = preferredMode;
-            if (!_captureSourceModes.Contains(nextMode))
-                nextMode = _captureSourceModes.Contains(CaptureSourceMode.OutputLoopback)
-                    ? CaptureSourceMode.OutputLoopback
-                    : CaptureSourceMode.Microphone;
-
-            CaptureSourceCombo.SelectedIndex = _captureSourceModes.IndexOf(nextMode);
-            _suppressSelectionEvents = wasSuppressing;
-
-            if (persistSelection)
-            {
-                _settings.CaptureSourceMode = (int)nextMode;
-                _settings.Save();
-                UpdateInputControlsForSource();
-                RestartMonitoringIfActive();
-            }
         }
 
         private void PopulateRecordingModes()
@@ -344,7 +335,8 @@ namespace PaDDY
             "Name A\u2192Z",
             "Name Z\u2192A",
             "Longest",
-            "Shortest"
+            "Shortest",
+            "Custom (drag)"
         };
 
         private void PopulateSortOrderCombo()
@@ -375,12 +367,218 @@ namespace PaDDY
                 3 => buttons.OrderByDescending(b => b.Entry?.FileName ?? string.Empty, StringComparer.OrdinalIgnoreCase),
                 4 => buttons.OrderByDescending(b => b.Entry?.Duration ?? TimeSpan.Zero),
                 5 => buttons.OrderBy(b => b.Entry?.Duration ?? TimeSpan.Zero),
+                6 => buttons.OrderBy(b => b.Entry?.SortOrder ?? 0).ThenByDescending(b => b.Entry?.CreatedAt ?? DateTime.MinValue),
                 _ => buttons.OrderByDescending(b => b.Entry?.CreatedAt ?? DateTime.MinValue) // 0 = Newest first
             };
 
             PadPanel.Children.Clear();
             foreach (var btn in sorted)
                 PadPanel.Children.Add(btn);
+        }
+
+        // ── Pad drag-and-drop (move between panels/pages + reorder) ───────────────
+
+        private RecordingPadButton? _draggedPad;
+        private Controls.DragAdorner? _dragAdorner;
+        private System.Windows.Documents.AdornerLayer? _dragAdornerLayer;
+
+        private static RecordingPadButton? GetDraggedPad(System.Windows.DragEventArgs e)
+            => e.Data.GetDataPresent(RecordingPadButton.PadDragFormat)
+                ? e.Data.GetData(RecordingPadButton.PadDragFormat) as RecordingPadButton
+                : null;
+
+        /// <summary>Sets up the floating ghost and dims the source pad when a drag begins.</summary>
+        private void BeginPadDragVisual(RecordingPadButton pad)
+        {
+            _draggedPad = pad;
+            _dragAdornerLayer = System.Windows.Documents.AdornerLayer.GetAdornerLayer(MainRootGrid);
+            if (_dragAdornerLayer != null)
+            {
+                _dragAdorner = new Controls.DragAdorner(MainRootGrid, pad, pad.DragGrabOffset);
+                _dragAdornerLayer.Add(_dragAdorner);
+            }
+            pad.Opacity = 0.35;
+        }
+
+        /// <summary>Tears down the ghost and commits the pad's final location after the drag loop ends.</summary>
+        private void FinalizePadDrop(RecordingPadButton pad)
+        {
+            if (_dragAdorner != null && _dragAdornerLayer != null)
+                _dragAdornerLayer.Remove(_dragAdorner);
+            _dragAdorner = null;
+            _dragAdornerLayer = null;
+            pad.Opacity = 1.0;
+            _draggedPad = null;
+
+            if (pad.Entry == null) { UpdatePadState(); return; }
+
+            var parent = pad.Parent;
+            if (ReferenceEquals(parent, FavoritesPanel))
+            {
+                if (!pad.IsFavorite)
+                {
+                    pad.IsFavorite = true;
+                    pad.Entry.IsFavorite = true;
+                    _recordingStore.SetFavorite(pad.Entry.RecordingId, true);
+                    string pageId = _activePadPage != null && !_activePadPage.IsFavorites ? _activePadPage.Id : string.Empty;
+                    _recordingStore.SetPadPage(pad.Entry.RecordingId, pageId);
+                }
+                PersistFavoritesOrder();
+            }
+            else if (ReferenceEquals(parent, PadPanel))
+            {
+                if (pad.IsFavorite)
+                {
+                    pad.IsFavorite = false;
+                    pad.Entry.IsFavorite = false;
+                    _recordingStore.SetFavorite(pad.Entry.RecordingId, false);
+                    _recordingStore.SetPadPage(pad.Entry.RecordingId, string.Empty);
+                }
+                SwitchToCustomSort();
+                PersistRecordingsOrder();
+                EnforceMaxRecords();
+            }
+            // Otherwise the pad was moved to another page (detached) and already committed.
+
+            UpdatePadState();
+        }
+
+        private void FavoritesPanel_DragOver(object sender, System.Windows.DragEventArgs e)
+            => HandlePanelDragOver(FavoritesPanel, e);
+
+        private void PadPanel_DragOver(object sender, System.Windows.DragEventArgs e)
+            => HandlePanelDragOver(PadPanel, e);
+
+        /// <summary>
+        /// Live-preview drag: moves the dragged pad to the hovered slot in real time so the
+        /// user sees it physically slide into place, and keeps the floating ghost under the cursor.
+        /// </summary>
+        private void HandlePanelDragOver(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
+        {
+            var pad = GetDraggedPad(e);
+            e.Effects = pad != null ? System.Windows.DragDropEffects.Move : System.Windows.DragDropEffects.None;
+            e.Handled = true;
+            if (pad == null) return;
+
+            UpdateDragAdorner(e);
+
+            int index = ComputeDropIndex(panel, e, pad);
+            LivePreviewMove(panel, pad, index);
+        }
+
+        private void FavoritesPanel_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            // The pad has already been live-moved into place; commit happens in FinalizePadDrop.
+            e.Handled = true;
+        }
+
+        private void PadPanel_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        private void UpdateDragAdorner(System.Windows.DragEventArgs e)
+        {
+            if (_dragAdorner != null)
+                _dragAdorner.UpdatePosition(e.GetPosition(MainRootGrid));
+        }
+
+        /// <summary>Computes the target child index for a drop, ignoring the dragged pad itself.</summary>
+        private static int ComputeDropIndex(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e, RecordingPadButton dragged)
+        {
+            var pos = e.GetPosition(panel);
+            int visibleIndex = 0;
+            for (int i = 0; i < panel.Children.Count; i++)
+            {
+                if (panel.Children[i] is not FrameworkElement fe) continue;
+                if (ReferenceEquals(fe, dragged)) continue;
+
+                var topLeft = fe.TranslatePoint(new System.Windows.Point(0, 0), panel);
+                double midX = topLeft.X + fe.ActualWidth / 2;
+                double bottom = topLeft.Y + fe.ActualHeight;
+                if (pos.Y < topLeft.Y) return visibleIndex;            // pointer above this row
+                if (pos.Y <= bottom && pos.X < midX) return visibleIndex; // same row, left half
+                visibleIndex++;
+            }
+            return visibleIndex;
+        }
+
+        /// <summary>Moves the dragged pad to <paramref name="targetIndex"/> within <paramref name="target"/> (cross-panel aware).</summary>
+        private static void LivePreviewMove(System.Windows.Controls.Panel target, RecordingPadButton pad, int targetIndex)
+        {
+            var current = pad.Parent as System.Windows.Controls.Panel;
+            if (ReferenceEquals(current, target))
+            {
+                int cur = target.Children.IndexOf(pad);
+                if (cur < 0) return;
+                // targetIndex was computed ignoring the dragged pad; translate to a real insert index.
+                int insert = targetIndex;
+                if (insert > cur) { /* slots after removal shift left */ }
+                insert = Math.Clamp(insert, 0, target.Children.Count - 1);
+                if (insert == cur) return;
+                target.Children.RemoveAt(cur);
+                target.Children.Insert(insert, pad);
+            }
+            else
+            {
+                current?.Children.Remove(pad);
+                targetIndex = Math.Clamp(targetIndex, 0, target.Children.Count);
+                target.Children.Insert(targetIndex, pad);
+            }
+        }
+
+        /// <summary>Moves a pad to a specific pad page (folder tab) target.</summary>
+        private void MovePadToPage(RecordingPadButton pad, string pageId)
+        {
+            if (pad.Entry == null) return;
+
+            var page = _settings.PadPages.FirstOrDefault(p => p.Id == pageId);
+            bool toFavoritesPage = page != null && page.IsFavorites;
+
+            pad.IsFavorite = true;
+            pad.Entry.IsFavorite = true;
+            _recordingStore.SetFavorite(pad.Entry.RecordingId, true);
+            _recordingStore.SetPadPage(pad.Entry.RecordingId, toFavoritesPage ? string.Empty : pageId);
+
+            // The pad now belongs to another page; remove it from the current view.
+            (pad.Parent as System.Windows.Controls.Panel)?.Children.Remove(pad);
+            PersistFavoritesOrder();
+            UpdatePadState();
+        }
+
+        private void PersistFavoritesOrder()
+        {
+            var ids = FavoritesPanel.Children.OfType<RecordingPadButton>()
+                .Where(b => b.Entry != null)
+                .Select(b => b.Entry!.RecordingId)
+                .ToList();
+            _recordingStore.SetSortOrders(ids);
+            for (int i = 0; i < FavoritesPanel.Children.Count; i++)
+                if (FavoritesPanel.Children[i] is RecordingPadButton b && b.Entry != null)
+                    b.Entry.SortOrder = i;
+        }
+
+        private void PersistRecordingsOrder()
+        {
+            var ids = PadPanel.Children.OfType<RecordingPadButton>()
+                .Where(b => b.Entry != null)
+                .Select(b => b.Entry!.RecordingId)
+                .ToList();
+            _recordingStore.SetSortOrders(ids);
+            for (int i = 0; i < PadPanel.Children.Count; i++)
+                if (PadPanel.Children[i] is RecordingPadButton b && b.Entry != null)
+                    b.Entry.SortOrder = i;
+        }
+
+        private void SwitchToCustomSort()
+        {
+            int customIndex = SortOrderLabels.Length - 1;
+            if (_settings.PadSortOrder == customIndex) return;
+            _settings.PadSortOrder = customIndex;
+            _settings.Save();
+            _suppressSelectionEvents = true;
+            SortOrderCombo.SelectedIndex = customIndex;
+            _suppressSelectionEvents = false;
         }
 
         private void PopulateInputDevices()
@@ -501,6 +699,7 @@ namespace PaDDY
             RecordingModeCombo.SelectedIndex = modeIdx;
             ApplyModeComboIndex(modeIdx);
             KeyBufferHint.Visibility = modeIdx == ModeComboKeyBufferIndex ? Visibility.Visible : Visibility.Collapsed;
+            UpdateVadSettingsVisibility(modeIdx);
             UpdateHotkeyLabel();
 
             // Format settings
@@ -758,7 +957,16 @@ namespace PaDDY
             ApplyModeComboIndex(idx);
             _settings.Save();
             KeyBufferHint.Visibility = idx == ModeComboKeyBufferIndex ? Visibility.Visible : Visibility.Collapsed;
+            UpdateVadSettingsVisibility(idx);
             RefreshOutputFormatInfo();
+        }
+
+        // Sensitivity and Silence only apply to AutoVAD/Adaptive VAD detection.
+        private void UpdateVadSettingsVisibility(int modeIdx)
+        {
+            var vadVisibility = modeIdx == ModeComboKeyBufferIndex ? Visibility.Collapsed : Visibility.Visible;
+            SensitivityRow.Visibility = vadVisibility;
+            SilenceRow.Visibility = vadVisibility;
         }
 
         // ── Monitoring toggle ──────────────────────────────────────────────────
@@ -1456,6 +1664,9 @@ namespace PaDDY
             btn.MouseEnter += (s, _) => _hoveredPad = s as RecordingPadButton;
             btn.MouseLeave += (_, _) => { if (_hoveredPad == btn) _hoveredPad = null; };
 
+            btn.DragStarting += BeginPadDragVisual;
+            btn.DragFinished += FinalizePadDrop;
+
             return btn;
         }
 
@@ -1525,6 +1736,19 @@ namespace PaDDY
                 };
                 string pageId = page.Id;
                 tab.Click += (_, _) => SwitchToPadPage(pageId);
+                tab.AllowDrop = true;
+                tab.DragOver += (_, ev) =>
+                {
+                    ev.Effects = GetDraggedPad(ev) != null ? System.Windows.DragDropEffects.Move : System.Windows.DragDropEffects.None;
+                    ev.Handled = true;
+                    UpdateDragAdorner(ev);
+                };
+                tab.Drop += (_, ev) =>
+                {
+                    var pad = GetDraggedPad(ev);
+                    if (pad?.Entry != null) MovePadToPage(pad, pageId);
+                    ev.Handled = true;
+                };
                 PadPageTabBar.Children.Add(tab);
             }
 
@@ -1603,10 +1827,13 @@ namespace PaDDY
         private void LoadFavoritesFromStore()
         {
             var records = _recordingStore.GetAll();
-            foreach (var rec in records)
+            var favs = records
+                .Where(r => r.IsFavorite && BelongsToActivePage(r))
+                .OrderBy(r => r.SortOrder)
+                .ThenByDescending(r => r.CreatedAt)
+                .ToList();
+            foreach (var rec in favs)
             {
-                if (!rec.IsFavorite) continue;
-                if (!BelongsToActivePage(rec)) continue;
                 try
                 {
                     string tempPath = _recordingStore.MaterializeToTemp(rec.Id, rec.Codec);
@@ -1617,7 +1844,8 @@ namespace PaDDY
                         DisplayName = rec.DisplayName,
                         Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
                         CreatedAt = rec.CreatedAt,
-                        IsFavorite = true
+                        IsFavorite = true,
+                        SortOrder = rec.SortOrder
                     };
                     var btn = CreatePadButton(entry);
                     FavoritesPanel.Children.Add(btn);
@@ -1658,7 +1886,8 @@ namespace PaDDY
                         DisplayName = rec.DisplayName,
                         Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
                         CreatedAt = rec.CreatedAt,
-                        IsFavorite = false
+                        IsFavorite = false,
+                        SortOrder = rec.SortOrder
                     };
                     var btn = CreatePadButton(entry);
                     PadPanel.Children.Add(btn);

@@ -114,8 +114,8 @@
                 </Style>
             </TabControl.Resources>
 
-            <!-- ══ GENERAL TAB ══════════════════════════════════════ -->
-            <TabItem Header="General">
+            <!-- ══ RECORDING TAB ════════════════════════════════════ -->
+            <TabItem Header="Recording">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
 
@@ -288,6 +288,40 @@
                     </StackPanel>
                 </Border>
 
+                <!-- ── Speech-to-text ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="SPEECH-TO-TEXT" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <CheckBox x:Name="AutoRenameSpeechCheck"
+                                  Content="Auto-rename new recordings from detected speech"
+                                  Margin="0,0,0,10"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Model:"
+                                       Style="{StaticResource SettingsLabel}"/>
+                            <ComboBox x:Name="SpeechModelCombo" Grid.Column="1"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Language:"
+                                       Style="{StaticResource SettingsLabel}"/>
+                            <TextBox x:Name="SpeechLanguageBox" Grid.Column="1"
+                                     ToolTip="Language code, e.g. en, fr, de, or 'auto' to detect."/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
             </TabItem>
@@ -428,40 +462,6 @@
                 <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
                     <CheckBox x:Name="RunOnStartupCheck"
                               Content="Start PaDDY when Windows starts"/>
-                </Border>
-
-                <!-- ── Speech-to-text ── -->
-                <StackPanel Style="{StaticResource GroupHeader}">
-                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                    <TextBlock Text="SPEECH-TO-TEXT" Style="{StaticResource HeaderText}"/>
-                </StackPanel>
-                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                    <StackPanel>
-                        <CheckBox x:Name="AutoRenameSpeechCheck"
-                                  Content="Auto-rename new recordings from detected speech"
-                                  Margin="0,0,0,10"/>
-                        <Grid Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="140"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Model:"
-                                       Style="{StaticResource SettingsLabel}"/>
-                            <ComboBox x:Name="SpeechModelCombo" Grid.Column="1"/>
-                        </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="140"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"
-                                       Text="Language:"
-                                       Style="{StaticResource SettingsLabel}"/>
-                            <TextBox x:Name="SpeechLanguageBox" Grid.Column="1"
-                                     ToolTip="Language code, e.g. en, fr, de, or 'auto' to detect."/>
-                        </Grid>
-                    </StackPanel>
                 </Border>
 
             </StackPanel>

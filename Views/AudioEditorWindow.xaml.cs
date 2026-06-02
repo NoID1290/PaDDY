@@ -52,6 +52,9 @@ namespace PaDDY
         private NoiseGateEffect? _gate;
         private EchoEffect? _echo;
         private EqualizerEffect? _eq;
+        private CompressorEffect? _compressor;
+        private DistortionEffect? _distortion;
+        private ReverbEffect? _reverb;
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
@@ -118,6 +121,9 @@ namespace PaDDY
                     case NoiseGateEffect g: _gate = g; break;
                     case EchoEffect ec: _echo = ec; break;
                     case EqualizerEffect q: _eq = q; break;
+                    case CompressorEffect c: _compressor = c; break;
+                    case DistortionEffect d: _distortion = d; break;
+                    case ReverbEffect r: _reverb = r; break;
                 }
             }
             LoadEffectValues();
@@ -360,6 +366,29 @@ namespace PaDDY
                     EqPresenceSlider.Value = _eq.PresenceDb;
                     EqTrebleSlider.Value = _eq.TrebleDb;
                 }
+                if (_compressor != null)
+                {
+                    CompressorEnabledCheck.IsChecked = _compressor.IsEnabled;
+                    CompThresholdSlider.Value = _compressor.ThresholdDb;
+                    CompRatioSlider.Value = _compressor.Ratio;
+                    CompAttackSlider.Value = _compressor.AttackMs;
+                    CompReleaseSlider.Value = _compressor.ReleaseMs;
+                    CompMakeupSlider.Value = _compressor.MakeupDb;
+                }
+                if (_distortion != null)
+                {
+                    DistortionEnabledCheck.IsChecked = _distortion.IsEnabled;
+                    DistDriveSlider.Value = _distortion.Drive;
+                    DistMixSlider.Value = _distortion.Mix;
+                    DistOutputSlider.Value = _distortion.OutputLevel;
+                }
+                if (_reverb != null)
+                {
+                    ReverbEnabledCheck.IsChecked = _reverb.IsEnabled;
+                    ReverbRoomSlider.Value = _reverb.RoomSize;
+                    ReverbDampingSlider.Value = _reverb.Damping;
+                    ReverbMixSlider.Value = _reverb.Mix;
+                }
                 UpdateEffectLabels();
             }
             finally
@@ -383,6 +412,17 @@ namespace PaDDY
             EqMidLabel.Text = $"{(int)EqMidSlider.Value:+#;-#;0} dB";
             EqPresenceLabel.Text = $"{(int)EqPresenceSlider.Value:+#;-#;0} dB";
             EqTrebleLabel.Text = $"{(int)EqTrebleSlider.Value:+#;-#;0} dB";
+            CompThresholdLabel.Text = $"{(int)CompThresholdSlider.Value}";
+            CompRatioLabel.Text = $"{CompRatioSlider.Value:F1}";
+            CompAttackLabel.Text = $"{(int)CompAttackSlider.Value}";
+            CompReleaseLabel.Text = $"{(int)CompReleaseSlider.Value}";
+            CompMakeupLabel.Text = $"{(int)CompMakeupSlider.Value}";
+            DistDriveLabel.Text = $"{(int)DistDriveSlider.Value}";
+            DistMixLabel.Text = $"{DistMixSlider.Value:F2}";
+            DistOutputLabel.Text = $"{DistOutputSlider.Value:F2}";
+            ReverbRoomLabel.Text = $"{ReverbRoomSlider.Value:F2}";
+            ReverbDampingLabel.Text = $"{ReverbDampingSlider.Value:F2}";
+            ReverbMixLabel.Text = $"{ReverbMixSlider.Value:F2}";
         }
 
         private void CommitEffectsToChain()
@@ -415,6 +455,29 @@ namespace PaDDY
                 _eq.MidDb = EqMidSlider.Value;
                 _eq.PresenceDb = EqPresenceSlider.Value;
                 _eq.TrebleDb = EqTrebleSlider.Value;
+            }
+            if (_compressor != null)
+            {
+                _compressor.IsEnabled = CompressorEnabledCheck.IsChecked == true;
+                _compressor.ThresholdDb = CompThresholdSlider.Value;
+                _compressor.Ratio = CompRatioSlider.Value;
+                _compressor.AttackMs = CompAttackSlider.Value;
+                _compressor.ReleaseMs = CompReleaseSlider.Value;
+                _compressor.MakeupDb = CompMakeupSlider.Value;
+            }
+            if (_distortion != null)
+            {
+                _distortion.IsEnabled = DistortionEnabledCheck.IsChecked == true;
+                _distortion.Drive = DistDriveSlider.Value;
+                _distortion.Mix = DistMixSlider.Value;
+                _distortion.OutputLevel = DistOutputSlider.Value;
+            }
+            if (_reverb != null)
+            {
+                _reverb.IsEnabled = ReverbEnabledCheck.IsChecked == true;
+                _reverb.RoomSize = ReverbRoomSlider.Value;
+                _reverb.Damping = ReverbDampingSlider.Value;
+                _reverb.Mix = ReverbMixSlider.Value;
             }
             SaveEffectSettings();
         }
@@ -475,6 +538,27 @@ namespace PaDDY
             EqChevron.Text = expand ? "▼" : "►";
         }
 
+        private void CompressorHeaderButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool expand = CompressorContent.Visibility == Visibility.Collapsed;
+            CompressorContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            CompressorChevron.Text = expand ? "▼" : "►";
+        }
+
+        private void DistortionHeaderButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool expand = DistortionContent.Visibility == Visibility.Collapsed;
+            DistortionContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            DistortionChevron.Text = expand ? "▼" : "►";
+        }
+
+        private void ReverbHeaderButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool expand = ReverbContent.Visibility == Visibility.Collapsed;
+            ReverbContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            ReverbChevron.Text = expand ? "▼" : "►";
+        }
+
         private void ResetEffects_Click(object sender, RoutedEventArgs e)
         {
             _effectsLoading = true;
@@ -497,6 +581,20 @@ namespace PaDDY
                 EqMidSlider.Value = 0;
                 EqPresenceSlider.Value = 0;
                 EqTrebleSlider.Value = 0;
+                CompressorEnabledCheck.IsChecked = false;
+                CompThresholdSlider.Value = -18;
+                CompRatioSlider.Value = 4;
+                CompAttackSlider.Value = 10;
+                CompReleaseSlider.Value = 120;
+                CompMakeupSlider.Value = 0;
+                DistortionEnabledCheck.IsChecked = false;
+                DistDriveSlider.Value = 8;
+                DistMixSlider.Value = 0.6;
+                DistOutputSlider.Value = 0.8;
+                ReverbEnabledCheck.IsChecked = false;
+                ReverbRoomSlider.Value = 0.5;
+                ReverbDampingSlider.Value = 0.5;
+                ReverbMixSlider.Value = 0.3;
             }
             finally { _effectsLoading = false; }
             UpdateEffectLabels();
