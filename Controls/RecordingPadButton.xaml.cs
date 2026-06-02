@@ -109,13 +109,68 @@ namespace PaDDY.Controls
             MouseLeftButtonUp += (_, e) =>
             {
                 // Don't trigger playback if the click was on an overlay button
+                if (_dragInProgress)
+                {
+                    _dragInProgress = false;
+                    return;
+                }
                 if (e.OriginalSource is not FrameworkElement fe ||
                     (!IsOverlayButton(fe)))
                 {
                     TogglePlay();
                 }
             };
+
+            PreviewMouseLeftButtonDown += (_, e) =>
+            {
+                _dragInProgress = false;
+                _dragStartPoint = e.GetPosition(null);
+            };
+
+            PreviewMouseMove += (_, e) =>
+            {
+                if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed || _dragInProgress)
+                    return;
+                if (Entry == null || string.IsNullOrEmpty(Entry.RecordingId))
+                    return;
+                if (e.OriginalSource is FrameworkElement fe && IsOverlayButton(fe))
+                    return;
+
+                var pos = e.GetPosition(null);
+                if (Math.Abs(pos.X - _dragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance &&
+                    Math.Abs(pos.Y - _dragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance)
+                    return;
+
+                _dragInProgress = true;
+                DragGrabOffset = e.GetPosition(this);
+                try
+                {
+                    DragStarting?.Invoke(this);
+                    var data = new System.Windows.DataObject(PadDragFormat, this);
+                    System.Windows.DragDrop.DoDragDrop(this, data, System.Windows.DragDropEffects.Move);
+                }
+                catch { }
+                finally
+                {
+                    DragFinished?.Invoke(this);
+                }
+            };
         }
+
+        /// <summary>DataObject format used when dragging a pad between panels/pages.</summary>
+        public const string PadDragFormat = "PaddyRecordingPad";
+
+        /// <summary>Mouse offset within the pad where the drag began (used to position the drag ghost).</summary>
+        public System.Windows.Point DragGrabOffset { get; private set; }
+
+        /// <summary>Raised just before the drag-drop loop begins (host sets up the drag visual).</summary>
+        public event Action<RecordingPadButton>? DragStarting;
+
+        /// <summary>Raised after the drag-drop loop completes (host tears down the visual and commits).</summary>
+        public event Action<RecordingPadButton>? DragFinished;
+
+        private System.Windows.Point _dragStartPoint;
+        private bool _dragInProgress;
 
         private static bool IsOverlayButton(FrameworkElement el)
         {

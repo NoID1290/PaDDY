@@ -17,6 +17,9 @@ namespace PaDDY.Services
 
         /// <summary>Id of the pad page this recording is pinned to (empty = unassigned).</summary>
         public string PadPage { get; set; } = string.Empty;
+
+        /// <summary>Manual sort position within its panel/page (lower = earlier).</summary>
+        public long SortOrder { get; set; }
     }
     /// <summary>
     /// Persistent recording storage backed by a SQLite database (recordings.dat).
@@ -108,6 +111,7 @@ namespace PaDDY.Services
             cmd.ExecuteNonQuery();
 
             EnsurePadPageColumn();
+            EnsureSortOrderColumn();
         }
 
         /// <summary>Adds the pad_page column to older databases that predate pad pages.</summary>
@@ -132,6 +136,31 @@ namespace PaDDY.Services
 
             using var alter = _db.CreateCommand();
             alter.CommandText = "ALTER TABLE recordings ADD COLUMN pad_page TEXT NOT NULL DEFAULT ''";
+            alter.ExecuteNonQuery();
+        }
+
+        /// <summary>Adds the sort_order column to databases that predate manual ordering.</summary>
+        private void EnsureSortOrderColumn()
+        {
+            bool exists = false;
+            using (var info = _db.CreateCommand())
+            {
+                info.CommandText = "PRAGMA table_info(recordings)";
+                using var reader = info.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (string.Equals(reader.GetString(1), "sort_order", StringComparison.OrdinalIgnoreCase))
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (exists) return;
+
+            using var alter = _db.CreateCommand();
+            alter.CommandText = "ALTER TABLE recordings ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0";
             alter.ExecuteNonQuery();
         }
 
@@ -192,6 +221,32 @@ namespace PaDDY.Services
             cmd.ExecuteNonQuery();
         }
 
+        /// <summary>Sets the manual sort position for a single recording.</summary>
+        public void SetSortOrder(string id, long order)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET sort_order=@so WHERE id=@id";
+            cmd.Parameters.AddWithValue("@so", order);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        /// <summary>Persists manual order for a list of recording ids (index becomes sort_order).</summary>
+        public void SetSortOrders(IReadOnlyList<string> orderedIds)
+        {
+            using var tx = _db.BeginTransaction();
+            for (int i = 0; i < orderedIds.Count; i++)
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET sort_order=@so WHERE id=@id";
+                cmd.Parameters.AddWithValue("@so", (long)i);
+                cmd.Parameters.AddWithValue("@id", orderedIds[i]);
+                cmd.Transaction = tx;
+                cmd.ExecuteNonQuery();
+            }
+            tx.Commit();
+        }
+
         public void UpdateAudioData(string id, byte[] audioData)
         {
             using var cmd = _db.CreateCommand();
@@ -232,7 +287,7 @@ namespace PaDDY.Services
             var list = new List<RecordingRecord>();
             using var cmd = _db.CreateCommand();
             cmd.CommandText = """
-                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page
+                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order
                 FROM recordings
                 ORDER BY created_at DESC
                 """;
@@ -247,7 +302,8 @@ namespace PaDDY.Services
                     DurationMs = reader.GetInt64(3),
                     CreatedAt = DateTime.Parse(reader.GetString(4)),
                     IsFavorite = reader.GetInt64(5) != 0,
-                    PadPage = reader.IsDBNull(6) ? string.Empty : reader.GetString(6)
+                    PadPage = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+                    SortOrder = reader.IsDBNull(7) ? 0 : reader.GetInt64(7)
                 });
             }
             return list;

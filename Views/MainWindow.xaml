@@ -467,7 +467,7 @@
                         </DockPanel>
 
                         <!-- Sensitivity -->
-                        <Grid Margin="0,0,0,7">
+                        <Grid x:Name="SensitivityRow" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
@@ -488,7 +488,7 @@
                         </Grid>
 
                         <!-- Silence -->
-                        <Grid Margin="0,0,0,7">
+                        <Grid x:Name="SilenceRow" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
@@ -1012,7 +1012,11 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
                               MaxHeight="318">
-                    <WrapPanel x:Name="FavoritesPanel" Orientation="Horizontal"/>
+                    <WrapPanel x:Name="FavoritesPanel" Orientation="Horizontal"
+                               Background="Transparent"
+                               AllowDrop="True"
+                               DragOver="FavoritesPanel_DragOver"
+                               Drop="FavoritesPanel_Drop"/>
                 </ScrollViewer>
             </Border>
 
@@ -1072,6 +1076,10 @@
                 <StackPanel VerticalAlignment="Top">
                     <WrapPanel x:Name="PadPanel"
                                Margin="12"
+                               Background="Transparent"
+                               AllowDrop="True"
+                               DragOver="PadPanel_DragOver"
+                               Drop="PadPanel_Drop"
                                Orientation="Horizontal"/>
                     <TextBlock x:Name="EmptyHint"
                                Text="No recordings yet&#x0a;Start monitoring to capture sounds!"

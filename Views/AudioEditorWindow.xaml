@@ -434,6 +434,206 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- Compressor -->
+                            <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
+                                <StackPanel>
+                                    <DockPanel LastChildFill="True">
+                                        <CheckBox DockPanel.Dock="Right" x:Name="CompressorEnabledCheck" Content="Enable"
+                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  VerticalAlignment="Center"
+                                                  Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <Button x:Name="CompressorHeaderButton"
+                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                                                Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                Click="CompressorHeaderButton_Click">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="22"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                <TextBlock Grid.Column="1" Text="Compressor"
+                                                           Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="2" x:Name="CompressorChevron" Text="&#x25BA;"
+                                                           FontSize="9" Foreground="#FF6060A0"
+                                                           VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </Button>
+                                    </DockPanel>
+                                    <StackPanel x:Name="CompressorContent" Visibility="Collapsed" Margin="0,8,0,0">
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Threshold (dB)"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="CompThresholdSlider"
+                                                    Minimum="-60" Maximum="0"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="CompThresholdLabel" Text="-18"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Ratio"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="CompRatioSlider"
+                                                    Minimum="1" Maximum="20" TickFrequency="0.5"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="CompRatioLabel" Text="4.0"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Attack (ms)"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="CompAttackSlider"
+                                                    Minimum="1" Maximum="200"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="CompAttackLabel" Text="10"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Release (ms)"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="CompReleaseSlider"
+                                                    Minimum="10" Maximum="2000"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="CompReleaseLabel" Text="120"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Makeup (dB)"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="CompMakeupSlider"
+                                                    Minimum="0" Maximum="24"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="CompMakeupLabel" Text="0"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Distortion -->
+                            <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
+                                <StackPanel>
+                                    <DockPanel LastChildFill="True">
+                                        <CheckBox DockPanel.Dock="Right" x:Name="DistortionEnabledCheck" Content="Enable"
+                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  VerticalAlignment="Center"
+                                                  Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <Button x:Name="DistortionHeaderButton"
+                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                                                Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                Click="DistortionHeaderButton_Click">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="22"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                <TextBlock Grid.Column="1" Text="Distortion"
+                                                           Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="2" x:Name="DistortionChevron" Text="&#x25BA;"
+                                                           FontSize="9" Foreground="#FF6060A0"
+                                                           VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </Button>
+                                    </DockPanel>
+                                    <StackPanel x:Name="DistortionContent" Visibility="Collapsed" Margin="0,8,0,0">
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Drive"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="DistDriveSlider"
+                                                    Minimum="1" Maximum="50"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="DistDriveLabel" Text="8"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Mix (wet)"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="DistMixSlider"
+                                                    Minimum="0" Maximum="1" TickFrequency="0.05"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="DistMixLabel" Text="0.60"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Output"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="DistOutputSlider"
+                                                    Minimum="0" Maximum="1" TickFrequency="0.05"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="DistOutputLabel" Text="0.80"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Echo -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
@@ -513,6 +713,89 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="EchoMixLabel" Text="0.40"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Reverb -->
+                            <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
+                                <StackPanel>
+                                    <DockPanel LastChildFill="True">
+                                        <CheckBox DockPanel.Dock="Right" x:Name="ReverbEnabledCheck" Content="Enable"
+                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  VerticalAlignment="Center"
+                                                  Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <Button x:Name="ReverbHeaderButton"
+                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                                                Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                Click="ReverbHeaderButton_Click">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="22"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                <TextBlock Grid.Column="1" Text="Reverb"
+                                                           Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="2" x:Name="ReverbChevron" Text="&#x25BA;"
+                                                           FontSize="9" Foreground="#FF6060A0"
+                                                           VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            </Grid>
+                                        </Button>
+                                    </DockPanel>
+                                    <StackPanel x:Name="ReverbContent" Visibility="Collapsed" Margin="0,8,0,0">
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Room Size"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="ReverbRoomSlider"
+                                                    Minimum="0" Maximum="1" TickFrequency="0.05"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="ReverbRoomLabel" Text="0.50"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Damping"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="ReverbDampingSlider"
+                                                    Minimum="0" Maximum="1" TickFrequency="0.05"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="ReverbDampingLabel" Text="0.50"
+                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           FontSize="10" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Mix (wet)"
+                                                       Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" x:Name="ReverbMixSlider"
+                                                    Minimum="0" Maximum="1" TickFrequency="0.05"
+                                                    ValueChanged="EffectSlider_Changed"/>
+                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                                <TextBlock x:Name="ReverbMixLabel" Text="0.30"
                                                            Foreground="{StaticResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
