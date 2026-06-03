@@ -161,8 +161,8 @@ namespace PaDDY.Helpers
             },
             ["sepia"] = new()
             {
-                ["WindowBgBrush"] = "#FFF1E7D6",
-                ["CardBgBrush"] = "#FFFBF3E6",
+                ["WindowBgBrush"] = "#FFF1E7D6", // or #ffeae7d6"
+                ["CardBgBrush"] = "#dfdad1e6",
                 ["CardBorderBrush"] = "#33805030",
                 ["SubtleTextBrush"] = "#FF8A7350",
                 ["PrimaryTextBrush"] = "#FF3A2C1A",
