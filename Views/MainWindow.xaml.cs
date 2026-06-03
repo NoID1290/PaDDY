@@ -192,6 +192,7 @@ namespace PaDDY
 
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
+            WhisperARTTStatus();
             Forget(RefreshStorageInfoAsync());
             _ = CheckForUpdateAsync();
 
@@ -1213,6 +1214,7 @@ namespace PaDDY
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
             RefreshPadOutputRouting();
+            WhisperARTTStatus();
             Forget(RefreshStorageInfoAsync());
         }
 
@@ -2099,7 +2101,35 @@ namespace PaDDY
                 StorageInfoLabel.Text = "Unable to read storage data";
             }
         }
-
+        private void WhisperARTTStatus()
+        {
+            string nm = "AR-TTS";
+           try
+            {
+                bool? arttsvalue = _settings.AutoRenameWithSpeech;
+                if (arttsvalue == null)
+                {
+                    WhisperStatusLabel.Text = nm + ": unavailable";
+                    return;
+                }
+            else if (arttsvalue == true)
+                {
+                    WhisperStatusLabel.Text = nm + ": enabled";
+                }
+                else
+                {
+                    WhisperStatusLabel.Text = nm + ": disabled";
+                    return;
+                }
+            }
+            catch
+            {
+                WhisperStatusLabel.Text = nm + ": unavailable";
+                return;
+            }
+        }
+            
+            
         private async Task CheckForUpdateAsync()
         {
             try

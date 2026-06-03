@@ -875,10 +875,15 @@
                                    Text="Recording format: WAV | 48.0 kHz | 16-bit | stereo"
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>
+                        <TextBlock x:Name="WhisperStatusLabel"
+                                   Text="AR-TTS : unavailable"
+                                   Style="{StaticResource InfoLineLabel}"
+                                   MaxWidth="380"/>           
                         <TextBlock x:Name="StorageInfoLabel"
                                    Text="Output folder: calculating usage…"
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>
+                        
 
                         <TextBlock x:Name="UpdateNoticeText"
                                    Visibility="Collapsed"
