@@ -2115,7 +2115,7 @@ namespace PaDDY
         private void WhisperARTTStatus()
         {
             string nm = "AR-TTS";
-           try
+            try
             {
                 bool? arttsvalue = _settings.AutoRenameWithSpeech;
                 if (arttsvalue == null)
@@ -2123,7 +2123,7 @@ namespace PaDDY
                     WhisperStatusLabel.Text = nm + ": unavailable";
                     return;
                 }
-            else if (arttsvalue == true)
+                else if (arttsvalue == true)
                 {
                     WhisperStatusLabel.Text = nm + ": enabled";
                 }
@@ -2139,8 +2139,8 @@ namespace PaDDY
                 return;
             }
         }
-            
-            
+
+
         private async Task CheckForUpdateAsync()
         {
             try
