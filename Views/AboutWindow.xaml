@@ -7,8 +7,8 @@
         Width="480" Height="580"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource WindowGlowBrush}"
-        Foreground="{StaticResource PrimaryTextBrush}"
+        Background="{DynamicResource WindowGlowBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
         FontFamily="{DynamicResource AppFont}">
 
     <shell:WindowChrome.WindowChrome>
@@ -28,7 +28,7 @@
 
                 <!-- Custom title bar -->
                 <Border Grid.Row="0"
-                        Background="{StaticResource TitleBarGradient}"
+                        Background="{DynamicResource TitleBarGradient}"
                         BorderBrush="#16FFFFFF"
                         BorderThickness="0,0,0,1"
                         CornerRadius="12,12,0,0">

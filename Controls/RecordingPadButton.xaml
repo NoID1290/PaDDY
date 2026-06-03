@@ -175,7 +175,7 @@
             <!-- Main content -->
             <Grid Margin="8,6">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="36"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
@@ -197,7 +197,9 @@
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
-                           MaxWidth="125"/>
+                           TextWrapping="NoWrap"
+                           MaxWidth="125"
+                           MaxHeight="14"/>
 
                 <!-- Duration -->
                 <TextBlock x:Name="DurationLabel"

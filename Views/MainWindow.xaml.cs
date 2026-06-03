@@ -1198,7 +1198,18 @@ namespace PaDDY
             Helpers.ThemeManager.ApplyTheme(_settings.Theme);
             Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin);
             Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
-            Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
+            bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
+            bool startupEnabled = Helpers.StartupRegistration.IsRunOnStartupEnabled();
+            if (!startupApplied || startupEnabled != _settings.RunOnWindowsStartup)
+            {
+                _settings.RunOnWindowsStartup = startupEnabled;
+                _settings.Save();
+                System.Windows.MessageBox.Show(
+                    "PaDDY could not fully apply the Windows startup setting. The toggle was synced to the current registry state.",
+                    "Startup registration",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
             _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
             _performanceMode = _settings.PerformanceMode;
 
