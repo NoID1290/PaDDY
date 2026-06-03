@@ -602,9 +602,9 @@
     </Style>
 
     <Style x:Key="SecondaryWindowFrame" TargetType="Border">
-        <Setter Property="Background"      Value="{StaticResource SecondaryWindowBackgroundBrush}"/>
-        <Setter Property="BorderBrush"     Value="{StaticResource WindowEdgeBrush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Background"      Value="{DynamicResource SecondaryWindowBackgroundBrush}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource WindowEdgeBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="CornerRadius"    Value="12"/>
         <Setter Property="Effect"          Value="{StaticResource SecondaryWindowShadow}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>

@@ -230,6 +230,12 @@
     </Window.Resources>
 
     <Grid x:Name="MainRootGrid">
+        <Grid.Effect>
+            <DropShadowEffect ShadowDepth="0"
+                              BlurRadius="18"
+                              Color="#FF000000"
+                              Opacity="0.36"/>
+        </Grid.Effect>
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>   <!-- Row 0: Compact top bar -->
             <RowDefinition Height="Auto"/> <!-- Row 1: Collapsible config panel -->

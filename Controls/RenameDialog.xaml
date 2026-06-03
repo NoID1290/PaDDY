@@ -8,8 +8,8 @@
         SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource WindowGlowBrush}"
-        Foreground="{StaticResource PrimaryTextBrush}"
+        Background="{DynamicResource WindowGlowBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
         FontFamily="{DynamicResource AppFont}"
         ShowInTaskbar="False">
 
@@ -28,13 +28,13 @@
 
         <!-- Custom title bar -->
         <Border Grid.Row="0"
-                Background="{StaticResource TitleBarGradient}"
+                Background="{DynamicResource TitleBarGradient}"
                 BorderBrush="#16FFFFFF"
                 BorderThickness="0,0,0,1"
                 CornerRadius="0">
             <Grid>
                 <TextBlock Text="Rename Recording"
-                           Foreground="{StaticResource SubtleTextBrush}"
+                           Foreground="{DynamicResource SubtleTextBrush}"
                            FontSize="12"
                            VerticalAlignment="Center"
                            Margin="16,0,0,0"/>
@@ -56,9 +56,9 @@
                 Margin="10,0,10,10"
                 Padding="16"
                 CornerRadius="0,0,12,12"
-                Background="{StaticResource SecondaryWindowBackgroundBrush}"
-                BorderBrush="{StaticResource WindowEdgeBrush}"
-                BorderThickness="1"
+                Background="{DynamicResource SecondaryWindowBackgroundBrush}"
+                BorderBrush="{DynamicResource WindowEdgeBrush}"
+                BorderThickness="0"
                 Effect="{StaticResource SecondaryWindowShadow}">
             <StackPanel>
                 <TextBlock Text="Rename Recording"

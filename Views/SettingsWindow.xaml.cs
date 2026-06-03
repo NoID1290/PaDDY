@@ -153,7 +153,9 @@ namespace PaDDY
             MinimizeToTrayCheck.IsChecked = _settings.MinimizeToTray;
             CloseToTrayCheck.IsChecked = _settings.CloseToTray;
             StartMinimizedCheck.IsChecked = _settings.StartMinimizedInTray;
-            RunOnStartupCheck.IsChecked = _settings.RunOnWindowsStartup;
+            bool registeredStartup = Helpers.StartupRegistration.IsRunOnStartupEnabled();
+            RunOnStartupCheck.IsChecked = registeredStartup;
+            _settings.RunOnWindowsStartup = registeredStartup;
 
             // Detection algorithm is chosen from the main window's Mode combo;
             // preserve the current value so committing settings won't change it.
