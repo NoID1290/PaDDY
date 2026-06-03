@@ -6,29 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.3.0.0603] - 2026-06-03
 
-- fix: Correct indentation in WhisperARTTStatus method for improved readability
-- feat: Update XAML resources to use DynamicResource for improved theme flexibility
-- feat: Update sepia theme color values for improved aesthetics
-- feat: Add Whisper AR-TTS status label and update logic for status display
-
-## [1.3.0.0602-Pre-release_1] - 2026-06-02
-
-- feat: Add new audio effects and enhance UI for audio editing
-
-## [1.3.0.0601-Pre-release_2] - 2026-06-01
-
-- feat: Enhance theme customization with new color resources and dynamic bindings
-
-## [1.3.0.0601-Pre-release_1] - 2026-06-01
-
-- feat: Add settings for appearance and system behavior in SettingsWindow
-- chore: add .hintrc to .gitignore
-- Refine README buffer setting wording
-- Polish README and complete GitHub Pages content
-- docs: rewrite README with current app features
-- Add hero image asset in PNG format
-- Add GitHub source wordmark logo as a PNG file
-- updated
+- Added Whisper AR-TTS support for text-to-speech generation with multiple voice options and adjustable parameters.
+- Added system tray icon with context menu for quick access to main features and settings.
+- Added Startup option to launch PaDDY on system startup.
+- Added customizable favorites management with the ability to organize recordings into folders and subfolders.
+- Added performance mode settings to optimize resource usage during recording and editing.
+- Added new audio effects in the editor.
+- Added new theme options.
+- Loopback recording now supports selecting specific audio-producing applications, allowing for more targeted recording of system audio.
+- Fix for audio playback issues with certain codecs and improved overall stability.
+- Updated documentation.
 
 ## [1.2.4.0515] - 2026-05-15
 
