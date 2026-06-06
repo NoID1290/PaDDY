@@ -31,8 +31,8 @@ namespace PaDDY.Controls
             {
                 Width = w,
                 Height = h,
-                RadiusX = 10,
-                RadiusY = 10,
+                RadiusX = 20,
+                RadiusY = 20,
                 IsHitTestVisible = false,
                 Opacity = 0.85,
                 Fill = new VisualBrush(source) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top },
@@ -40,10 +40,10 @@ namespace PaDDY.Controls
                 {
                     Color = Colors.Black,
                     BlurRadius = 18,
-                    ShadowDepth = 0,
+                    ShadowDepth = 1,
                     Opacity = 0.65
                 },
-                RenderTransform = new RotateTransform(-2.0, w / 2, h / 2)
+                RenderTransform = new RotateTransform(-1.0, w / 1, h / 1)
             };
 
             IsHitTestVisible = false;
