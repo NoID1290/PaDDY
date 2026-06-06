@@ -4,11 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.3.1.0606] - 2026-06-06
+﻿## [1.3.1.0606] - 2026-06-06
 
-- -   Fix recording pad text layout. -   Fix AudioProcessor versioning mismatch.
-- Update index.md
-- chore: Update version in README and refine changelog for clarity
+- Fix recording pad text layout 
+- Fix AudioProcessor versioning mismatch
 
 ## [1.3.0.0603] - 2026-06-03
 
