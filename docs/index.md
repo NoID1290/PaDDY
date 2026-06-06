@@ -1,4 +1,4 @@
----
+﻿---
 layout: default
 title: Home
 ---
@@ -13,7 +13,7 @@ title: Home
       <a class="btn btn-primary" href="https://github.com/NoID1290/PaDDY/releases">Download Latest</a>
       <a class="btn btn-secondary" href="https://github.com/NoID1290/PaDDY">View Source</a>
     </div>
-    <p class="meta">Current version: <strong>1.3.0-0603</strong></p>
+    <p class="meta">$11.3.1.0606</strong></p>
   </div>
 </section>
 
@@ -102,3 +102,4 @@ dotnet build PaDDY.csproj --configuration Release</code></pre>
 </section>
 
 <!-- markdownlint-enable MD033 -->
+
