@@ -184,7 +184,7 @@
                 <TextBlock x:Name="IconText"
                            Grid.Row="0"
                            Text="🎤"
-                           FontSize="26"
+                           FontSize="20"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"/>
 
@@ -194,20 +194,23 @@
                            Text="Recording"
                            Foreground="#FFE0E0E0"
                            FontSize="10"
+                           Margin="0,-20,0,0"
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
-                           TextWrapping="NoWrap"
+                           TextWrapping="Wrap"
                            MaxWidth="125"
-                           MaxHeight="14"/>
+                           MaxHeight="28"/>
 
                 <!-- Duration -->
                 <TextBlock x:Name="DurationLabel"
-                           Grid.Row="2"
+                           Grid.Row="1"
                            Text="0.0s"
+                           Margin="0,25,0,0"
                            Foreground="#FF9E9E9E"
                            FontSize="9"
-                           HorizontalAlignment="Center"/>
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Bottom"/>
             </Grid>
 
             <!-- Overlay buttons -->
@@ -275,8 +278,8 @@
                         Content="💾"
                         Foreground="#FFAAAAAA"
                         HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        Margin="0,0,4,-20"
+                        VerticalAlignment="Top"
+                        Margin="0,4,20,0"
                         ToolTip="Export…"
                         Click="ExportBtn_Click"/>
             </Grid>
