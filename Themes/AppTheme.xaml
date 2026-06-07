@@ -80,7 +80,7 @@
     </LinearGradientBrush>
 
     <DropShadowEffect x:Key="SecondaryWindowShadow"
-                      ShadowDepth="0"
+                      ShadowDepth="5"
                       BlurRadius="26"
                       Color="#FF000000"
                       Opacity="0.52"/>

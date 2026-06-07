@@ -174,7 +174,7 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#44805030",
                 ["WindowEdgeBrush"] = "#33805030",
                 ["WindowGlowBrush"] = "#FFD8C4A0",
-                ["ControlTextBrush"] = "#FF3A2C1A",
+                ["ControlTextBrush"] = "#596a6b", // text and borders get a subtle warm glow in this theme, so use a semi-transparent brush for controls to pick up that glow without being too harsh
                 ["ButtonBgBrush"] = "#FFFBF3E6",
                 ["ButtonHoverBgBrush"] = "#FFF2E6D2",
                 ["ButtonPressedBgBrush"] = "#FFE6D5BC",
@@ -184,7 +184,7 @@ namespace PaDDY.Helpers
                 ["DividerBrush"] = "#22805030",
                 ["BadgeBgBrush"] = "#FFEFE2CC",
                 ["AccentTitleBrush"] = "#FFB5651D",
-                ["ChromeButtonFgBrush"] = "#FF5E4A30",
+                ["ChromeButtonFgBrush"] = "#FF5E4A30", 
                 ["ScrollThumbBrush"] = "#FF8A7350",
             },
             ["dark-pink"] = new()
