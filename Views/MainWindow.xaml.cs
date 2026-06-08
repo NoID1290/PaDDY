@@ -30,7 +30,7 @@ namespace PaDDY
     {
         private readonly AudioCaptureService _captureService = new();
         private readonly GlobalHotkeyService _hotkeyService = new();
-        private readonly RecordingStore _recordingStore = new();
+        private RecordingStore _recordingStore = new();
         private AppSettings _settings = AppSettings.Load();
         private EffectSettings _effectSettings = EffectSettingsManager.Load();
         private IEffectChain _globalCaptureChain = EffectChainFactory.CreateGlobal();
@@ -1785,6 +1785,44 @@ namespace PaDDY
         {
             FavoritesPanel.Children.Clear();
             LoadFavoritesFromStore();
+        }
+
+        public void PrepareRecordingDataRestore()
+        {
+            try
+            {
+                _recordingStore.Dispose();
+            }
+            catch
+            {
+                // Ignore dispose failures when preparing for restore.
+            }
+
+            _recordingStore.CleanupAllTempFiles();
+        }
+
+        public void ReloadRecordingDataFromDisk()
+        {
+            try
+            {
+                _recordingStore.Dispose();
+            }
+            catch
+            {
+                // Ignore dispose failures when reloading.
+            }
+
+            _recordingStore.CleanupAllTempFiles();
+            _recordingStore = new RecordingStore();
+            _settings = AppSettings.Load();
+            _effectSettings = EffectSettingsManager.Load();
+
+            PadPanel.Children.Clear();
+            FavoritesPanel.Children.Clear();
+            InitializePadPages();
+            LoadFavoritesFromStore();
+            LoadNonFavoritesFromStore();
+            SetStatus("Restored backup and reloaded recordings.", "#FF4CAF50");
         }
 
         private void AddPadPageButton_Click(object sender, RoutedEventArgs e)

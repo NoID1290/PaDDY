@@ -4,7 +4,7 @@
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="About PaDDY"
         Icon="/PaDDY.ico"
-        Width="480" Height="580"
+        Width="480" Height="680"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource WindowGlowBrush}"
@@ -161,6 +161,22 @@
                                     HorizontalAlignment="Left"
                                     Margin="0,6,0,0"
                                     Click="GitHubButton_Click"/>
+                            
+                            <Button x:Name="BackupButton"
+                                    Content="Backup"
+                                    HorizontalContentAlignment="Center"
+                                    Width="100"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,6,0,0"
+                                    Click="ExportData_Click"/>
+
+                            <Button x:Name="RestoreButton"
+                                    Content="Restore"
+                                    HorizontalContentAlignment="Center"
+                                    Width="100"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,6,0,0"
+                                    Click="ImportData_Click"/>        
                             
                             <Button x:Name="CloseButton"
                                     Content="Close"
