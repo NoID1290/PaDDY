@@ -72,10 +72,11 @@
 
     <LinearGradientBrush x:Key="MeterMonBrush" StartPoint="0,0" EndPoint="1,0">
         <GradientStop Color="#FF000000" Offset="0.0"/>
-        <GradientStop Color="#75C01515" Offset="0.015"/>
-        <GradientStop Color="#9CF54242" Offset="0.35"/>
+        <GradientStop Color="#FFFF00EA" Offset="0.015"/>
+        <GradientStop Color="#FFFF79D7" Offset="0.35"/>
         <GradientStop Color="#FFCA23BC" Offset="0.70"/>
-        <GradientStop Color="#CCFF00BF" Offset="0.85"/>
+        <GradientStop Color="#FFFF00BF" Offset="0.85"/>
+        <GradientStop Color="#FFFF6BFF" Offset="0.95"/>
         <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
     </LinearGradientBrush>
 
@@ -690,7 +691,7 @@
         <Setter Property="Foreground"      Value="{DynamicResource ChromeButtonFgBrush}"/>
         <Setter Property="FontSize"        Value="11"/>
         <Setter Property="Cursor"          Value="Arrow"/>
-        <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+        <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/> //  
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
