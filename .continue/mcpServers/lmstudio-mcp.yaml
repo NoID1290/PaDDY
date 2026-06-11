@@ -10,4 +10,4 @@ mcpServers:
       - .
     env:
       OPENAI_API_BASE: http://localhost:1234/v1
-      OPENAI_API_KEY: sk-lm-KCfgiSYp:ehBplnGR44RHQeRcLDIu
+      OPENAI_API_KEY: "sk-lm-KCfgiSYp:ehBplnGR44RHQeRcLDIu"
