@@ -26,5 +26,4 @@ gen_icon.csx
 scripts/
 
 
-.hintrc
-.continue/mcpServers/new-mcp-server.yaml
+.continue/

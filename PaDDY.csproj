@@ -29,10 +29,10 @@
     <ProjectReference Include="EffectProcessor\EffectProcessor.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="3.1.4" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.7" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Whisper.net" Version="1.8.1" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.8.1" ExcludeFromSingleFile="true" />
+    <PackageReference Include="MessagePack" Version="3.1.7" ExcludeFromSingleFile="true" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" ExcludeFromSingleFile="true" />
+    <PackageReference Include="Whisper.net" Version="1.9.1" ExcludeFromSingleFile="true" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" ExcludeFromSingleFile="true" />
   </ItemGroup>
   <Target Name="ExcludeAppDllsFromSingleFile" BeforeTargets="_ComputeFilesToBundle" Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>

@@ -691,7 +691,7 @@
         <Setter Property="Foreground"      Value="{DynamicResource ChromeButtonFgBrush}"/>
         <Setter Property="FontSize"        Value="11"/>
         <Setter Property="Cursor"          Value="Arrow"/>
-        <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/> //  
+        <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/> 
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
