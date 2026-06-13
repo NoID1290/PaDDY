@@ -4,6 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.2.0613] - 2026-06-13
+
+- Adjust AboutWindow dimensions and update button properties for export and import functionality
+- Update UI elements and configuration files
+- configure llmm
+- mcpserver config
+- theme working
+
 ## [1.4.0.0608-Pre-release_1] - 2026-06-08
 
 - Added backup import/export for all settings and recordings
