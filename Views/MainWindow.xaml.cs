@@ -201,12 +201,6 @@ namespace PaDDY
             _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
 
             InitializeTrayIcon();
-            if (_startHiddenInTray)
-            {
-                // Stay minimized in the taskbar and also surface the tray icon so the
-                // user can restore the app from either place.
-                if (_trayIcon != null) _trayIcon.Visible = true;
-            }
         }
 
         // When configured to start in the tray, the window is opened minimized in the
@@ -246,8 +240,6 @@ namespace PaDDY
             Activate();
             Topmost = true;
             Topmost = false;
-            if (_trayIcon != null && !_settings.StartMinimizedInTray)
-                _trayIcon.Visible = false;
         }
 
         private void MainWindow_StateChanged(object? sender, EventArgs e)
@@ -265,7 +257,6 @@ namespace PaDDY
                 if (_settings.MinimizeToTray)
                 {
                     Hide();
-                    if (_trayIcon != null) _trayIcon.Visible = true;
                 }
             }
         }
@@ -2335,7 +2326,6 @@ namespace PaDDY
             {
                 e.Cancel = true;
                 Hide();
-                if (_trayIcon != null) _trayIcon.Visible = true;
                 return;
             }
 

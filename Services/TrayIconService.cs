@@ -30,8 +30,8 @@ namespace PaDDY.Services
             _icon = new NotifyIcon
             {
                 Text = tooltip,
-                Visible = false,
-                Icon = LoadAppIcon()
+                Icon = LoadAppIcon(),
+                Visible = true  // Set once here; never toggled afterward
             };
 
             var menu = new ContextMenuStrip();
@@ -44,12 +44,9 @@ namespace PaDDY.Services
             _icon.DoubleClick += (_, _) => ShowRequested?.Invoke();
         }
 
-        /// <summary>Shows or hides the tray icon.</summary>
-        public bool Visible
-        {
-            get => _icon.Visible;
-            set => _icon.Visible = value;
-        }
+        // Removed the Visible property — callers can no longer hide the icon.
+        // If you need to expose visibility for other reasons, make the setter
+        // a no-op or throw, so the icon stays pinned to the tray at all times.
 
         /// <summary>Displays a balloon notification from the tray icon.</summary>
         public void ShowBalloon(string title, string message, int timeoutMs = 2000)
@@ -79,6 +76,8 @@ namespace PaDDY.Services
         {
             if (_disposed) return;
             _disposed = true;
+            // Hide only at true shutdown so Windows cleans up the tray slot.
+            // This runs when the app is actually exiting, not when the window closes.
             _icon.Visible = false;
             _icon.Dispose();
         }
