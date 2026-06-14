@@ -1,2 +1,1 @@
 - Importing/Exporting data files service. 
-- Make Icon always show in taskbar when window is open.
