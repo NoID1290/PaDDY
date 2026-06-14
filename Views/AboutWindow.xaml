@@ -4,7 +4,7 @@
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="About PaDDY"
         Icon="/PaDDY.ico"
-        Width="480" Height="600"
+        Width="480" Height="650"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource WindowGlowBrush}"
@@ -168,8 +168,7 @@
                                     Width="100"
                                     HorizontalAlignment="Left"
                                     Margin="0,6,0,0"
-                                    IsEnabled="False"
-                                    Visibility="Collapsed"
+                                    IsEnabled="True"
                                     Click="ExportData_Click"/>
 
                             <Button x:Name="RestoreButton"
@@ -178,8 +177,7 @@
                                     Width="100"
                                     HorizontalAlignment="Left"
                                     Margin="0,6,0,0"
-                                    IsEnabled="False"
-                                    Visibility="Collapsed"
+                                    IsEnabled="True"
                                     Click="ImportData_Click"/>        
                             
                             <Button x:Name="CloseButton"

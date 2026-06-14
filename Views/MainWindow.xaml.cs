@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
+using Microsoft.Data.Sqlite;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
@@ -1782,6 +1783,11 @@ namespace PaDDY
         {
             try
             {
+                // Stop monitoring to release audio engine handles and prevent data conflicts
+                _inputMeterUpdatesEnabled = false;
+                _captureService.Stop();
+                ForceResetInputMeter();
+
                 _recordingStore.Dispose();
             }
             catch
@@ -1797,6 +1803,8 @@ namespace PaDDY
             try
             {
                 _recordingStore.Dispose();
+                // Force SQLite to release all pooled connection handles to the database files.
+                SqliteConnection.ClearAllPools();
             }
             catch
             {
@@ -1810,9 +1818,31 @@ namespace PaDDY
 
             PadPanel.Children.Clear();
             FavoritesPanel.Children.Clear();
+
+            // Re-apply all application settings to UI and services
+            _suppressSelectionEvents = true;
+            ApplySettings();
+            ThemeManager.ApplyTheme(_settings.Theme);
+            ThemeManager.ApplyMeterSkin(_settings.MeterSkin);
+            ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
+            App.ApplyFont(_settings.AppFontVariant);
+            _suppressSelectionEvents = false;
+
             InitializePadPages();
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
+
+            // Refresh status labels for storage and speech-to-text
+            WhisperARTTStatus();
+            Forget(RefreshStorageInfoAsync());
+
+            // If monitoring was requested, restart it with the new device settings
+            if (MonitorToggle.IsChecked == true)
+            {
+                try { StartMonitoringWithCurrentSelection(); _inputMeterUpdatesEnabled = true; }
+                catch { MonitorToggle.IsChecked = false; }
+            }
+
             SetStatus("Restored backup and reloaded recordings.", "#FF4CAF50");
         }
 
@@ -2339,4 +2369,3 @@ namespace PaDDY
         }
     }
 }
-

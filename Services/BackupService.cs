@@ -141,6 +141,15 @@ namespace PaDDY.Services
             TryDeleteFile(basePath + "-shm");
         }
 
+        private static void ForceDeleteFile(string path)
+        {
+            if (File.Exists(path))
+            {
+                // If this throws, the file is locked and we must stop the restore.
+                File.Delete(path);
+            }
+        }
+
         private static void TryDeleteFile(string path)
         {
             try
@@ -148,7 +157,7 @@ namespace PaDDY.Services
                 if (File.Exists(path))
                     File.Delete(path);
             }
-            catch
+            catch (IOException)
             {
                 // Ignore cleanup failures.
             }
@@ -307,10 +316,21 @@ namespace PaDDY.Services
                     Path.Combine(tempDirectory, Path.GetFileName(UsrDataEffectSettings));
 
                 Directory.CreateDirectory(Path.GetDirectoryName(UsrDataPath)!);
-                DeleteRecordingCompanionFiles(UsrDataPath);
+
+                // Release any lingering pooled handles before attempting to replace files.
+                SqliteConnection.ClearAllPools();
+
+                // 1. Ensure the destination is not locked before proceeding.
+                // We try to "Force Delete" companion files. If they are locked by 
+                // an open SqliteConnection, this will throw and bail early.
+                ForceDeleteFile(UsrDataPath + "-wal");
+                ForceDeleteFile(UsrDataPath + "-shm");
 
                 if (File.Exists(recordingFile))
+                {
+                    ForceDeleteFile(UsrDataPath);
                     File.Copy(recordingFile, UsrDataPath, true);
+                }
 
                 if (File.Exists(recordingWalFile))
                     File.Copy(recordingWalFile, UsrDataPath + "-wal", true);
@@ -319,10 +339,10 @@ namespace PaDDY.Services
                     File.Copy(recordingShmFile, UsrDataPath + "-shm", true);
 
                 if (File.Exists(settingsFile))
-                    File.Copy(settingsFile, UsrDataSettings, true);
+                    File.WriteAllBytes(UsrDataSettings, File.ReadAllBytes(settingsFile));
 
                 if (File.Exists(effectSettingsFile))
-                    File.Copy(effectSettingsFile, UsrDataEffectSettings, true);
+                    File.WriteAllBytes(UsrDataEffectSettings, File.ReadAllBytes(effectSettingsFile));
 
                 Console.WriteLine("Backup restored successfully.");
                 return true;
