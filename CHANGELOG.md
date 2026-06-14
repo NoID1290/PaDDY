@@ -4,6 +4,15 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.3.0614] - 2026-06-14
+
+- todo updated
+- Fix tray icon visibility when PaDDY is open
+- Fix Rename windows UI
+- Delete lmstudio-mcp.yaml
+- Updated Docs
+- Update CHANGELOG.md
+
 ## [1.3.2.0613] - 2026-06-13
 
 - .NET Security Update
