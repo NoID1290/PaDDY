@@ -49,6 +49,8 @@ namespace PaDDY
         private DateTime _lastMonitorMeterTick;
         private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36));
         private static readonly SolidColorBrush PeakColdBrush = new(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+        static MainWindow() { PeakHotBrush.Freeze(); PeakColdBrush.Freeze(); }
+
         private bool _suppressSelectionEvents = true;
         private bool _inputMeterUpdatesEnabled;
         private RecordingPadButton? _hoveredPad;
@@ -172,6 +174,12 @@ namespace PaDDY
         // ── Startup ────────────────────────────────────────────────────────────
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // GPU Optimization: Cache the pad panels as bitmaps. 
+            // This offloads the rendering of 100+ pads to the GPU, making scrolling and 
+            // switching tabs feel instant even with huge libraries.
+            PadPanel.CacheMode = new BitmapCache { EnableClearType = false, SnapsToDevicePixels = true };
+            FavoritesPanel.CacheMode = new BitmapCache { EnableClearType = false, SnapsToDevicePixels = true };
+
             PopulateCaptureSourceModes();
             PopulateInputDevices();
             PopulateLoopbackDevices();
@@ -345,6 +353,11 @@ namespace PaDDY
             if (_suppressSelectionEvents) return;
             _settings.PadSortOrder = SortOrderCombo.SelectedIndex;
             _settings.Save();
+            if (_settings.PadSortOrder != SortOrderCombo.SelectedIndex)
+            {
+                _settings.PadSortOrder = SortOrderCombo.SelectedIndex;
+                _settings.Save();
+            }
             SortPadPanel();
         }
 
@@ -364,9 +377,15 @@ namespace PaDDY
                 _ => buttons.OrderByDescending(b => b.Entry?.CreatedAt ?? DateTime.MinValue) // 0 = Newest first
             };
 
+            var sortedList = sorted.ToList();
+            bool orderChanged = false;
+            for (int i = 0; i < Math.Min(PadPanel.Children.Count, sortedList.Count); i++)
+                if (PadPanel.Children[i] != sortedList[i]) { orderChanged = true; break; }
+
+            if (!orderChanged && PadPanel.Children.Count == sortedList.Count) return;
+
             PadPanel.Children.Clear();
-            foreach (var btn in sorted)
-                PadPanel.Children.Add(btn);
+            foreach (var btn in sortedList) PadPanel.Children.Add(btn);
         }
 
         // ── Pad drag-and-drop (move between panels/pages + reorder) ───────────────
@@ -442,6 +461,7 @@ namespace PaDDY
         private void PadPanel_DragOver(object sender, System.Windows.DragEventArgs e)
             => HandlePanelDragOver(PadPanel, e);
 
+        private DateTime _lastDragOverUpdate = DateTime.MinValue;
         /// <summary>
         /// Live-preview drag: moves the dragged pad to the hovered slot in real time so the
         /// user sees it physically slide into place, and keeps the floating ghost under the cursor.
@@ -454,6 +474,11 @@ namespace PaDDY
             if (pad == null) return;
 
             UpdateDragAdorner(e);
+
+            // Throttle layout-heavy preview moves to prevent UI freeze
+            var now = DateTime.UtcNow;
+            if ((now - _lastDragOverUpdate).TotalMilliseconds < 16) return;
+            _lastDragOverUpdate = now;
 
             int index = ComputeDropIndex(panel, e, pad);
             LivePreviewMove(panel, pad, index);
@@ -1252,19 +1277,15 @@ namespace PaDDY
 
         private void OnRmsChanged(double left, double right)
         {
-            Dispatcher.InvokeAsync(() =>
-            {
-                if (!_inputMeterUpdatesEnabled || MonitorToggle.IsChecked != true)
-                    return;
+            // Throttle OUTSIDE the Dispatcher call to avoid flooding the UI message queue
+            var now = DateTime.UtcNow;
+            if (_performanceMode && (now - _lastInputMeterTick).TotalMilliseconds < 33)
+                return;
+            _lastInputMeterTick = now;
 
-                // In performance mode, cap meter refreshes to ~30 fps to cut UI load.
-                if (_performanceMode)
-                {
-                    var tick = DateTime.UtcNow;
-                    if ((tick - _lastInputMeterTick).TotalMilliseconds < 33)
-                        return;
-                    _lastInputMeterTick = tick;
-                }
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!_inputMeterUpdatesEnabled || MonitorToggle.IsChecked != true) return;
 
                 // Cancel any running decay animation — we have live data
                 _meterDecayTimer?.Stop();
@@ -1287,7 +1308,6 @@ namespace PaDDY
                 RmsValueLabelR.Text = right > 0 ? $"{dbR:0}" : "-∞";
 
                 // Peak hold logic
-                var now = DateTime.UtcNow;
                 if (dbL >= PeakThresholdDb)
                     _peakHoldTimeL = now;
                 if (dbR >= PeakThresholdDb)
@@ -1297,21 +1317,18 @@ namespace PaDDY
                     ? PeakHotBrush : PeakColdBrush;
                 PeakIndicatorR.Background = (now - _peakHoldTimeR).TotalSeconds < PeakHoldSeconds
                     ? PeakHotBrush : PeakColdBrush;
-            });
+            }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void UpdateOutputMeter(double left, double right)
         {
-            Dispatcher.InvokeAsync(() =>
-            {
-                if (_performanceMode)
-                {
-                    var tick = DateTime.UtcNow;
-                    if ((tick - _lastOutputMeterTick).TotalMilliseconds < 33)
-                        return;
-                    _lastOutputMeterTick = tick;
-                }
+            var now = DateTime.UtcNow;
+            if (_performanceMode && (now - _lastOutputMeterTick).TotalMilliseconds < 33)
+                return;
+            _lastOutputMeterTick = now;
 
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
                 _outputMeterDecayTimer?.Stop();
 
                 double dbL = LinearToDb(left);
@@ -1329,42 +1346,30 @@ namespace PaDDY
                 OutputRmsValueLabel.Text = left > 0 ? $"{dbL:0}" : "-∞";
                 OutputRmsValueLabelR.Text = right > 0 ? $"{dbR:0}" : "-∞";
 
-                var now = DateTime.UtcNow;
                 if (dbL >= PeakThresholdDb)
                     _outputPeakHoldTimeL = now;
                 if (dbR >= PeakThresholdDb)
                     _outputPeakHoldTimeR = now;
 
-                OutputPeakIndicatorL.Background = (now - _outputPeakHoldTimeL).TotalSeconds < PeakHoldSeconds
-                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
-                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-                OutputPeakIndicatorR.Background = (now - _outputPeakHoldTimeR).TotalSeconds < PeakHoldSeconds
-                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
-                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+                OutputPeakIndicatorL.Background = (now - _outputPeakHoldTimeL).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
+                OutputPeakIndicatorR.Background = (now - _outputPeakHoldTimeR).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
 
                 // If both L and R are zero (playback stopped), start decay animation
                 if (left <= 0 && right <= 0)
                     StartOutputMeterDecay();
-            });
+            }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void UpdatePadMonitorMeter(double left, double right)
         {
-            Dispatcher.InvokeAsync(() =>
-            {
-                if (!_settings.ListenOutputEnabled)
-                {
-                    ResetPadMonitorMeter();
-                    return;
-                }
+            var now = DateTime.UtcNow;
+            if (_performanceMode && (now - _lastMonitorMeterTick).TotalMilliseconds < 33)
+                return;
+            _lastMonitorMeterTick = now;
 
-                if (_performanceMode)
-                {
-                    var tick = DateTime.UtcNow;
-                    if ((tick - _lastMonitorMeterTick).TotalMilliseconds < 33)
-                        return;
-                    _lastMonitorMeterTick = tick;
-                }
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!_settings.ListenOutputEnabled) { ResetPadMonitorMeter(); return; }
 
                 double dbL = LinearToDb(left);
                 double dbR = LinearToDb(right);
@@ -1386,19 +1391,14 @@ namespace PaDDY
                 MonitorRmsValueLabel.Text = left > 0 ? $"{dbL:0}" : "-∞";
                 MonitorRmsValueLabelR.Text = right > 0 ? $"{dbR:0}" : "-∞";
 
-                var now = DateTime.UtcNow;
                 if (dbL >= PeakThresholdDb)
                     _monitorPeakHoldTimeL = now;
                 if (dbR >= PeakThresholdDb)
                     _monitorPeakHoldTimeR = now;
 
-                MonitorPeakIndicatorL.Background = (now - _monitorPeakHoldTimeL).TotalSeconds < PeakHoldSeconds
-                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
-                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-                MonitorPeakIndicatorR.Background = (now - _monitorPeakHoldTimeR).TotalSeconds < PeakHoldSeconds
-                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36))
-                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-            });
+                MonitorPeakIndicatorL.Background = (now - _monitorPeakHoldTimeL).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
+                MonitorPeakIndicatorR.Background = (now - _monitorPeakHoldTimeR).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
+            }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void StartOutputMeterDecay()
@@ -1455,30 +1455,37 @@ namespace PaDDY
 
         private void OnRecordingCompleted(RecordingEntry entry)
         {
-            Dispatcher.InvokeAsync(() =>
+            Task.Run(() =>
             {
                 try
                 {
-                    // Read the raw bytes from the internal temp file, store them in the DB,
-                    // then replace FilePath with a session-scoped materialised path.
                     byte[] audioBytes = File.ReadAllBytes(entry.FilePath);
+                    string codec = Path.GetExtension(entry.FilePath).TrimStart('.');
+
+                    string displayName;
+                    string id;
+                    string materializedPath;
+
+                    lock (_recordingStore)
+                    {
+                        displayName = RecordingNameGenerator.BuildDisplayName(_settings, entry.CreatedAt, codec);
+                        id = _recordingStore.Add(displayName, codec, entry.Duration, entry.CreatedAt, audioBytes);
+                        materializedPath = _recordingStore.MaterializeToTemp(id, codec);
+                    }
+
                     try { File.Delete(entry.FilePath); } catch { }
 
-                    string codec = Path.GetExtension(entry.FilePath).TrimStart('.');
-                    string displayName = RecordingNameGenerator.BuildDisplayName(_settings, entry.CreatedAt, codec);
-                    string id = _recordingStore.Add(displayName, codec, entry.Duration, entry.CreatedAt, audioBytes);
-
-                    entry.RecordingId = id;
-                    entry.DisplayName = displayName;
-                    entry.FilePath = _recordingStore.MaterializeToTemp(id, codec);
-
-                    AddPadButton(entry, toFavorites: false);
-                    Forget(RefreshStorageInfoAsync());
-
-                    if (_settings.AutoRenameWithSpeech)
-                        Forget(AutoRenameFromSpeechAsync(entry));
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        entry.RecordingId = id;
+                        entry.DisplayName = displayName;
+                        entry.FilePath = materializedPath;
+                        AddPadButton(entry, toFavorites: false);
+                        Forget(RefreshStorageInfoAsync());
+                        if (_settings.AutoRenameWithSpeech) Forget(AutoRenameFromSpeechAsync(entry));
+                    }), System.Windows.Threading.DispatcherPriority.Background);
                 }
-                catch { /* recording too short or unreadable; discard silently */ }
+                catch { /* Ignore unreadable or short recordings */ }
             });
         }
 
@@ -2013,31 +2020,26 @@ namespace PaDDY
         private void EnforceMaxRecords()
         {
             int max = _settings.MaxRecords;
-            if (max <= 0) return; // unlimited
+            if (max <= 0 || PadPanel.Children.Count <= max) return;
 
-            bool removedAny = false;
+            // Batch the removals and search to avoid O(N^2) complexity and redundant layout passes
+            var toRemove = PadPanel.Children.OfType<RecordingPadButton>()
+                .Where(b => b.Entry != null)
+                .OrderBy(b => b.Entry!.CreatedAt)
+                .Take(PadPanel.Children.Count - max)
+                .ToList();
 
-            while (PadPanel.Children.Count > max)
+            if (toRemove.Count == 0) return;
+
+            foreach (var pad in toRemove)
             {
-                // Find oldest by CreatedAt among PadPanel children
-                RecordingPadButton? oldest = null;
-                foreach (var child in PadPanel.Children.OfType<RecordingPadButton>())
-                {
-                    if (child.Entry == null) continue;
-                    if (oldest == null || child.Entry.CreatedAt < oldest.Entry!.CreatedAt)
-                        oldest = child;
-                }
-                if (oldest == null) break;
-
-                oldest.StopPlayback();
-                if (oldest.Entry != null && !string.IsNullOrEmpty(oldest.Entry.RecordingId))
-                    _recordingStore.Delete(oldest.Entry.RecordingId);
-                PadPanel.Children.Remove(oldest);
-                removedAny = true;
+                pad.StopPlayback();
+                if (pad.Entry != null && !string.IsNullOrEmpty(pad.Entry.RecordingId))
+                    _recordingStore.Delete(pad.Entry.RecordingId);
+                PadPanel.Children.Remove(pad);
             }
 
-            if (removedAny)
-                Forget(RefreshStorageInfoAsync());
+            Forget(RefreshStorageInfoAsync());
         }
 
         // ── Clear / Delete All ─────────────────────────────────────────────────

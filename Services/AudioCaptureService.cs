@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
@@ -491,31 +492,18 @@ namespace PaDDY.Services
 
             if (isFloat && bytesPerSample == 4)
             {
-                for (int i = 0; i <= count - 4; i += 4)
-                {
-                    float s = BitConverter.ToSingle(buffer, i);
-                    s *= gain;
-                    byte[] bytes = BitConverter.GetBytes(s);
-                    buffer[i] = bytes[0];
-                    buffer[i + 1] = bytes[1];
-                    buffer[i + 2] = bytes[2];
-                    buffer[i + 3] = bytes[3];
-                }
+                Span<float> samples = MemoryMarshal.Cast<byte, float>(buffer.AsSpan(0, count));
+                for (int i = 0; i < samples.Length; i++)
+                    samples[i] *= gain;
             }
             else
             {
                 if (bytesPerSample == 2)
                 {
                     // PCM 16-bit
-                    for (int i = 0; i <= count - 2; i += 2)
-                    {
-                        short s = (short)(buffer[i] | (buffer[i + 1] << 8));
-                        int scaled = (int)(s * gain);
-                        scaled = Math.Clamp(scaled, short.MinValue, short.MaxValue);
-                        short result = (short)scaled;
-                        buffer[i] = (byte)(result & 0xFF);
-                        buffer[i + 1] = (byte)((result >> 8) & 0xFF);
-                    }
+                    Span<short> samples = MemoryMarshal.Cast<byte, short>(buffer.AsSpan(0, count));
+                    for (int i = 0; i < samples.Length; i++)
+                        samples[i] = (short)Math.Clamp((int)(samples[i] * gain), short.MinValue, short.MaxValue);
                 }
                 else if (bytesPerSample == 3)
                 {
@@ -531,16 +519,11 @@ namespace PaDDY.Services
                 else if (bytesPerSample == 4)
                 {
                     // PCM 32-bit integer
-                    for (int i = 0; i <= count - 4; i += 4)
+                    Span<int> samples = MemoryMarshal.Cast<byte, int>(buffer.AsSpan(0, count));
+                    for (int i = 0; i < samples.Length; i++)
                     {
-                        int sample = BitConverter.ToInt32(buffer, i);
-                        long scaled = (long)(sample * gain);
-                        scaled = Math.Clamp(scaled, int.MinValue, int.MaxValue);
-                        byte[] bytes = BitConverter.GetBytes((int)scaled);
-                        buffer[i] = bytes[0];
-                        buffer[i + 1] = bytes[1];
-                        buffer[i + 2] = bytes[2];
-                        buffer[i + 3] = bytes[3];
+                        long scaled = (long)(samples[i] * gain);
+                        samples[i] = (int)Math.Clamp(scaled, int.MinValue, int.MaxValue);
                     }
                 }
             }
@@ -564,46 +547,31 @@ namespace PaDDY.Services
 
             int bytesPerSample = bitsPerSample / 8;
             int sampleCount = count / bytesPerSample;
-            float[] floatBuf = new float[sampleCount];
-
-            // Decode to float[]
-            if (isFloat32)
+            float[] floatBuf = System.Buffers.ArrayPool<float>.Shared.Rent(sampleCount);
+            try
             {
-                for (int i = 0; i < sampleCount; i++)
-                    floatBuf[i] = BitConverter.ToSingle(buffer, i * 4);
-            }
-            else // PCM 16-bit
-            {
-                for (int i = 0; i < sampleCount; i++)
+                // Decode to float[]
+                if (isFloat32)
+                    MemoryMarshal.Cast<byte, float>(buffer.AsSpan(0, count)).CopyTo(floatBuf);
+                else // PCM 16-bit
                 {
-                    short s = (short)(buffer[i * 2] | (buffer[i * 2 + 1] << 8));
-                    floatBuf[i] = s / 32768.0f;
+                    Span<short> src = MemoryMarshal.Cast<byte, short>(buffer.AsSpan(0, count));
+                    for (int i = 0; i < sampleCount; i++) floatBuf[i] = src[i] / 32768.0f;
+                }
+
+                chain.ProcessBuffer(floatBuf, 0, sampleCount, channels, format.SampleRate);
+
+                // Encode back
+                if (isFloat32)
+                    floatBuf.AsSpan(0, sampleCount).CopyTo(MemoryMarshal.Cast<byte, float>(buffer.AsSpan(0, count)));
+                else // PCM 16-bit
+                {
+                    Span<short> dst = MemoryMarshal.Cast<byte, short>(buffer.AsSpan(0, count));
+                    for (int i = 0; i < sampleCount; i++)
+                        dst[i] = (short)Math.Clamp((int)(floatBuf[i] * 32768.0f), short.MinValue, short.MaxValue);
                 }
             }
-
-            chain.ProcessBuffer(floatBuf, 0, sampleCount, channels, format.SampleRate);
-
-            // Encode back
-            if (isFloat32)
-            {
-                for (int i = 0; i < sampleCount; i++)
-                {
-                    byte[] bytes = BitConverter.GetBytes(floatBuf[i]);
-                    buffer[i * 4] = bytes[0];
-                    buffer[i * 4 + 1] = bytes[1];
-                    buffer[i * 4 + 2] = bytes[2];
-                    buffer[i * 4 + 3] = bytes[3];
-                }
-            }
-            else // PCM 16-bit
-            {
-                for (int i = 0; i < sampleCount; i++)
-                {
-                    short s = (short)Math.Clamp((int)(floatBuf[i] * 32768.0f), short.MinValue, short.MaxValue);
-                    buffer[i * 2] = (byte)(s & 0xFF);
-                    buffer[i * 2 + 1] = (byte)((s >> 8) & 0xFF);
-                }
-            }
+            finally { System.Buffers.ArrayPool<float>.Shared.Return(floatBuf); }
         }
 
         /// <summary>

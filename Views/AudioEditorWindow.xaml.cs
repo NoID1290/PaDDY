@@ -46,6 +46,10 @@ namespace PaDDY
         private double _waveformWidth;
         private double _gainDb = 0.0;
 
+        private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xFF, 0xC1, 0x07));
+        private static readonly SolidColorBrush MeterOverlayBrush = new(System.Windows.Media.Color.FromRgb(0x1A, 0x1A, 0x1A));
+        static AudioEditorWindow() { PeakHotBrush.Freeze(); MeterOverlayBrush.Freeze(); }
+
         // Inline effects panel
         private bool _effectsLoading = true; // suppresses slider events until LoadEffectValues() runs
         private FadeEffect? _fade;
@@ -829,7 +833,7 @@ namespace PaDDY
 
                 var overlay = new WpfRectangle
                 {
-                    Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1A, 0x1A, 0x1A)),
+                    Fill = MeterOverlayBrush,
                     VerticalAlignment = VerticalAlignment.Top,
                     Height = 10000
                 };
@@ -837,7 +841,7 @@ namespace PaDDY
                 var peak = new Border
                 {
                     Height = 2,
-                    Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xC1, 0x07)),
+                    Background = PeakHotBrush,
                     VerticalAlignment = VerticalAlignment.Bottom,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
                     Visibility = Visibility.Collapsed
