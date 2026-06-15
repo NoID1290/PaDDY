@@ -74,16 +74,16 @@
         </Style>
     </UserControl.Resources>
 
-    <Border x:Name="TileBorder"
-            Background="#FF2D2D2D"
-            BorderBrush="#FF555555"
-            BorderThickness="0.8"
-            CornerRadius="6"
-            SnapsToDevicePixels="True">
+<Border x:Name="TileBorder"
+             Background="#FF2D2D2D"
+             BorderBrush="#FF555555"
+             BorderThickness="0.8"
+             CornerRadius="6"
+             SnapsToDevicePixels="false">
         <Border.Effect>
             <DropShadowEffect Color="Black"
-                    BlurRadius="20"
-                    ShadowDepth="10"
+                    BlurRadius="8"
+                    ShadowDepth="4"
                     Opacity="0.7"/>
         </Border.Effect>
 
@@ -98,14 +98,14 @@
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleX"
                                          To="1.04" Duration="0:0:0.15">
-                            <DoubleAnimation.EasingFunction>
+                            <DoubleAnimation.EasingFunction> 
                                 <CubicEase EasingMode="EaseOut"/>
                             </DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleY"
                                          To="1.04" Duration="0:0:0.15">
-                            <DoubleAnimation.EasingFunction>
+                            <DoubleAnimation.EasingFunction> 
                                 <CubicEase EasingMode="EaseOut"/>
                             </DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
@@ -153,7 +153,7 @@
                     <Storyboard>
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleX"
-                                         To="1.04" Duration="0:0:0.1">
+                                         To="1.02" Duration="0:0:0.1">
                             <DoubleAnimation.EasingFunction>
                                 <CubicEase EasingMode="EaseOut"/>
                             </DoubleAnimation.EasingFunction>
@@ -161,7 +161,7 @@
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleY"
                                          To="1.04" Duration="0:0:0.1">
-                            <DoubleAnimation.EasingFunction>
+                            <DoubleAnimation.EasingFunction> 
                                 <CubicEase EasingMode="EaseOut"/>
                             </DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
