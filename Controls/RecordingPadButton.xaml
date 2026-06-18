@@ -75,25 +75,29 @@
     </UserControl.Resources>
 
 <Border x:Name="TileBorder"
-             Background="#FF2D2D2D"
              BorderBrush="#FF555555"
              BorderThickness="0.8"
              CornerRadius="6"
-             SnapsToDevicePixels="false">
-        <Border.Effect>
-            <DropShadowEffect Color="Black"
-                    BlurRadius="8"
-                    ShadowDepth="4"
-                    Opacity="0.7"/>
-        </Border.Effect>
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop x:Name="GradTop" Color="#FF363636" Offset="0"/>
+                <GradientStop x:Name="GradBot" Color="#FF272727" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
 
         <Border.Triggers>
             <EventTrigger RoutedEvent="MouseEnter">
                 <BeginStoryboard>
                     <Storyboard>
-                        <ColorAnimation Storyboard.TargetName="TileBorder"
-                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                        To="#FF3A3A3A"
+                        <ColorAnimation Storyboard.TargetName="GradTop"
+                                        Storyboard.TargetProperty="Color"
+                                        To="#FF454545"
+                                Duration="0:0:0.1"/>
+                        <ColorAnimation Storyboard.TargetName="GradBot"
+                                        Storyboard.TargetProperty="Color"
+                                        To="#FF333333"
                                 Duration="0:0:0.1"/>
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleX"
@@ -115,9 +119,13 @@
             <EventTrigger RoutedEvent="MouseLeave">
                 <BeginStoryboard>
                     <Storyboard>
-                        <ColorAnimation Storyboard.TargetName="TileBorder"
-                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                        To="#FF2D2D2D"
+                        <ColorAnimation Storyboard.TargetName="GradTop"
+                                        Storyboard.TargetProperty="Color"
+                                        To="#FF363636"
+                                Duration="0:0:0.1"/>
+                        <ColorAnimation Storyboard.TargetName="GradBot"
+                                        Storyboard.TargetProperty="Color"
+                                        To="#FF272727"
                                 Duration="0:0:0.1"/>
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleX"

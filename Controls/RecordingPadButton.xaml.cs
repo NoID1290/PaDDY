@@ -23,6 +23,8 @@ namespace PaDDY.Controls
         private static readonly SolidColorBrush BrushNormal;
         private static readonly SolidColorBrush BrushFavorite;
         private static readonly SolidColorBrush BrushPlaying;
+        private static readonly SolidColorBrush BrushFavStar;
+        private static readonly SolidColorBrush BrushUnfavStar;
 
         static RecordingPadButton()
         {
@@ -32,7 +34,17 @@ namespace PaDDY.Controls
             BrushFavorite.Freeze();
             BrushPlaying = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)); // green
             BrushPlaying.Freeze();
+            BrushFavStar = new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07));
+            BrushFavStar.Freeze();
+            BrushUnfavStar = new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA));
+            BrushUnfavStar.Freeze();
         }
+
+        /// <summary>
+        /// When >0 the entrance animation is suppressed (bulk load in progress).
+        /// Increment before loading a batch, decrement after.
+        /// </summary>
+        public static int SuppressEntranceAnimation;
 
         public RecordingEntry? Entry { get; private set; }
 
@@ -62,9 +74,7 @@ namespace PaDDY.Controls
             {
                 _isFavorite = value;
                 FavBtn.Content = value ? "★" : "☆";
-                FavBtn.Foreground = value
-                    ? new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07))
-                    : new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA));
+                FavBtn.Foreground = value ? BrushFavStar : BrushUnfavStar;
                 if (!_isPlaying)
                     TileBorder.BorderBrush = value ? BrushFavorite : BrushNormal;
             }
@@ -95,9 +105,10 @@ namespace PaDDY.Controls
         {
             InitializeComponent();
 
-            // Play entrance animation when loaded
+            // Play entrance animation when loaded — skip during bulk loads (startup / page switch)
             Loaded += (_, _) =>
             {
+                if (SuppressEntranceAnimation > 0) return;
                 try
                 {
                     var entrance = (Storyboard)FindResource("EntranceAnimation");
