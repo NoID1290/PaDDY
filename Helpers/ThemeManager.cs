@@ -39,9 +39,11 @@ namespace PaDDY.Helpers
         /// <summary>Display name list for the meter skin selector (key, label).</summary>
         public static readonly IReadOnlyList<(string Key, string Label)> MeterSkins =
         [
-            ("default", "Default"),
-            ("8bit",    "8-bit"),
-            ("70s",     "70s Look"),
+            ("default",    "Default"),
+            ("8bit",       "8-bit"),
+            ("70s",        "70s Look"),
+            ("neon",       "Neon"),
+            ("grayscale",  "Grayscale"),
         ];
 
         // resourceKey -> hex colour, per theme.
@@ -161,8 +163,8 @@ namespace PaDDY.Helpers
             },
             ["sepia"] = new()
             {
-                ["WindowBgBrush"] = "#FFF1E7D6", // or #ffeae7d6"
-                ["CardBgBrush"] = "#dfdad1e6",
+                ["WindowBgBrush"] = "#FFF1E7D6",
+                ["CardBgBrush"] = "#FFE8DECA",       // warm parchment card surface
                 ["CardBorderBrush"] = "#33805030",
                 ["SubtleTextBrush"] = "#FF8A7350",
                 ["PrimaryTextBrush"] = "#FF3A2C1A",
@@ -174,7 +176,7 @@ namespace PaDDY.Helpers
                 ["InputBorderBrush"] = "#44805030",
                 ["WindowEdgeBrush"] = "#33805030",
                 ["WindowGlowBrush"] = "#FFD8C4A0",
-                ["ControlTextBrush"] = "#596a6b", // text and borders get a subtle warm glow in this theme, so use a semi-transparent brush for controls to pick up that glow without being too harsh
+                ["ControlTextBrush"] = "#FF4A3820", // warm dark brown — readable on parchment backgrounds
                 ["ButtonBgBrush"] = "#FFFBF3E6",
                 ["ButtonHoverBgBrush"] = "#FFF2E6D2",
                 ["ButtonPressedBgBrush"] = "#FFE6D5BC",
@@ -184,7 +186,7 @@ namespace PaDDY.Helpers
                 ["DividerBrush"] = "#22805030",
                 ["BadgeBgBrush"] = "#FFEFE2CC",
                 ["AccentTitleBrush"] = "#FFB5651D",
-                ["ChromeButtonFgBrush"] = "#FF5E4A30", 
+                ["ChromeButtonFgBrush"] = "#FF5E4A30",
                 ["ScrollThumbBrush"] = "#FF8A7350",
             },
             ["dark-pink"] = new()
@@ -285,9 +287,11 @@ namespace PaDDY.Helpers
 
             (Brush inB, Brush outB, Brush monB) = (skin?.ToLowerInvariant()) switch
             {
-                "8bit" => (EightBit(MeterPalette.Green), EightBit(MeterPalette.Blue), EightBit(MeterPalette.Pink)),
-                "70s" => (Seventies(), Seventies(), Seventies()),
-                _ => (DefaultIn(), DefaultOut(), DefaultMon()),
+                "8bit"      => (EightBit(MeterPalette.Green), EightBit(MeterPalette.Blue), EightBit(MeterPalette.Pink)),
+                "70s"       => (Seventies(), Seventies(), Seventies()),
+                "neon"      => (NeonCyan(), NeonMagenta(), NeonYellow()),
+                "grayscale" => (Grayscale(), Grayscale(), Grayscale()),
+                _           => (DefaultIn(), DefaultOut(), DefaultMon()),
             };
 
             res["MeterInBrush"] = inB;
@@ -373,6 +377,62 @@ namespace PaDDY.Helpers
             b.GradientStops.Add(new GradientStop(ParseColor("#FFE0A030"), 0.72));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFD2691E"), 0.88));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFB22222"), 1.0));
+            return b;
+        }
+
+        // Electric synthwave: cyan glow — used for the "In" channel in Neon skin.
+        private static LinearGradientBrush NeonCyan()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF004D5E"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00BCD4"), 0.40));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF80FFFF"), 0.72));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFF00"), 0.88));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF4081"), 0.96));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF0000"), 1.0));
+            return b;
+        }
+
+        // Electric synthwave: magenta glow — used for the "Out" channel in Neon skin.
+        private static LinearGradientBrush NeonMagenta()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF5C0050"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFEE00CC"), 0.40));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF80F0"), 0.72));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFF00"), 0.88));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF4081"), 0.96));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF0000"), 1.0));
+            return b;
+        }
+
+        // Electric synthwave: acid yellow — used for the "Mon" channel in Neon skin.
+        private static LinearGradientBrush NeonYellow()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF3D3D00"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCFF00"), 0.40));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFF80"), 0.72));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF8800"), 0.88));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF2200"), 0.96));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF0000"), 1.0));
+            return b;
+        }
+
+        // Clean monochrome professional look — all channels share the same gradient.
+        private static LinearGradientBrush Grayscale()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF1A1A1A"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF606060"), 0.40));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFBDBDBD"), 0.72));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFE0E0E0"), 0.88));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 0.96));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCCCCC"), 1.0));
             return b;
         }
 
