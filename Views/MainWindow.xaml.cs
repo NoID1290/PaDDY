@@ -174,12 +174,6 @@ namespace PaDDY
         // ── Startup ────────────────────────────────────────────────────────────
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            // GPU Optimization: Cache the pad panels as bitmaps. 
-            // This offloads the rendering of 100+ pads to the GPU, making scrolling and 
-            // switching tabs feel instant even with huge libraries.
-            PadPanel.CacheMode = new BitmapCache { EnableClearType = false, SnapsToDevicePixels = true };
-            FavoritesPanel.CacheMode = new BitmapCache { EnableClearType = false, SnapsToDevicePixels = true };
-
             PopulateCaptureSourceModes();
             PopulateInputDevices();
             PopulateLoopbackDevices();
@@ -190,8 +184,10 @@ namespace PaDDY
             PopulateSortOrderCombo();
             ApplySettings();
             InitializePadPages();
+            RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
+            RecordingPadButton.SuppressEntranceAnimation--;
             _suppressSelectionEvents = false;
 
             _captureService.RmsLevelChanged += OnRmsChanged;
@@ -384,8 +380,10 @@ namespace PaDDY
 
             if (!orderChanged && PadPanel.Children.Count == sortedList.Count) return;
 
+            RecordingPadButton.SuppressEntranceAnimation++;
             PadPanel.Children.Clear();
             foreach (var btn in sortedList) PadPanel.Children.Add(btn);
+            RecordingPadButton.SuppressEntranceAnimation--;
         }
 
         // ── Pad drag-and-drop (move between panels/pages + reorder) ───────────────
@@ -954,8 +952,8 @@ namespace PaDDY
             PadMonitorMeterOverlayR.Width = 10000;
             MonitorRmsValueLabel.Text = "-∞";
             MonitorRmsValueLabelR.Text = "-∞";
-            MonitorPeakIndicatorL.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-            MonitorPeakIndicatorR.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+            MonitorPeakIndicatorL.Background = PeakColdBrush;
+            MonitorPeakIndicatorR.Background = PeakColdBrush;
             _monitorPeakHoldTimeL = DateTime.MinValue;
             _monitorPeakHoldTimeR = DateTime.MinValue;
         }
@@ -1060,8 +1058,8 @@ namespace PaDDY
         {
             RmsValueLabel.Text = "-∞";
             RmsValueLabelR.Text = "-∞";
-            PeakIndicatorL.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-            PeakIndicatorR.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
+            PeakIndicatorL.Background = PeakColdBrush;
+            PeakIndicatorR.Background = PeakColdBrush;
             MeterOverlayL.Width = 10000;
             MeterOverlayR.Width = 10000;
         }
@@ -1279,7 +1277,7 @@ namespace PaDDY
         {
             // Throttle OUTSIDE the Dispatcher call to avoid flooding the UI message queue
             var now = DateTime.UtcNow;
-            if (_performanceMode && (now - _lastInputMeterTick).TotalMilliseconds < 33)
+            if ((now - _lastInputMeterTick).TotalMilliseconds < 30)
                 return;
             _lastInputMeterTick = now;
 
@@ -1323,7 +1321,7 @@ namespace PaDDY
         private void UpdateOutputMeter(double left, double right)
         {
             var now = DateTime.UtcNow;
-            if (_performanceMode && (now - _lastOutputMeterTick).TotalMilliseconds < 33)
+            if ((now - _lastOutputMeterTick).TotalMilliseconds < 30)
                 return;
             _lastOutputMeterTick = now;
 
@@ -1363,7 +1361,7 @@ namespace PaDDY
         private void UpdatePadMonitorMeter(double left, double right)
         {
             var now = DateTime.UtcNow;
-            if (_performanceMode && (now - _lastMonitorMeterTick).TotalMilliseconds < 33)
+            if ((now - _lastMonitorMeterTick).TotalMilliseconds < 30)
                 return;
             _lastMonitorMeterTick = now;
 
@@ -1783,7 +1781,9 @@ namespace PaDDY
         private void ReloadFavoritesPanel()
         {
             FavoritesPanel.Children.Clear();
+            RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
+            RecordingPadButton.SuppressEntranceAnimation--;
         }
 
         public void PrepareRecordingDataRestore()
@@ -1836,8 +1836,10 @@ namespace PaDDY
             _suppressSelectionEvents = false;
 
             InitializePadPages();
+            RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
+            RecordingPadButton.SuppressEntranceAnimation--;
 
             // Refresh status labels for storage and speech-to-text
             WhisperARTTStatus();

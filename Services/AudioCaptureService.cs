@@ -594,16 +594,18 @@ namespace PaDDY.Services
                 int sampleCount = count / 4;
                 if (sampleCount == 0) return (0, 0);
 
+                // Zero-copy cast: no per-sample method call overhead
+                ReadOnlySpan<float> floatSamples = MemoryMarshal.Cast<byte, float>(buffer.AsSpan(0, count));
+
                 if (channels >= 2)
                 {
                     // Stereo or multi-channel: track front-left/front-right channels.
                     double sumL = 0, sumR = 0;
                     int samplesL = 0, samplesR = 0;
-                    for (int i = 0; i <= count - 4; i += 4)
+                    for (int si = 0; si < floatSamples.Length; si++)
                     {
-                        float s = BitConverter.ToSingle(buffer, i);
-                        int sampleIndex = i / 4;
-                        int channelIndex = sampleIndex % channels;
+                        float s = floatSamples[si];
+                        int channelIndex = si % channels;
                         if (channelIndex == 0) { sumL += s * s; samplesL++; }
                         else if (channelIndex == 1) { sumR += s * s; samplesR++; }
                     }
@@ -614,14 +616,12 @@ namespace PaDDY.Services
                 {
                     // Mono source
                     double sum = 0;
-                    int samples = 0;
-                    for (int i = 0; i <= count - 4; i += 4)
+                    for (int si = 0; si < floatSamples.Length; si++)
                     {
-                        float s = BitConverter.ToSingle(buffer, i);
+                        float s = floatSamples[si];
                         sum += s * s;
-                        samples++;
                     }
-                    rmsL = samples > 0 ? Math.Sqrt(sum / samples) : 0;
+                    rmsL = floatSamples.Length > 0 ? Math.Sqrt(sum / floatSamples.Length) : 0;
                     rmsR = rmsL;
                 }
             }
