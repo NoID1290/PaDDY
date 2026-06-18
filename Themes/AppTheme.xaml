@@ -631,7 +631,7 @@
     <Style x:Key="HeaderAccentBar" TargetType="Rectangle">
         <Setter Property="Width"        Value="3"/>
         <Setter Property="Height"       Value="11"/>
-        <Setter Property="Fill"         Value="{StaticResource AccentGreenBrush}"/>
+        <Setter Property="Fill"         Value="{DynamicResource AccentGreenBrush}"/>
         <Setter Property="RadiusX"      Value="1"/>
         <Setter Property="RadiusY"      Value="1"/>
         <Setter Property="VerticalAlignment" Value="Center"/>

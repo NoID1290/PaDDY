@@ -223,14 +223,19 @@ namespace PaDDY
 
             float gainFactor = (float)Math.Pow(10.0, _gainDb / 20.0);
 
+            // Read accent color from the active theme so the waveform follows theme changes.
+            var accent = GetThemeAccentColor();
+            byte aR = accent.R, aG = accent.G, aB = accent.B;
+
             var bmp = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
             int stride = width * 4;
             byte[] pixels = new byte[stride * height];
             int midY = height / 2;
 
-            // Draw centre line
+            // Draw centre line using a dimmed version of the accent color
             for (int x = 0; x < width; x++)
-                SetPixel(pixels, stride, x, midY, 0x44, 0x44, 0x44, 0xFF);
+                SetPixel(pixels, stride, x, midY,
+                    (byte)(aR * 0.22f), (byte)(aG * 0.22f), (byte)(aB * 0.22f), 0xFF);
 
             // Draw waveform with gain applied
             int peakLen = _originalPeaks.Length;
@@ -247,15 +252,29 @@ namespace PaDDY
 
                 for (int y = yTop; y <= yBot; y++)
                 {
+                    // Bright near the centre, slightly dimmer at the amplitude peaks
                     float dist = Math.Abs(y - midY) / (float)midY;
-                    byte g = (byte)(200 - (int)(dist * 80));
-                    byte r = (byte)(40 + (int)(dist * 30));
-                    SetPixel(pixels, stride, x, y, r, g, 0x30, 0xFF);
+                    float brightness = 0.92f - dist * 0.38f;
+                    byte r = (byte)Math.Clamp(aR * brightness, 0, 255);
+                    byte g = (byte)Math.Clamp(aG * brightness, 0, 255);
+                    byte b = (byte)Math.Clamp(aB * brightness, 0, 255);
+                    SetPixel(pixels, stride, x, y, r, g, b, 0xFF);
                 }
             }
 
             bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
             WaveformImage.Source = bmp;
+        }
+
+        /// <summary>
+        /// Returns the current theme's accent color from <see cref="Application.Current"/> resources.
+        /// Falls back to a neutral green if the resource is unavailable.
+        /// </summary>
+        private static System.Windows.Media.Color GetThemeAccentColor()
+        {
+            if (System.Windows.Application.Current?.Resources["AccentGreenBrush"] is SolidColorBrush brush)
+                return brush.Color;
+            return System.Windows.Media.Color.FromRgb(0x4C, 0xAF, 0x50); // dark-theme green fallback
         }
 
         private static void SetPixel(byte[] pixels, int stride, int x, int y, byte r, byte g, byte b, byte a)
@@ -266,6 +285,7 @@ namespace PaDDY
             pixels[idx + 2] = r;
             pixels[idx + 3] = a;
         }
+
 
         // ── Handle dragging ─────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-﻿<Window x:Class="PaDDY.AudioEditorWindow"
+<Window x:Class="PaDDY.AudioEditorWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
@@ -110,7 +110,7 @@
 
             <!-- Waveform -->
             <Border Grid.Column="0"
-                    Background="#FF0D1019"
+                    Background="{DynamicResource WindowBgBrush}"
                     BorderBrush="#28FFFFFF"
                     BorderThickness="1"
                     CornerRadius="7"
@@ -182,7 +182,7 @@
 
             <!-- Vertical level meter -->
             <Border Grid.Column="1"
-                    Background="#FF0D1019"
+                    Background="{DynamicResource WindowBgBrush}"
                     BorderBrush="#28FFFFFF"
                     BorderThickness="1"
                     CornerRadius="7"
@@ -223,7 +223,7 @@
 
             <!-- Collapse toggle strip -->
             <Border Grid.Column="0"
-                    Background="#FF0D1019"
+                    Background="{DynamicResource WindowBgBrush}"
                     BorderBrush="#28FFFFFF" BorderThickness="1"
                     CornerRadius="6" Padding="3,0"
                     VerticalAlignment="Stretch">
@@ -235,7 +235,7 @@
 
             <!-- Effects content panel -->
             <Border x:Name="EffectsPanelContent" Grid.Column="1" Width="300"
-                    Background="#FF0D1019"
+                    Background="{DynamicResource WindowBgBrush}"
                     BorderBrush="#28FFFFFF" BorderThickness="1"
                     CornerRadius="8" Padding="8" Margin="4,0,0,0"
                     VerticalAlignment="Stretch">
@@ -282,7 +282,7 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
                                         <CheckBox DockPanel.Dock="Right" x:Name="FadeEnabledCheck" Content="Enable"
-                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                         <Button x:Name="FadeHeaderButton"
@@ -322,7 +322,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="FadeInLabel" Text="500"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -339,7 +339,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="FadeOutLabel" Text="500"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -352,7 +352,7 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
                                         <CheckBox DockPanel.Dock="Right" x:Name="GateEnabledCheck" Content="Enable"
-                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                         <Button x:Name="GateHeaderButton"
@@ -392,7 +392,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="GateThresholdLabel" Text="-40"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -409,7 +409,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="GateAttackLabel" Text="10"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -426,7 +426,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="GateReleaseLabel" Text="100"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -439,7 +439,7 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
                                         <CheckBox DockPanel.Dock="Right" x:Name="CompressorEnabledCheck" Content="Enable"
-                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                         <Button x:Name="CompressorHeaderButton"
@@ -475,7 +475,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompThresholdLabel" Text="-18"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -492,7 +492,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompRatioLabel" Text="4.0"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -509,7 +509,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompAttackLabel" Text="10"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -526,7 +526,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompReleaseLabel" Text="120"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -543,7 +543,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompMakeupLabel" Text="0"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -556,7 +556,7 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
                                         <CheckBox DockPanel.Dock="Right" x:Name="DistortionEnabledCheck" Content="Enable"
-                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                         <Button x:Name="DistortionHeaderButton"
@@ -592,7 +592,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="DistDriveLabel" Text="8"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -609,7 +609,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="DistMixLabel" Text="0.60"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -626,7 +626,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="DistOutputLabel" Text="0.80"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -639,7 +639,7 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
                                         <CheckBox DockPanel.Dock="Right" x:Name="EchoEnabledCheck" Content="Enable"
-                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                         <Button x:Name="EchoHeaderButton"
@@ -679,7 +679,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="EchoDelayLabel" Text="200"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -696,7 +696,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="EchoFeedbackLabel" Text="0.30"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -713,7 +713,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="EchoMixLabel" Text="0.40"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -726,7 +726,7 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
                                         <CheckBox DockPanel.Dock="Right" x:Name="ReverbEnabledCheck" Content="Enable"
-                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                         <Button x:Name="ReverbHeaderButton"
@@ -762,7 +762,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="ReverbRoomLabel" Text="0.50"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -779,7 +779,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="ReverbDampingLabel" Text="0.50"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -796,7 +796,7 @@
                                                     ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="ReverbMixLabel" Text="0.30"
-                                                           Foreground="{StaticResource AccentGreenBrush}"
+                                                           Foreground="{DynamicResource AccentGreenBrush}"
                                                            FontSize="10" HorizontalAlignment="Center"/>
                                             </Border>
                                         </Grid>
@@ -809,7 +809,7 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
                                         <CheckBox DockPanel.Dock="Right" x:Name="EqEnabledCheck" Content="Enable"
-                                                  Foreground="{StaticResource AccentGreenBrush}" FontSize="11"
+                                                  Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                         <Button x:Name="EqHeaderButton"
@@ -889,27 +889,27 @@
                                         <!-- Value badges -->
                                         <Border Grid.Column="0" Grid.Row="2" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
                                             <TextBlock x:Name="EqSubBassLabel" Text="0 dB"
-                                                       Foreground="{StaticResource AccentGreenBrush}" FontSize="9"
+                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="9"
                                                        HorizontalAlignment="Center"/>
                                         </Border>
                                         <Border Grid.Column="1" Grid.Row="2" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
                                             <TextBlock x:Name="EqBassLabel" Text="0 dB"
-                                                       Foreground="{StaticResource AccentGreenBrush}" FontSize="9"
+                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="9"
                                                        HorizontalAlignment="Center"/>
                                         </Border>
                                         <Border Grid.Column="2" Grid.Row="2" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
                                             <TextBlock x:Name="EqMidLabel" Text="0 dB"
-                                                       Foreground="{StaticResource AccentGreenBrush}" FontSize="9"
+                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="9"
                                                        HorizontalAlignment="Center"/>
                                         </Border>
                                         <Border Grid.Column="3" Grid.Row="2" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
                                             <TextBlock x:Name="EqPresenceLabel" Text="0 dB"
-                                                       Foreground="{StaticResource AccentGreenBrush}" FontSize="9"
+                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="9"
                                                        HorizontalAlignment="Center"/>
                                         </Border>
                                         <Border Grid.Column="4" Grid.Row="2" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
                                             <TextBlock x:Name="EqTrebleLabel" Text="0 dB"
-                                                       Foreground="{StaticResource AccentGreenBrush}" FontSize="9"
+                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="9"
                                                        HorizontalAlignment="Center"/>
                                         </Border>
                                     </Grid>
