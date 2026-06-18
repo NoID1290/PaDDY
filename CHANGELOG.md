@@ -4,6 +4,17 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.0.0618] - 2026-06-18
+
+- docs updated
+- UI fix when switching themes
+- Fix sepia theme
+- UI Optimization
+- optimsation push 2
+- Added backup and restore features
+- Updated docs
+- Update CHANGELOG.md
+
 ## [1.3.3.0614] - 2026-06-14
 
 - Fix tray icon visibility when PaDDY is open
