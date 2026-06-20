@@ -53,7 +53,7 @@ DisableWelcomePage=no
 
 LicenseFile=..\LICENSE
 SetupIconFile=..\PaDDY.ico
-WizardStyle=modern
+WizardStyle=modern dark polar includetitlebar
 WizardImageFile=wizard-sidebar.bmp
 WizardSmallImageFile=wizard-small.bmp
 WizardImageStretch=no
