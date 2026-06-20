@@ -8,8 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Fix vulnerable dependency on SQLite.
 - Fix trimming editor not showing real pad name
-- updated installer theme
-- changelog updated
+- Updated installer theme
 
 ## [1.4.0.0618] - 2026-06-18
 
