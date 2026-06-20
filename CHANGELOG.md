@@ -4,6 +4,13 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.1.0620] - 2026-06-20
+
+- Fix vulnerable dependency on SQLite.
+- Fix trimming editor not showing real pad name
+- updated installer theme
+- changelog updated
+
 ## [1.4.0.0618] - 2026-06-18
 
 - Fix UI themes not being load correctly in some windows
