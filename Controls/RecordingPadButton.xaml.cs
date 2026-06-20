@@ -237,7 +237,8 @@ namespace PaDDY.Controls
             var editor = new AudioEditorWindow(
                 Entry.FilePath,
                 Entry.RecordingId,
-                TrimEditorOutputDeviceIndex - 1)
+                TrimEditorOutputDeviceIndex - 1,
+                Entry.DisplayName)
             {
                 Owner = Window.GetWindow(this)
             };

@@ -76,14 +76,15 @@ namespace PaDDY
         public string? CopyFilePath { get; private set; }
         public bool ShouldSaveToFavorite => SaveToFavCheckBox.IsChecked == true;
 
-        public AudioEditorWindow(string filePath, string? recordingId = null, int outputDeviceIndex = -1)
+        public AudioEditorWindow(string filePath, string? recordingId = null, int outputDeviceIndex = -1, string? displayName = null)
         {
             InitializeComponent();
             _filePath = filePath;
             _recordingId = recordingId;
             _outputDeviceIndex = outputDeviceIndex;
 
-            FileNameLabel.Text = Path.GetFileName(filePath);
+            FileNameLabel.Text = !string.IsNullOrEmpty(displayName) ? displayName : Path.GetFileName(filePath); // Get real name
+            //FileNameLabel.Text = Path.GetFileNameWithoutExtension(filePath); // Get raw name
 
             Loaded += OnLoaded;
             WaveformGrid.SizeChanged += WaveformGrid_SizeChanged;
