@@ -13,7 +13,7 @@ title: Home
       <a class="btn btn-primary" href="https://github.com/NoID1290/PaDDY/releases">Download Latest</a>
       <a class="btn btn-secondary" href="https://github.com/NoID1290/PaDDY">View Source</a>
     </div>
-    <p class="meta">1.4.1.0620</p>
+    <p class="meta">1.4.2.0623</p>
   </div>
 </section>
 
