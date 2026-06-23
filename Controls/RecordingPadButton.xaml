@@ -75,30 +75,20 @@
     </UserControl.Resources>
 
 <Border x:Name="TileBorder"
-             BorderBrush="#FF555555"
+             BorderBrush="{DynamicResource CardBorderBrush}"
+             Background="{DynamicResource CardBgBrush}"
              BorderThickness="0.8"
              CornerRadius="6"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True">
-        <Border.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                <GradientStop x:Name="GradTop" Color="#FF363636" Offset="0"/>
-                <GradientStop x:Name="GradBot" Color="#FF272727" Offset="1"/>
-            </LinearGradientBrush>
-        </Border.Background>
 
         <Border.Triggers>
             <EventTrigger RoutedEvent="MouseEnter">
                 <BeginStoryboard>
                     <Storyboard>
-                        <ColorAnimation Storyboard.TargetName="GradTop"
-                                        Storyboard.TargetProperty="Color"
-                                        To="#FF454545"
-                                Duration="0:0:0.1"/>
-                        <ColorAnimation Storyboard.TargetName="GradBot"
-                                        Storyboard.TargetProperty="Color"
-                                        To="#FF333333"
-                                Duration="0:0:0.1"/>
+                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                         Storyboard.TargetProperty="Opacity"
+                                         To="1" Duration="0:0:0.1"/>
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleX"
                                          To="1.04" Duration="0:0:0.15">
@@ -119,14 +109,9 @@
             <EventTrigger RoutedEvent="MouseLeave">
                 <BeginStoryboard>
                     <Storyboard>
-                        <ColorAnimation Storyboard.TargetName="GradTop"
-                                        Storyboard.TargetProperty="Color"
-                                        To="#FF363636"
-                                Duration="0:0:0.1"/>
-                        <ColorAnimation Storyboard.TargetName="GradBot"
-                                        Storyboard.TargetProperty="Color"
-                                        To="#FF272727"
-                                Duration="0:0:0.1"/>
+                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                         Storyboard.TargetProperty="Opacity"
+                                         To="0" Duration="0:0:0.1"/>
                         <DoubleAnimation Storyboard.TargetName="CardScale"
                                          Storyboard.TargetProperty="ScaleX"
                                          To="1.0" Duration="0:0:0.15">
@@ -180,6 +165,18 @@
 
         <!-- Root grid: content + overlay buttons -->
         <Grid>
+            <!-- Darken Overlay to increase contrast -->
+            <Border Background="#33000000"
+                    CornerRadius="6"
+                    IsHitTestVisible="False" />
+
+            <!-- Hover Overlay -->
+            <Border x:Name="HoverOverlay"
+                    Background="#15FFFFFF"
+                    Opacity="0"
+                    CornerRadius="6"
+                    IsHitTestVisible="False" />
+
             <!-- Main content -->
             <Grid Margin="8,6">
                 <Grid.RowDefinitions>
@@ -192,6 +189,7 @@
                 <TextBlock x:Name="IconText"
                            Grid.Row="0"
                            Text="🎤"
+                           Foreground="{DynamicResource ControlTextBrush}"
                            FontSize="20"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"/>
@@ -200,7 +198,7 @@
                 <TextBlock x:Name="NameLabel"
                            Grid.Row="1"
                            Text="Recording"
-                           Foreground="#FFE0E0E0"
+                           Foreground="{DynamicResource PrimaryTextBrush}"
                            FontSize="10"
                            Margin="0,-20,0,0"
                            FontWeight="SemiBold"
@@ -215,7 +213,7 @@
                            Grid.Row="1"
                            Text="0.0s"
                            Margin="0,25,0,0"
-                           Foreground="#FF9E9E9E"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
                            FontSize="9"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Bottom"/>
@@ -227,7 +225,7 @@
                 <Button x:Name="FavBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="☆"
-                        Foreground="#FFAAAAAA"
+                        Foreground="{DynamicResource SubtleTextBrush}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Margin="4,4,0,0"
@@ -238,7 +236,7 @@
                 <!-- ✕ Delete — top-right -->
                 <Button x:Name="DelBtn"
                         Content="✕"
-                        Foreground="#FFAAAAAA"
+                        Foreground="{DynamicResource SubtleTextBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Margin="0,4,4,0"
@@ -251,7 +249,7 @@
                                 <Trigger Property="IsMouseOver"
                                         Value="True">
                                     <Setter Property="Foreground"
-                                            Value="#FFEF5350"/>
+                                            Value="{DynamicResource AccentRedBrush}"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -262,7 +260,7 @@
                 <Button x:Name="RenameBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="✏"
-                        Foreground="#FFAAAAAA"
+                        Foreground="{DynamicResource SubtleTextBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Margin="0,0,4,4"
@@ -273,7 +271,7 @@
                 <Button x:Name="TrimBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="✂"
-                        Foreground="#FFAAAAAA"
+                        Foreground="{DynamicResource SubtleTextBrush}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
                         Margin="4,0,0,4"
@@ -284,7 +282,7 @@
                 <Button x:Name="ExportBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="💾"
-                        Foreground="#FFAAAAAA"
+                        Foreground="{DynamicResource SubtleTextBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Margin="0,4,20,0"
