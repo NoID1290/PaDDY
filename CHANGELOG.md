@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.2.0623] - 2026-06-23
+
+- docs updated
+- fix pads color
+
 ## [1.4.1.0620] - 2026-06-20
 
 - Fix vulnerable dependency on SQLite.
