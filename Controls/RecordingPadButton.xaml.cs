@@ -20,24 +20,8 @@ namespace PaDDY.Controls
     [SupportedOSPlatform("windows")]
     public partial class RecordingPadButton : WpfControl
     {
-        private static readonly SolidColorBrush BrushNormal;
-        private static readonly SolidColorBrush BrushFavorite;
-        private static readonly SolidColorBrush BrushPlaying;
-        private static readonly SolidColorBrush BrushFavStar;
-        private static readonly SolidColorBrush BrushUnfavStar;
-
         static RecordingPadButton()
         {
-            BrushNormal = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x55));
-            BrushNormal.Freeze();
-            BrushFavorite = new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07)); // amber / gold
-            BrushFavorite.Freeze();
-            BrushPlaying = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)); // green
-            BrushPlaying.Freeze();
-            BrushFavStar = new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07));
-            BrushFavStar.Freeze();
-            BrushUnfavStar = new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA));
-            BrushUnfavStar.Freeze();
         }
 
         /// <summary>
@@ -74,9 +58,19 @@ namespace PaDDY.Controls
             {
                 _isFavorite = value;
                 FavBtn.Content = value ? "★" : "☆";
-                FavBtn.Foreground = value ? BrushFavStar : BrushUnfavStar;
+                
+                if (value)
+                    FavBtn.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "AccentAmberBrush");
+                else
+                    FavBtn.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "SubtleTextBrush");
+
                 if (!_isPlaying)
-                    TileBorder.BorderBrush = value ? BrushFavorite : BrushNormal;
+                {
+                    if (value)
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                    else
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                }
             }
         }
 
@@ -406,9 +400,17 @@ namespace PaDDY.Controls
             _isPlaying = playing;
             IconText.Text = playing ? "⏹" : "🎤";
 
-            TileBorder.BorderBrush = playing
-                ? BrushPlaying
-                : (_isFavorite ? BrushFavorite : BrushNormal);
+            if (playing)
+            {
+                TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentGreenBrush");
+            }
+            else
+            {
+                if (_isFavorite)
+                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                else
+                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+            }
         }
 
         private static ISampleProvider BuildPlaybackSource(ISampleProvider source)
