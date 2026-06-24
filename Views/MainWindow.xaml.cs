@@ -43,6 +43,16 @@ namespace PaDDY
         private bool _forceExit;
         private PadPage? _activePadPage;
         private Services.SpeechRecognitionService? _speechService;
+
+        public void ShowLoadingOverlay(string message = "Processing...")
+        {
+            Dispatcher.Invoke(() => MainLoadingOverlay.Show(message));
+        }
+
+        public void HideLoadingOverlay()
+        {
+            Dispatcher.Invoke(() => MainLoadingOverlay.Hide());
+        }
         private bool _performanceMode;
         private DateTime _lastInputMeterTick;
         private DateTime _lastOutputMeterTick;
@@ -172,8 +182,12 @@ namespace PaDDY
         }
 
         // ── Startup ────────────────────────────────────────────────────────────
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            ShowLoadingOverlay("Starting PaDDY...");
+            // Yield to the UI thread so the loading overlay can actually render before we block it
+            await Task.Delay(50);
+
             PopulateCaptureSourceModes();
             PopulateInputDevices();
             PopulateLoopbackDevices();
@@ -206,6 +220,8 @@ namespace PaDDY
             _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
 
             InitializeTrayIcon();
+
+            HideLoadingOverlay();
         }
 
         // When configured to start in the tray, the window is opened minimized in the

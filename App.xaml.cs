@@ -41,8 +41,29 @@ public partial class App : WpfApplication
             Current.Resources["AppFont"] = appFont;
     }
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
+        if (e.Args.Length >= 2 && e.Args[0] == "--download-models")
+        {
+            string targetDir = e.Args[1];
+            System.IO.Directory.CreateDirectory(targetDir);
+            
+            var types = new[] { Whisper.net.Ggml.GgmlType.Tiny, Whisper.net.Ggml.GgmlType.Base, Whisper.net.Ggml.GgmlType.Small };
+            foreach (var type in types)
+            {
+                string fileName = $"ggml-{type.ToString().ToLowerInvariant()}.bin";
+                string destPath = System.IO.Path.Combine(targetDir, fileName);
+                if (!System.IO.File.Exists(destPath))
+                {
+                    using var stream = await Whisper.net.Ggml.WhisperGgmlDownloader.Default.GetGgmlModelAsync(type);
+                    using var fileStream = System.IO.File.Create(destPath);
+                    await stream.CopyToAsync(fileStream);
+                }
+            }
+            System.Environment.Exit(0);
+            return;
+        }
+
         _instanceMutex = new Mutex(true, "PaDDY_SingleInstance", out bool isNewInstance);
         if (!isNewInstance)
         {

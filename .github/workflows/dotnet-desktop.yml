@@ -60,7 +60,7 @@ jobs:
           Remove-Item $publishDir -Recurse -Force
         }
 
-        dotnet publish $env:PROJECT_PATH --configuration Release --no-build --output $publishDir /p:DebugType=None
+        dotnet publish $env:PROJECT_PATH --configuration Release --output $publishDir /p:DebugType=None --self-contained false
 
         Get-ChildItem -Path $publishDir -Include *.pdb, *.xml -Recurse |
           Remove-Item -Force -ErrorAction SilentlyContinue
