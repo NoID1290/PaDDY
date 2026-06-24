@@ -66,9 +66,9 @@ namespace PaDDY
         public int TrimEditorOutputDeviceIndex { get; set; } = 0;
 
         // ---- Appearance ----
-        // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink"
+        // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula"
         public string Theme { get; set; } = "dark";
-        // Audio meter skin: "default", "8bit", "70s"
+        // Audio meter skin: "default", "8bit", "70s", "neon", "grayscale", "inferno", "aurora", "cyber-sunset", "forest", "toxic"
         public string MeterSkin { get; set; } = "default";
         // Performance mode: CPU-only rendering, limited animations
         public bool PerformanceMode { get; set; } = false;

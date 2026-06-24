@@ -92,19 +92,32 @@ namespace PaDDY.Services
                 if (_factory != null && _loadedModelKey == key)
                     return _factory;
 
-                string modelPath = Path.Combine(ModelsFolder, ModelFileName(type));
-                if (!File.Exists(modelPath))
+                string fileName = ModelFileName(type);
+                string bundledPath = Path.Combine(AppContext.BaseDirectory, "models", fileName);
+                string appDataPath = Path.Combine(ModelsFolder, fileName);
+                string? finalModelPath = null;
+
+                if (File.Exists(bundledPath))
+                {
+                    finalModelPath = bundledPath;
+                }
+                else if (File.Exists(appDataPath))
+                {
+                    finalModelPath = appDataPath;
+                }
+                else
                 {
                     using var modelStream = await WhisperGgmlDownloader.Default
                         .GetGgmlModelAsync(type, cancellationToken: ct).ConfigureAwait(false);
-                    string tmp = modelPath + ".part";
+                    string tmp = appDataPath + ".part";
                     using (var fileWriter = File.Create(tmp))
                         await modelStream.CopyToAsync(fileWriter, ct).ConfigureAwait(false);
-                    File.Move(tmp, modelPath, overwrite: true);
+                    File.Move(tmp, appDataPath, overwrite: true);
+                    finalModelPath = appDataPath;
                 }
 
                 _factory?.Dispose();
-                _factory = WhisperFactory.FromPath(modelPath);
+                _factory = WhisperFactory.FromPath(finalModelPath);
                 _loadedModelKey = key;
                 return _factory;
             }

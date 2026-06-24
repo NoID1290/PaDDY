@@ -34,6 +34,12 @@ namespace PaDDY.Helpers
             ("dark-blue",  "Dark Blue"),
             ("sepia",      "Sepia"),
             ("dark-pink",  "Dark Pink"),
+            ("dark-sepia", "Dark Sepia"),
+            ("cyberpunk",  "Cyberpunk"),
+            ("nordic-frost","Nordic Frost"),
+            ("sunset",     "Sunset Glow"),
+            ("deep-teal",  "Deep Teal"),
+            ("dracula",    "Obsidian Purple"),
         ];
 
         /// <summary>Display name list for the meter skin selector (key, label).</summary>
@@ -44,6 +50,11 @@ namespace PaDDY.Helpers
             ("70s",        "70s Look"),
             ("neon",       "Neon"),
             ("grayscale",  "Grayscale"),
+            ("inferno",    "Inferno"),
+            ("aurora",     "Aurora"),
+            ("cyber-sunset","Cyber Sunset"),
+            ("forest",     "Forest Moss"),
+            ("toxic",      "Toxic"),
         ];
 
         // resourceKey -> hex colour, per theme.
@@ -217,6 +228,174 @@ namespace PaDDY.Helpers
                 ["ChromeButtonFgBrush"] = "#FFD8AFC6",
                 ["ScrollThumbBrush"] = "#FFE6CFDB",
             },
+            ["dark-sepia"] = new()
+            {
+                ["WindowBgBrush"] = "#FF1A1512",
+                ["CardBgBrush"] = "#FF28201B",
+                ["CardBorderBrush"] = "#2C8A7350",
+                ["SubtleTextBrush"] = "#FFA89078",
+                ["PrimaryTextBrush"] = "#FFF3ECE4",
+                ["SecondaryTextBrush"] = "#FFCDBAA8",
+                ["AccentGreenBrush"] = "#FF8C9B6E",
+                ["AccentRedBrush"] = "#FFC25944",
+                ["AccentAmberBrush"] = "#FFD19C38",
+                ["InputBgBrush"] = "#FF15100D",
+                ["InputBorderBrush"] = "#2C8A7350",
+                ["WindowEdgeBrush"] = "#2C8A7350",
+                ["WindowGlowBrush"] = "#FF362C24",
+                ["ControlTextBrush"] = "#FFEBE3D8",
+                ["ButtonBgBrush"] = "#FF221A16",
+                ["ButtonHoverBgBrush"] = "#FF362A24",
+                ["ButtonPressedBgBrush"] = "#FF181310",
+                ["MenuBgBrush"] = "#FF15100D",
+                ["MenuHighlightBrush"] = "#FF4D3C33",
+                ["MenuSelectedBrush"] = "#FF7A5C43",
+                ["DividerBrush"] = "#1C8A7350",
+                ["BadgeBgBrush"] = "#FF100B08",
+                ["AccentTitleBrush"] = "#FFE0A96D",
+                ["ChromeButtonFgBrush"] = "#FFCDBAA8",
+                ["ScrollThumbBrush"] = "#FFA89078",
+            },
+            ["cyberpunk"] = new()
+            {
+                ["WindowBgBrush"] = "#FF08080C",
+                ["CardBgBrush"] = "#FF12121E",
+                ["CardBorderBrush"] = "#2C00F5FF",
+                ["SubtleTextBrush"] = "#FF00B4D8",
+                ["PrimaryTextBrush"] = "#FFE6FFFF",
+                ["SecondaryTextBrush"] = "#FF90E0EF",
+                ["AccentGreenBrush"] = "#FF00F5FF",
+                ["AccentRedBrush"] = "#FFFF2E93",
+                ["AccentAmberBrush"] = "#FFFDFF00",
+                ["InputBgBrush"] = "#FF0B0B14",
+                ["InputBorderBrush"] = "#2C00F5FF",
+                ["WindowEdgeBrush"] = "#2C00F5FF",
+                ["WindowGlowBrush"] = "#FF280C30",
+                ["ControlTextBrush"] = "#FFD2FFFF",
+                ["ButtonBgBrush"] = "#FF161629",
+                ["ButtonHoverBgBrush"] = "#FF282845",
+                ["ButtonPressedBgBrush"] = "#FF0E0E1B",
+                ["MenuBgBrush"] = "#FF0D0D19",
+                ["MenuHighlightBrush"] = "#FF0077B6",
+                ["MenuSelectedBrush"] = "#FF0096C7",
+                ["DividerBrush"] = "#1C00F5FF",
+                ["BadgeBgBrush"] = "#FF08080F",
+                ["AccentTitleBrush"] = "#FFFF2E93",
+                ["ChromeButtonFgBrush"] = "#FF90E0EF",
+                ["ScrollThumbBrush"] = "#FF00F5FF",
+            },
+            ["nordic-frost"] = new()
+            {
+                ["WindowBgBrush"] = "#FF242933",
+                ["CardBgBrush"] = "#FF2E3440",
+                ["CardBorderBrush"] = "#2C88C0D0",
+                ["SubtleTextBrush"] = "#FF7B889B",
+                ["PrimaryTextBrush"] = "#FFE5E9F0",
+                ["SecondaryTextBrush"] = "#FFD8DEE9",
+                ["AccentGreenBrush"] = "#FF8FBCBB",
+                ["AccentRedBrush"] = "#FFBF616A",
+                ["AccentAmberBrush"] = "#FFEBCB8B",
+                ["InputBgBrush"] = "#FF262B35",
+                ["InputBorderBrush"] = "#2C8FBCBB",
+                ["WindowEdgeBrush"] = "#2C88C0D0",
+                ["WindowGlowBrush"] = "#FF3B4252",
+                ["ControlTextBrush"] = "#FFE5E9F0",
+                ["ButtonBgBrush"] = "#FF363D4D",
+                ["ButtonHoverBgBrush"] = "#FF434C5E",
+                ["ButtonPressedBgBrush"] = "#FF292E3A",
+                ["MenuBgBrush"] = "#FF2A2F3A",
+                ["MenuHighlightBrush"] = "#FF4C566A",
+                ["MenuSelectedBrush"] = "#FF81A1C1",
+                ["DividerBrush"] = "#1C88C0D0",
+                ["BadgeBgBrush"] = "#FF1C1F27",
+                ["AccentTitleBrush"] = "#FF88C0D0",
+                ["ChromeButtonFgBrush"] = "#FFD8DEE9",
+                ["ScrollThumbBrush"] = "#FF81A1C1",
+            },
+            ["sunset"] = new()
+            {
+                ["WindowBgBrush"] = "#FF160D1A",
+                ["CardBgBrush"] = "#FF25172C",
+                ["CardBorderBrush"] = "#2CFF6B4A",
+                ["SubtleTextBrush"] = "#FFA38AA8",
+                ["PrimaryTextBrush"] = "#FFFDEBF5",
+                ["SecondaryTextBrush"] = "#FFD2A8C1",
+                ["AccentGreenBrush"] = "#FFFD7E50",
+                ["AccentRedBrush"] = "#FFE03A3A",
+                ["AccentAmberBrush"] = "#FFFFB300",
+                ["InputBgBrush"] = "#FF1D1123",
+                ["InputBorderBrush"] = "#2CFF7E50",
+                ["WindowEdgeBrush"] = "#2CFF6B4A",
+                ["WindowGlowBrush"] = "#FF3C1844",
+                ["ControlTextBrush"] = "#FFF0D5E5",
+                ["ButtonBgBrush"] = "#FF2C1A34",
+                ["ButtonHoverBgBrush"] = "#FF40264B",
+                ["ButtonPressedBgBrush"] = "#FF1E1123",
+                ["MenuBgBrush"] = "#FF201227",
+                ["MenuHighlightBrush"] = "#FF5E3368",
+                ["MenuSelectedBrush"] = "#FF9C27B0",
+                ["DividerBrush"] = "#1CFF7E50",
+                ["BadgeBgBrush"] = "#FF130A17",
+                ["AccentTitleBrush"] = "#FFFD7E50",
+                ["ChromeButtonFgBrush"] = "#FFD2A8C1",
+                ["ScrollThumbBrush"] = "#FFFFB300",
+            },
+            ["deep-teal"] = new()
+            {
+                ["WindowBgBrush"] = "#FF061318",
+                ["CardBgBrush"] = "#FF0E2127",
+                ["CardBorderBrush"] = "#2C26A896",
+                ["SubtleTextBrush"] = "#FF6C8E96",
+                ["PrimaryTextBrush"] = "#FFE5F6F5",
+                ["SecondaryTextBrush"] = "#FFA9DFD8",
+                ["AccentGreenBrush"] = "#FF26A896",
+                ["AccentRedBrush"] = "#FFE57373",
+                ["AccentAmberBrush"] = "#FFFFD54F",
+                ["InputBgBrush"] = "#FF09191E",
+                ["InputBorderBrush"] = "#2C26A896",
+                ["WindowEdgeBrush"] = "#2C26A896",
+                ["WindowGlowBrush"] = "#FF0F2C35",
+                ["ControlTextBrush"] = "#FFD5EFEB",
+                ["ButtonBgBrush"] = "#FF132E35",
+                ["ButtonHoverBgBrush"] = "#FF1B3F4A",
+                ["ButtonPressedBgBrush"] = "#FF0A1D21",
+                ["MenuBgBrush"] = "#FF0D252B",
+                ["MenuHighlightBrush"] = "#FF1C4E5C",
+                ["MenuSelectedBrush"] = "#FF008B8B",
+                ["DividerBrush"] = "#1C26A896",
+                ["BadgeBgBrush"] = "#FF040E11",
+                ["AccentTitleBrush"] = "#FF00B4D8",
+                ["ChromeButtonFgBrush"] = "#FFA9DFD8",
+                ["ScrollThumbBrush"] = "#FF00B4D8",
+            },
+            ["dracula"] = new()
+            {
+                ["WindowBgBrush"] = "#FF110F18",
+                ["CardBgBrush"] = "#FF1B1828",
+                ["CardBorderBrush"] = "#2CBD7AF5",
+                ["SubtleTextBrush"] = "#FF8C84A8",
+                ["PrimaryTextBrush"] = "#FFF0ECF8",
+                ["SecondaryTextBrush"] = "#FFCABEEA",
+                ["AccentGreenBrush"] = "#FFBD7AF5",
+                ["AccentRedBrush"] = "#FFFF5555",
+                ["AccentAmberBrush"] = "#FFF1FA8C",
+                ["InputBgBrush"] = "#FF15121F",
+                ["InputBorderBrush"] = "#2CBD7AF5",
+                ["WindowEdgeBrush"] = "#2CBD7AF5",
+                ["WindowGlowBrush"] = "#FF291A38",
+                ["ControlTextBrush"] = "#FFE2DAF2",
+                ["ButtonBgBrush"] = "#FF221E33",
+                ["ButtonHoverBgBrush"] = "#FF302B47",
+                ["ButtonPressedBgBrush"] = "#FF181524",
+                ["MenuBgBrush"] = "#FF1A1729",
+                ["MenuHighlightBrush"] = "#FF443C68",
+                ["MenuSelectedBrush"] = "#FF7B2CBF",
+                ["DividerBrush"] = "#1CBD7AF5",
+                ["BadgeBgBrush"] = "#FF0E0C14",
+                ["AccentTitleBrush"] = "#FFFF79C6",
+                ["ChromeButtonFgBrush"] = "#FFCABEEA",
+                ["ScrollThumbBrush"] = "#FFBD7AF5",
+            },
         };
 
         /// <summary>Applies an overall colour theme by mutating the shared brush resources.</summary>
@@ -291,6 +470,11 @@ namespace PaDDY.Helpers
                 "70s"       => (Seventies(), Seventies(), Seventies()),
                 "neon"      => (NeonCyan(), NeonMagenta(), NeonYellow()),
                 "grayscale" => (Grayscale(), Grayscale(), Grayscale()),
+                "inferno"   => (Inferno(), Inferno(), Inferno()),
+                "aurora"    => (Aurora(), Aurora(), Aurora()),
+                "cyber-sunset" => (CyberSunset(), CyberSunset(), CyberSunset()),
+                "forest"    => (ForestMoss(), ForestMoss(), ForestMoss()),
+                "toxic"     => (Toxic(), Toxic(), Toxic()),
                 _           => (DefaultIn(), DefaultOut(), DefaultMon()),
             };
 
@@ -433,6 +617,76 @@ namespace PaDDY.Helpers
             b.GradientStops.Add(new GradientStop(ParseColor("#FFE0E0E0"), 0.88));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 0.96));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFCCCCCC"), 1.0));
+            return b;
+        }
+
+        // Volcanic hot inferno gradient.
+        private static LinearGradientBrush Inferno()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF100000"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF7F0000"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFD50000"), 0.35));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF5500"), 0.70));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFB300"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFE080"), 0.95));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            return b;
+        }
+
+        // Ethereal northern lights gradient.
+        private static LinearGradientBrush Aurora()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF080010"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF3B0066"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00B48F"), 0.35));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00E5FF"), 0.70));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF80FFFF"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFAAF0FF"), 0.95));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            return b;
+        }
+
+        // Synthwave sunset gradient.
+        private static LinearGradientBrush CyberSunset()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF050010"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF240046"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF7B2CBF"), 0.35));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFE0115F"), 0.65));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFD7E50"), 0.82));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFB300"), 0.94));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFDFF00"), 1.0));
+            return b;
+        }
+
+        // Deep organic forest moss gradient.
+        private static LinearGradientBrush ForestMoss()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF051007"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF1B382B"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF2D6A4F"), 0.35));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF52B788"), 0.70));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF74C69D"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFB7E4C7"), 0.95));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFE8F5E9"), 1.0));
+            return b;
+        }
+
+        // Radioactive high-voltage gradient.
+        private static LinearGradientBrush Toxic()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF000B05"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF003810"), 0.015));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00E676"), 0.40));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCFF00"), 0.75));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFD00"), 0.88));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF007F"), 0.96));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF00CC"), 1.0));
             return b;
         }
 
