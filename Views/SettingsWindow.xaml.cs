@@ -147,6 +147,8 @@ namespace PaDDY
             MeterSkinCombo.SelectedIndex = skinIdx;
             MeterSkinCombo.SelectionChanged += MeterSkinCombo_SelectionChanged;
 
+            MeterDigitalDotsCheck.IsChecked = _settings.MeterDigitalDots;
+
             PerformanceModeCheck.IsChecked = _settings.PerformanceMode;
 
             // System tray / startup
@@ -188,7 +190,18 @@ namespace PaDDY
         {
             int i = MeterSkinCombo.SelectedIndex;
             if (i >= 0 && i < ThemeManager.MeterSkins.Count)
-                ThemeManager.ApplyMeterSkin(ThemeManager.MeterSkins[i].Key); // live preview
+                ThemeManager.ApplyMeterSkin(ThemeManager.MeterSkins[i].Key, _settings.MeterDigitalDots); // live preview
+        }
+
+        private void MeterDigitalDotsCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (MeterDigitalDotsCheck.IsChecked.HasValue)
+            {
+                _settings.MeterDigitalDots = MeterDigitalDotsCheck.IsChecked.Value;
+                int i = MeterSkinCombo.SelectedIndex;
+                if (i >= 0 && i < ThemeManager.MeterSkins.Count)
+                    ThemeManager.ApplyMeterSkin(ThemeManager.MeterSkins[i].Key, _settings.MeterDigitalDots);
+            }
         }
 
         private void PopulateTrimOutputDevices()
@@ -325,7 +338,7 @@ namespace PaDDY
             if (DialogResult != true)
             {
                 ThemeManager.ApplyTheme(_settings.Theme);
-                ThemeManager.ApplyMeterSkin(_settings.MeterSkin);
+                ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             }
             base.OnClosing(e);
         }

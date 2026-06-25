@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Interop;
@@ -24,6 +25,9 @@ namespace PaDDY.Helpers
         public const string DefaultMeterSkin = "default";
 
         public static bool PerformanceMode { get; private set; }
+        public static string CurrentMeterSkin { get; private set; } = "default";
+        public static bool MeterDigitalDots { get; private set; } = false;
+        private static double _lastWidth = 0;
 
         /// <summary>Display name list for the overall theme selector (key, label).</summary>
         public static readonly IReadOnlyList<(string Key, string Label)> Themes =
@@ -54,7 +58,6 @@ namespace PaDDY.Helpers
             ("aurora",     "Aurora"),
             ("cyber-sunset","Cyber Sunset"),
             ("forest",     "Forest Moss"),
-            ("toxic",      "Toxic"),
         ];
 
         // resourceKey -> hex colour, per theme.
@@ -458,13 +461,14 @@ namespace PaDDY.Helpers
             return Color.FromArgb(Lerp(a.A, b.A), Lerp(a.R, b.R), Lerp(a.G, b.G), Lerp(a.B, b.B));
         }
 
-        /// <summary>Replaces the meter gradient brush resources for the chosen skin.</summary>
-        public static void ApplyMeterSkin(string? skin)
+        public static void ApplyMeterSkin(string? skin, bool digitalDots = false)
         {
+            CurrentMeterSkin = skin?.ToLowerInvariant() ?? "default";
+            MeterDigitalDots = digitalDots;
             var res = Application.Current?.Resources;
             if (res == null) return;
 
-            (Brush inB, Brush outB, Brush monB) = (skin?.ToLowerInvariant()) switch
+            (Brush inB, Brush outB, Brush monB) = CurrentMeterSkin switch
             {
                 "8bit"      => (EightBit(MeterPalette.Green), EightBit(MeterPalette.Blue), EightBit(MeterPalette.Pink)),
                 "70s"       => (Seventies(), Seventies(), Seventies()),
@@ -478,9 +482,26 @@ namespace PaDDY.Helpers
                 _           => (DefaultIn(), DefaultOut(), DefaultMon()),
             };
 
+            if (digitalDots && _lastWidth > 0)
+            {
+                int blocks = Math.Max(10, (int)(_lastWidth / 14));
+                inB = QuantizeGradient((LinearGradientBrush)inB, blocks);
+                outB = QuantizeGradient((LinearGradientBrush)outB, blocks);
+                monB = QuantizeGradient((LinearGradientBrush)monB, blocks);
+            }
+
             res["MeterInBrush"] = inB;
             res["MeterOutBrush"] = outB;
             res["MeterMonBrush"] = monB;
+        }
+
+        public static void UpdateMeterSkinSize(double width)
+        {
+            _lastWidth = width;
+            if (MeterDigitalDots)
+            {
+                ApplyMeterSkin(CurrentMeterSkin, MeterDigitalDots);
+            }
         }
 
         /// <summary>Toggles CPU-only (software) rendering and records the flag for animation guards.</summary>
@@ -687,6 +708,46 @@ namespace PaDDY.Helpers
             b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFD00"), 0.88));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFFF007F"), 0.96));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFFF00CC"), 1.0));
+            return b;
+        }
+
+        // Converts a continuous gradient into segmented discrete dots
+        private static LinearGradientBrush QuantizeGradient(LinearGradientBrush original, int numBlocks)
+        {
+            var b = new LinearGradientBrush { StartPoint = original.StartPoint, EndPoint = original.EndPoint };
+            double gapRatio = 0.2;
+
+            Color GetColor(double t)
+            {
+                var stops = original.GradientStops.OrderBy(s => s.Offset).ToList();
+                if (stops.Count == 0) return ParseColor("#FFFFFFFF");
+                if (stops.Count == 1) return stops[0].Color;
+
+                for (int i = 0; i < stops.Count - 1; i++)
+                {
+                    if (t >= stops[i].Offset && t <= stops[i + 1].Offset)
+                    {
+                        double range = stops[i + 1].Offset - stops[i].Offset;
+                        double localT = range == 0 ? 0 : (t - stops[i].Offset) / range;
+                        return Blend(stops[i].Color, stops[i + 1].Color, localT);
+                    }
+                }
+                return stops[^1].Color;
+            }
+
+            for (int i = 0; i < numBlocks; i++)
+            {
+                double start = (double)i / numBlocks;
+                double end = (double)(i + 1) / numBlocks;
+                double ledEnd = start + (end - start) * (1 - gapRatio);
+                
+                Color c = GetColor(start + (end - start) * 0.5);
+                
+                b.GradientStops.Add(new GradientStop(c, start));
+                b.GradientStops.Add(new GradientStop(c, ledEnd));
+                b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), ledEnd));
+                b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), end));
+            }
             return b;
         }
 

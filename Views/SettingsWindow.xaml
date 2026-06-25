@@ -1,4 +1,4 @@
-﻿<Window x:Class="PaDDY.SettingsWindow"
+<Window x:Class="PaDDY.SettingsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
@@ -407,6 +407,11 @@
                             <ComboBox x:Name="MeterSkinCombo" Grid.Column="1"
                                       SelectionChanged="MeterSkinCombo_SelectionChanged"/>
                         </Grid>
+                        <CheckBox x:Name="MeterDigitalDotsCheck"
+                                  Content="Segmented digital LED dots"
+                                  Margin="140,10,0,0"
+                                  Checked="MeterDigitalDotsCheck_Changed"
+                                  Unchecked="MeterDigitalDotsCheck_Changed"/>
                     </StackPanel>
                 </Border>
 
