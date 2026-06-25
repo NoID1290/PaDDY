@@ -70,6 +70,7 @@ namespace PaDDY
         public string Theme { get; set; } = "dark";
         // Audio meter skin: "default", "8bit", "70s", "neon", "grayscale", "inferno", "aurora", "cyber-sunset", "forest", "toxic"
         public string MeterSkin { get; set; } = "default";
+        public bool MeterDigitalDots { get; set; } = false;
         // Performance mode: CPU-only rendering, limited animations
         public bool PerformanceMode { get; set; } = false;
 

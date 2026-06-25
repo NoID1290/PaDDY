@@ -127,7 +127,11 @@ namespace PaDDY
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             StateChanged += MainWindow_StateChanged;
-            ThresholdCanvas.SizeChanged += (_, _) => UpdateThresholdMarker();
+            ThresholdCanvas.SizeChanged += (_, _) => 
+            {
+                UpdateThresholdMarker();
+                Helpers.ThemeManager.UpdateMeterSkinSize(ThresholdCanvas.ActualWidth);
+            };
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
             PadMonitorMeterHostL.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
@@ -1227,7 +1231,7 @@ namespace PaDDY
 
             App.ApplyFont(win.SelectedFontVariant);
             Helpers.ThemeManager.ApplyTheme(_settings.Theme);
-            Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin);
+            Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
             bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
             bool startupEnabled = Helpers.StartupRegistration.IsRunOnStartupEnabled();
@@ -1846,7 +1850,7 @@ namespace PaDDY
             _suppressSelectionEvents = true;
             ApplySettings();
             ThemeManager.ApplyTheme(_settings.Theme);
-            ThemeManager.ApplyMeterSkin(_settings.MeterSkin);
+            ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
             App.ApplyFont(_settings.AppFontVariant);
             _suppressSelectionEvents = false;
