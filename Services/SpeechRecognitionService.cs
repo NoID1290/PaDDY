@@ -10,6 +10,7 @@ using NoIDSoftwork.AudioProcessor;
 using PaDDY.Helpers;
 using Whisper.net;
 using Whisper.net.Ggml;
+using Whisper.net.LibraryLoader;
 
 namespace PaDDY.Services
 {
@@ -23,6 +24,7 @@ namespace PaDDY.Services
         private readonly SemaphoreSlim _gate = new(1, 1);
         private WhisperFactory? _factory;
         private string? _loadedModelKey;
+        private bool _loadedUseCuda;
         private bool _disposed;
 
         private static GgmlType MapModel(string? model) => (model ?? "base").Trim().ToLowerInvariant() switch
@@ -50,7 +52,7 @@ namespace PaDDY.Services
         /// Transcribes the given audio file. Returns the recognised text, or an
         /// empty string if nothing was recognised. Never throws.
         /// </summary>
-        public async Task<string> TranscribeAsync(string audioFilePath, string? model, string? language, CancellationToken ct = default)
+        public async Task<string> TranscribeAsync(string audioFilePath, string? model, string? language, bool useCuda = false, CancellationToken ct = default)
         {
             try
             {
@@ -58,7 +60,7 @@ namespace PaDDY.Services
                 if (samples.Length < 16000 / 4) // less than ~0.25s of audio
                     return string.Empty;
 
-                var factory = await GetFactoryAsync(model, ct).ConfigureAwait(false);
+                var factory = await GetFactoryAsync(model, useCuda, ct).ConfigureAwait(false);
                 if (factory == null) return string.Empty;
 
                 string lang = string.IsNullOrWhiteSpace(language) ? "auto" : language.Trim();
@@ -81,7 +83,7 @@ namespace PaDDY.Services
             }
         }
 
-        private async Task<WhisperFactory?> GetFactoryAsync(string? model, CancellationToken ct)
+        private async Task<WhisperFactory?> GetFactoryAsync(string? model, bool useCuda, CancellationToken ct)
         {
             GgmlType type = MapModel(model);
             string key = type.ToString();
@@ -89,7 +91,7 @@ namespace PaDDY.Services
             await _gate.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                if (_factory != null && _loadedModelKey == key)
+                if (_factory != null && _loadedModelKey == key && _loadedUseCuda == useCuda)
                     return _factory;
 
                 string fileName = ModelFileName(type);
@@ -116,9 +118,28 @@ namespace PaDDY.Services
                     finalModelPath = appDataPath;
                 }
 
+                // Configure CUDA runtime preference before creating the factory
+                if (useCuda)
+                {
+                    RuntimeOptions.RuntimeLibraryOrder = new List<RuntimeLibrary>
+                    {
+                        RuntimeLibrary.Cuda,
+                        RuntimeLibrary.Cpu
+                    };
+                }
+                else
+                {
+                    RuntimeOptions.RuntimeLibraryOrder = new List<RuntimeLibrary>
+                    {
+                        RuntimeLibrary.Cpu
+                    };
+                }
+
                 _factory?.Dispose();
-                _factory = WhisperFactory.FromPath(finalModelPath);
+                var factoryOptions = new WhisperFactoryOptions { UseGpu = useCuda };
+                _factory = WhisperFactory.FromPath(finalModelPath, factoryOptions);
                 _loadedModelKey = key;
+                _loadedUseCuda = useCuda;
                 return _factory;
             }
             finally

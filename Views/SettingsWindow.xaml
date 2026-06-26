@@ -319,6 +319,13 @@
                             <TextBox x:Name="SpeechLanguageBox" Grid.Column="1"
                                      ToolTip="Language code, e.g. en, fr, de, or 'auto' to detect."/>
                         </Grid>
+                        <CheckBox x:Name="UseCudaCheck"
+                                  Content="Use CUDA GPU acceleration (NVIDIA only)"
+                                  Margin="0,10,0,0"/>
+                        <TextBlock x:Name="CudaStatusText"
+                                   TextWrapping="Wrap"
+                                   FontSize="11"
+                                   Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
 
