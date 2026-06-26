@@ -1227,6 +1227,7 @@ namespace PaDDY
             _settings.AutoRenameWithSpeech = win.SelectedAutoRenameWithSpeech;
             _settings.SpeechModel = win.SelectedSpeechModel;
             _settings.SpeechLanguage = win.SelectedSpeechLanguage;
+            _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
             _settings.Save();
 
             App.ApplyFont(win.SelectedFontVariant);
@@ -1520,7 +1521,7 @@ namespace PaDDY
                 _speechService ??= new Services.SpeechRecognitionService();
 
                 string text = await Task.Run(() =>
-                    _speechService.TranscribeAsync(filePath, _settings.SpeechModel, _settings.SpeechLanguage))
+                    _speechService.TranscribeAsync(filePath, _settings.SpeechModel, _settings.SpeechLanguage, _settings.UseCudaForSpeech))
                     .ConfigureAwait(true);
 
                 text = SanitizeSpeechName(text);
@@ -2208,7 +2209,8 @@ namespace PaDDY
                 }
                 else if (arttsvalue == true)
                 {
-                    WhisperStatusLabel.Text = nm + ": enabled";
+                    string suffix = _settings.UseCudaForSpeech ? " (CUDA)" : "";
+                    WhisperStatusLabel.Text = nm + ": enabled" + suffix;
                 }
                 else
                 {

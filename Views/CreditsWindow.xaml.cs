@@ -32,6 +32,7 @@ namespace PaDDY
             new() { Name = "Microsoft.Data.Sqlite", License = "MIT", Usage = "Recordings metadata database", LicenseFile = "Microsoft.Data.Sqlite-LICENSE.txt" },
             new() { Name = "SQLitePCLRaw", License = "Apache-2.0", Usage = "Native SQLite provider for the recordings database", LicenseFile = "SQLitePCLRaw-LICENSE.txt" },
             new() { Name = "Whisper.net", License = "MIT", Usage = "On-device speech-to-text for auto-renaming", LicenseFile = "Whisper.net-LICENSE.txt" },
+            new() { Name = "Whisper.net.Runtime.Cuda", License = "MIT", Usage = "CUDA GPU acceleration for Whisper speech-to-text", LicenseFile = "Whisper.net-LICENSE.txt" },
         };
 
         public CreditsWindow()

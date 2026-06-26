@@ -39,6 +39,7 @@ namespace PaDDY
         public bool SelectedAutoRenameWithSpeech { get; private set; }
         public string SelectedSpeechModel { get; private set; } = "base";
         public string SelectedSpeechLanguage { get; private set; } = "en";
+        public bool SelectedUseCudaForSpeech { get; private set; }
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -175,6 +176,23 @@ namespace PaDDY
             }
             SpeechModelCombo.SelectedIndex = modelIdx;
             SpeechLanguageBox.Text = string.IsNullOrWhiteSpace(_settings.SpeechLanguage) ? "en" : _settings.SpeechLanguage;
+
+            // CUDA GPU acceleration
+            bool nvidiaDetected = Helpers.GpuHelper.IsNvidiaGpuAvailable;
+            UseCudaCheck.IsEnabled = nvidiaDetected;
+            UseCudaCheck.IsChecked = nvidiaDetected && _settings.UseCudaForSpeech;
+            if (nvidiaDetected)
+            {
+                CudaStatusText.Text = "NVIDIA GPU detected — CUDA acceleration available.";
+                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x60, 0x90, 0x60));
+            }
+            else
+            {
+                CudaStatusText.Text = "No NVIDIA GPU detected — CUDA acceleration unavailable.";
+                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x90));
+            }
         }
 
         private void ThemeCombo_SelectionChanged(object sender,
@@ -323,6 +341,7 @@ namespace PaDDY
             SelectedAutoRenameWithSpeech = AutoRenameSpeechCheck.IsChecked == true;
             SelectedSpeechModel = SpeechModelCombo.SelectedItem?.ToString() ?? "base";
             SelectedSpeechLanguage = string.IsNullOrWhiteSpace(SpeechLanguageBox.Text) ? "en" : SpeechLanguageBox.Text.Trim();
+            SelectedUseCudaForSpeech = UseCudaCheck.IsChecked == true;
 
             DialogResult = true;
         }

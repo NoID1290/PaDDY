@@ -90,6 +90,8 @@ namespace PaDDY
         public string SpeechModel { get; set; } = "base";
         // Language code (e.g. "en", "auto")
         public string SpeechLanguage { get; set; } = "en";
+        // Use CUDA GPU acceleration for Whisper (requires NVIDIA GPU)
+        public bool UseCudaForSpeech { get; set; } = false;
 
         // ---- Custom pad pages ----
         // Ordered list of user pad pages. The first page is the default ("Favorites" semantics).
