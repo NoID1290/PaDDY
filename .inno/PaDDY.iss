@@ -107,7 +107,40 @@ Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppE
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 ; ============================================================================
+; Register .PADBACK file type so it always opens with PaDDY and shows its icon
+[Registry]
+
+; ── ProgID ─────────────────────────────────────────────────────────────────
+; Friendly description shown in Explorer "Type" column and Open-With dialog
+Root: HKCR; Subkey: "PaDDY.BackupFile";                            ValueType: string;  ValueName: "";       ValueData: "PaDDY Backup File";                    Flags: uninsdeletekey
+Root: HKCR; Subkey: "PaDDY.BackupFile\DefaultIcon";               ValueType: string;  ValueName: "";       ValueData: "{app}\{#AppExeName},0"
+Root: HKCR; Subkey: "PaDDY.BackupFile\shell\open";                ValueType: string;  ValueName: "FriendlyAppName"; ValueData: "{#AppName}"
+Root: HKCR; Subkey: "PaDDY.BackupFile\shell\open\command";        ValueType: string;  ValueName: "";       ValueData: """{app}\{#AppExeName}"" ""%1"""
+
+; ── Extension → ProgID mapping ─────────────────────────────────────────────
+Root: HKCR; Subkey: ".PADBACK";                                    ValueType: string;  ValueName: "";       ValueData: "PaDDY.BackupFile";                     Flags: uninsdeletevalue
+Root: HKCR; Subkey: ".PADBACK";                                    ValueType: string;  ValueName: "Content Type"; ValueData: "application/x-padback"
+Root: HKCR; Subkey: ".PADBACK\OpenWithProgids";                    ValueType: string;  ValueName: "PaDDY.BackupFile"; ValueData: ""
+
+; ── Notify shell of the new association ─────────────────────────────────────
+; (SHChangeNotify is called from [Code] after install so Explorer refreshes)
+
+; ============================================================================
 [Code]
+
+// Shell notification — tells Explorer to refresh file-type icons immediately
+// dwItem1/dwItem2 are declared as Integer (not PAnsiChar) so we can pass 0
+// when SHCNF_IDLIST is used and both pointers are unused.
+procedure SHChangeNotify(wEventId: Integer; uFlags: Cardinal; dwItem1: Integer; dwItem2: Integer);
+  external 'SHChangeNotify@shell32.dll stdcall';
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  // After all files and registry keys are written, notify the shell so
+  // Explorer picks up the new .PADBACK icon/association straight away.
+  if CurStep = ssDone then
+    SHChangeNotify($08000000 {SHCNE_ASSOCCHANGED}, $0000 {SHCNF_IDLIST}, 0, 0);
+end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
@@ -117,6 +150,18 @@ var
 begin
   if CurUninstallStep = usPostUninstall then
   begin
+    // ── Remove .PADBACK file-type registry keys ──────────────────────────
+    // The [Registry] Flags: uninsdeletekey / uninsdeletevalue entries handle
+    // the ProgID and extension automatically, but belt-and-suspenders cleanup:
+    RegDeleteKeyIncludingSubkeys(HKEY_CLASSES_ROOT, 'PaDDY.BackupFile');
+    RegDeleteKeyIncludingSubkeys(HKEY_CLASSES_ROOT, '.PADBACK\OpenWithProgids');
+    RegDeleteValue(HKEY_CLASSES_ROOT, '.PADBACK', '');
+    RegDeleteValue(HKEY_CLASSES_ROOT, '.PADBACK', 'Content Type');
+
+    // Notify shell that associations changed
+    SHChangeNotify($08000000, $0000, 0, 0);
+
+    // ── Offer to remove user data ────────────────────────────────────────
     AppDataPath := ExpandConstant('{localappdata}') + '\NoID Softwork\PaDDY';
     if DirExists(AppDataPath) then
     begin
