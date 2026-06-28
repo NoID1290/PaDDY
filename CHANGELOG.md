@@ -4,20 +4,13 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.5.0.0628] - 2026-06-28
-
-- Registering PADBACK File Association
-
-## [1.5.0.0628-Pre-release_1] - 2026-06-28
-
-- Fix portable build and CUDA runtime dependencies
-
-## [1.5.0.0626-Pre-release_1] - 2026-06-26
+﻿## [1.5.0.0628] - 2026-06-28
 
 - Added Nvidia CUDA GPU acceleration for speech-to-text engine.
+- Add Digital Dots options for Audio Meters
+- Added sets of New Themes
 - Updated Icon and Wizard installation themes
-- Add Digital Dots options for Audio Meeters
-- feat: implement main window, custom chrome, loading overlay, and speech recognition service initialization
+- Registering PADBACK File Association
 
 ## [1.4.2.0623] - 2026-06-23
 
