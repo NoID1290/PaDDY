@@ -14,6 +14,12 @@ public partial class App : WpfApplication
 {
     private Mutex? _instanceMutex;
 
+    /// <summary>
+    /// When the app is launched via a .PADBACK file association, the file path
+    /// is stored here so the MainWindow can prompt for restore after loading.
+    /// </summary>
+    internal static string? PendingRestoreFilePath { get; private set; }
+
     /// <summary>Maps variant key → (embedded file name, display name).</summary>
     internal static readonly IReadOnlyList<(string Key, string FileName, string DisplayName)> FontVariants =
     [
@@ -71,8 +77,16 @@ public partial class App : WpfApplication
             Shutdown();
             return;
         }
-
         base.OnStartup(e);
+
+        // Check if the app was launched by opening a .PADBACK file (file association).
+        // The OS passes the file path as the first (non-flag) argument.
+        var padbackArg = e.Args.FirstOrDefault(a =>
+            a.EndsWith(".PADBACK", System.StringComparison.OrdinalIgnoreCase) &&
+            System.IO.File.Exists(a));
+        if (padbackArg != null)
+            PendingRestoreFilePath = padbackArg;
+
         var settings = AppSettings.Load();
         ApplyFont(settings.AppFontVariant);
         Helpers.ThemeManager.ApplyTheme(settings.Theme);

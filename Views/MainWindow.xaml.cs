@@ -226,6 +226,77 @@ namespace PaDDY
             InitializeTrayIcon();
 
             HideLoadingOverlay();
+
+            // If the app was launched by opening a .PADBACK file, prompt for restore.
+            if (App.PendingRestoreFilePath != null)
+            {
+                await HandlePendingBackupRestore();
+            }
+        }
+
+        /// <summary>
+        /// Prompts the user for confirmation before restoring a .PADBACK file
+        /// that was opened via file association. This is destructive — it replaces
+        /// all current settings, effect presets, and recordings.
+        /// </summary>
+        private async Task HandlePendingBackupRestore()
+        {
+            string filePath = App.PendingRestoreFilePath!;
+            string fileName = System.IO.Path.GetFileName(filePath);
+
+            var result = System.Windows.MessageBox.Show(
+                this,
+                $"You are about to restore from a backup file:\n\n" +
+                $"\"{fileName}\"\n\n" +
+                $"⚠ This will ERASE and REPLACE all of the following:\n\n" +
+                $"   • All your current recordings\n" +
+                $"   • All application settings\n" +
+                $"   • All effect presets\n\n" +
+                $"This action cannot be undone.\n\n" +
+                $"Do you want to continue?",
+                "Restore Backup — PaDDY",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                SetStatus("Backup restore cancelled.", "#FFFFC107");
+                return;
+            }
+
+            ShowLoadingOverlay("Restoring backup...");
+            await Task.Delay(50); // Let the overlay render
+
+            try
+            {
+                PrepareRecordingDataRestore();
+
+                var backupService = new BackupService();
+                if (backupService.RestoreBackup(filePath))
+                {
+                    ReloadRecordingDataFromDisk();
+                    System.Windows.MessageBox.Show(
+                        this,
+                        "Backup restored successfully.\nAll recordings and settings have been reloaded.",
+                        "Restore Complete — PaDDY",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show(
+                        this,
+                        "Failed to restore backup.\nPlease ensure the file is a valid PaDDY backup.",
+                        "Restore Failed — PaDDY",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+            finally
+            {
+                HideLoadingOverlay();
+            }
         }
 
         // When configured to start in the tray, the window is opened minimized in the
