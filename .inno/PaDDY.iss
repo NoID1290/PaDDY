@@ -142,12 +142,31 @@ begin
     SHChangeNotify($08000000 {SHCNE_ASSOCCHANGED}, $0000 {SHCNF_IDLIST}, 0, 0);
 end;
 
+procedure CloseAppIfRunning;
+var
+  Process: TProcess;
+begin
+  Process := CreateProcess(PChar('{app}\{#AppExeName}'), nil, 0);
+  if Process.Running then
+  begin
+    Process.Terminate;
+    // Optional: Wait for it to close
+    // Process.WaitForExit;
+  end;
+  DestroyProcess(Process);
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   AppDataPath: string;
   Msg: string;
   Answer: Integer;
 begin
+  if CurUninstallStep = usPreUninstall then
+  begin
+    CloseAppIfRunning;
+  end;
+
   if CurUninstallStep = usPostUninstall then
   begin
     // ── Remove .PADBACK file-type registry keys ──────────────────────────
