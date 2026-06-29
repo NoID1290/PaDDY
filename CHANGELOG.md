@@ -8,11 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - PUSH FIX: Nvidia CUDA is now shipped with PaDDY
 - Backup file now trigger the restore without opening PaDDY
-- Update index.md
-- Update README.md
-- Update CHANGELOG.md
-- Registering PADBACK File Association (v1.5.0.0628)
-- fix type mismatch in inno setup
 
 ## [1.5.0.0628] - 2026-06-28
 
