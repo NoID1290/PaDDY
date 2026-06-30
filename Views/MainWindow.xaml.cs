@@ -331,11 +331,11 @@ namespace PaDDY
         private void RestoreFromTray()
         {
             ShowInTaskbar = true;
-            Show();
             WindowState = WindowState.Normal;
             Activate();
             Topmost = true;
             Topmost = false;
+            Show();
         }
 
         private void MainWindow_StateChanged(object? sender, EventArgs e)
