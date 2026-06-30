@@ -127,7 +127,7 @@ namespace PaDDY
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             StateChanged += MainWindow_StateChanged;
-            ThresholdCanvas.SizeChanged += (_, _) => 
+            ThresholdCanvas.SizeChanged += (_, _) =>
             {
                 UpdateThresholdMarker();
                 Helpers.ThemeManager.UpdateMeterSkinSize(ThresholdCanvas.ActualWidth);
