@@ -37,7 +37,7 @@ namespace PaDDY
         private readonly GlobalHotkeyService _hotkeyService = new();
         private readonly IOverlayEngine _overlayEngine = new OverlayEngine();
         private RecordingStore _recordingStore = new();
-        private readonly Dictionary<string, RecordingPadButton> _hiddenPads = new();
+        private readonly Dictionary<string, RecordingPadButton> _padCache = new();
         private AppSettings _settings = AppSettings.Load();
         private EffectSettings _effectSettings = EffectSettingsManager.Load();
         private IEffectChain _globalCaptureChain = EffectChainFactory.CreateGlobal();
@@ -53,14 +53,33 @@ namespace PaDDY
         private TcpIpcServer? _ipcServer;
         private bool _isRecording;
 
+        private SplashWindow? _splashWindow;
+
         public void ShowLoadingOverlay(string message = "Processing...")
         {
-            Dispatcher.Invoke(() => MainLoadingOverlay.Show(message));
+            Dispatcher.Invoke(() => 
+            {
+                _splashWindow?.UpdateMessage(message);
+                MainLoadingOverlay.Show(message);
+            });
         }
 
         public void HideLoadingOverlay()
         {
-            Dispatcher.Invoke(() => MainLoadingOverlay.Hide());
+            Dispatcher.Invoke(() => 
+            {
+                MainLoadingOverlay.Hide();
+                if (_splashWindow != null)
+                {
+                    _splashWindow.Close();
+                    _splashWindow = null;
+                    this.Opacity = 1;
+                    if (this.WindowState != WindowState.Minimized)
+                    {
+                        this.Activate();
+                    }
+                }
+            });
         }
         private bool _performanceMode;
         private DateTime _lastInputMeterTick;
@@ -152,6 +171,12 @@ namespace PaDDY
                 WindowState = WindowState.Minimized;
                 _initialTrayMinimize = true;
             }
+            else
+            {
+                _splashWindow = new SplashWindow();
+                _splashWindow.Show();
+                this.Opacity = 0; // Hide the main window while it loads
+            }
 
             InitializeComponent();
             Loaded += MainWindow_Loaded;
@@ -241,6 +266,7 @@ namespace PaDDY
             PopulateSortOrderCombo();
             ApplySettings();
             InitializePadPages();
+            PreloadAllPads();
             RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
@@ -1880,7 +1906,10 @@ namespace PaDDY
                 {
                     // Remove from DB + both panels
                     if (b.Entry != null && !string.IsNullOrEmpty(b.Entry.RecordingId))
+                    {
                         _recordingStore.Delete(b.Entry.RecordingId);
+                        _padCache.Remove(b.Entry.RecordingId);
+                    }
                     PadPanel.Children.Remove(b);
                     FavoritesPanel.Children.Remove(b);
                     UpdatePadState();
@@ -1998,6 +2027,7 @@ namespace PaDDY
             entry.IsFavorite = entry.IsFavorite || toFavorites;
 
             var btn = CreatePadButton(entry);
+            _padCache[entry.RecordingId] = btn;
 
             if (entry.IsFavorite)
                 FavoritesPanel.Children.Insert(0, btn);
@@ -2137,6 +2167,7 @@ namespace PaDDY
             _suppressSelectionEvents = false;
 
             InitializePadPages();
+            PreloadAllPads();
             RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
@@ -2206,15 +2237,11 @@ namespace PaDDY
             SwitchToPadPage(favorites.Id);
         }
 
-        private void LoadFavoritesFromStore()
+        private void PreloadAllPads()
         {
+            _padCache.Clear();
             var records = _recordingStore.GetAll();
-            var favs = records
-                .Where(r => r.IsFavorite && BelongsToActivePage(r))
-                .OrderBy(r => r.SortOrder)
-                .ThenByDescending(r => r.CreatedAt)
-                .ToList();
-            foreach (var rec in favs)
+            foreach (var rec in records)
             {
                 try
                 {
@@ -2226,19 +2253,39 @@ namespace PaDDY
                         DisplayName = rec.DisplayName,
                         Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
                         CreatedAt = rec.CreatedAt,
-                        IsFavorite = true,
+                        IsFavorite = rec.IsFavorite,
+                        PadPage = rec.PadPage,
                         SortOrder = rec.SortOrder
                     };
                     var btn = CreatePadButton(entry);
-                    FavoritesPanel.Children.Add(btn);
+                    _padCache[rec.Id] = btn;
                 }
                 catch { /* skip unreadable records */ }
+            }
+        }
+
+        private void LoadFavoritesFromStore()
+        {
+            FavoritesPanel.Children.Clear();
+            var favs = _padCache.Values
+                .Where(btn => btn.Entry != null && btn.Entry.IsFavorite && BelongsToActivePage(btn.Entry))
+                .OrderBy(btn => btn.Entry!.SortOrder)
+                .ThenByDescending(btn => btn.Entry!.CreatedAt)
+                .ToList();
+
+            foreach (var btn in favs)
+            {
+                if (System.Windows.Media.VisualTreeHelper.GetParent(btn) is System.Windows.Controls.Panel p)
+                {
+                    p.Children.Remove(btn);
+                }
+                FavoritesPanel.Children.Add(btn);
             }
             UpdatePadState();
         }
 
         /// <summary>True when a favourite recording should appear on the active pad page.</summary>
-        private bool BelongsToActivePage(RecordingRecord rec)
+        private bool BelongsToActivePage(RecordingEntry rec)
         {
             if (!rec.IsFavorite) return false;
             string pp = rec.PadPage ?? string.Empty;
@@ -2249,33 +2296,24 @@ namespace PaDDY
 
         private void LoadNonFavoritesFromStore()
         {
-            var records = _recordingStore.GetAll();
+            PadPanel.Children.Clear();
             int max = _settings.MaxRecords;
             int count = 0;
 
-            // GetAll() returns newest-first from DB
-            foreach (var rec in records)
+            var nonFavs = _padCache.Values
+                .Where(btn => btn.Entry != null && !btn.Entry.IsFavorite)
+                .OrderByDescending(btn => btn.Entry!.CreatedAt)
+                .ToList();
+
+            foreach (var btn in nonFavs)
             {
-                if (rec.IsFavorite) continue;
                 if (max > 0 && count >= max) break;
-                try
+                if (System.Windows.Media.VisualTreeHelper.GetParent(btn) is System.Windows.Controls.Panel p)
                 {
-                    string tempPath = _recordingStore.MaterializeToTemp(rec.Id, rec.Codec);
-                    var entry = new RecordingEntry
-                    {
-                        RecordingId = rec.Id,
-                        FilePath = tempPath,
-                        DisplayName = rec.DisplayName,
-                        Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
-                        CreatedAt = rec.CreatedAt,
-                        IsFavorite = false,
-                        SortOrder = rec.SortOrder
-                    };
-                    var btn = CreatePadButton(entry);
-                    PadPanel.Children.Add(btn);
-                    count++;
+                    p.Children.Remove(btn);
                 }
-                catch { /* skip unreadable records */ }
+                PadPanel.Children.Add(btn);
+                count++;
             }
 
             SortPadPanel();
@@ -2338,7 +2376,10 @@ namespace PaDDY
             {
                 pad.StopPlayback();
                 if (pad.Entry != null && !string.IsNullOrEmpty(pad.Entry.RecordingId))
+                {
                     _recordingStore.Delete(pad.Entry.RecordingId);
+                    _padCache.Remove(pad.Entry.RecordingId);
+                }
                 PadPanel.Children.Remove(pad);
             }
 
@@ -2361,6 +2402,7 @@ namespace PaDDY
 
             PadPanel.Children.Clear();
             _recordingStore.DeleteAll(idsToDelete);
+            foreach (var id in idsToDelete) _padCache.Remove(id);
 
             UpdatePadState();
             Forget(CompactAndRefreshAsync());
@@ -2401,6 +2443,7 @@ namespace PaDDY
             }
 
             _recordingStore.DeleteAll(idsToDelete);
+            foreach (var id in idsToDelete) _padCache.Remove(id);
 
             UpdatePadState();
             Forget(CompactAndRefreshAsync());
@@ -2695,30 +2738,9 @@ namespace PaDDY
                                 string padId = padIdEl.GetString() ?? string.Empty;
                                 if (!string.IsNullOrEmpty(padId))
                                 {
-                                    var pad = PadPanel.Children.OfType<RecordingPadButton>().FirstOrDefault(p => p.Entry?.RecordingId == padId) ??
-                                              FavoritesPanel.Children.OfType<RecordingPadButton>().FirstOrDefault(p => p.Entry?.RecordingId == padId);
-                                    if (pad != null)
+                                    if (_padCache.TryGetValue(padId, out var pad))
                                     {
                                         pad.TogglePlay();
-                                    }
-                                    else
-                                    {
-                                        if (!_hiddenPads.TryGetValue(padId, out var hiddenPad))
-                                        {
-                                            var record = _recordingStore.GetAll().FirstOrDefault(r => r.Id == padId);
-                                            if (record != null)
-                                            {
-                                                string tempPath = _recordingStore.MaterializeToTemp(record.Id, record.Codec);
-                                                var entry = new RecordingEntry
-                                                {
-                                                    RecordingId = record.Id,
-                                                    FilePath = tempPath
-                                                };
-                                                hiddenPad = CreatePadButton(entry);
-                                                _hiddenPads[padId] = hiddenPad;
-                                            }
-                                        }
-                                        hiddenPad?.TogglePlay();
                                     }
                                 }
                             }
