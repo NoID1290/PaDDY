@@ -941,6 +941,11 @@
                                    Text="Output folder: calculating usage…"
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>
+                        <TextBlock x:Name="StreamDeckStatusLabel"
+                                   Text="Stream Deck plugin: not connected"
+                                   Style="{StaticResource InfoLineLabel}"
+                                   Visibility="Collapsed"
+                                   MaxWidth="380"/>
                         
 
                         <TextBlock x:Name="UpdateNoticeText"

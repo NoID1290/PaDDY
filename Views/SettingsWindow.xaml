@@ -476,6 +476,19 @@
                               Content="Start PaDDY when Windows starts"/>
                 </Border>
 
+                <!-- ── Integrations ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="INTEGRATIONS" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Stream Deck Plugin" Foreground="#E0E0E0" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <TextBlock Text="Control PaDDY using Elgato Stream Deck." Foreground="#B0B0B0" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <Button x:Name="InstallStreamDeckBtn" Content="Install Stream Deck Plugin" Width="240" HorizontalAlignment="Left" Click="InstallStreamDeckBtn_Click"/>
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
             </TabItem>
