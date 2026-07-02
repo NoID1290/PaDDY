@@ -934,7 +934,7 @@
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>
                         <TextBlock x:Name="WhisperStatusLabel"
-                                   Text="AR-TTS : unavailable"
+                                   Text="AR-STT : unavailable"
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>           
                         <TextBlock x:Name="StorageInfoLabel"

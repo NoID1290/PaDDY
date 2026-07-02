@@ -2428,7 +2428,7 @@ namespace PaDDY
         }
         private void WhisperARTTStatus()
         {
-            string nm = "AR-TTS";
+            string nm = "AR-STT";
             try
             {
                 bool? arttsvalue = _settings.AutoRenameWithSpeech;
