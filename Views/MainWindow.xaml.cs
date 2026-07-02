@@ -227,14 +227,17 @@ namespace PaDDY
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
-            _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;
 
+            //_overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
+            /*
             _overlayEngine.Initialize(BuildOverlayOptions());
             if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
             {
                 _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
                 _overlayEngine.Show();
             }
+            */
+
 
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
