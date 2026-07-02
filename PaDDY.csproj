@@ -71,6 +71,9 @@
       <Link>licenses\VENDORING_MANIFEST.md</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include=".inno\com.paddy.streamDeckPlugin">
+      <LogicalName>com.paddy.streamDeckPlugin</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="PaDDY.ico" />

@@ -37,6 +37,7 @@ namespace PaDDY
         private readonly GlobalHotkeyService _hotkeyService = new();
         private readonly IOverlayEngine _overlayEngine = new OverlayEngine();
         private RecordingStore _recordingStore = new();
+        private readonly Dictionary<string, RecordingPadButton> _hiddenPads = new();
         private AppSettings _settings = AppSettings.Load();
         private EffectSettings _effectSettings = EffectSettingsManager.Load();
         private IEffectChain _globalCaptureChain = EffectChainFactory.CreateGlobal();
@@ -49,6 +50,8 @@ namespace PaDDY
         private PadPage? _activePadPage;
         private Services.SpeechRecognitionService? _speechService;
         private bool _overlayDevUnlocked = false;
+        private TcpIpcServer? _ipcServer;
+        private bool _isRecording;
 
         public void ShowLoadingOverlay(string message = "Processing...")
         {
@@ -250,6 +253,25 @@ namespace PaDDY
             _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
 
             InitializeTrayIcon();
+
+            _ipcServer = new TcpIpcServer(12900);
+            _ipcServer.MessageReceived += IpcServer_MessageReceived;
+            _ipcServer.ConnectionCountChanged += (s, count) =>
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    if (count > 0)
+                    {
+                        StreamDeckStatusLabel.Visibility = Visibility.Visible;
+                        StreamDeckStatusLabel.Text = count == 1 ? "Stream Deck plugin: connected" : $"Stream Deck plugin: {count} clients";
+                    }
+                    else
+                    {
+                        StreamDeckStatusLabel.Visibility = Visibility.Collapsed;
+                    }
+                });
+            };
+            _ipcServer.Start();
 
             HideLoadingOverlay();
 
@@ -1279,6 +1301,7 @@ namespace PaDDY
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 MonitorToggle.IsChecked = false;
             }
+            BroadcastIpcState();
         }
 
         private void MonitorToggle_Unchecked(object sender, RoutedEventArgs e)
@@ -1296,6 +1319,7 @@ namespace PaDDY
             _inputMeterResetTimer.Tick -= InputMeterResetTimerTick;
             _inputMeterResetTimer.Tick += InputMeterResetTimerTick;
             _inputMeterResetTimer.Start();
+            BroadcastIpcState();
         }
 
         private void InputMeterResetTimerTick(object? sender, EventArgs e)
@@ -1696,6 +1720,7 @@ namespace PaDDY
 
         private void OnRecordingStateChanged(bool isRecording)
         {
+            _isRecording = isRecording;
             Dispatcher.InvokeAsync(() =>
             {
                 if (isRecording)
@@ -1703,6 +1728,7 @@ namespace PaDDY
                 else
                     SetStatus("Listening…", "#FF4CAF50");
             });
+            BroadcastIpcState();
         }
 
         private void OnRecordingCompleted(RecordingEntry entry)
@@ -2608,6 +2634,89 @@ namespace PaDDY
             }
         }
 
+        // ── IPC ────────────────────────────────────────────────────────────────
+        private void BroadcastIpcState()
+        {
+            if (_ipcServer == null) return;
+            var state = new
+            {
+                isRecording = _isRecording,
+                isMonitoring = MonitorToggle.IsChecked == true,
+                mode = _settings.RecordingMode
+            };
+            string json = JsonSerializer.Serialize(state);
+            _ = _ipcServer.BroadcastAsync(json);
+        }
+
+        private void IpcServer_MessageReceived(object? sender, string message)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(message);
+                    if (doc.RootElement.TryGetProperty("command", out var cmdEl))
+                    {
+                        var command = cmdEl.GetString();
+                        if (command == "ToggleRecord")
+                        {
+                            MonitorToggle.IsChecked = MonitorToggle.IsChecked != true;
+                        }
+                        else if (command == "TriggerKeyBuffer")
+                        {
+                            if (MonitorToggle.IsChecked == true && _captureService.RecordingMode == AudioRecordingMode.KeyBuffer)
+                                _captureService.TriggerBufferCapture();
+                        }
+                        else if (command == "PlayPad")
+                        {
+                            if (doc.RootElement.TryGetProperty("padId", out var padIdEl))
+                            {
+                                string padId = padIdEl.GetString() ?? string.Empty;
+                                if (!string.IsNullOrEmpty(padId))
+                                {
+                                    var pad = PadPanel.Children.OfType<RecordingPadButton>().FirstOrDefault(p => p.Entry?.RecordingId == padId) ??
+                                              FavoritesPanel.Children.OfType<RecordingPadButton>().FirstOrDefault(p => p.Entry?.RecordingId == padId);
+                                    if (pad != null)
+                                    {
+                                        pad.TogglePlay();
+                                    }
+                                    else
+                                    {
+                                        if (!_hiddenPads.TryGetValue(padId, out var hiddenPad))
+                                        {
+                                            var record = _recordingStore.GetAll().FirstOrDefault(r => r.Id == padId);
+                                            if (record != null)
+                                            {
+                                                string tempPath = _recordingStore.MaterializeToTemp(record.Id, record.Codec);
+                                                var entry = new RecordingEntry
+                                                {
+                                                    RecordingId = record.Id,
+                                                    FilePath = tempPath
+                                                };
+                                                hiddenPad = CreatePadButton(entry);
+                                                _hiddenPads[padId] = hiddenPad;
+                                            }
+                                        }
+                                        hiddenPad?.TogglePlay();
+                                    }
+                                }
+                            }
+                        }
+                        else if (command == "GetPads")
+                        {
+                            var pads = _recordingStore.GetAll()
+                                .Select(p => new { id = p.Id, title = !string.IsNullOrWhiteSpace(p.DisplayName) ? p.DisplayName : "Unnamed Pad" })
+                                .ToList();
+                            
+                            var response = new { type = "padsList", pads = pads };
+                            _ = _ipcServer?.BroadcastAsync(System.Text.Json.JsonSerializer.Serialize(response));
+                        }
+                    }
+                }
+                catch { }
+            });
+        }
+
         // ── Shutdown ───────────────────────────────────────────────────────────
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -2622,6 +2731,7 @@ namespace PaDDY
             _speechService?.Dispose();
             _hotkeyService.Dispose();
             _captureService.Dispose();
+            _ipcServer?.Dispose();
             _overlayEngine.DiagnosticEvent -= OverlayEngine_DiagnosticEvent;
             _overlayEngine.Dispose();
             _recordingStore.CleanupAllTempFiles();

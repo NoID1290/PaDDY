@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>PaDDY Play Pad Settings</title>
+    <link rel="stylesheet" href="sdpi.css">
+    <script src="sdtools.common.js"></script>
+</head>
+<body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Select Pad</div>
+            <select class="sdpi-item-value select" id="padId" onchange="saveSettings()">
+                <option value="">Select a Pad...</option>
+            </select>
+        </div>
+        <div class="sdpi-item">
+            <button class="sdpi-item-value" onclick="requestPads()">Refresh Pads</button>
+        </div>
+    </div>
+    <script>
+        var websocket = null;
+        var pluginUUID = null;
+        var actionInfo = null;
+
+        function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, inInfo, inActionInfo) {
+            pluginUUID = inPluginUUID;
+            actionInfo = JSON.parse(inActionInfo);
+            
+            websocket = new WebSocket("ws://127.0.0.1:" + inPort);
+            websocket.onopen = function () {
+                var register = {
+                    event: inRegisterEvent,
+                    uuid: pluginUUID
+                };
+                websocket.send(JSON.stringify(register));
+                
+                requestPads();
+            };
+
+            websocket.onmessage = function (evt) {
+                var jsonObj = JSON.parse(evt.data);
+                if (jsonObj.event === "sendToPropertyInspector") {
+                    var payload = jsonObj.payload;
+                    if (payload.type === "padsList") {
+                        populateDropdown(payload.pads);
+                    }
+                }
+            };
+        }
+
+        function requestPads() {
+            if (websocket && websocket.readyState === 1) {
+                var req = {
+                    "event": "sendToPlugin",
+                    "action": actionInfo.action,
+                    "context": pluginUUID,
+                    "payload": {
+                        "command": "getPads"
+                    }
+                };
+                websocket.send(JSON.stringify(req));
+            }
+        }
+
+        function populateDropdown(pads) {
+            var select = document.getElementById('padId');
+            var currentVal = select.value || (actionInfo.payload.settings && actionInfo.payload.settings.padId);
+            
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            for (var i = 0; i < pads.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = pads[i].id;
+                opt.innerHTML = pads[i].title || pads[i].id;
+                select.appendChild(opt);
+            }
+            
+            if (currentVal) {
+                select.value = currentVal;
+            }
+        }
+
+        function saveSettings() {
+            if (websocket && websocket.readyState === 1) {
+                var json = {
+                    "event": "setSettings",
+                    "context": pluginUUID,
+                    "payload": {
+                        "padId": document.getElementById('padId').value
+                    }
+                };
+                websocket.send(JSON.stringify(json));
+            }
+        }
+    </script>
+</body>
+</html>

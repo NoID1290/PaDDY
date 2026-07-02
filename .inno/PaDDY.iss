@@ -90,6 +90,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon";    Description: "{cm:CreateDesktopIcon}";                                      GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "startmenuicon";  Description: "Create Start Menu shortcut";                                  GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
+Name: "installstreamdeckplugin"; Description: "Install Elgato Stream Deck Plugin"; GroupDescription: "Integrations"; Flags: unchecked
 
 ; ============================================================================
 [Files]
@@ -105,6 +106,7 @@ Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppE
 ; ============================================================================
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\com.paddy.streamDeckPlugin"; Description: "Install Stream Deck Plugin"; Tasks: installstreamdeckplugin; Flags: shellexec waituntilidle skipifsilent
 
 ; ============================================================================
 ; Register .PADBACK file type so it always opens with PaDDY and shows its icon

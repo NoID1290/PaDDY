@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Media;
 using System.Windows.Input;
 using NAudio.CoreAudioApi;
 using PaDDY.Helpers;
@@ -76,6 +77,16 @@ namespace PaDDY
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Stream Deck Plugin check
+            string pluginPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
+            if (System.IO.Directory.Exists(pluginPath))
+            {
+                InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
+                InstallStreamDeckBtn.IsEnabled = false;
+                InstallStreamDeckBtn.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF4CAF50"));
+                InstallStreamDeckBtn.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
+            }
+
             // Codec
             _visibleCodecOptions = new List<(string Value, string Label)>(CodecOptions);
             CodecCombo.Items.Clear();
@@ -349,6 +360,58 @@ namespace PaDDY
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        private void InstallStreamDeckBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string pluginPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "com.paddy.streamDeckPlugin");
+                
+                // Extract from embedded resources
+                using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("com.paddy.streamDeckPlugin"))
+                {
+                    if (stream != null)
+                    {
+                        using (var fileStream = System.IO.File.Create(pluginPath))
+                        {
+                            stream.CopyTo(fileStream);
+                        }
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Stream Deck Plugin not found in application resources.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
+
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(pluginPath) { UseShellExecute = true });
+                
+                // Poll for installation success
+                string installPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    for (int i = 0; i < 30; i++)
+                    {
+                        await System.Threading.Tasks.Task.Delay(1000);
+                        if (System.IO.Directory.Exists(installPath))
+                        {
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
+                                InstallStreamDeckBtn.IsEnabled = false;
+                                InstallStreamDeckBtn.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF4CAF50"));
+                                InstallStreamDeckBtn.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
+                            });
+                            break;
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to install plugin:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

@@ -1,0 +1,63 @@
+{
+  "UUID": "com.paddy",
+  "Actions": [
+    {
+      "Icon": "icon",
+      "Name": "Toggle Record",
+      "States": [
+        {
+          "Image": "icon"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Toggle PaDDY Recording",
+      "UUID": "com.paddy.record"
+    },
+    {
+      "Icon": "icon",
+      "Name": "Key Buffer",
+      "States": [
+        {
+          "Image": "icon"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Trigger PaDDY Key Buffer",
+      "UUID": "com.paddy.buffer"
+    },
+    {
+      "Icon": "icon",
+      "Name": "Play Pad",
+      "States": [
+        {
+          "Image": "icon"
+        }
+      ],
+      "PropertyInspectorPath": "pi.html",
+      "SupportedInMultiActions": true,
+      "Tooltip": "Play a specific Pad",
+      "UUID": "com.paddy.play"
+    }
+  ],
+  "Author": "NoIDSoftwork",
+  "Category": "PaDDY",
+  "CategoryIcon": "icon",
+  "CodePath": "index.js",
+  "Description": "Control PaDDY with Stream Deck",
+  "Icon": "icon",
+  "Name": "PaDDY",
+  "Nodejs": {
+    "Version": "20"
+  },
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.5"
+  },
+  "Version": "1.0.0.0"
+}
