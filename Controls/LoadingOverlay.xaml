@@ -34,7 +34,7 @@
         </Storyboard>
     </UserControl.Resources>
 
-    <Grid Background="#CC0A0A12">
+    <Grid Background="{Binding Background, RelativeSource={RelativeSource AncestorType=UserControl}}">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             
             <!-- Logo Container -->

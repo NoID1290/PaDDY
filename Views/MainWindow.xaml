@@ -1160,7 +1160,7 @@
                 </StackPanel>
             </ScrollViewer>
         <!-- Loading overlay covering the entire window -->
-        <controls:LoadingOverlay x:Name="MainLoadingOverlay" Grid.RowSpan="4" Panel.ZIndex="100"/>
+        <controls:LoadingOverlay x:Name="MainLoadingOverlay" Background="#CC0A0A12" Grid.RowSpan="4" Panel.ZIndex="100"/>
         </Grid>
     </Grid>
 </Window>
