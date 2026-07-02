@@ -563,6 +563,58 @@
                                            Text="100" FontSize="10" Width="26" TextAlignment="Center"/>
                             </Border>
                         </Grid>
+
+                        <StackPanel x:Name="OverlayConfigPanel" Visibility="Collapsed">
+                            <Rectangle Height="1" Fill="#1AFFFFFF" Margin="0,9,0,8"/>
+
+                            <TextBlock Text="OVERLAY" Style="{StaticResource ConfigLabel}" Margin="0,0,0,4"/>
+
+                            <CheckBox x:Name="OverlayEnabledCheck"
+                                      Content="Enable in-game overlay"
+                                      Margin="0,0,0,8"
+                                      Checked="OverlayEnabledCheck_Changed"
+                                      Unchecked="OverlayEnabledCheck_Changed"/>
+
+                            <Grid Margin="0,0,0,7">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Opacity"
+                                           Style="{StaticResource ConfigLabel}"/>
+                                <Slider x:Name="OverlayOpacitySlider"
+                                        Grid.Column="1"
+                                        Minimum="20" Maximum="100" Value="90"
+                                        TickFrequency="5"
+                                        HorizontalAlignment="Stretch"
+                                        ValueChanged="OverlayOpacitySlider_ValueChanged"/>
+                                <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                    <TextBlock x:Name="OverlayOpacityValueLabel"
+                                               Text="90%" FontSize="10" Width="36" TextAlignment="Center"/>
+                                </Border>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="FPS"
+                                           Style="{StaticResource ConfigLabel}"/>
+                                <Slider x:Name="OverlayFpsSlider"
+                                        Grid.Column="1"
+                                        Minimum="30" Maximum="240" Value="60"
+                                        TickFrequency="10"
+                                        HorizontalAlignment="Stretch"
+                                        ValueChanged="OverlayFpsSlider_ValueChanged"/>
+                                <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                    <TextBlock x:Name="OverlayFpsValueLabel"
+                                               Text="60" FontSize="10" Width="30" TextAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>

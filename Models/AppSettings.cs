@@ -65,6 +65,11 @@ namespace PaDDY
         // Trim Editor output device (0 = default, 1..N = devices 0..N-1)
         public int TrimEditorOutputDeviceIndex { get; set; } = 0;
 
+        // ---- Overlay ----
+        public bool OverlayEnabled { get; set; } = false;
+        public int OverlayFrameRateCap { get; set; } = 60;
+        public double OverlayOpacity { get; set; } = 0.9;
+
         // ---- Appearance ----
         // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula"
         public string Theme { get; set; } = "dark";
