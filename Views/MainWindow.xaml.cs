@@ -17,7 +17,11 @@ using Microsoft.Data.Sqlite;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
+using NoIDSoftwork.OverlayEngine.Diagnostics;
 using NoIDSoftwork.EffectProcessor;
+using NoIDSoftwork.OverlayEngine.Configuration;
+using NoIDSoftwork.OverlayEngine.Core;
+using NoIDSoftwork.OverlayEngine.Models;
 using PaDDY.Controls;
 using PaDDY.Helpers;
 using PaDDY.Models;
@@ -31,6 +35,7 @@ namespace PaDDY
     {
         private readonly AudioCaptureService _captureService = new();
         private readonly GlobalHotkeyService _hotkeyService = new();
+        private readonly IOverlayEngine _overlayEngine = new OverlayEngine();
         private RecordingStore _recordingStore = new();
         private AppSettings _settings = AppSettings.Load();
         private EffectSettings _effectSettings = EffectSettingsManager.Load();
@@ -43,6 +48,7 @@ namespace PaDDY
         private bool _forceExit;
         private PadPage? _activePadPage;
         private Services.SpeechRecognitionService? _speechService;
+        private bool _overlayDevUnlocked = false;
 
         public void ShowLoadingOverlay(string message = "Processing...")
         {
@@ -177,6 +183,15 @@ namespace PaDDY
 
         private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            var isD = e.Key == Key.D || (e.Key == Key.System && e.SystemKey == Key.D);
+            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isD)
+            {
+                e.Handled = true;
+                _overlayDevUnlocked = !_overlayDevUnlocked;
+                OverlayConfigPanel.Visibility = _overlayDevUnlocked ? Visibility.Visible : Visibility.Collapsed;
+                return;
+            }
+
             if (_hoveredPad == null) return;
             // Don't intercept when a text-entry control has keyboard focus
             if (Keyboard.FocusedElement is System.Windows.Controls.TextBox ||
@@ -212,6 +227,14 @@ namespace PaDDY
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
+            _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;
+
+            _overlayEngine.Initialize(BuildOverlayOptions());
+            if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
+            {
+                _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
+                _overlayEngine.Show();
+            }
 
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
@@ -839,10 +862,63 @@ namespace PaDDY
             UpdateInputControlsForSource();
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
             ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
+
+            OverlayEnabledCheck.IsChecked = _settings.OverlayEnabled;
+            OverlayOpacitySlider.Value = Math.Clamp(_settings.OverlayOpacity * 100.0, 20, 100);
+            OverlayFpsSlider.Value = Math.Clamp(_settings.OverlayFrameRateCap, 30, 240);
+
             UpdatePadMonitorMeterAvailability();
             RefreshPadOutputRouting();
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
+
+            ApplyOverlayOptionsFromSettings();
+        }
+
+        private OverlayOptions BuildOverlayOptions()
+        {
+            return new OverlayOptions
+            {
+                Enabled = _settings.OverlayEnabled,
+                FrameRateCap = Math.Clamp(_settings.OverlayFrameRateCap, 30, 240),
+                VisualStyle = new OverlayVisualStyle
+                {
+                    Opacity = Math.Clamp(_settings.OverlayOpacity, 0.2, 1.0),
+                    AccentColorHex = "#FF4CAF50",
+                    PrimaryColorHex = "#FFFFFFFF",
+                    FontFamily = "Segoe UI",
+                    FontSize = 18f
+                }
+            };
+        }
+
+        private void ApplyOverlayOptionsFromSettings()
+        {
+            if (_overlayEngine.State == OverlayEngineState.Created || _overlayEngine.State == OverlayEngineState.Disposed)
+            {
+                return;
+            }
+
+            _overlayEngine.UpdateOptions(BuildOverlayOptions());
+            if (!_settings.OverlayEnabled)
+            {
+                _overlayEngine.Hide();
+                return;
+            }
+
+            if (_settings.AppLoopbackProcessId != 0)
+            {
+                UpdateOverlayTarget(_settings.AppLoopbackProcessId);
+            }
+        }
+
+        private void OverlayEngine_DiagnosticEvent(object? sender, OverlayDiagnosticEvent e)
+        {
+            Debug.WriteLine($"[Overlay:{e.Level}] {e.Category}: {e.Message}");
+            if (e.Exception != null)
+            {
+                Debug.WriteLine(e.Exception);
+            }
         }
 
         private void UpdateHotkeyLabel()
@@ -944,6 +1020,7 @@ namespace PaDDY
                     throw new InvalidOperationException("No app selected for loopback capture.");
 
                 _captureService.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
+                UpdateOverlayTarget(_appLoopbackProcesses[idx].ProcessId);
                 _captureService.Start(0, mode, null);
                 SetStatus($"Monitoring app: {_appLoopbackProcesses[idx].ProcessName}…", "#FF4CAF50");
                 RefreshInputFormatInfo();
@@ -998,9 +1075,91 @@ namespace PaDDY
             {
                 _settings.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
                 _settings.Save();
+                UpdateOverlayTarget(_settings.AppLoopbackProcessId);
             }
             RefreshInputFormatInfo();
             RestartMonitoringIfActive();
+        }
+
+        private void UpdateOverlayTarget(uint processId)
+        {
+            if (!_settings.OverlayEnabled)
+            {
+                _overlayEngine.Hide();
+                _overlayEngine.Detach();
+                return;
+            }
+
+            if (processId == 0)
+            {
+                _overlayEngine.Hide();
+                _overlayEngine.Detach();
+                return;
+            }
+
+            if (_overlayEngine.AttachToProcess(processId))
+            {
+                string processName = _appLoopbackProcesses.FirstOrDefault(p => p.ProcessId == processId).ProcessName;
+                if (string.IsNullOrWhiteSpace(processName))
+                {
+                    processName = $"PID {processId}";
+                }
+
+                _overlayEngine.UpdateFrame(new OverlayFrame
+                {
+                    Title = "PaDDY",
+                    Lines = new[]
+                    {
+                        $"Tracking: {processName}",
+                        "Press monitor hotkey to capture"
+                    }
+                });
+                _overlayEngine.Show();
+            }
+            else
+            {
+                _overlayEngine.Hide();
+            }
+        }
+
+        private void OverlayEnabledCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (OverlayEnabledCheck == null)
+            {
+                return;
+            }
+
+            _settings.OverlayEnabled = OverlayEnabledCheck.IsChecked == true;
+            _settings.Save();
+            ApplyOverlayOptionsFromSettings();
+        }
+
+        private void OverlayOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (OverlayOpacityValueLabel == null)
+            {
+                return;
+            }
+
+            int pct = (int)Math.Round(e.NewValue);
+            OverlayOpacityValueLabel.Text = $"{pct}%";
+            _settings.OverlayOpacity = pct / 100.0;
+            _settings.Save();
+            ApplyOverlayOptionsFromSettings();
+        }
+
+        private void OverlayFpsSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (OverlayFpsValueLabel == null)
+            {
+                return;
+            }
+
+            int fps = (int)Math.Round(e.NewValue);
+            OverlayFpsValueLabel.Text = fps.ToString();
+            _settings.OverlayFrameRateCap = fps;
+            _settings.Save();
+            ApplyOverlayOptionsFromSettings();
         }
 
         private void RefreshAppLoopback_Click(object sender, RoutedEventArgs e)
@@ -2460,6 +2619,8 @@ namespace PaDDY
             _speechService?.Dispose();
             _hotkeyService.Dispose();
             _captureService.Dispose();
+            _overlayEngine.DiagnosticEvent -= OverlayEngine_DiagnosticEvent;
+            _overlayEngine.Dispose();
             _recordingStore.CleanupAllTempFiles();
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();
