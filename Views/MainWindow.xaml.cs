@@ -57,7 +57,7 @@ namespace PaDDY
 
         public void ShowLoadingOverlay(string message = "Processing...")
         {
-            Dispatcher.Invoke(() => 
+            Dispatcher.Invoke(() =>
             {
                 _splashWindow?.UpdateMessage(message);
                 MainLoadingOverlay.Show(message);
@@ -66,14 +66,18 @@ namespace PaDDY
 
         public void HideLoadingOverlay()
         {
-            Dispatcher.Invoke(() => 
+            Dispatcher.Invoke(() =>
             {
                 MainLoadingOverlay.Hide();
                 if (_splashWindow != null)
                 {
                     _splashWindow.Close();
                     _splashWindow = null;
+
+                    this.ShowInTaskbar = true;
                     this.Opacity = 1;
+                    this.IsHitTestVisible = true;
+
                     if (this.WindowState != WindowState.Minimized)
                     {
                         this.Activate();
@@ -90,11 +94,11 @@ namespace PaDDY
         private static readonly SolidColorBrush InfoLabelPrefixBrush = new(System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x88));
         private static readonly SolidColorBrush InfoLabelValueBrush = new(System.Windows.Media.Color.FromRgb(0x90, 0x90, 0xB8));
 
-        static MainWindow() 
-        { 
-            PeakHotBrush.Freeze(); 
-            PeakColdBrush.Freeze(); 
-            InfoLabelPrefixBrush.Freeze(); 
+        static MainWindow()
+        {
+            PeakHotBrush.Freeze();
+            PeakColdBrush.Freeze();
+            InfoLabelPrefixBrush.Freeze();
             InfoLabelValueBrush.Freeze();
         }
 
@@ -176,6 +180,8 @@ namespace PaDDY
                 _splashWindow = new SplashWindow();
                 _splashWindow.Show();
                 this.Opacity = 0; // Hide the main window while it loads
+                this.ShowInTaskbar = false;
+                this.IsHitTestVisible = false;
             }
 
             InitializeComponent();
@@ -278,15 +284,15 @@ namespace PaDDY
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
 
-            //_overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
-            /*
+            _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
+
             _overlayEngine.Initialize(BuildOverlayOptions());
             if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
             {
                 _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
                 _overlayEngine.Show();
             }
-            */
+
 
 
             RefreshOutputFormatInfo();
@@ -295,9 +301,6 @@ namespace PaDDY
             Forget(RefreshStorageInfoAsync());
             _ = CheckForUpdateAsync();
 
-            // Register global hotkey
-            _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
-            _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
 
             InitializeTrayIcon();
 
@@ -321,6 +324,10 @@ namespace PaDDY
             _ipcServer.Start();
 
             HideLoadingOverlay();
+
+            // Register global hotkey
+            _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
+            _hotkeyService.HotkeyPressed += OnBufferHotkeyPressed;
 
             // If the app was launched by opening a .PADBACK file, prompt for restore.
             if (App.PendingRestoreFilePath != null)
@@ -1774,8 +1781,9 @@ namespace PaDDY
                     SetStatus("Recording…", "#FFEF5350");
                 else
                     SetStatus("Listening…", "#FF4CAF50");
+
+                BroadcastIpcState();
             });
-            BroadcastIpcState();
         }
 
         private void OnRecordingCompleted(RecordingEntry entry)
@@ -2750,7 +2758,7 @@ namespace PaDDY
                             var pads = _recordingStore.GetAll()
                                 .Select(p => new { id = p.Id, title = !string.IsNullOrWhiteSpace(p.DisplayName) ? p.DisplayName : "Unnamed Pad" })
                                 .ToList();
-                            
+
                             var response = new { type = "padsList", pads = pads };
                             _ = _ipcServer?.BroadcastAsync(System.Text.Json.JsonSerializer.Serialize(response));
                         }

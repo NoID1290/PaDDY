@@ -12,6 +12,6 @@
         ShowInTaskbar="False">
     <Grid>
         <!-- The LoadingOverlay itself has a Background of #CC0A0A12 so we can just use it directly -->
-        <controls:LoadingOverlay x:Name="SplashLoadingOverlay" />
+        <controls:LoadingOverlay x:Name="SplashLoadingOverlay" Background="#0A0A12" />
     </Grid>
 </Window>

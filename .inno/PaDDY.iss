@@ -96,6 +96,7 @@ Name: "installstreamdeckplugin"; Description: "Install Elgato Stream Deck Plugin
 [Files]
 ; All files from the self-contained publish directory
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "*.dll.config"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\StreamDeckPlugin\com.paddy.streamDeckPlugin"; DestDir: "{app}"; Flags: ignoreversion
 
 ; ============================================================================
 [Icons]
