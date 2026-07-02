@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.200.0702-Pre-release_1] - 2026-07-02
+
+- Fix audio recording since new cache
+
 ## [1.5.100.0702-Pre-release_1] - 2026-07-02
 
 - Added SplashWindow
