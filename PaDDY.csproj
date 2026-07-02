@@ -9,9 +9,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>1.5.2.0630</Version>
-    <AssemblyVersion>1.5.2.0630</AssemblyVersion>
-    <FileVersion>1.5.2.0630</FileVersion>
+    <Version>1.5.3.0702</Version>
+    <AssemblyVersion>1.5.3.0702</AssemblyVersion>
+    <FileVersion>1.5.3.0702</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
@@ -22,11 +22,12 @@
     <UseAppHost>true</UseAppHost>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <InformationalVersion>1.5.2.0630</InformationalVersion>
+    <InformationalVersion>1.5.3.0702</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
     <ProjectReference Include="EffectProcessor\EffectProcessor.csproj" />
+    <ProjectReference Include="OverlayEngine\OverlayEngine.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MessagePack" Version="3.1.7" ExcludeFromSingleFile="true" />
@@ -40,6 +41,7 @@
   <Target Name="ExcludeAppDllsFromSingleFile" BeforeTargets="_ComputeFilesToBundle" Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>
       <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Filename)' == 'NoIDSoftwork.AudioProcessor' or                      '%(Filename)' == 'NoIDSoftwork.EffectProcessor'" ExcludeFromSingleFile="true" />
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Filename)' == 'NoIDSoftwork.OverlayEngine'" ExcludeFromSingleFile="true" />
       <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.NuGetPackageId)' == 'MessagePack' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'MessagePack.Annotations' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.Data.Sqlite' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.Data.Sqlite.Core' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.bundle_e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.core' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.lib.e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.provider.e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.config.e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SourceGear.sqlite3'" ExcludeFromSingleFile="true" />
     </ItemGroup>
   </Target>
@@ -54,6 +56,11 @@
     <EmbeddedResource Remove="EffectProcessor\**" />
     <Page Remove="EffectProcessor\**" />
     <ApplicationDefinition Remove="EffectProcessor\**" />
+    <Compile Remove="OverlayEngine\**" />
+    <None Remove="OverlayEngine\**" />
+    <EmbeddedResource Remove="OverlayEngine\**" />
+    <Page Remove="OverlayEngine\**" />
+    <ApplicationDefinition Remove="OverlayEngine\**" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AudioProcessor\vendors\licenses\*.txt">
