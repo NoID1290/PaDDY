@@ -68,7 +68,28 @@ namespace PaDDY
         private DateTime _lastMonitorMeterTick;
         private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36));
         private static readonly SolidColorBrush PeakColdBrush = new(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-        static MainWindow() { PeakHotBrush.Freeze(); PeakColdBrush.Freeze(); }
+        private static readonly SolidColorBrush InfoLabelPrefixBrush = new(System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x88));
+        private static readonly SolidColorBrush InfoLabelValueBrush = new(System.Windows.Media.Color.FromRgb(0x90, 0x90, 0xB8));
+
+        static MainWindow() 
+        { 
+            PeakHotBrush.Freeze(); 
+            PeakColdBrush.Freeze(); 
+            InfoLabelPrefixBrush.Freeze(); 
+            InfoLabelValueBrush.Freeze();
+        }
+
+        private void SetInfoLabel(TextBlock label, string prefix, string value)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.InvokeAsync(() => SetInfoLabel(label, prefix, value));
+                return;
+            }
+            label.Inlines.Clear();
+            label.Inlines.Add(new System.Windows.Documents.Run(prefix) { Foreground = InfoLabelPrefixBrush });
+            label.Inlines.Add(new System.Windows.Documents.Run(value) { Foreground = InfoLabelValueBrush });
+        }
 
         private bool _suppressSelectionEvents = true;
         private bool _inputMeterUpdatesEnabled;
@@ -263,7 +284,7 @@ namespace PaDDY
                     if (count > 0)
                     {
                         StreamDeckStatusLabel.Visibility = Visibility.Visible;
-                        StreamDeckStatusLabel.Text = count == 1 ? "Stream Deck plugin: connected" : $"Stream Deck plugin: {count} clients";
+                        SetInfoLabel(StreamDeckStatusLabel, "Stream Deck plugin: ", count == 1 ? "connected" : $"{count} clients");
                     }
                     else
                     {
@@ -2396,18 +2417,18 @@ namespace PaDDY
         {
             if (MonitorToggle.IsChecked != true)
             {
-                InputFormatInfoLabel.Text = "Input format: waiting for monitoring";
+                SetInfoLabel(InputFormatInfoLabel, "Input format: ", "waiting for monitoring");
                 return;
             }
 
             var format = _captureService.CurrentCaptureFormat;
             if (format == null)
             {
-                InputFormatInfoLabel.Text = "Input format: detecting...";
+                SetInfoLabel(InputFormatInfoLabel, "Input format: ", "detecting...");
                 return;
             }
 
-            InputFormatInfoLabel.Text = $"Input format: {FormatPcmDetails(format.SampleRate, format.BitsPerSample, format.Channels)}";
+            SetInfoLabel(InputFormatInfoLabel, "Input format: ", FormatPcmDetails(format.SampleRate, format.BitsPerSample, format.Channels));
         }
 
         private void RefreshOutputFormatInfo()
@@ -2421,7 +2442,7 @@ namespace PaDDY
                 ? $"{FormatPcmDetails(sampleRate, bitDepth, channels)}"
                 : $"{FormatSampleRate(sampleRate)} | {FormatChannels(channels)}";
 
-            OutputFormatInfoLabel.Text = $"Recording format: {codec} | {suffix}";
+            SetInfoLabel(OutputFormatInfoLabel, "Recording format: ", $"{codec} | {suffix}");
         }
 
         private async Task CompactAndRefreshAsync()
@@ -2438,48 +2459,48 @@ namespace PaDDY
             {
                 long dbBytes = await Task.Run(() => _recordingStore.GetStoreSizeBytes());
                 string root = Path.GetPathRoot(RecordingStore.StorePath) ?? string.Empty;
-                string summary;
+                string value;
                 if (!string.IsNullOrWhiteSpace(root))
                 {
                     var drive = new DriveInfo(root);
-                    summary = $"Storage data: {FormatByteSize(dbBytes)} | {FormatByteSize(drive.AvailableFreeSpace)} free";
+                    value = $"{FormatByteSize(dbBytes)} | {FormatByteSize(drive.AvailableFreeSpace)} free";
                 }
                 else
                 {
-                    summary = $"Storage data: {FormatByteSize(dbBytes)}";
+                    value = $"{FormatByteSize(dbBytes)}";
                 }
-                StorageInfoLabel.Text = summary;
+                SetInfoLabel(StorageInfoLabel, "Storage data: ", value);
             }
             catch
             {
-                StorageInfoLabel.Text = "Unable to read storage data";
+                SetInfoLabel(StorageInfoLabel, "Storage data: ", "Unable to read storage data");
             }
         }
         private void WhisperARTTStatus()
         {
-            string nm = "AR-STT";
+            string nm = "AR-STT: ";
             try
             {
                 bool? arttsvalue = _settings.AutoRenameWithSpeech;
                 if (arttsvalue == null)
                 {
-                    WhisperStatusLabel.Text = nm + ": unavailable";
+                    SetInfoLabel(WhisperStatusLabel, nm, "unavailable");
                     return;
                 }
                 else if (arttsvalue == true)
                 {
                     string suffix = _settings.UseCudaForSpeech ? " (CUDA)" : "";
-                    WhisperStatusLabel.Text = nm + ": enabled" + suffix;
+                    SetInfoLabel(WhisperStatusLabel, nm, "enabled" + suffix);
                 }
                 else
                 {
-                    WhisperStatusLabel.Text = nm + ": disabled";
+                    SetInfoLabel(WhisperStatusLabel, nm, "disabled");
                     return;
                 }
             }
             catch
             {
-                WhisperStatusLabel.Text = nm + ": unavailable";
+                SetInfoLabel(WhisperStatusLabel, nm, "unavailable");
                 return;
             }
         }
