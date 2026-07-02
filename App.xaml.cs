@@ -92,6 +92,9 @@ public partial class App : WpfApplication
         Helpers.ThemeManager.ApplyTheme(settings.Theme);
         Helpers.ThemeManager.ApplyMeterSkin(settings.MeterSkin, settings.MeterDigitalDots);
         Helpers.ThemeManager.ApplyPerformanceMode(settings.PerformanceMode);
+
+        MainWindow = new MainWindow();
+        MainWindow.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)
