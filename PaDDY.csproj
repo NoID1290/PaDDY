@@ -9,9 +9,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>1.5.200.0702</Version>
-    <AssemblyVersion>1.5.200.0702</AssemblyVersion>
-    <FileVersion>1.5.200.0702</FileVersion>
+    <Version>1.6.0.0703</Version>
+    <AssemblyVersion>1.6.0.0703</AssemblyVersion>
+    <FileVersion>1.6.0.0703</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
@@ -22,7 +22,7 @@
     <UseAppHost>true</UseAppHost>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <InformationalVersion>1.5.200.0702</InformationalVersion>
+    <InformationalVersion>1.6.0.0703</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
