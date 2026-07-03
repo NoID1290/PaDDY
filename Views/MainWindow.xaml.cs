@@ -78,8 +78,9 @@ namespace PaDDY
                     this.Opacity = 1;
                     this.IsHitTestVisible = true;
 
-                    if (this.WindowState != WindowState.Minimized)
+                    if (!_startHiddenInTray)
                     {
+                        this.WindowState = WindowState.Normal;
                         this.Activate();
                     }
                 }
@@ -179,6 +180,8 @@ namespace PaDDY
             {
                 _splashWindow = new SplashWindow();
                 _splashWindow.Show();
+                this.ShowActivated = false;
+                this.WindowState = WindowState.Minimized;
                 this.Opacity = 0; // Hide the main window while it loads
                 this.ShowInTaskbar = false;
                 this.IsHitTestVisible = false;
