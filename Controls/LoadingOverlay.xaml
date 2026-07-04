@@ -16,15 +16,7 @@
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
                 From="0" To="360" Duration="0:0:1.5" />
             
-            <!-- Pulse the logo glow -->
-            <DoubleAnimation 
-                Storyboard.TargetName="LogoGlow"
-                Storyboard.TargetProperty="Opacity"
-                From="0.2" To="1.0" Duration="0:0:1.0" AutoReverse="True">
-                <DoubleAnimation.EasingFunction>
-                    <SineEase EasingMode="EaseInOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
+
 
             <!-- Pulse the text opacity -->
             <DoubleAnimation 

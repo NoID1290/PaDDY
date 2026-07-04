@@ -23,6 +23,7 @@ namespace PaDDY
     {
         private readonly AppSettings _settings;
         private List<(string Value, string Label)> _visibleCodecOptions = new();
+        public bool DialogResult { get; set; }
 
         // Resolved output values
         public string SelectedCodec { get; private set; } = "wav";
@@ -43,6 +44,9 @@ namespace PaDDY
         public bool SelectedCloseToTray { get; private set; }
         public bool SelectedStartMinimizedInTray { get; private set; }
         public bool SelectedRunOnWindowsStartup { get; private set; }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int MessageBoxW(System.IntPtr hWnd, string text, string caption, uint type);
         public int SelectedDetectionAlgorithm { get; private set; }
         public bool SelectedAutoRenameWithSpeech { get; private set; }
         public string SelectedSpeechModel { get; private set; } = "base";
@@ -79,7 +83,10 @@ namespace PaDDY
         {
             _settings = settings;
             InitializeComponent();
-            Loaded += OnLoaded;
+            if (this.Content is FrameworkElement fe)
+            {
+                fe.Loaded += OnLoaded;
+            }
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -90,8 +97,8 @@ namespace PaDDY
             {
                 InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
                 InstallStreamDeckBtn.IsEnabled = false;
-                InstallStreamDeckBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush((Windows.UI.Color)Windows.UI.ColorConverter.ConvertFromString("#FF4CAF50"));
-                InstallStreamDeckBtn.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White);
+                InstallStreamDeckBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Helpers.ThemeManager.ParseColor("#FF4CAF50"));
+                InstallStreamDeckBtn.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
             }
 
             // Codec
@@ -203,13 +210,13 @@ namespace PaDDY
             {
                 CudaStatusText.Text = "NVIDIA GPU detected — CUDA acceleration available.";
                 CudaStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                    Windows.UI.Color.FromRgb(0x60, 0x90, 0x60));
+                    Windows.UI.Color.FromArgb(0xFF, 0x60, 0x90, 0x60));
             }
             else
             {
                 CudaStatusText.Text = "No NVIDIA GPU detected — CUDA acceleration unavailable.";
                 CudaStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                    Windows.UI.Color.FromRgb(0x60, 0x60, 0x90));
+                    Windows.UI.Color.FromArgb(0xFF, 0x60, 0x60, 0x90));
             }
         }
 
@@ -290,14 +297,14 @@ namespace PaDDY
             _capturingKey = true;
             HotkeyKeyBox.Text = "Press a key…";
             HotkeyKeyBox.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Windows.UI.Color.FromRgb(0x2F, 0x3A, 0x2F));
+                Windows.UI.Color.FromArgb(0xFF, 0x2F, 0x3A, 0x2F));
         }
 
         private void HotkeyKeyBox_LostFocus(object sender, RoutedEventArgs e)
         {
             _capturingKey = false;
             HotkeyKeyBox.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Windows.UI.Color.FromRgb(0x2A, 0x2A, 0x2A));
+                Windows.UI.Color.FromArgb(0xFF, 0x2A, 0x2A, 0x2A));
             HotkeyKeyBox.Text = KeyHelper.VkToLabel(_capturedVk);
         }
 
@@ -306,15 +313,17 @@ namespace PaDDY
             if (!_capturingKey) return;
             e.Handled = true;
 
-            Key key = e.Key == Key.System ? e.SystemKey : e.Key;
+            var key = e.Key;
             // Ignore modifier-only presses
-            if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt
-                or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin)
+            if (key is Windows.System.VirtualKey.Control or Windows.System.VirtualKey.LeftControl or Windows.System.VirtualKey.RightControl
+                or Windows.System.VirtualKey.Menu or Windows.System.VirtualKey.LeftMenu or Windows.System.VirtualKey.RightMenu
+                or Windows.System.VirtualKey.Shift or Windows.System.VirtualKey.LeftShift or Windows.System.VirtualKey.RightShift
+                or Windows.System.VirtualKey.LeftWindows or Windows.System.VirtualKey.RightWindows)
                 return;
 
-            _capturedVk = (uint)KeyInterop.VirtualKeyFromKey(key);
+            _capturedVk = (uint)key;
             HotkeyKeyBox.Text = KeyHelper.VkToLabel(_capturedVk);
-            Keyboard.ClearFocus();
+            this.Content.Focus(FocusState.Programmatic);
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
@@ -362,11 +371,13 @@ namespace PaDDY
             SelectedUseCudaForSpeech = UseCudaCheck.IsChecked == true;
 
             DialogResult = true;
+            Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+            Close();
         }
 
         private void InstallStreamDeckBtn_Click(object sender, RoutedEventArgs e)
@@ -387,7 +398,7 @@ namespace PaDDY
                     }
                     else
                     {
-                        Microsoft.UI.Xaml.MessageBox.Show("Stream Deck Plugin not found in application resources.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBoxW(System.IntPtr.Zero, "Stream Deck Plugin not found in application resources.", "PaDDY", 0x00000000 | 0x00000030); // MB_OK | MB_ICONWARNING
                         return;
                     }
                 }
@@ -403,12 +414,12 @@ namespace PaDDY
                         await System.Threading.Tasks.Task.Delay(1000);
                         if (System.IO.Directory.Exists(installPath))
                         {
-                            await Dispatcher.InvokeAsync(() =>
+                            DispatcherQueue.TryEnqueue(() =>
                             {
                                 InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
                                 InstallStreamDeckBtn.IsEnabled = false;
-                                InstallStreamDeckBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush((Windows.UI.Color)Windows.UI.ColorConverter.ConvertFromString("#FF4CAF50"));
-                                InstallStreamDeckBtn.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White);
+                                InstallStreamDeckBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Helpers.ThemeManager.ParseColor("#FF4CAF50"));
+                                InstallStreamDeckBtn.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
                             });
                             break;
                         }
@@ -417,7 +428,7 @@ namespace PaDDY
             }
             catch (Exception ex)
             {
-                Microsoft.UI.Xaml.MessageBox.Show($"Failed to install plugin:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBoxW(System.IntPtr.Zero, $"Failed to install plugin:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000010); // MB_OK | MB_ICONERROR
             }
         }
 

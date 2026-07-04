@@ -9,6 +9,7 @@
     <UseWinUI>true</UseWinUI>
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <EnableMsixTooling>true</EnableMsixTooling>
     
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
@@ -26,11 +27,10 @@
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <InformationalVersion>1.6.0.0703</InformationalVersion>
-    <UseXamlCompilerExecutable>false</UseXamlCompilerExecutable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250909003" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
@@ -109,6 +109,16 @@
     <RemoveDir Directories="$(OutputPath)runtimes\win-arm64;$(OutputPath)runtimes\win-x86" Condition="Exists('$(OutputPath)runtimes')" />
   </Target>
   <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish">
-    <RemoveDir Directories="$(PublishDir)runtimes\win-arm64;$(PublishDir)runtimes\win-x86" Condition="Exists('$(PublishDir)runtimes')" />
+    <RemoveDir Directories="$(PublishDir)runtimes\win-arm64;$(PublishDir)runtimes\win-x86" Condition="Exists('$(OutputPath)runtimes')" />
+  </Target>
+  
+  <!-- Workaround for dotnet build / VS Code compilation where XAML generated .g.cs files are generated empty (0 bytes) and backed up as .g.cs.backup.
+       This target restores the contents of the generated files from the backup right before compile. -->
+  <Target Name="RestoreXamlGeneratedFiles" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <BackupFiles Include="obj\**\*.g.cs.backup" />
+    </ItemGroup>
+    <Message Text="Restoring XAML generated file: %(BackupFiles.Filename) from backup" Importance="high" />
+    <Copy SourceFiles="@(BackupFiles)" DestinationFiles="@(BackupFiles-&gt;'%(RelativeDir)%(Filename)')" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
   </Target>
 </Project>

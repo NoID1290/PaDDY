@@ -5,7 +5,8 @@
 
     
 
-    <Window.Resources>
+    <Grid x:Name="MainRootGrid">
+        <Grid.Resources>
 
         <!-- Monitor toggle: green (idle) → red+pulse (active) -->
         <Style x:Key="MonitorToggleStyle" TargetType="ToggleButton">
@@ -125,7 +126,7 @@
                                     </LinearGradientBrush>
                                 </Border.BorderBrush>
                                 <ContentPresenter x:Name="ContentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center" Content="▶ Start Monitoring"/>
-                            </Grid>
+                            </Border>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
@@ -203,9 +204,7 @@
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         </Style>
 
-    </Window.Resources>
-
-    <Grid x:Name="MainRootGrid">
+        </Grid.Resources>
         
         <Grid.RowDefinitions>
             <RowDefinition/>   <!-- Row 0: Compact top bar -->
@@ -297,7 +296,7 @@
                 BorderBrush="#14FFFFFF"
                 BorderThickness="0,0,0,1"
                 MaxHeight="290"
-                ClipToBounds="True">
+                >
             <Grid Margin="10,8,10,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -636,7 +635,7 @@
                         <TextBlock Text="L" Grid.Column="0"
                                    Foreground="#FF7070A0" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <Grid Grid.Column="1" ClipToBounds="True">
+                        <Grid Grid.Column="1" >
                             <Rectangle Fill="{ThemeResource MeterInBrush}"/>
                             <Rectangle x:Name="MeterOverlayL"
                                        Fill="#FF0D0D18"
@@ -657,7 +656,7 @@
                         <TextBlock Text="R" Grid.Column="0"
                                    Foreground="#FF7070A0" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <Grid Grid.Column="1" ClipToBounds="True">
+                        <Grid Grid.Column="1" >
                             <Rectangle Fill="{ThemeResource MeterInBrush}"/>
                             <Rectangle x:Name="MeterOverlayR"
                                        Fill="#FF0D0D18"
@@ -682,7 +681,7 @@
                         <TextBlock Text="L" Grid.Column="0"
                                    Foreground="#FF505070" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <Grid Grid.Column="1" ClipToBounds="True">
+                        <Grid Grid.Column="1" >
                             <Rectangle Fill="{ThemeResource MeterOutBrush}"/>
                             <Rectangle x:Name="OutputMeterOverlayL"
                                        Fill="#FF0D0D18"
@@ -698,7 +697,7 @@
                         <TextBlock Text="R" Grid.Column="0"
                                    Foreground="#FF505070" FontSize="9"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <Grid Grid.Column="1" ClipToBounds="True">
+                        <Grid Grid.Column="1" >
                             <Rectangle Fill="{ThemeResource MeterOutBrush}"/>
                             <Rectangle x:Name="OutputMeterOverlayR"
                                        Fill="#FF0D0D18"
@@ -719,7 +718,7 @@
                             <TextBlock Text="L" Grid.Column="0"
                                        Foreground="#FF505070" FontSize="9"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <Grid x:Name="PadMonitorMeterHostL" Grid.Column="1" ClipToBounds="True">
+                            <Grid x:Name="PadMonitorMeterHostL" Grid.Column="1" >
                                 <Rectangle Fill="{ThemeResource MeterMonBrush}"/>
                                 <Rectangle x:Name="PadMonitorMeterOverlayL"
                                            Fill="#FF0D0D18"
@@ -736,7 +735,7 @@
                             <TextBlock Text="R" Grid.Column="0"
                                        Foreground="#FF505070" FontSize="9"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <Grid x:Name="PadMonitorMeterHostR" Grid.Column="1" ClipToBounds="True">
+                            <Grid x:Name="PadMonitorMeterHostR" Grid.Column="1" >
                                 <Rectangle Fill="{ThemeResource MeterMonBrush}"/>
                                 <Rectangle x:Name="PadMonitorMeterOverlayR"
                                            Fill="#FF0D0D18"
@@ -884,8 +883,7 @@
                                    FontStyle="Normal"
                                    Foreground="#FFF0C04A">
                             <Hyperlink x:Name="UpdateNoticeLink"
-                                       Foreground="#FFF0C04A"
-                                       RequestNavigate="UpdateNoticeLink_RequestNavigate">
+                                       Foreground="#FFF0C04A">
                                 New PaDDY release available - open downloads
                             </Hyperlink>
                         </TextBlock>
@@ -1001,7 +999,7 @@
                 <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               MaxHeight="318">
-                    <VariableSizedWrapGrid Orientation="Horizontal" x:Name="FavoritesPanel" Orientation="Horizontal"
+                    <VariableSizedWrapGrid x:Name="FavoritesPanel" Orientation="Horizontal"
                                Background="Transparent"
                                AllowDrop="True"
                                DragOver="FavoritesPanel_DragOver"
@@ -1064,8 +1062,7 @@
                                Background="Transparent"
                                AllowDrop="True"
                                DragOver="PadPanel_DragOver"
-                               Drop="PadPanel_Drop"
-                               Orientation="Horizontal"/>
+                               Drop="PadPanel_Drop"/>
                     <TextBlock x:Name="EmptyHint"
                                Text="No recordings yet&#x0a;Start monitoring to capture sounds!"
                                HorizontalAlignment="Center"
@@ -1077,7 +1074,7 @@
                 </StackPanel>
             </ScrollViewer>
         <!-- Loading overlay covering the entire window -->
-        <controls:LoadingOverlay x:Name="MainLoadingOverlay" Background="#CC0A0A12" Grid.RowSpan="4" Panel.ZIndex="100"/>
+        <controls:LoadingOverlay x:Name="MainLoadingOverlay" Background="#CC0A0A12" Grid.RowSpan="4" Canvas.ZIndex="100"/>
         </Grid>
     </Grid>
 </Window>

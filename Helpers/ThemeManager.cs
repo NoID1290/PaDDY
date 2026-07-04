@@ -506,38 +506,38 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush DefaultIn()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF2E7D32"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF4CAF50"), 0.35));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFDD835"), 0.70));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF9800"), 0.85));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFF44336"), 0.95));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFD50000"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF2E7D32"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF4CAF50"), Offset = 0.35 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFDD835"), Offset = 0.70 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF9800"), Offset = 0.85 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFF44336"), Offset = 0.95 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFD50000"), Offset = 1.0 });
             return b;
         }
 
         private static LinearGradientBrush DefaultOut()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF1565C0"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF42A5F5"), 0.35));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF80DEEA"), 0.70));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFDD835"), 0.85));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFF44336"), 0.95));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFD50000"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF1565C0"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF42A5F5"), Offset = 0.35 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF80DEEA"), Offset = 0.70 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFDD835"), Offset = 0.85 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFF44336"), Offset = 0.95 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFD50000"), Offset = 1.0 });
             return b;
         }
 
         private static LinearGradientBrush DefaultMon()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#75C01515"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#9CF54242"), 0.35));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFCA23BC"), 0.70));
-            b.GradientStops.Add(new GradientStop(ParseColor("#CCFF00BF"), 0.85));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#75C01515"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#9CF54242"), Offset = 0.35 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFCA23BC"), Offset = 0.70 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#CCFF00BF"), Offset = 0.85 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFFFF"), Offset = 1.0 });
             return b;
         }
 
@@ -550,8 +550,8 @@ namespace PaDDY.Helpers
             void Block(string hex, double a, double z)
             {
                 var c = ParseColor(hex);
-                b.GradientStops.Add(new GradientStop(c, a));
-                b.GradientStops.Add(new GradientStop(c, z));
+                b.GradientStops.Add(new GradientStop { Color = c, Offset = a });
+                b.GradientStops.Add(new GradientStop { Color = c, Offset = z });
             }
             Block("#FF000000", 0.0, 0.02);
             Block(lo, 0.02, 0.45);
@@ -565,12 +565,12 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush Seventies()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF2B1A06"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF7A4B12"), 0.10));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFC07A1E"), 0.45));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFE0A030"), 0.72));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFD2691E"), 0.88));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFB22222"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF2B1A06"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF7A4B12"), Offset = 0.10 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFC07A1E"), Offset = 0.45 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFE0A030"), Offset = 0.72 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFD2691E"), Offset = 0.88 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFB22222"), Offset = 1.0 });
             return b;
         }
 
@@ -578,13 +578,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush NeonCyan()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF004D5E"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF00BCD4"), 0.40));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF80FFFF"), 0.72));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFF00"), 0.88));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF4081"), 0.96));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF0000"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF004D5E"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF00BCD4"), Offset = 0.40 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF80FFFF"), Offset = 0.72 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFF00"), Offset = 0.88 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF4081"), Offset = 0.96 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF0000"), Offset = 1.0 });
             return b;
         }
 
@@ -592,13 +592,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush NeonMagenta()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF5C0050"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFEE00CC"), 0.40));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF80F0"), 0.72));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFF00"), 0.88));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF4081"), 0.96));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF0000"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF5C0050"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFEE00CC"), Offset = 0.40 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF80F0"), Offset = 0.72 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFF00"), Offset = 0.88 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF4081"), Offset = 0.96 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF0000"), Offset = 1.0 });
             return b;
         }
 
@@ -606,13 +606,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush NeonYellow()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF3D3D00"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCFF00"), 0.40));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFF80"), 0.72));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF8800"), 0.88));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF2200"), 0.96));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF0000"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF3D3D00"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFCCFF00"), Offset = 0.40 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFF80"), Offset = 0.72 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF8800"), Offset = 0.88 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF2200"), Offset = 0.96 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF0000"), Offset = 1.0 });
             return b;
         }
 
@@ -620,13 +620,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush Grayscale()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF1A1A1A"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF606060"), 0.40));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFBDBDBD"), 0.72));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFE0E0E0"), 0.88));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 0.96));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCCCCC"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF1A1A1A"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF606060"), Offset = 0.40 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFBDBDBD"), Offset = 0.72 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFE0E0E0"), Offset = 0.88 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFFFF"), Offset = 0.96 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFCCCCCC"), Offset = 1.0 });
             return b;
         }
 
@@ -634,13 +634,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush Inferno()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF100000"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF7F0000"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFD50000"), 0.35));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF5500"), 0.70));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFB300"), 0.85));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFE080"), 0.95));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF100000"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF7F0000"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFD50000"), Offset = 0.35 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF5500"), Offset = 0.70 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFB300"), Offset = 0.85 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFE080"), Offset = 0.95 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFFFF"), Offset = 1.0 });
             return b;
         }
 
@@ -648,13 +648,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush Aurora()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF080010"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF3B0066"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF00B48F"), 0.35));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF00E5FF"), 0.70));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF80FFFF"), 0.85));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFAAF0FF"), 0.95));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF080010"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF3B0066"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF00B48F"), Offset = 0.35 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF00E5FF"), Offset = 0.70 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF80FFFF"), Offset = 0.85 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFAAF0FF"), Offset = 0.95 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFFFF"), Offset = 1.0 });
             return b;
         }
 
@@ -662,13 +662,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush CyberSunset()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF050010"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF240046"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF7B2CBF"), 0.35));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFE0115F"), 0.65));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFD7E50"), 0.82));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFB300"), 0.94));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFDFF00"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF050010"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF240046"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF7B2CBF"), Offset = 0.35 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFE0115F"), Offset = 0.65 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFD7E50"), Offset = 0.82 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFB300"), Offset = 0.94 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFDFF00"), Offset = 1.0 });
             return b;
         }
 
@@ -676,13 +676,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush ForestMoss()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF051007"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF1B382B"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF2D6A4F"), 0.35));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF52B788"), 0.70));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF74C69D"), 0.85));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFB7E4C7"), 0.95));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFE8F5E9"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF051007"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF1B382B"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF2D6A4F"), Offset = 0.35 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF52B788"), Offset = 0.70 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF74C69D"), Offset = 0.85 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFB7E4C7"), Offset = 0.95 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFE8F5E9"), Offset = 1.0 });
             return b;
         }
 
@@ -690,13 +690,13 @@ namespace PaDDY.Helpers
         private static LinearGradientBrush Toxic()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF000B05"), 0.0));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF003810"), 0.015));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FF00E676"), 0.40));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCFF00"), 0.75));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFD00"), 0.88));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF007F"), 0.96));
-            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF00CC"), 1.0));
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000B05"), Offset = 0.0 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF003810"), Offset = 0.015 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF00E676"), Offset = 0.40 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFCCFF00"), Offset = 0.75 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFFFD00"), Offset = 0.88 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF007F"), Offset = 0.96 });
+            b.GradientStops.Add(new GradientStop { Color = ParseColor("#FFFF00CC"), Offset = 1.0 });
             return b;
         }
 
@@ -732,15 +732,15 @@ namespace PaDDY.Helpers
                 
                 Color c = GetColor(start + (end - start) * 0.5);
                 
-                b.GradientStops.Add(new GradientStop(c, start));
-                b.GradientStops.Add(new GradientStop(c, ledEnd));
-                b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), ledEnd));
-                b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), end));
+                b.GradientStops.Add(new GradientStop { Color = c, Offset = start });
+                b.GradientStops.Add(new GradientStop { Color = c, Offset = ledEnd });
+                b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = ledEnd });
+                b.GradientStops.Add(new GradientStop { Color = ParseColor("#FF000000"), Offset = end });
             }
             return b;
         }
 
-        private static Color ParseColor(string hex)
+        public static Color ParseColor(string hex)
         {
             // Manual ARGB hex parsing (WinUI 3 doesn't have ColorConverter.ConvertFromString)
             if (hex.StartsWith('#')) hex = hex[1..];

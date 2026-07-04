@@ -22,6 +22,7 @@ public partial class EffectsWindow : Window
 {
     private readonly IEffectChain _chain;
     private readonly bool _isPerClip;
+    public bool DialogResult { get; set; }
 
     private FadeEffect? _fade;
     private NoiseGateEffect? _gate;
@@ -427,6 +428,7 @@ public partial class EffectsWindow : Window
     {
         CommitValues();
         DialogResult = true;
+        Close();
     }
 
     private void ChromeClose_Click(object sender, RoutedEventArgs e)

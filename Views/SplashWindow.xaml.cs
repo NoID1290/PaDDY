@@ -27,7 +27,19 @@ namespace PaDDY.Views
                 presenter.IsResizable = false;
             }
 
-            SplashLoadingOverlay.Show("Loading data...");
+            if (SplashLoadingOverlay == null && this.Content is Grid rootGrid)
+            {
+                foreach (var child in rootGrid.Children)
+                {
+                    if (child is Controls.LoadingOverlay overlay)
+                    {
+                        SplashLoadingOverlay = overlay;
+                        break;
+                    }
+                }
+            }
+
+            SplashLoadingOverlay?.Show("Loading data...");
         }
 
         public void UpdateMessage(string message)

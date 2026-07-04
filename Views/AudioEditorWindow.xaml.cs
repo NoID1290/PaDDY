@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
+using System.Runtime.InteropServices.WindowsRuntime;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,9 +54,9 @@ namespace PaDDY
         private double _waveformWidth;
         private double _gainDb = 0.0;
 
-        private static readonly SolidColorBrush PeakHotBrush = new(Windows.UI.Color.FromRgb(0xFF, 0xC1, 0x07));
-        private static readonly SolidColorBrush MeterOverlayBrush = new(Windows.UI.Color.FromRgb(0x1A, 0x1A, 0x1A));
-        static AudioEditorWindow() { PeakHotBrush.Freeze(); MeterOverlayBrush.Freeze(); }
+        private static readonly SolidColorBrush PeakHotBrush = new(Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xC1, 0x07));
+        private static readonly SolidColorBrush MeterOverlayBrush = new(Windows.UI.Color.FromArgb(0xFF, 0x1A, 0x1A, 0x1A));
+        static AudioEditorWindow() { }
 
         // Inline effects panel
         private bool _effectsLoading = true; // suppresses slider events until LoadEffectValues() runs
@@ -71,6 +72,7 @@ namespace PaDDY
 
         // Stored waveform peaks for gain-responsive re-render
         private (float min, float max)[]? _originalPeaks;
+        private Storyboard? _playbackStoryboard;
 
         // Vertical meter state
         private MeteringSampleProvider? _meterProvider;
@@ -83,6 +85,11 @@ namespace PaDDY
         public string? CopyFilePath { get; private set; }
         public bool ShouldSaveToFavorite => SaveToFavCheckBox.IsChecked == true;
 
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int MessageBoxW(System.IntPtr hWnd, string text, string caption, uint type);
+
+        public bool DialogResult { get; set; }
+
         public AudioEditorWindow(string filePath, string? recordingId = null, int outputDeviceIndex = -1, string? displayName = null)
         {
             InitializeComponent();
@@ -93,7 +100,10 @@ namespace PaDDY
             FileNameLabel.Text = !string.IsNullOrEmpty(displayName) ? displayName : Path.GetFileName(filePath); // Get real name
             //FileNameLabel.Text = Path.GetFileNameWithoutExtension(filePath); // Get raw name
 
-            Loaded += OnLoaded;
+            if (this.Content is FrameworkElement fe)
+            {
+                fe.Loaded += OnLoaded;
+            }
             WaveformGrid.SizeChanged += WaveformGrid_SizeChanged;
             Closed += (_, _) => StopPreview();
         }
@@ -111,8 +121,7 @@ namespace PaDDY
             }
             catch (Exception ex)
             {
-                Microsoft.UI.Xaml.MessageBox.Show($"Could not read audio file:\n{ex.Message}", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxW(System.IntPtr.Zero, $"Could not read audio file:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000030); // MB_OK | MB_ICONWARNING
                 Close();
                 return;
             }
@@ -235,7 +244,7 @@ namespace PaDDY
             var accent = GetThemeAccentColor();
             byte aR = accent.R, aG = accent.G, aB = accent.B;
 
-            var bmp = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            var bmp = new WriteableBitmap(width, height);
             int stride = width * 4;
             byte[] pixels = new byte[stride * height];
             int midY = height / 2;
@@ -270,7 +279,11 @@ namespace PaDDY
                 }
             }
 
-            bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+            using (var stream = bmp.PixelBuffer.AsStream())
+            {
+                stream.Write(pixels, 0, pixels.Length);
+            }
+            bmp.Invalidate();
             WaveformImage.Source = bmp;
         }
 
@@ -282,7 +295,7 @@ namespace PaDDY
         {
             if (Microsoft.UI.Xaml.Application.Current?.Resources["AccentGreenBrush"] is SolidColorBrush brush)
                 return brush.Color;
-            return Windows.UI.Color.FromRgb(0x4C, 0xAF, 0x50); // dark-theme green fallback
+            return Windows.UI.Color.FromArgb(0xFF, 0x4C, 0xAF, 0x50); // dark-theme green fallback
         }
 
         private static void SetPixel(byte[] pixels, int stride, int x, int y, byte r, byte g, byte b, byte a)
@@ -709,15 +722,14 @@ namespace PaDDY
             }
             catch (Exception ex)
             {
-                Microsoft.UI.Xaml.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxW(System.IntPtr.Zero, $"Playback error:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000030); // MB_OK | MB_ICONWARNING
                 StopPreview();
             }
         }
 
         private void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() => StopPreview(false)));
+            DispatcherQueue.TryEnqueue(() => StopPreview(false));
         }
 
         private static ISampleProvider BuildPlaybackSource(ISampleProvider source)
@@ -736,6 +748,15 @@ namespace PaDDY
             return source;
         }
 
+        private void StopPlaybackAnimation()
+        {
+            if (_playbackStoryboard != null)
+            {
+                _playbackStoryboard.Stop();
+                _playbackStoryboard = null;
+            }
+        }
+
         private void StartPlaybackAnimation(double fromSec, double toSec, TimeSpan duration)
         {
             if (_totalDurationSeconds <= 0 || _waveformWidth <= 0) return;
@@ -743,12 +764,21 @@ namespace PaDDY
             double fromX = fromSec / _totalDurationSeconds * _waveformWidth;
             double toX = toSec / _totalDurationSeconds * _waveformWidth;
 
-            var anim = new DoubleAnimation(fromX, toX, new Duration(duration))
+            StopPlaybackAnimation();
+
+            var anim = new DoubleAnimation
             {
-                FillBehavior = FillBehavior.HoldEnd
+                From = fromX,
+                To = toX,
+                Duration = new Duration(duration)
             };
-            // No EasingFunction — linear by default
-            PlaybackLineTransform.BeginAnimation(Microsoft.UI.Xaml.Media.TranslateTransform.XProperty, anim);
+
+            Storyboard.SetTarget(anim, PlaybackLineTransform);
+            Storyboard.SetTargetProperty(anim, "X");
+
+            _playbackStoryboard = new Storyboard();
+            _playbackStoryboard.Children.Add(anim);
+            _playbackStoryboard.Begin();
         }
 
         private void UpdatePlaybackLinePosition(double currentSec)
@@ -762,7 +792,7 @@ namespace PaDDY
             double clampedSec = Math.Clamp(currentSec, 0.0, _totalDurationSeconds);
             double fraction = clampedSec / _totalDurationSeconds;
             // Detach any running animation then set value directly
-            PlaybackLineTransform.BeginAnimation(Microsoft.UI.Xaml.Media.TranslateTransform.XProperty, null);
+            StopPlaybackAnimation();
             PlaybackLineTransform.X = fraction * _waveformWidth;
         }
 
@@ -798,7 +828,7 @@ namespace PaDDY
                 _isPreviewing = false;
                 PlaybackLine.Visibility = Visibility.Collapsed;
                 // Detach the animation and reset position
-                PlaybackLineTransform.BeginAnimation(Microsoft.UI.Xaml.Media.TranslateTransform.XProperty, null);
+                StopPlaybackAnimation();
                 PlaybackLineTransform.X = 0;
 
                 if (PlayBtn != null)
@@ -817,7 +847,7 @@ namespace PaDDY
         private void OnMeterStreamVolume(object? sender, NAudio.Wave.SampleProviders.StreamVolumeEventArgs e)
         {
             var snapshot = (float[])e.MaxSampleValues.Clone();
-            Dispatcher.BeginInvoke(new Action(() => UpdateVertMeter(snapshot)));
+            DispatcherQueue.TryEnqueue(() => UpdateVertMeter(snapshot));
         }
 
         private void EnsureVertMeterChannels(int channelCount)
@@ -840,7 +870,7 @@ namespace PaDDY
                 var meterGrid = new Grid
                 {
                     Margin = new Thickness(2, 0, 2, 0),
-                    ClipToBounds = true
+
                 };
 
                 var fillBar = new WpfRectangle { VerticalAlignment = VerticalAlignment.Stretch };
@@ -850,12 +880,12 @@ namespace PaDDY
                     EndPoint = new Windows.Foundation.Point(0, 0),
                     GradientStops = new GradientStopCollection
                     {
-                        new GradientStop(Windows.UI.Color.FromRgb(0x2E, 0x7D, 0x32), 0.0),
-                        new GradientStop(Windows.UI.Color.FromRgb(0x4C, 0xAF, 0x50), 0.35),
-                        new GradientStop(Windows.UI.Color.FromRgb(0xFD, 0xD8, 0x35), 0.70),
-                        new GradientStop(Windows.UI.Color.FromRgb(0xFF, 0x98, 0x00), 0.85),
-                        new GradientStop(Windows.UI.Color.FromRgb(0xF4, 0x43, 0x36), 0.95),
-                        new GradientStop(Windows.UI.Color.FromRgb(0xD5, 0x00, 0x00), 1.0)
+                        new GradientStop { Color = Windows.UI.Color.FromArgb(0xFF, 0x2E, 0x7D, 0x32), Offset = 0.0 },
+                        new GradientStop { Color = Windows.UI.Color.FromArgb(0xFF, 0x4C, 0xAF, 0x50), Offset = 0.35 },
+                        new GradientStop { Color = Windows.UI.Color.FromArgb(0xFF, 0xFD, 0xD8, 0x35), Offset = 0.70 },
+                        new GradientStop { Color = Windows.UI.Color.FromArgb(0xFF, 0xFF, 0x98, 0x00), Offset = 0.85 },
+                        new GradientStop { Color = Windows.UI.Color.FromArgb(0xFF, 0xF4, 0x43, 0x36), Offset = 0.95 },
+                        new GradientStop { Color = Windows.UI.Color.FromArgb(0xFF, 0xD5, 0x00, 0x00), Offset = 1.0 }
                     }
                 };
 
@@ -1059,8 +1089,7 @@ namespace PaDDY
             catch (Exception ex)
             {
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
-                Microsoft.UI.Xaml.MessageBox.Show($"Trim failed:\n{ex.Message}", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxW(System.IntPtr.Zero, $"Trim failed:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000030);
             }
         }
         // ── Save as Copy ─────────────────────────────────────────────────
@@ -1095,8 +1124,7 @@ namespace PaDDY
                 }
                 catch (Exception ex)
                 {
-                    Microsoft.UI.Xaml.MessageBox.Show($"Copy failed:\n{ex.Message}", "PaDDY",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBoxW(System.IntPtr.Zero, $"Copy failed:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000030);
                 }
                 return;
             }
@@ -1177,8 +1205,7 @@ namespace PaDDY
             catch (Exception ex)
             {
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
-                Microsoft.UI.Xaml.MessageBox.Show($"Save as copy failed:\n{ex.Message}", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxW(System.IntPtr.Zero, $"Save as copy failed:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000030);
             }
         }
         // ── Helpers ─────────────────────────────────────────────────────────

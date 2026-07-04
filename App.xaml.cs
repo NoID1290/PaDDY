@@ -20,6 +20,7 @@ public partial class App : Application
 {
     private Mutex? _instanceMutex;
     private Window? _mainWindow;
+    public Window? MainWindow => _mainWindow;
 
     /// <summary>
     /// When the app is launched via a .PADBACK file association, the file path

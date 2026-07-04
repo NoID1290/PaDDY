@@ -19,11 +19,7 @@ using Microsoft.Data.Sqlite;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
-using NoIDSoftwork.OverlayEngine.Diagnostics;
 using NoIDSoftwork.EffectProcessor;
-using NoIDSoftwork.OverlayEngine.Configuration;
-using NoIDSoftwork.OverlayEngine.Core;
-using NoIDSoftwork.OverlayEngine.Models;
 using PaDDY.Controls;
 using PaDDY.Helpers;
 using PaDDY.Models;
@@ -44,7 +40,8 @@ namespace PaDDY
 
         private readonly AudioCaptureService _captureService = new();
         private readonly GlobalHotkeyService _hotkeyService = new();
-        private readonly IOverlayEngine _overlayEngine = new OverlayEngine();
+        // IOverlayEngine stubbed for WinUI 3
+        // private readonly IOverlayEngine _overlayEngine = new OverlayEngine();
         private RecordingStore _recordingStore = new();
         private readonly Dictionary<string, RecordingPadButton> _padCache = new();
         private AppSettings _settings = AppSettings.Load();
@@ -84,12 +81,14 @@ namespace PaDDY
                     _splashWindow = null;
 
                     this.AppWindow.IsShownInSwitchers = true;
-                    if (this.Content is FrameworkElement fe) fe.Opacity = 1;
-                    if (this.Content is FrameworkElement fe) fe.IsHitTestVisible = true;
-
+                    if (this.Content is FrameworkElement fe)
+                    {
+                        fe.Opacity = 1;
+                        fe.IsHitTestVisible = true;
+                    }
                     if (!_startHiddenInTray)
                     {
-                        this.((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Restore();
+                        ((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Restore();
                         this.Activate();
                     }
                 }
@@ -99,10 +98,10 @@ namespace PaDDY
         private DateTime _lastInputMeterTick;
         private DateTime _lastOutputMeterTick;
         private DateTime _lastMonitorMeterTick;
-        private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36));
-        private static readonly SolidColorBrush PeakColdBrush = new(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-        private static readonly SolidColorBrush InfoLabelPrefixBrush = new(System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x88));
-        private static readonly SolidColorBrush InfoLabelValueBrush = new(System.Windows.Media.Color.FromRgb(0x90, 0x90, 0xB8));
+        private static readonly SolidColorBrush PeakHotBrush = new(Windows.UI.Color.FromArgb(0xFF, 0xF4, 0x43, 0x36));
+        private static readonly SolidColorBrush PeakColdBrush = new(Windows.UI.Color.FromArgb(0xFF, 0x44, 0x44, 0x44));
+        private static readonly SolidColorBrush InfoLabelPrefixBrush = new(Windows.UI.Color.FromArgb(0xFF, 0x60, 0x60, 0x88));
+        private static readonly SolidColorBrush InfoLabelValueBrush = new(Windows.UI.Color.FromArgb(0xFF, 0x90, 0x90, 0xB8));
 
         static MainWindow()
         {
@@ -114,14 +113,14 @@ namespace PaDDY
 
         private void SetInfoLabel(TextBlock label, string prefix, string value)
         {
-            if (!Dispatcher.CheckAccess())
+            if (!DispatcherQueue.HasThreadAccess)
             {
                 DispatcherQueue.TryEnqueue(() => SetInfoLabel(label, prefix, value));
                 return;
             }
             label.Inlines.Clear();
-            label.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run(prefix) { Foreground = InfoLabelPrefixBrush });
-            label.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run(value) { Foreground = InfoLabelValueBrush });
+            label.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = prefix, Foreground = InfoLabelPrefixBrush });
+            label.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = value, Foreground = InfoLabelValueBrush });
         }
 
         private bool _suppressSelectionEvents = true;
@@ -181,23 +180,29 @@ namespace PaDDY
                 // Open minimized (and without stealing focus) so no black/unpainted
                 // window flashes on screen, but keep the taskbar entry so the user can
                 // still find and restore the app from the taskbar.
-                ShowActivated = false;
                 ((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Minimize();
                 _initialTrayMinimize = true;
             }
             else
             {
                 _splashWindow = new SplashWindow();
-                _splashWindow.Show();
-                this.ShowActivated = false;
-                this.((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Minimize();
-                if (this.Content is FrameworkElement fe) fe.Opacity = 0; // Hide the main window while it loads
-                this.AppWindow.IsShownInSwitchers = false;
-                if (this.Content is FrameworkElement fe) fe.IsHitTestVisible = false;
+                _splashWindow.Activate();
+                ((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Minimize();
+                if (this.Content is FrameworkElement fe)
+                {
+                    fe.Opacity = 0; // Hide the main window while it loads
+                    fe.IsHitTestVisible = false;
+                }
             }
 
             InitializeComponent();
-            Loaded += MainWindow_Loaded;
+
+            if (this.Content is FrameworkElement feRoot)
+            {
+                feRoot.Loaded += MainWindow_Loaded;
+                feRoot.PreviewKeyDown += OnPadHotKey;
+            }
+
             this.AppWindow.Closing += AppWindow_Closing;
             this.AppWindow.Changed += AppWindow_Changed;
             ThresholdCanvas.SizeChanged += (_, _) =>
@@ -206,52 +211,57 @@ namespace PaDDY
                 Helpers.ThemeManager.UpdateMeterSkinSize(ThresholdCanvas.ActualWidth);
             };
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
-            this.PreviewKeyDown += OnPadHotKey;
             PadMonitorMeterHostL.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
             PadMonitorMeterHostR.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
         }
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
         private void ChromeMinimize_Click(object sender, RoutedEventArgs e)
-            => SystemCommands.MinimizeWindow(this);
+        {
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                presenter.Minimize();
+            }
+        }
 
         private void ChromeMaximize_Click(object sender, RoutedEventArgs e)
         {
-            if ((this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p && p.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized))
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
             {
-                SystemCommands.RestoreWindow(this);
-                ChromeMaxIcon.Text = "\u2610"; // □
-                ChromeMaxRestoreBtn.ToolTip = "Maximize";
-            }
-            else
-            {
-                SystemCommands.MaximizeWindow(this);
-                ChromeMaxIcon.Text = "\u2750"; // ❐ (restore icon)
-                ChromeMaxRestoreBtn.ToolTip = "Restore";
+                if (presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
+                {
+                    presenter.Restore();
+                    ChromeMaxIcon.Text = "\u2610"; // □
+                    ToolTipService.SetToolTip(ChromeMaxRestoreBtn, "Maximize");
+                }
+                else
+                {
+                    presenter.Maximize();
+                    ChromeMaxIcon.Text = "\u2750"; // ❐ (restore icon)
+                    ToolTipService.SetToolTip(ChromeMaxRestoreBtn, "Restore");
+                }
             }
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e)
-            => SystemCommands.CloseWindow(this);
+            => this.Close();
 
         private void ToggleConfigPanel_Click(object sender, RoutedEventArgs e)
         {
             _configPanelVisible = !_configPanelVisible;
             var target = _configPanelVisible ? 290.0 : 0.0;
-            var anim = new System.Windows.Media.Animation.DoubleAnimation(target,
-                TimeSpan.FromMilliseconds(240))
-            {
-                EasingFunction = new System.Windows.Media.Animation.CubicEase
-                { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }
-            };
-            ConfigPanelBorder.BeginAnimation(MaxHeightProperty, anim);
+            ConfigPanelBorder.MaxHeight = target;
             ConfigToggleText.Text = _configPanelVisible ? "▲" : "▼";
         }
 
         private void OnPadHotKey(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
-            var isD = e.Key == Windows.System.VirtualKey.D || (e.Key == Windows.System.VirtualKey.None && Windows.System.VirtualKey.None == Windows.System.VirtualKey.D);
-            if ((Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control) == Windows.UI.Core.CoreVirtualKeyStates.Down & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isD)
+            var ctrlState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control);
+            var altState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Menu);
+            bool ctrlPressed = (ctrlState & Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+            bool altPressed = (altState & Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
+
+            if (ctrlPressed && altPressed && e.Key == Windows.System.VirtualKey.D)
             {
                 e.Handled = true;
                 _overlayDevUnlocked = !_overlayDevUnlocked;
@@ -261,8 +271,9 @@ namespace PaDDY
 
             if (_hoveredPad == null) return;
             // Don't intercept when a text-entry control has keyboard focus
-            if (Keyboard.FocusedElement is Microsoft.UI.Xaml.Controls.TextBox ||
-                Keyboard.FocusedElement is Microsoft.UI.Xaml.Controls.ComboBox) return;
+            var focused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(this.Content.XamlRoot);
+            if (focused is Microsoft.UI.Xaml.Controls.TextBox ||
+                focused is Microsoft.UI.Xaml.Controls.ComboBox) return;
             if (e.Key == Windows.System.VirtualKey.E) { e.Handled = true; _hoveredPad.OpenAudioEditor(); }
             else if (e.Key == Windows.System.VirtualKey.R) { e.Handled = true; _hoveredPad.OpenRename(); }
         }
@@ -296,13 +307,13 @@ namespace PaDDY
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
 
-            _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
+            // _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
 
-            _overlayEngine.Initialize(BuildOverlayOptions());
+            // _overlayEngine.Initialize(BuildOverlayOptions());
             if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
             {
-                _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
-                _overlayEngine.Show();
+                // _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
+                // _overlayEngine.Show();
             }
 
 
@@ -358,22 +369,16 @@ namespace PaDDY
             string filePath = App.PendingRestoreFilePath!;
             string fileName = System.IO.Path.GetFileName(filePath);
 
-            var result = System.Windows.MessageBox.Show(
-                this,
-                $"You are about to restore from a backup file:\n\n" +
+            var result = MessageBoxW(System.IntPtr.Zero, $"You are about to restore from a backup file:\n\n" +
                 $"\"{fileName}\"\n\n" +
                 $"⚠ This will ERASE and REPLACE all of the following:\n\n" +
                 $"   • All your current recordings\n" +
                 $"   • All application settings\n" +
                 $"   • All effect presets\n\n" +
                 $"This action cannot be undone.\n\n" +
-                $"Do you want to continue?",
-                "Restore Backup — PaDDY",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning,
-                MessageBoxResult.No);
+                $"Do you want to continue?", "Restore Backup — PaDDY", 0x04 | 0x30);
 
-            if (result != MessageBoxResult.Yes)
+            if (result != 6) // IDYES = 6
             {
                 SetStatus("Backup restore cancelled.", "#FFFFC107");
                 return;
@@ -390,21 +395,11 @@ namespace PaDDY
                 if (backupService.RestoreBackup(filePath))
                 {
                     ReloadRecordingDataFromDisk();
-                    System.Windows.MessageBox.Show(
-                        this,
-                        "Backup restored successfully.\nAll recordings and settings have been reloaded.",
-                        "Restore Complete — PaDDY",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
+                    ShowMessageBox("Backup restored successfully.\nAll recordings and settings have been reloaded.", "Restore Complete — PaDDY");
                 }
                 else
                 {
-                    System.Windows.MessageBox.Show(
-                        this,
-                        "Failed to restore backup.\nPlease ensure the file is a valid PaDDY backup.",
-                        "Restore Failed — PaDDY",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                    ShowMessageBox("Failed to restore backup.\nPlease ensure the file is a valid PaDDY backup.", "Restore Failed — PaDDY");
                 }
             }
             finally
@@ -441,12 +436,14 @@ namespace PaDDY
 
         private void RestoreFromTray()
         {
-            ShowInTaskbar = true;
-            ((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Restore();
+            this.AppWindow.IsShownInSwitchers = true;
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                presenter.Restore();
+                presenter.IsAlwaysOnTop = true;
+                presenter.IsAlwaysOnTop = false;
+            }
             Activate();
-            Topmost = true;
-            Topmost = false;
-            Show();
         }
 
         private void AppWindow_Changed(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
@@ -465,13 +462,6 @@ namespace PaDDY
                     {
                         this.AppWindow.Hide();
                     }
-                }
-            }
-        }
-
-                if (_settings.MinimizeToTray)
-                {
-                    Hide();
                 }
             }
         }
@@ -602,21 +592,12 @@ namespace PaDDY
         // private Controls.DragAdorner? _dragAdorner;
         private object? _dragAdornerLayer;
 
-        private static RecordingPadButton? GetDraggedPad(Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
-            => e.Data.GetDataPresent(RecordingPadButton.PadDragFormat)
-                ? e.Data.GetData(RecordingPadButton.PadDragFormat) as RecordingPadButton
-                : null;
+        private RecordingPadButton? GetDraggedPad(Microsoft.UI.Xaml.DragEventArgs e)
+            => _draggedPad;
 
-        /// <summary>Sets up the floating ghost and dims the source pad when a drag begins.</summary>
         private void BeginPadDragVisual(RecordingPadButton pad)
         {
             _draggedPad = pad;
-            _dragAdornerLayer = object.GetAdornerLayer(MainRootGrid);
-//             if (_dragAdornerLayer != null)
-            {
-//                 _dragAdorner = new Controls.DragAdorner(MainRootGrid, pad, pad.DragGrabOffset);
-//                 _dragAdornerLayer.Add(_dragAdorner);
-            }
             pad.Opacity = 0.35;
         }
 
@@ -663,10 +644,10 @@ namespace PaDDY
             UpdatePadState();
         }
 
-        private void FavoritesPanel_DragOver(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
+        private void FavoritesPanel_DragOver(object sender, Microsoft.UI.Xaml.DragEventArgs e)
             => HandlePanelDragOver(FavoritesPanel, e);
 
-        private void PadPanel_DragOver(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
+        private void PadPanel_DragOver(object sender, Microsoft.UI.Xaml.DragEventArgs e)
             => HandlePanelDragOver(PadPanel, e);
 
         private DateTime _lastDragOverUpdate = DateTime.MinValue;
@@ -674,10 +655,10 @@ namespace PaDDY
         /// Live-preview drag: moves the dragged pad to the hovered slot in real time so the
         /// user sees it physically slide into place, and keeps the floating ghost under the cursor.
         /// </summary>
-        private void HandlePanelDragOver(Microsoft.UI.Xaml.Controls.Panel panel, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
+        private void HandlePanelDragOver(Microsoft.UI.Xaml.Controls.Panel panel, Microsoft.UI.Xaml.DragEventArgs e)
         {
             var pad = GetDraggedPad(e);
-            e.Effects = pad != null ? Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move : Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+            e.AcceptedOperation = pad != null ? Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move : Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
             e.Handled = true;
             if (pad == null) return;
 // 
@@ -692,25 +673,24 @@ namespace PaDDY
             LivePreviewMove(panel, pad, index);
         }
 
-        private void FavoritesPanel_Drop(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
+        private void FavoritesPanel_Drop(object sender, Microsoft.UI.Xaml.DragEventArgs e)
         {
             // The pad has already been live-moved into place; commit happens in FinalizePadDrop.
             e.Handled = true;
         }
 
-        private void PadPanel_Drop(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
+        private void PadPanel_Drop(object sender, Microsoft.UI.Xaml.DragEventArgs e)
         {
             e.Handled = true;
         }
 
-        private void UpdateDragAdorner(Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
+        private void UpdateDragAdorner(Microsoft.UI.Xaml.DragEventArgs e)
         {
 //             if (_dragAdorner != null)
 //                 _dragAdorner.UpdatePosition(e.GetPosition(MainRootGrid));
         }
 
-        /// <summary>Computes the target child index for a drop, ignoring the dragged pad itself.</summary>
-        private static int ComputeDropIndex(Microsoft.UI.Xaml.Controls.Panel panel, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e, RecordingPadButton dragged)
+        private int ComputeDropIndex(Microsoft.UI.Xaml.Controls.Panel panel, Microsoft.UI.Xaml.DragEventArgs e, RecordingPadButton dragged)
         {
             var pos = e.GetPosition(panel);
             int visibleIndex = 0;
@@ -719,7 +699,7 @@ namespace PaDDY
                 if (panel.Children[i] is not FrameworkElement fe) continue;
                 if (ReferenceEquals(fe, dragged)) continue;
 
-                var topLeft = fe.TranslatePoint(new Windows.Foundation.Point(0, 0), panel);
+                var topLeft = fe.TransformToVisual(panel).TransformPoint(new Windows.Foundation.Point(0, 0));
                 double midX = topLeft.X + fe.ActualWidth / 2;
                 double bottom = topLeft.Y + fe.ActualHeight;
                 if (pos.Y < topLeft.Y) return visibleIndex;            // pointer above this row
@@ -971,50 +951,19 @@ namespace PaDDY
             ApplyOverlayOptionsFromSettings();
         }
 
-        private OverlayOptions BuildOverlayOptions()
+        private object BuildOverlayOptions()
         {
-            return new OverlayOptions
-            {
-                Enabled = _settings.OverlayEnabled,
-                FrameRateCap = Math.Clamp(_settings.OverlayFrameRateCap, 30, 240),
-                VisualStyle = new OverlayVisualStyle
-                {
-                    Opacity = Math.Clamp(_settings.OverlayOpacity, 0.2, 1.0),
-                    AccentColorHex = "#FF4CAF50",
-                    PrimaryColorHex = "#FFFFFFFF",
-                    FontFamily = "Segoe UI",
-                    FontSize = 18f
-                }
-            };
+            return new object();
         }
 
         private void ApplyOverlayOptionsFromSettings()
         {
-            if (_overlayEngine.State == OverlayEngineState.Created || _overlayEngine.State == OverlayEngineState.Disposed)
-            {
-                return;
-            }
-
-            _overlayEngine.UpdateOptions(BuildOverlayOptions());
-            if (!_settings.OverlayEnabled)
-            {
-                _overlayEngine.Hide();
-                return;
-            }
-
-            if (_settings.AppLoopbackProcessId != 0)
-            {
-                UpdateOverlayTarget(_settings.AppLoopbackProcessId);
-            }
+            // Stubbed for WinUI 3
         }
 
-        private void OverlayEngine_DiagnosticEvent(object? sender, OverlayDiagnosticEvent e)
+        private void OverlayEngine_DiagnosticEvent(object? sender, object e)
         {
-            Debug.WriteLine($"[Overlay:{e.Level}] {e.Category}: {e.Message}");
-            if (e.Exception != null)
-            {
-                Debug.WriteLine(e.Exception);
-            }
+            // Stubbed for WinUI 3
         }
 
         private void UpdateHotkeyLabel()
@@ -1179,43 +1128,7 @@ namespace PaDDY
 
         private void UpdateOverlayTarget(uint processId)
         {
-            if (!_settings.OverlayEnabled)
-            {
-                _overlayEngine.Hide();
-                _overlayEngine.Detach();
-                return;
-            }
-
-            if (processId == 0)
-            {
-                _overlayEngine.Hide();
-                _overlayEngine.Detach();
-                return;
-            }
-
-            if (_overlayEngine.AttachToProcess(processId))
-            {
-                string processName = _appLoopbackProcesses.FirstOrDefault(p => p.ProcessId == processId).ProcessName;
-                if (string.IsNullOrWhiteSpace(processName))
-                {
-                    processName = $"PID {processId}";
-                }
-
-                _overlayEngine.UpdateFrame(new OverlayFrame
-                {
-                    Title = "PaDDY",
-                    Lines = new[]
-                    {
-                        $"Tracking: {processName}",
-                        "Press monitor hotkey to capture"
-                    }
-                });
-                _overlayEngine.Show();
-            }
-            else
-            {
-                _overlayEngine.Hide();
-            }
+            // Stubbed for WinUI 3
         }
 
         private void OverlayEnabledCheck_Changed(object sender, RoutedEventArgs e)
@@ -1338,24 +1251,21 @@ namespace PaDDY
 
             if (GetSelectedCaptureMode() == CaptureSourceMode.Microphone && WaveInEvent.DeviceCount == 0)
             {
-                System.Windows.MessageBox.Show("No microphone detected.", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowMessageBox("No microphone detected.", "PaDDY");
                 MonitorToggle.IsChecked = false;
                 return;
             }
 
             if (GetSelectedCaptureMode() == CaptureSourceMode.OutputLoopback && _loopbackDevices.Count == 0)
             {
-                System.Windows.MessageBox.Show("No active output device found for loopback capture.", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowMessageBox("No active output device found for loopback capture.", "PaDDY");
                 MonitorToggle.IsChecked = false;
                 return;
             }
 
             if (GetSelectedCaptureMode() == CaptureSourceMode.AppLoopback && _appLoopbackProcesses.Count == 0)
             {
-                System.Windows.MessageBox.Show("No apps currently producing audio.\nStart playback in an app first, then click the refresh button.", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowMessageBox("No apps currently producing audio.\nStart playback in an app first, then click the refresh button.", "PaDDY");
                 MonitorToggle.IsChecked = false;
                 return;
             }
@@ -1368,8 +1278,7 @@ namespace PaDDY
             catch (Exception ex)
             {
                 _inputMeterUpdatesEnabled = false;
-                System.Windows.MessageBox.Show($"Unable to start monitoring:\n{ex.Message}", "PaDDY",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowMessageBox($"Unable to start monitoring:\n{ex.Message}", "PaDDY");
                 MonitorToggle.IsChecked = false;
             }
             BroadcastIpcState();
@@ -1393,7 +1302,7 @@ namespace PaDDY
             BroadcastIpcState();
         }
 
-        private void InputMeterResetTimerTick(object? sender, EventArgs e)
+        private void InputMeterResetTimerTick(object? sender, object e)
         {
             _inputMeterResetTimer?.Stop();
             if (_inputMeterUpdatesEnabled || MonitorToggle.IsChecked == true)
@@ -1434,7 +1343,7 @@ namespace PaDDY
             _meterDecayTimer.Start();
         }
 
-        private void MeterDecayTick(object? sender, EventArgs e)
+        private void MeterDecayTick(object? sender, object e)
         {
             _decayStep++;
             double t = Math.Min(1.0, (double)_decayStep / DecaySteps);
@@ -1522,67 +1431,74 @@ namespace PaDDY
         // ── Settings / About buttons ───────────────────────────────────────────
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            var win = new SettingsWindow(_settings)
+            var win = new SettingsWindow(_settings);
+            win.Closed += (s, args) =>
             {
-                Owner = this
+                if (win.DialogResult == true)
+                {
+                    // Apply changes
+                    _settings.RecordCodec = win.SelectedCodec;
+                    _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
+                    _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
+                    _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
+                    _settings.MaxRecords = win.SelectedMaxRecords;
+                    _settings.AppFontVariant = win.SelectedFontVariant;
+                    _settings.DefaultPadTitleTemplate = win.SelectedDefaultPadTitleTemplate;
+                    _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
+                    _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
+                    _settings.Theme = win.SelectedTheme;
+                    _settings.MeterSkin = win.SelectedMeterSkin;
+                    _settings.PerformanceMode = win.SelectedPerformanceMode;
+                    _settings.MinimizeToTray = win.SelectedMinimizeToTray;
+                    _settings.CloseToTray = win.SelectedCloseToTray;
+                    _settings.StartMinimizedInTray = win.SelectedStartMinimizedInTray;
+
+                    bool startupEnabled = win.SelectedRunOnWindowsStartup;
+                    _settings.DetectionAlgorithm = win.SelectedDetectionAlgorithm;
+                    _settings.AutoRenameWithSpeech = win.SelectedAutoRenameWithSpeech;
+                    _settings.SpeechModel = win.SelectedSpeechModel;
+                    _settings.SpeechLanguage = win.SelectedSpeechLanguage;
+                    _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
+
+                    // Apply visual / systemic changes
+                    App.ApplyFont(_settings.AppFontVariant);
+                    Helpers.ThemeManager.ApplyTheme(_settings.Theme);
+                    Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
+                    Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
+
+                    bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(startupEnabled);
+                    bool startupSynced = Helpers.StartupRegistration.IsRunOnStartupEnabled();
+                    if (!startupApplied || startupSynced != startupEnabled)
+                    {
+                        _settings.RunOnWindowsStartup = startupSynced;
+                        _settings.Save();
+                        ShowMessageBox("PaDDY could not fully apply the Windows startup setting. The toggle was synced to the current registry state.",
+                            "Startup registration");
+                    }
+                    else
+                    {
+                        _settings.RunOnWindowsStartup = startupEnabled;
+                        _settings.Save();
+                    }
+                    _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
+                    _performanceMode = _settings.PerformanceMode;
+
+                    _captureService.RecordCodec = win.SelectedCodec;
+                    _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
+
+                    // Re-register hotkey with new key
+                    _hotkeyService.Reregister(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
+                    UpdateHotkeyLabel();
+
+                    // Restart monitoring to apply new format settings
+                    RefreshOutputFormatInfo();
+                    RefreshInputFormatInfo();
+                    RefreshPadOutputRouting();
+                    WhisperARTTStatus();
+                    Forget(RefreshStorageInfoAsync());
+                }
             };
-            if (win.ShowDialog() != true) return;
-
-            // Apply changes
-            _settings.RecordCodec = win.SelectedCodec;
-            _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
-            _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
-            _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
-            _settings.MaxRecords = win.SelectedMaxRecords;
-            _settings.AppFontVariant = win.SelectedFontVariant;
-            _settings.DefaultPadTitleTemplate = win.SelectedDefaultPadTitleTemplate;
-            _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
-            _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
-
-            // Appearance
-            _settings.Theme = win.SelectedTheme;
-            _settings.MeterSkin = win.SelectedMeterSkin;
-            _settings.PerformanceMode = win.SelectedPerformanceMode;
-
-            // System tray / startup
-            _settings.MinimizeToTray = win.SelectedMinimizeToTray;
-            _settings.CloseToTray = win.SelectedCloseToTray;
-            _settings.StartMinimizedInTray = win.SelectedStartMinimizedInTray;
-            _settings.RunOnWindowsStartup = win.SelectedRunOnWindowsStartup;
-
-            // Detection / speech
-            _settings.DetectionAlgorithm = win.SelectedDetectionAlgorithm;
-            _settings.AutoRenameWithSpeech = win.SelectedAutoRenameWithSpeech;
-            _settings.SpeechModel = win.SelectedSpeechModel;
-            _settings.SpeechLanguage = win.SelectedSpeechLanguage;
-            _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
-            _settings.Save();
-
-            App.ApplyFont(win.SelectedFontVariant);
-            Helpers.ThemeManager.ApplyTheme(_settings.Theme);
-            Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
-            Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
-            bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
-            bool startupEnabled = Helpers.StartupRegistration.IsRunOnStartupEnabled();
-            if (!startupApplied || startupEnabled != _settings.RunOnWindowsStartup)
-            {
-                _settings.RunOnWindowsStartup = startupEnabled;
-                _settings.Save();
-                System.Windows.MessageBox.Show(
-                    "PaDDY could not fully apply the Windows startup setting. The toggle was synced to the current registry state.",
-                    "Startup registration",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
-            _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
-            _performanceMode = _settings.PerformanceMode;
-
-            _captureService.RecordCodec = win.SelectedCodec;
-            _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
-
-            // Re-register hotkey with new key
-            _hotkeyService.Reregister(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
-            UpdateHotkeyLabel();
+            win.Activate();
 
             // Restart monitoring to apply new format settings
             RestartMonitoringIfActive();
@@ -1595,7 +1511,8 @@ namespace PaDDY
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
         {
-            new AboutWindow { Owner = this }.ShowDialog();
+            var win = new AboutWindow();
+            win.Activate();
         }
 
         // ── Global hotkey → buffer capture ────────────────────────────────────
@@ -1630,7 +1547,7 @@ namespace PaDDY
                 return;
             _lastInputMeterTick = now;
 
-            Dispatcher.BeginInvoke(new Action(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 if (!_inputMeterUpdatesEnabled || MonitorToggle.IsChecked != true) return;
 
@@ -1664,7 +1581,7 @@ namespace PaDDY
                     ? PeakHotBrush : PeakColdBrush;
                 PeakIndicatorR.Background = (now - _peakHoldTimeR).TotalSeconds < PeakHoldSeconds
                     ? PeakHotBrush : PeakColdBrush;
-            }), System.Windows.Threading.DispatcherPriority.Render);
+            });
         }
 
         private void UpdateOutputMeter(double left, double right)
@@ -1674,7 +1591,7 @@ namespace PaDDY
                 return;
             _lastOutputMeterTick = now;
 
-            Dispatcher.BeginInvoke(new Action(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 _outputMeterDecayTimer?.Stop();
 
@@ -1704,7 +1621,7 @@ namespace PaDDY
                 // If both L and R are zero (playback stopped), start decay animation
                 if (left <= 0 && right <= 0)
                     StartOutputMeterDecay();
-            }), System.Windows.Threading.DispatcherPriority.Render);
+            });
         }
 
         private void UpdatePadMonitorMeter(double left, double right)
@@ -1714,7 +1631,7 @@ namespace PaDDY
                 return;
             _lastMonitorMeterTick = now;
 
-            Dispatcher.BeginInvoke(new Action(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 if (!_settings.ListenOutputEnabled) { ResetPadMonitorMeter(); return; }
 
@@ -1745,7 +1662,7 @@ namespace PaDDY
 
                 MonitorPeakIndicatorL.Background = (now - _monitorPeakHoldTimeL).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
                 MonitorPeakIndicatorR.Background = (now - _monitorPeakHoldTimeR).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
-            }), System.Windows.Threading.DispatcherPriority.Render);
+            });
         }
 
         private void StartOutputMeterDecay()
@@ -1770,7 +1687,7 @@ namespace PaDDY
             _outputMeterDecayTimer.Start();
         }
 
-        private void OutputMeterDecayTick(object? sender, EventArgs e)
+        private void OutputMeterDecayTick(object? sender, object e)
         {
             _outputDecayStep++;
             double t = Math.Min(1.0, (double)_outputDecayStep / DecaySteps);
@@ -1825,7 +1742,7 @@ namespace PaDDY
 
                     try { File.Delete(entry.FilePath); } catch { }
 
-                    Dispatcher.BeginInvoke(new Action(() =>
+                    DispatcherQueue.TryEnqueue(() =>
                     {
                         entry.RecordingId = id;
                         entry.DisplayName = displayName;
@@ -1833,7 +1750,7 @@ namespace PaDDY
                         AddPadButton(entry, toFavorites: false);
                         Forget(RefreshStorageInfoAsync());
                         if (_settings.AutoRenameWithSpeech) Forget(AutoRenameFromSpeechAsync(entry));
-                    }), System.Windows.Threading.DispatcherPriority.Background);
+                    });
                 }
                 catch { /* Ignore unreadable or short recordings */ }
             });
@@ -1899,11 +1816,7 @@ namespace PaDDY
                 _captureService.RecordCodec = "wav";
                 RefreshOutputFormatInfo();
 
-                System.Windows.MessageBox.Show(this,
-                    message,
-                    "Codec Disabled",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                ShowMessageBox(message, "Codec Disabled");
             });
         }
 
@@ -2026,8 +1939,8 @@ namespace PaDDY
                 catch { }
             };
 
-            btn.MouseEnter += (s, _) => _hoveredPad = s as RecordingPadButton;
-            btn.MouseLeave += (_, _) => { if (_hoveredPad == btn) _hoveredPad = null; };
+            btn.PointerEntered += (s, _) => _hoveredPad = s as RecordingPadButton;
+            btn.PointerExited += (_, _) => { if (_hoveredPad == btn) _hoveredPad = null; };
 
             btn.DragStarting += BeginPadDragVisual;
             btn.DragFinished += FinalizePadDrop;
@@ -2092,21 +2005,20 @@ namespace PaDDY
                     Padding = new Thickness(8, 2, 8, 2),
                     Margin = new Thickness(2, 0, 0, 0),
                     FontSize = 10,
-                    FontWeight = isActive ? FontWeights.Bold : FontWeights.Normal,
+                    FontWeight = isActive ? Microsoft.UI.Text.FontWeights.Bold : Microsoft.UI.Text.FontWeights.Normal,
                     Background = isActive
-                        ? new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07))
-                        : Microsoft.UI.Colors.Transparent,
-                    Foreground = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xFF, 0xFF, 0xC1, 0x07)),
-                    BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07)),
-                    BorderThickness = new Thickness(1),
-                    ProtectedCursor = Microsoft.UI.Input.InputSystemCursor.Create(Microsoft.UI.Input.InputSystemCursorShape.Hand)
+                        ? new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07))
+                        : new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                    Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xC1, 0x07)),
+                    BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07)),
+                    BorderThickness = new Thickness(1)
                 };
                 string pageId = page.Id;
                 tab.Click += (_, _) => SwitchToPadPage(pageId);
                 tab.AllowDrop = true;
                 tab.DragOver += (_, ev) =>
                 {
-                    ev.Effects = GetDraggedPad(ev) != null ? Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move : Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                    ev.AcceptedOperation = GetDraggedPad(ev) != null ? Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move : Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
                     ev.Handled = true;
 //                     UpdateDragAdorner(ev);
                 };
@@ -2213,7 +2125,7 @@ namespace PaDDY
             SetStatus("Restored backup and reloaded recordings.", "#FF4CAF50");
         }
 
-        private void AddPadPageButton_Click(object sender, RoutedEventArgs e)
+        private async void AddPadPageButton_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new Controls.RenameDialog("New Page") { XamlRoot = this.Content.XamlRoot };
             var dlgResult = await dlg.ShowAsync();
@@ -2233,7 +2145,7 @@ namespace PaDDY
             SwitchToPadPage(page.Id);
         }
 
-        private void RenamePadPageButton_Click(object sender, RoutedEventArgs e)
+        private async void RenamePadPageButton_Click(object sender, RoutedEventArgs e)
         {
             if (_activePadPage == null || _activePadPage.IsFavorites) return;
             var dlg = new Controls.RenameDialog(_activePadPage.Name) { XamlRoot = this.Content.XamlRoot };
@@ -2251,10 +2163,10 @@ namespace PaDDY
         {
             if (_activePadPage == null || _activePadPage.IsFavorites) return;
 
-            var confirm = System.Windows.MessageBox.Show(
+            int confirm = MessageBoxW(System.IntPtr.Zero,
                 $"Delete page \"{_activePadPage.Name}\"? Its pads will move back to Favorites.",
-                "Delete Pad Page", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (confirm != MessageBoxResult.Yes) return;
+                "Delete Pad Page", 0x00000004 | 0x00000020); // MB_YESNO | MB_ICONQUESTION
+            if (confirm != 6) return; // IDYES = 6
 
             string deletedId = _activePadPage.Id;
             _recordingStore.ClearPadPage(deletedId);
@@ -2364,14 +2276,14 @@ namespace PaDDY
             {
                 FavoritesPanelBorder.Visibility = Visibility.Collapsed;
                 FavoritesCollapseIcon.Text = "▼";
-                FavoritesCollapseButton.ToolTip = "Expand favorites";
+                ToolTipService.SetToolTip(FavoritesCollapseButton, "Expand favorites");
                 return;
             }
 
             bool isCollapsed = _settings.FavoritesPanelCollapsed;
             FavoritesPanelBorder.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
             FavoritesCollapseIcon.Text = isCollapsed ? "►" : "▼";
-            FavoritesCollapseButton.ToolTip = isCollapsed ? "Expand favorites" : "Collapse favorites";
+            ToolTipService.SetToolTip(FavoritesCollapseButton, isCollapsed ? "Expand favorites" : "Collapse favorites");
         }
 
         private void FavoritesCollapseButton_Click(object sender, RoutedEventArgs e)
@@ -2436,7 +2348,7 @@ namespace PaDDY
             Forget(CompactAndRefreshAsync());
         }
 
-        private void DeleteAllFilesButton_Click(object sender, RoutedEventArgs e)
+        private async void DeleteAllFilesButton_Click(object sender, RoutedEventArgs e)
         {
             int total = PadPanel.Children.Count + FavoritesPanel.Children.Count;
             if (total == 0) return;
@@ -2684,27 +2596,13 @@ namespace PaDDY
             return $"{value:0.0} {units[index]}";
         }
 
-        private void UpdateNoticeLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = e.Uri.AbsoluteUri,
-                    UseShellExecute = true
-                });
-            }
-            catch
-            {
-                // Ignore browser launch failures to keep UX non-invasive.
-            }
-        }
+
 
         private void SetStatus(string text, string hexColor)
         {
             StatusLabel.Text = text;
             StatusDot.Fill = new SolidColorBrush(
-                (System.Windows.Media.Color)Microsoft.UI.ColorHelper.ConvertFromString(hexColor));
+                Helpers.ThemeManager.ParseColor(hexColor));
         }
 
         private void UpdateThresholdMarker()
@@ -2796,7 +2694,7 @@ namespace PaDDY
             if (_settings.CloseToTray && !_forceExit)
             {
                 e.Cancel = true;
-                Hide();
+                this.AppWindow.Hide();
                 return;
             }
 
@@ -2805,8 +2703,8 @@ namespace PaDDY
             _hotkeyService.Dispose();
             _captureService.Dispose();
             _ipcServer?.Dispose();
-            _overlayEngine.DiagnosticEvent -= OverlayEngine_DiagnosticEvent;
-            _overlayEngine.Dispose();
+            // _overlayEngine.DiagnosticEvent -= OverlayEngine_DiagnosticEvent;
+            // _overlayEngine.Dispose();
             _recordingStore.CleanupAllTempFiles();
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();

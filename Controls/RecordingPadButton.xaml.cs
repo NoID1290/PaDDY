@@ -27,6 +27,9 @@ namespace PaDDY.Controls
     [SupportedOSPlatform("windows")]
     public partial class RecordingPadButton : WpfControl
     {
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int MessageBoxW(System.IntPtr hWnd, string text, string caption, uint type);
+
         static RecordingPadButton()
         {
         }
@@ -67,16 +70,16 @@ namespace PaDDY.Controls
                 FavBtn.Content = value ? "★" : "☆";
                 
                 if (value)
-                    FavBtn.SetResourceReference(Microsoft.UI.Xaml.Controls.Control.ForegroundProperty, "AccentAmberBrush");
+                    FavBtn.Foreground = (Brush)Microsoft.UI.Xaml.Application.Current.Resources["AccentAmberBrush"];
                 else
-                    FavBtn.SetResourceReference(Microsoft.UI.Xaml.Controls.Control.ForegroundProperty, "SubtleTextBrush");
+                    FavBtn.Foreground = (Brush)Microsoft.UI.Xaml.Application.Current.Resources["SubtleTextBrush"];
 
                 if (!_isPlaying)
                 {
                     if (value)
-                        TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                        TileBorder.BorderBrush = (Brush)Microsoft.UI.Xaml.Application.Current.Resources["AccentAmberBrush"];
                     else
-                        TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                        TileBorder.BorderBrush = (Brush)Microsoft.UI.Xaml.Application.Current.Resources["CardBorderBrush"];
                 }
             }
         }
@@ -107,65 +110,38 @@ namespace PaDDY.Controls
             InitializeComponent();
 
             // Play entrance animation when loaded — skip during bulk loads (startup / page switch)
-            Loaded += (_, _) =>
+            if (this.Content is FrameworkElement feRoot)
             {
-                if (SuppressEntranceAnimation > 0) return;
-                try
+                feRoot.Loaded += (_, _) =>
                 {
-                    var entrance = (Storyboard)FindResource("EntranceAnimation");
-                    entrance.Begin(this);
-                }
-                catch { }
+                    if (SuppressEntranceAnimation > 0) return;
+                    try
+                    {
+                        var entrance = (Storyboard)this.Resources["EntranceAnimation"];
+                        entrance.Begin();
+                    }
+                    catch { }
+                };
+            }
+
+            // WinUI 3 Drag & Drop
+            this.CanDrag = true;
+            ((Microsoft.UI.Xaml.UIElement)this).DragStarting += (sender, args) =>
+            {
+                if (Entry == null || string.IsNullOrEmpty(Entry.RecordingId)) return;
+                args.Data.SetData(PadDragFormat, this);
+                args.Data.RequestedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+                DragGrabOffset = args.GetPosition(this);
+                DragStarting?.Invoke(this);
             };
 
-            MouseLeftButtonUp += (_, e) =>
+            this.Tapped += (sender, e) =>
             {
-                // Don't trigger playback if the click was on an overlay button
-                if (_dragInProgress)
+                if (e.OriginalSource is not FrameworkElement fe || IsOverlayButton(fe))
                 {
-                    _dragInProgress = false;
                     return;
                 }
-                if (e.OriginalSource is not FrameworkElement fe ||
-                    (!IsOverlayButton(fe)))
-                {
-                    TogglePlay();
-                }
-            };
-
-            PreviewMouseLeftButtonDown += (_, e) =>
-            {
-                _dragInProgress = false;
-                _dragStartPoint = e.GetPosition(null);
-            };
-
-            PreviewMouseMove += (_, e) =>
-            {
-                if (e.LeftButton != Microsoft.UI.Xaml.Input.MouseButtonState.Pressed || _dragInProgress)
-                    return;
-                if (Entry == null || string.IsNullOrEmpty(Entry.RecordingId))
-                    return;
-                if (e.OriginalSource is FrameworkElement fe && IsOverlayButton(fe))
-                    return;
-
-                var pos = e.GetPosition(null);
-                if (Math.Abs(pos.X - _dragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance &&
-                    Math.Abs(pos.Y - _dragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance)
-                    return;
-
-                _dragInProgress = true;
-                DragGrabOffset = e.GetPosition(this);
-                try
-                {
-                    DragStarting?.Invoke(this);
-                    var data = new Microsoft.UI.Xaml.DataObject(PadDragFormat, this);
-                    Microsoft.UI.Xaml.DragDrop.DoDragDrop(this, data, Microsoft.UI.Xaml.DragDropEffects.Move);
-                }
-                catch { }
-                finally
-                {
-                    DragFinished?.Invoke(this);
-                }
+                TogglePlay();
             };
         }
 
@@ -200,13 +176,13 @@ namespace PaDDY.Controls
             Entry = entry;
             NameLabel.Text = entry.FileName;
             DurationLabel.Text = entry.DurationLabel;
-            ToolTip = entry.FileName;
+            ToolTipService.SetToolTip(this, entry.FileName);
         }
 
         // â”€â”€ Overlay button handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private void FavBtn_Click(object sender, RoutedEventArgs e)
         {
-            e.Handled = true;
+            
             IsFavorite = !IsFavorite;
             if (Entry != null) Entry.IsFavorite = IsFavorite;
             FavoriteToggled?.Invoke(this, EventArgs.Empty);
@@ -214,19 +190,19 @@ namespace PaDDY.Controls
 
         private void DelBtn_Click(object sender, RoutedEventArgs e)
         {
-            e.Handled = true;
+            
             MenuDelete_Click(sender, e);
         }
 
         private void RenameBtn_Click(object sender, RoutedEventArgs e)
         {
-            e.Handled = true;
+            
             OpenRename();
         }
 
         private void TrimBtn_Click(object sender, RoutedEventArgs e)
         {
-            e.Handled = true;
+            
             OpenAudioEditor();
         }
 
@@ -239,44 +215,46 @@ namespace PaDDY.Controls
                 Entry.FilePath,
                 Entry.RecordingId,
                 TrimEditorOutputDeviceIndex - 1,
-                Entry.DisplayName)
-            {
-                Owner = Window.GetWindow(this)
-            };
-            if (editor.ShowDialog() == true)
-            {
-                if (editor.CopyFilePath != null)
-                {
-                    // "Save as Copy" — fire event so MainWindow adds a new pad
-                    RecordingCopied?.Invoke(editor.CopyFilePath, editor.ShouldSaveToFavorite);
-                }
-                else
-                {
-                    // In-place save — re-read duration from the trimmed temp file
-                    try
-                    {
-                        using var reader = AudioReaderFactory.Open(Entry.FilePath);
-                        Entry.Duration = reader.TotalTime;
-                    }
-                    catch { }
-                    SetEntry(Entry);
-                    RecordingEdited?.Invoke(Entry);
+                Entry.DisplayName);
 
-                    if (editor.ShouldSaveToFavorite && !IsFavorite)
+            editor.Closed += (sender, args) =>
+            {
+                if (editor.DialogResult)
+                {
+                    if (editor.CopyFilePath != null)
                     {
-                        IsFavorite = true;
-                        Entry.IsFavorite = true;
-                        FavoriteToggled?.Invoke(this, EventArgs.Empty);
+                        // "Save as Copy" — fire event so MainWindow adds a new pad
+                        RecordingCopied?.Invoke(editor.CopyFilePath, editor.ShouldSaveToFavorite);
+                    }
+                    else
+                    {
+                        // In-place save — re-read duration from the trimmed temp file
+                        try
+                        {
+                            using var reader = AudioReaderFactory.Open(Entry.FilePath);
+                            Entry.Duration = reader.TotalTime;
+                        }
+                        catch { }
+                        SetEntry(Entry);
+                        RecordingEdited?.Invoke(Entry);
+
+                        if (editor.ShouldSaveToFavorite && !IsFavorite)
+                        {
+                            IsFavorite = true;
+                            Entry.IsFavorite = true;
+                            FavoriteToggled?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                 }
-            }
+            };
+            editor.Activate();
         }
 
         // ── Right-click: play on listen/monitor device only ───────────────────────────────────
-        private void OnMouseRightButtonDown(object sender, PointerRoutedEventArgs e)
+        private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
         {
             if (IsOverlayButton(e.OriginalSource as FrameworkElement ?? this)) return;
-            e.Handled = true;
+            
             StartPlaybackListenOnly();
         }
 
@@ -305,7 +283,7 @@ namespace PaDDY.Controls
                 _player = AudioOutputDeviceResolver.CreateWasapiPlayer(OutputDeviceIndex, 100);
                 _player.Init(_meterProvider.ToWaveProvider16());
                 _player.Volume = 1.0f;
-                _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
+                _player.PlaybackStopped += (_, _) => DispatcherQueue.TryEnqueue(StopPlayback);
                 _player.Play();
 
                 if (ListenDeviceIndex >= -1)
@@ -328,8 +306,7 @@ namespace PaDDY.Controls
             }
             catch (Exception ex)
             {
-                Microsoft.UI.Xaml.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
-                    Microsoft.UI.Xaml.MessageBoxButton.OK, Microsoft.UI.Xaml.MessageBoxImage.Warning);
+                MessageBoxW(System.IntPtr.Zero, $"Playback error:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000030); // MB_OK | MB_ICONWARNING
                 StopPlayback();
             }
         }
@@ -354,14 +331,13 @@ namespace PaDDY.Controls
                 _listenPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(ListenDeviceIndex, 120);
                 _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
                 _listenPlayer.Volume = 1.0f;
-                _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
+                _listenPlayer.PlaybackStopped += (_, _) => DispatcherQueue.TryEnqueue(StopPlayback);
                 _listenPlayer.Play();
                 SetPlayingVisual(true);
             }
             catch (Exception ex)
             {
-                Microsoft.UI.Xaml.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
-                    Microsoft.UI.Xaml.MessageBoxButton.OK, Microsoft.UI.Xaml.MessageBoxImage.Warning);
+                MessageBoxW(System.IntPtr.Zero, $"Playback error:\n{ex.Message}", "PaDDY", 0x00000000 | 0x00000030); // MB_OK | MB_ICONWARNING
                 StopPlayback();
             }
         }
@@ -409,14 +385,14 @@ namespace PaDDY.Controls
 
             if (playing)
             {
-                TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "AccentGreenBrush");
+                TileBorder.BorderBrush = (Brush)Microsoft.UI.Xaml.Application.Current.Resources["AccentGreenBrush"];
             }
             else
             {
                 if (_isFavorite)
-                    TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                    TileBorder.BorderBrush = (Brush)Microsoft.UI.Xaml.Application.Current.Resources["AccentAmberBrush"];
                 else
-                    TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                    TileBorder.BorderBrush = (Brush)Microsoft.UI.Xaml.Application.Current.Resources["CardBorderBrush"];
             }
         }
 
@@ -445,15 +421,16 @@ namespace PaDDY.Controls
             OpenRename();
         }
 
-        public void OpenRename()
+        public async void OpenRename()
         {
             if (Entry == null) return;
 
             var dialog = new RenameDialog(Entry.FileName)
             {
-                Owner = Window.GetWindow(this)
+                XamlRoot = this.XamlRoot
             };
-            if (dialog.ShowDialog() != true) return;
+            var result = await dialog.ShowAsync();
+            if (result != ContentDialogResult.Primary) return;
 
             string newName = dialog.NewName.Trim();
             if (string.IsNullOrWhiteSpace(newName)) return;
@@ -478,9 +455,8 @@ namespace PaDDY.Controls
             DeleteRequested?.Invoke(this, EventArgs.Empty);
         }
 
-        private void ExportBtn_Click(object sender, RoutedEventArgs e)
+        private async void ExportBtn_Click(object sender, RoutedEventArgs e)
         {
-            e.Handled = true;
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
 
             string ext = Path.GetExtension(Entry.FilePath);
@@ -488,16 +464,27 @@ namespace PaDDY.Controls
                 ? Path.GetFileName(Entry.FilePath)
                 : Path.ChangeExtension(Entry.DisplayName, ext);
 
-            var dlg = new Microsoft.Win32.SaveFileDialog
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            var window = ((PaDDY.App)Microsoft.UI.Xaml.Application.Current).MainWindow;
+            if (window != null)
             {
-                Title = "Export recording",
-                FileName = defaultName,
-                DefaultExt = ext,
-                Filter = $"Audio (*{ext})|*{ext}|All files (*.*)|*.*"
-            };
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            }
 
-            if (dlg.ShowDialog() != true) return;
-            File.Copy(Entry.FilePath, dlg.FileName, overwrite: true);
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
+            picker.SuggestedFileName = defaultName;
+            picker.FileTypeChoices.Add("Audio file", new List<string> { ext });
+
+            var file = await picker.PickSaveFileAsync();
+            if (file != null)
+            {
+                try
+                {
+                    File.Copy(Entry.FilePath, file.Path, overwrite: true);
+                }
+                catch { }
+            }
         }
     }
 }

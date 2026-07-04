@@ -4,23 +4,22 @@
 
     
 
-    <Window.Resources>
-        <!-- Glass-style editor button (inherits AppTheme Button, just sets keyed override) -->
-        <Style x:Key="EditorBtn" TargetType="Button" >
-            <Setter Property="Padding"   Value="16,7"/>
-            <Setter Property="FontSize"  Value="12"/>
-            <Setter Property="Height"    Value="34"/>
-        </Style>
-
-        <!-- Primary action (Save Trim) -->
-        <Style x:Key="PrimaryBtn" TargetType="Button" BasedOn="{StaticResource EditorBtn}">
-            <Setter Property="Background"  Value="#FF1A2E1A"/>
-            <Setter Property="BorderBrush" Value="#404CAF50"/>
-            <Setter Property="Foreground"  Value="#FFAAD4AA"/>
-        </Style>
-    </Window.Resources>
-
     <Grid Margin="10">
+        <Grid.Resources>
+            <!-- Glass-style editor button (inherits AppTheme Button, just sets keyed override) -->
+            <Style x:Key="EditorBtn" TargetType="Button" >
+                <Setter Property="Padding"   Value="16,7"/>
+                <Setter Property="FontSize"  Value="12"/>
+                <Setter Property="Height"    Value="34"/>
+            </Style>
+
+            <!-- Primary action (Save Trim) -->
+            <Style x:Key="PrimaryBtn" TargetType="Button" BasedOn="{StaticResource EditorBtn}">
+                <Setter Property="Background"  Value="#FF1A2E1A"/>
+                <Setter Property="BorderBrush" Value="#404CAF50"/>
+                <Setter Property="Foreground"  Value="#FFAAD4AA"/>
+            </Style>
+        </Grid.Resources>
         <Border Style="{StaticResource SecondaryWindowFrame}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -97,13 +96,11 @@
                     Background="{ThemeResource WindowBgBrush}"
                     BorderBrush="#28FFFFFF"
                     BorderThickness="1"
-                    CornerRadius="7"
-                    ClipToBounds="True">
+                    CornerRadius="7">
                 
                 <Grid x:Name="WaveformGrid">
                     <Image x:Name="WaveformImage"
-                           Stretch="Fill"
-                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                           Stretch="Fill"/>
 
                     <Border x:Name="LeftOverlay"
                             Background="#88000010"
@@ -161,8 +158,7 @@
                     BorderBrush="#28FFFFFF"
                     BorderThickness="1"
                     CornerRadius="7"
-                    Margin="6,0,0,0"
-                    ClipToBounds="True">
+                    Margin="6,0,0,0">
                 
                 <Grid x:Name="VertMeterHost" Margin="1"/>
             </Border>
@@ -222,8 +218,7 @@
                     </Grid>
 
                     <!-- Gain bar -->
-                    <Border DockPanel.Dock="Top"
-                            Style="{StaticResource SecondaryWindowHeaderCard}"
+                    <Border Style="{StaticResource SecondaryWindowHeaderCard}"
                             BorderBrush="#18FFFFFF" Padding="12,7" Margin="0,0,0,6">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -235,7 +230,7 @@
                                        Foreground="#FF8080A8" FontSize="11" VerticalAlignment="Center"/>
                             <Slider x:Name="GainSlider" Grid.Column="1"
                                     Minimum="-24" Maximum="24" Value="0"
-                                    TickFrequency="1" IsSnapToTickEnabled="True"
+                                     SnapsTo="Ticks" TickFrequency="1"
                                     VerticalAlignment="Center"
                                     ValueChanged="GainSlider_ValueChanged"/>
                             <TextBlock x:Name="GainLabel" Grid.Column="2" Text="0 dB"
@@ -252,12 +247,16 @@
                             <!-- Fade In / Fade Out -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <CheckBox  x:Name="FadeEnabledCheck" Content="Enable"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox  Grid.Column="0" x:Name="FadeEnabledCheck" Content="Enable"
                                                   Foreground="{ThemeResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <Button x:Name="FadeHeaderButton"
+                                        <Button Grid.Column="1" x:Name="FadeHeaderButton"
                                                 Background="Transparent"
                                                 BorderBrush="Transparent"
                                                 BorderThickness="0"
@@ -321,12 +320,16 @@
                             <!-- Noise Gate -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <CheckBox  x:Name="GateEnabledCheck" Content="Enable"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" x:Name="GateEnabledCheck" Content="Enable"
                                                   Foreground="{ThemeResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <Button x:Name="GateHeaderButton"
+                                        <Button Grid.Column="1" x:Name="GateHeaderButton"
                                                 Background="Transparent"
                                                 BorderBrush="Transparent"
                                                 BorderThickness="0"
@@ -407,12 +410,16 @@
                             <!-- Compressor -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <CheckBox  x:Name="CompressorEnabledCheck" Content="Enable"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" x:Name="CompressorEnabledCheck" Content="Enable"
                                                   Foreground="{ThemeResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <Button x:Name="CompressorHeaderButton"
+                                        <Button Grid.Column="1" x:Name="CompressorHeaderButton"
                                                 Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                                                 Padding="0" HorizontalContentAlignment="Stretch"
                                                 Click="CompressorHeaderButton_Click">
@@ -524,12 +531,16 @@
                             <!-- Distortion -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <CheckBox  x:Name="DistortionEnabledCheck" Content="Enable"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" x:Name="DistortionEnabledCheck" Content="Enable"
                                                   Foreground="{ThemeResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <Button x:Name="DistortionHeaderButton"
+                                        <Button Grid.Column="1" x:Name="DistortionHeaderButton"
                                                 Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                                                 Padding="0" HorizontalContentAlignment="Stretch"
                                                 Click="DistortionHeaderButton_Click">
@@ -607,12 +618,16 @@
                             <!-- Echo -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <CheckBox  x:Name="EchoEnabledCheck" Content="Enable"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" x:Name="EchoEnabledCheck" Content="Enable"
                                                   Foreground="{ThemeResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <Button x:Name="EchoHeaderButton"
+                                        <Button Grid.Column="1" x:Name="EchoHeaderButton"
                                                 Background="Transparent"
                                                 BorderBrush="Transparent"
                                                 BorderThickness="0"
@@ -693,12 +708,16 @@
                             <!-- Reverb -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <CheckBox  x:Name="ReverbEnabledCheck" Content="Enable"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" x:Name="ReverbEnabledCheck" Content="Enable"
                                                   Foreground="{ThemeResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <Button x:Name="ReverbHeaderButton"
+                                        <Button Grid.Column="1" x:Name="ReverbHeaderButton"
                                                 Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                                                 Padding="0" HorizontalContentAlignment="Stretch"
                                                 Click="ReverbHeaderButton_Click">
@@ -776,12 +795,16 @@
                             <!-- Equalizer -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <CheckBox  x:Name="EqEnabledCheck" Content="Enable"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" x:Name="EqEnabledCheck" Content="Enable"
                                                   Foreground="{ThemeResource AccentGreenBrush}" FontSize="11"
                                                   VerticalAlignment="Center"
                                                   Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                        <Button x:Name="EqHeaderButton"
+                                        <Button Grid.Column="1" x:Name="EqHeaderButton"
                                                 Background="Transparent"
                                                 BorderBrush="Transparent"
                                                 BorderThickness="0"
