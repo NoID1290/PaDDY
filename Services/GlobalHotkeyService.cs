@@ -1,14 +1,14 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Windows;
-using System.Windows.Interop;
+using Microsoft.UI.Xaml;
+using WinRT.Interop;
 
 namespace PaDDY.Services
 {
     /// <summary>
     /// Registers and manages a global hotkey using Win32 RegisterHotKey.
-    /// Hooks into the WPF window's message pump; fires HotkeyPressed when triggered.
+    /// WinUI 3 version: gets HWND via WindowNative and subclasses via SetWindowSubclass.
     /// </summary>
     [SupportedOSPlatform("windows")]
     public sealed class GlobalHotkeyService : IDisposable
@@ -23,28 +23,41 @@ namespace PaDDY.Services
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
+        // Subclassing via comctl32
+        private delegate IntPtr SUBCLASSPROC(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, IntPtr uIdSubclass, IntPtr dwRefData);
+
+        [DllImport("comctl32.dll", SetLastError = true)]
+        private static extern bool SetWindowSubclass(IntPtr hWnd, SUBCLASSPROC pfnSubclass, IntPtr uIdSubclass, IntPtr dwRefData);
+
+        [DllImport("comctl32.dll", SetLastError = true)]
+        private static extern bool RemoveWindowSubclass(IntPtr hWnd, SUBCLASSPROC pfnSubclass, IntPtr uIdSubclass);
+
+        [DllImport("comctl32.dll")]
+        private static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+
         public event Action? HotkeyPressed;
 
-        private HwndSource? _hwndSource;
+        private IntPtr _hwnd;
+        private SUBCLASSPROC? _subclassProc;
         private bool _registered;
         private bool _disposed;
 
         /// <summary>
-        /// Attaches to the given WPF Window and registers the hotkey.
-        /// Call after the window is loaded (so the HWND exists).
+        /// Attaches to the given WinUI 3 Window and registers the hotkey.
+        /// Call after the window is created (so the HWND exists).
         /// </summary>
         public void Register(Window window, uint modifiers, uint virtualKey)
         {
             if (_registered) Unregister();
 
-            var helper = new WindowInteropHelper(window);
-            IntPtr hwnd = helper.Handle;
-            if (hwnd == IntPtr.Zero) return;
+            _hwnd = WindowNative.GetWindowHandle(window);
+            if (_hwnd == IntPtr.Zero) return;
 
-            _hwndSource = HwndSource.FromHwnd(hwnd);
-            _hwndSource?.AddHook(WndProc);
+            // Install a window subclass to intercept WM_HOTKEY messages.
+            _subclassProc = SubclassWndProc;
+            SetWindowSubclass(_hwnd, _subclassProc, (IntPtr)1, IntPtr.Zero);
 
-            _registered = RegisterHotKey(hwnd, HotkeyId, modifiers, virtualKey);
+            _registered = RegisterHotKey(_hwnd, HotkeyId, modifiers, virtualKey);
         }
 
         /// <summary>Re-registers with new modifier/key combination. Silently no-ops if not yet registered.</summary>
@@ -57,22 +70,25 @@ namespace PaDDY.Services
         public void Unregister()
         {
             if (!_registered) return;
-            IntPtr hwnd = _hwndSource?.Handle ?? IntPtr.Zero;
-            if (hwnd != IntPtr.Zero)
-                UnregisterHotKey(hwnd, HotkeyId);
-            _hwndSource?.RemoveHook(WndProc);
-            _hwndSource = null;
+            if (_hwnd != IntPtr.Zero)
+            {
+                UnregisterHotKey(_hwnd, HotkeyId);
+                if (_subclassProc != null)
+                    RemoveWindowSubclass(_hwnd, _subclassProc, (IntPtr)1);
+            }
+            _subclassProc = null;
+            _hwnd = IntPtr.Zero;
             _registered = false;
         }
 
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        private IntPtr SubclassWndProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, IntPtr uIdSubclass, IntPtr dwRefData)
         {
-            if (msg == WM_HOTKEY && wParam.ToInt32() == HotkeyId)
+            if (uMsg == WM_HOTKEY && wParam.ToInt32() == HotkeyId)
             {
                 HotkeyPressed?.Invoke();
-                handled = true;
+                return IntPtr.Zero;
             }
-            return IntPtr.Zero;
+            return DefSubclassProc(hWnd, uMsg, wParam, lParam);
         }
 
         public void Dispose()

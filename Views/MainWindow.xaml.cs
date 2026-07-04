@@ -7,12 +7,14 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Navigation;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+using Microsoft.UI.Dispatching;
+using Windows.Foundation;
+using Windows.UI;
 using Microsoft.Data.Sqlite;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
@@ -33,6 +35,13 @@ namespace PaDDY
     [SupportedOSPlatform("windows")]
     public partial class MainWindow : Window
     {
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int MessageBoxW(System.IntPtr hWnd, string text, string caption, uint type);
+        private void ShowMessageBox(string text, string caption = "PaDDY")
+        {
+            MessageBoxW(System.IntPtr.Zero, text, caption, 0x00000000 | 0x00000040); // MB_OK | MB_ICONINFORMATION
+        }
+
         private readonly AudioCaptureService _captureService = new();
         private readonly GlobalHotkeyService _hotkeyService = new();
         private readonly IOverlayEngine _overlayEngine = new OverlayEngine();
@@ -57,7 +66,7 @@ namespace PaDDY
 
         public void ShowLoadingOverlay(string message = "Processing...")
         {
-            Dispatcher.Invoke(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 _splashWindow?.UpdateMessage(message);
                 MainLoadingOverlay.Show(message);
@@ -66,7 +75,7 @@ namespace PaDDY
 
         public void HideLoadingOverlay()
         {
-            Dispatcher.Invoke(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 MainLoadingOverlay.Hide();
                 if (_splashWindow != null)
@@ -74,13 +83,13 @@ namespace PaDDY
                     _splashWindow.Close();
                     _splashWindow = null;
 
-                    this.ShowInTaskbar = true;
-                    this.Opacity = 1;
-                    this.IsHitTestVisible = true;
+                    this.AppWindow.IsShownInSwitchers = true;
+                    if (this.Content is FrameworkElement fe) fe.Opacity = 1;
+                    if (this.Content is FrameworkElement fe) fe.IsHitTestVisible = true;
 
                     if (!_startHiddenInTray)
                     {
-                        this.WindowState = WindowState.Normal;
+                        this.((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Restore();
                         this.Activate();
                     }
                 }
@@ -97,22 +106,22 @@ namespace PaDDY
 
         static MainWindow()
         {
-            PeakHotBrush.Freeze();
-            PeakColdBrush.Freeze();
-            InfoLabelPrefixBrush.Freeze();
-            InfoLabelValueBrush.Freeze();
+            // PeakHotBrush.Freeze();
+            // PeakColdBrush.Freeze();
+            // InfoLabelPrefixBrush.Freeze();
+            // InfoLabelValueBrush.Freeze();
         }
 
         private void SetInfoLabel(TextBlock label, string prefix, string value)
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.InvokeAsync(() => SetInfoLabel(label, prefix, value));
+                DispatcherQueue.TryEnqueue(() => SetInfoLabel(label, prefix, value));
                 return;
             }
             label.Inlines.Clear();
-            label.Inlines.Add(new System.Windows.Documents.Run(prefix) { Foreground = InfoLabelPrefixBrush });
-            label.Inlines.Add(new System.Windows.Documents.Run(value) { Foreground = InfoLabelValueBrush });
+            label.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run(prefix) { Foreground = InfoLabelPrefixBrush });
+            label.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run(value) { Foreground = InfoLabelValueBrush });
         }
 
         private bool _suppressSelectionEvents = true;
@@ -139,8 +148,8 @@ namespace PaDDY
         private DateTime _monitorPeakHoldTimeR = DateTime.MinValue;
 
         // Meter decay animation (input)
-        private System.Windows.Threading.DispatcherTimer? _meterDecayTimer;
-        private System.Windows.Threading.DispatcherTimer? _inputMeterResetTimer;
+        private Microsoft.UI.Xaml.DispatcherTimer? _meterDecayTimer;
+        private Microsoft.UI.Xaml.DispatcherTimer? _inputMeterResetTimer;
         private double _decayTargetL;
         private double _decayTargetR;
         private double _decayCurrentL;
@@ -149,7 +158,7 @@ namespace PaDDY
         private int _decayStep;
 
         // Meter decay animation (output)
-        private System.Windows.Threading.DispatcherTimer? _outputMeterDecayTimer;
+        private Microsoft.UI.Xaml.DispatcherTimer? _outputMeterDecayTimer;
         private double _outputDecayTargetL;
         private double _outputDecayTargetR;
         private double _outputDecayCurrentL;
@@ -173,7 +182,7 @@ namespace PaDDY
                 // window flashes on screen, but keep the taskbar entry so the user can
                 // still find and restore the app from the taskbar.
                 ShowActivated = false;
-                WindowState = WindowState.Minimized;
+                ((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Minimize();
                 _initialTrayMinimize = true;
             }
             else
@@ -181,16 +190,16 @@ namespace PaDDY
                 _splashWindow = new SplashWindow();
                 _splashWindow.Show();
                 this.ShowActivated = false;
-                this.WindowState = WindowState.Minimized;
-                this.Opacity = 0; // Hide the main window while it loads
-                this.ShowInTaskbar = false;
-                this.IsHitTestVisible = false;
+                this.((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Minimize();
+                if (this.Content is FrameworkElement fe) fe.Opacity = 0; // Hide the main window while it loads
+                this.AppWindow.IsShownInSwitchers = false;
+                if (this.Content is FrameworkElement fe) fe.IsHitTestVisible = false;
             }
 
             InitializeComponent();
             Loaded += MainWindow_Loaded;
-            Closing += MainWindow_Closing;
-            StateChanged += MainWindow_StateChanged;
+            this.AppWindow.Closing += AppWindow_Closing;
+            this.AppWindow.Changed += AppWindow_Changed;
             ThresholdCanvas.SizeChanged += (_, _) =>
             {
                 UpdateThresholdMarker();
@@ -208,7 +217,7 @@ namespace PaDDY
 
         private void ChromeMaximize_Click(object sender, RoutedEventArgs e)
         {
-            if (WindowState == WindowState.Maximized)
+            if ((this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p && p.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized))
             {
                 SystemCommands.RestoreWindow(this);
                 ChromeMaxIcon.Text = "\u2610"; // □
@@ -239,10 +248,10 @@ namespace PaDDY
             ConfigToggleText.Text = _configPanelVisible ? "▲" : "▼";
         }
 
-        private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
+        private void OnPadHotKey(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
-            var isD = e.Key == Key.D || (e.Key == Key.System && e.SystemKey == Key.D);
-            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isD)
+            var isD = e.Key == Windows.System.VirtualKey.D || (e.Key == Windows.System.VirtualKey.None && Windows.System.VirtualKey.None == Windows.System.VirtualKey.D);
+            if ((Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control) == Windows.UI.Core.CoreVirtualKeyStates.Down & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isD)
             {
                 e.Handled = true;
                 _overlayDevUnlocked = !_overlayDevUnlocked;
@@ -252,10 +261,10 @@ namespace PaDDY
 
             if (_hoveredPad == null) return;
             // Don't intercept when a text-entry control has keyboard focus
-            if (Keyboard.FocusedElement is System.Windows.Controls.TextBox ||
-                Keyboard.FocusedElement is System.Windows.Controls.ComboBox) return;
-            if (e.Key == Key.E) { e.Handled = true; _hoveredPad.OpenAudioEditor(); }
-            else if (e.Key == Key.R) { e.Handled = true; _hoveredPad.OpenRename(); }
+            if (Keyboard.FocusedElement is Microsoft.UI.Xaml.Controls.TextBox ||
+                Keyboard.FocusedElement is Microsoft.UI.Xaml.Controls.ComboBox) return;
+            if (e.Key == Windows.System.VirtualKey.E) { e.Handled = true; _hoveredPad.OpenAudioEditor(); }
+            else if (e.Key == Windows.System.VirtualKey.R) { e.Handled = true; _hoveredPad.OpenRename(); }
         }
 
         // ── Startup ────────────────────────────────────────────────────────────
@@ -311,7 +320,7 @@ namespace PaDDY
             _ipcServer.MessageReceived += IpcServer_MessageReceived;
             _ipcServer.ConnectionCountChanged += (s, count) =>
             {
-                Dispatcher.InvokeAsync(() =>
+                DispatcherQueue.TryEnqueue(() =>
                 {
                     if (count > 0)
                     {
@@ -411,10 +420,7 @@ namespace PaDDY
         // Suppresses the automatic minimize-to-tray on the very first startup minimize
         // so the window remains visible in the taskbar.
         private bool _initialTrayMinimize;
-        protected override void OnSourceInitialized(EventArgs e)
-        {
-            base.OnSourceInitialized(e);
-        }
+        
 
         // ── System tray ────────────────────────────────────────────────────────
         private void InitializeTrayIcon()
@@ -436,24 +442,32 @@ namespace PaDDY
         private void RestoreFromTray()
         {
             ShowInTaskbar = true;
-            WindowState = WindowState.Normal;
+            ((Microsoft.UI.Windowing.OverlappedPresenter)this.AppWindow.Presenter).Restore();
             Activate();
             Topmost = true;
             Topmost = false;
             Show();
         }
 
-        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        private void AppWindow_Changed(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
         {
-            if (WindowState == WindowState.Minimized)
+            if (args.DidPresenterChange)
             {
-                // Don't collapse the initial tray-start minimize into the tray; keep it
-                // visible in the taskbar so the user can see the app is running.
-                if (_initialTrayMinimize)
+                var presenter = sender.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
+                if (presenter != null && presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Minimized)
                 {
-                    _initialTrayMinimize = false;
-                    return;
+                    if (_initialTrayMinimize)
+                    {
+                        _initialTrayMinimize = false;
+                        return;
+                    }
+                    if (_settings.MinimizeToTray)
+                    {
+                        this.AppWindow.Hide();
+                    }
                 }
+            }
+        }
 
                 if (_settings.MinimizeToTray)
                 {
@@ -585,10 +599,10 @@ namespace PaDDY
         // ── Pad drag-and-drop (move between panels/pages + reorder) ───────────────
 
         private RecordingPadButton? _draggedPad;
-        private Controls.DragAdorner? _dragAdorner;
-        private System.Windows.Documents.AdornerLayer? _dragAdornerLayer;
+        // private Controls.DragAdorner? _dragAdorner;
+        private object? _dragAdornerLayer;
 
-        private static RecordingPadButton? GetDraggedPad(System.Windows.DragEventArgs e)
+        private static RecordingPadButton? GetDraggedPad(Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
             => e.Data.GetDataPresent(RecordingPadButton.PadDragFormat)
                 ? e.Data.GetData(RecordingPadButton.PadDragFormat) as RecordingPadButton
                 : null;
@@ -597,11 +611,11 @@ namespace PaDDY
         private void BeginPadDragVisual(RecordingPadButton pad)
         {
             _draggedPad = pad;
-            _dragAdornerLayer = System.Windows.Documents.AdornerLayer.GetAdornerLayer(MainRootGrid);
-            if (_dragAdornerLayer != null)
+            _dragAdornerLayer = object.GetAdornerLayer(MainRootGrid);
+//             if (_dragAdornerLayer != null)
             {
-                _dragAdorner = new Controls.DragAdorner(MainRootGrid, pad, pad.DragGrabOffset);
-                _dragAdornerLayer.Add(_dragAdorner);
+//                 _dragAdorner = new Controls.DragAdorner(MainRootGrid, pad, pad.DragGrabOffset);
+//                 _dragAdornerLayer.Add(_dragAdorner);
             }
             pad.Opacity = 0.35;
         }
@@ -609,10 +623,10 @@ namespace PaDDY
         /// <summary>Tears down the ghost and commits the pad's final location after the drag loop ends.</summary>
         private void FinalizePadDrop(RecordingPadButton pad)
         {
-            if (_dragAdorner != null && _dragAdornerLayer != null)
-                _dragAdornerLayer.Remove(_dragAdorner);
-            _dragAdorner = null;
-            _dragAdornerLayer = null;
+//             if (_dragAdorner != null && _dragAdornerLayer != null)
+//                 _dragAdornerLayer.Remove(_dragAdorner);
+//             _dragAdorner = null;
+//             _dragAdornerLayer = null;
             pad.Opacity = 1.0;
             _draggedPad = null;
 
@@ -649,10 +663,10 @@ namespace PaDDY
             UpdatePadState();
         }
 
-        private void FavoritesPanel_DragOver(object sender, System.Windows.DragEventArgs e)
+        private void FavoritesPanel_DragOver(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
             => HandlePanelDragOver(FavoritesPanel, e);
 
-        private void PadPanel_DragOver(object sender, System.Windows.DragEventArgs e)
+        private void PadPanel_DragOver(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
             => HandlePanelDragOver(PadPanel, e);
 
         private DateTime _lastDragOverUpdate = DateTime.MinValue;
@@ -660,13 +674,13 @@ namespace PaDDY
         /// Live-preview drag: moves the dragged pad to the hovered slot in real time so the
         /// user sees it physically slide into place, and keeps the floating ghost under the cursor.
         /// </summary>
-        private void HandlePanelDragOver(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
+        private void HandlePanelDragOver(Microsoft.UI.Xaml.Controls.Panel panel, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
         {
             var pad = GetDraggedPad(e);
-            e.Effects = pad != null ? System.Windows.DragDropEffects.Move : System.Windows.DragDropEffects.None;
+            e.Effects = pad != null ? Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move : Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
             e.Handled = true;
             if (pad == null) return;
-
+// 
             UpdateDragAdorner(e);
 
             // Throttle layout-heavy preview moves to prevent UI freeze
@@ -678,25 +692,25 @@ namespace PaDDY
             LivePreviewMove(panel, pad, index);
         }
 
-        private void FavoritesPanel_Drop(object sender, System.Windows.DragEventArgs e)
+        private void FavoritesPanel_Drop(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
         {
             // The pad has already been live-moved into place; commit happens in FinalizePadDrop.
             e.Handled = true;
         }
 
-        private void PadPanel_Drop(object sender, System.Windows.DragEventArgs e)
+        private void PadPanel_Drop(object sender, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
         {
             e.Handled = true;
         }
 
-        private void UpdateDragAdorner(System.Windows.DragEventArgs e)
+        private void UpdateDragAdorner(Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e)
         {
-            if (_dragAdorner != null)
-                _dragAdorner.UpdatePosition(e.GetPosition(MainRootGrid));
+//             if (_dragAdorner != null)
+//                 _dragAdorner.UpdatePosition(e.GetPosition(MainRootGrid));
         }
 
         /// <summary>Computes the target child index for a drop, ignoring the dragged pad itself.</summary>
-        private static int ComputeDropIndex(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e, RecordingPadButton dragged)
+        private static int ComputeDropIndex(Microsoft.UI.Xaml.Controls.Panel panel, Microsoft.UI.Xaml.Microsoft.UI.Xaml.DragEventArgs e, RecordingPadButton dragged)
         {
             var pos = e.GetPosition(panel);
             int visibleIndex = 0;
@@ -705,7 +719,7 @@ namespace PaDDY
                 if (panel.Children[i] is not FrameworkElement fe) continue;
                 if (ReferenceEquals(fe, dragged)) continue;
 
-                var topLeft = fe.TranslatePoint(new System.Windows.Point(0, 0), panel);
+                var topLeft = fe.TranslatePoint(new Windows.Foundation.Point(0, 0), panel);
                 double midX = topLeft.X + fe.ActualWidth / 2;
                 double bottom = topLeft.Y + fe.ActualHeight;
                 if (pos.Y < topLeft.Y) return visibleIndex;            // pointer above this row
@@ -716,9 +730,9 @@ namespace PaDDY
         }
 
         /// <summary>Moves the dragged pad to <paramref name="targetIndex"/> within <paramref name="target"/> (cross-panel aware).</summary>
-        private static void LivePreviewMove(System.Windows.Controls.Panel target, RecordingPadButton pad, int targetIndex)
+        private static void LivePreviewMove(Microsoft.UI.Xaml.Controls.Panel target, RecordingPadButton pad, int targetIndex)
         {
-            var current = pad.Parent as System.Windows.Controls.Panel;
+            var current = pad.Parent as Microsoft.UI.Xaml.Controls.Panel;
             if (ReferenceEquals(current, target))
             {
                 int cur = target.Children.IndexOf(pad);
@@ -753,7 +767,7 @@ namespace PaDDY
             _recordingStore.SetPadPage(pad.Entry.RecordingId, toFavoritesPage ? string.Empty : pageId);
 
             // The pad now belongs to another page; remove it from the current view.
-            (pad.Parent as System.Windows.Controls.Panel)?.Children.Remove(pad);
+            (pad.Parent as Microsoft.UI.Xaml.Controls.Panel)?.Children.Remove(pad);
             PersistFavoritesOrder();
             UpdatePadState();
         }
@@ -1216,7 +1230,7 @@ namespace PaDDY
             ApplyOverlayOptionsFromSettings();
         }
 
-        private void OverlayOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void OverlayOpacitySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (OverlayOpacityValueLabel == null)
             {
@@ -1230,7 +1244,7 @@ namespace PaDDY
             ApplyOverlayOptionsFromSettings();
         }
 
-        private void OverlayFpsSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void OverlayFpsSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (OverlayFpsValueLabel == null)
             {
@@ -1370,7 +1384,7 @@ namespace PaDDY
             ForceResetInputMeter();
             StartMeterDecay();
 
-            _inputMeterResetTimer ??= new System.Windows.Threading.DispatcherTimer();
+            _inputMeterResetTimer ??= new Microsoft.UI.Xaml.DispatcherTimer();
             _inputMeterResetTimer.Stop();
             _inputMeterResetTimer.Interval = TimeSpan.FromMilliseconds(380);
             _inputMeterResetTimer.Tick -= InputMeterResetTimerTick;
@@ -1411,7 +1425,7 @@ namespace PaDDY
 
             if (_meterDecayTimer == null)
             {
-                _meterDecayTimer = new System.Windows.Threading.DispatcherTimer
+                _meterDecayTimer = new Microsoft.UI.Xaml.DispatcherTimer
                 {
                     Interval = TimeSpan.FromMilliseconds(16)
                 };
@@ -1440,7 +1454,7 @@ namespace PaDDY
 
         // ── Sensitivity / Silence sliders ──────────────────────────────────────
         private void SensitivitySlider_ValueChanged(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (SensitivityValueLabel == null) return;
             double v = Math.Round(e.NewValue);
@@ -1452,7 +1466,7 @@ namespace PaDDY
         }
 
         private void SilenceSlider_ValueChanged(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (SilenceValueLabel == null) return;
             double v = e.NewValue;
@@ -1463,7 +1477,7 @@ namespace PaDDY
         }
 
         private void InputVolumeSlider_ValueChanged(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (InputVolumeValueLabel == null) return;
             double v = Math.Round(e.NewValue);
@@ -1474,7 +1488,7 @@ namespace PaDDY
         }
 
         private void OutputVolumeSlider_ValueChanged(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (OutputVolumeValueLabel == null) return;
             double v = Math.Round(e.NewValue);
@@ -1486,7 +1500,7 @@ namespace PaDDY
         }
 
         private void PadListenVolumeSlider_ValueChanged(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (PadListenVolumeValueLabel == null) return;
             double v = Math.Round(e.NewValue);
@@ -1587,7 +1601,7 @@ namespace PaDDY
         // ── Global hotkey → buffer capture ────────────────────────────────────
         private void OnBufferHotkeyPressed()
         {
-            Dispatcher.InvokeAsync(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 if (MonitorToggle.IsChecked == true && _captureService.RecordingMode == AudioRecordingMode.KeyBuffer)
                     _captureService.TriggerBufferCapture();
@@ -1747,7 +1761,7 @@ namespace PaDDY
 
             if (_outputMeterDecayTimer == null)
             {
-                _outputMeterDecayTimer = new System.Windows.Threading.DispatcherTimer
+                _outputMeterDecayTimer = new Microsoft.UI.Xaml.DispatcherTimer
                 {
                     Interval = TimeSpan.FromMilliseconds(16)
                 };
@@ -1778,7 +1792,7 @@ namespace PaDDY
         private void OnRecordingStateChanged(bool isRecording)
         {
             _isRecording = isRecording;
-            Dispatcher.InvokeAsync(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 if (isRecording)
                     SetStatus("Recording…", "#FFEF5350");
@@ -1878,7 +1892,7 @@ namespace PaDDY
 
         private void OnCodecCompatibilityWarning(string message)
         {
-            Dispatcher.InvokeAsync(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 _settings.RecordCodec = "wav";
                 _settings.Save();
@@ -2024,8 +2038,9 @@ namespace PaDDY
         // ── Effect chain management ───────────────────────────────────────────────
         private void OpenGlobalEffectsWindow()
         {
-            var win = new EffectsWindow(_globalCaptureChain, isPerClip: false) { Owner = this };
-            if (win.ShowDialog() == true)
+            var win = new EffectsWindow(_globalCaptureChain, isPerClip: false);
+            win.Activate();
+            if (true) // shown modelessly
             {
                 _effectSettings.GlobalChain = EffectSettingsManager.ToConfig(_globalCaptureChain);
                 EffectSettingsManager.Save(_effectSettings);
@@ -2070,7 +2085,7 @@ namespace PaDDY
             foreach (var page in pages)
             {
                 bool isActive = _activePadPage != null && page.Id == _activePadPage.Id;
-                var tab = new System.Windows.Controls.Button
+                var tab = new Microsoft.UI.Xaml.Controls.Button
                 {
                     Content = page.IsFavorites ? "★ " + page.Name : page.Name,
                     Tag = page.Id,
@@ -2080,20 +2095,20 @@ namespace PaDDY
                     FontWeight = isActive ? FontWeights.Bold : FontWeights.Normal,
                     Background = isActive
                         ? new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07))
-                        : System.Windows.Media.Brushes.Transparent,
+                        : Microsoft.UI.Colors.Transparent,
                     Foreground = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xFF, 0xFF, 0xC1, 0x07)),
                     BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x33, 0xFF, 0xC1, 0x07)),
                     BorderThickness = new Thickness(1),
-                    Cursor = System.Windows.Input.Cursors.Hand
+                    ProtectedCursor = Microsoft.UI.Input.InputSystemCursor.Create(Microsoft.UI.Input.InputSystemCursorShape.Hand)
                 };
                 string pageId = page.Id;
                 tab.Click += (_, _) => SwitchToPadPage(pageId);
                 tab.AllowDrop = true;
                 tab.DragOver += (_, ev) =>
                 {
-                    ev.Effects = GetDraggedPad(ev) != null ? System.Windows.DragDropEffects.Move : System.Windows.DragDropEffects.None;
+                    ev.Effects = GetDraggedPad(ev) != null ? Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move : Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
                     ev.Handled = true;
-                    UpdateDragAdorner(ev);
+//                     UpdateDragAdorner(ev);
                 };
                 tab.Drop += (_, ev) =>
                 {
@@ -2200,8 +2215,9 @@ namespace PaDDY
 
         private void AddPadPageButton_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Controls.RenameDialog("New Page") { Owner = this };
-            if (dlg.ShowDialog() != true) return;
+            var dlg = new Controls.RenameDialog("New Page") { XamlRoot = this.Content.XamlRoot };
+            var dlgResult = await dlg.ShowAsync();
+            if (dlgResult != ContentDialogResult.Primary) return;
             string name = dlg.NewName.Trim();
             if (string.IsNullOrEmpty(name)) return;
 
@@ -2220,8 +2236,9 @@ namespace PaDDY
         private void RenamePadPageButton_Click(object sender, RoutedEventArgs e)
         {
             if (_activePadPage == null || _activePadPage.IsFavorites) return;
-            var dlg = new Controls.RenameDialog(_activePadPage.Name) { Owner = this };
-            if (dlg.ShowDialog() != true) return;
+            var dlg = new Controls.RenameDialog(_activePadPage.Name) { XamlRoot = this.Content.XamlRoot };
+            var dlgResult = await dlg.ShowAsync();
+            if (dlgResult != ContentDialogResult.Primary) return;
             string name = dlg.NewName.Trim();
             if (string.IsNullOrEmpty(name)) return;
 
@@ -2286,7 +2303,7 @@ namespace PaDDY
 
             foreach (var btn in favs)
             {
-                if (System.Windows.Media.VisualTreeHelper.GetParent(btn) is System.Windows.Controls.Panel p)
+                if (Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(btn) is Microsoft.UI.Xaml.Controls.Panel p)
                 {
                     p.Children.Remove(btn);
                 }
@@ -2319,7 +2336,7 @@ namespace PaDDY
             foreach (var btn in nonFavs)
             {
                 if (max > 0 && count >= max) break;
-                if (System.Windows.Media.VisualTreeHelper.GetParent(btn) is System.Windows.Controls.Panel p)
+                if (Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(btn) is Microsoft.UI.Xaml.Controls.Panel p)
                 {
                     p.Children.Remove(btn);
                 }
@@ -2424,8 +2441,10 @@ namespace PaDDY
             int total = PadPanel.Children.Count + FavoritesPanel.Children.Count;
             if (total == 0) return;
 
-            var dlg = new DeleteAllDialog { Owner = this, Icon = Icon };
-            if (dlg.ShowDialog() != true) return;
+            var dlg = new DeleteAllDialog { XamlRoot = this.Content.XamlRoot };
+            var dlgResult = await dlg.ShowAsync();
+            if (dlgResult == ContentDialogResult.None) return;
+            bool keepFavorites = (dlgResult == ContentDialogResult.Secondary);
 
             var toDelete = new List<RecordingPadButton>();
 
@@ -2685,7 +2704,7 @@ namespace PaDDY
         {
             StatusLabel.Text = text;
             StatusDot.Fill = new SolidColorBrush(
-                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
+                (System.Windows.Media.Color)Microsoft.UI.ColorHelper.ConvertFromString(hexColor));
         }
 
         private void UpdateThresholdMarker()
@@ -2725,7 +2744,7 @@ namespace PaDDY
 
         private void IpcServer_MessageReceived(object? sender, string message)
         {
-            Dispatcher.InvokeAsync(() =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 try
                 {
@@ -2772,7 +2791,7 @@ namespace PaDDY
         }
 
         // ── Shutdown ───────────────────────────────────────────────────────────
-        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        private void AppWindow_Closing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs e)
         {
             if (_settings.CloseToTray && !_forceExit)
             {
@@ -2794,3 +2813,4 @@ namespace PaDDY
         }
     }
 }
+

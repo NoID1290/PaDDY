@@ -1,14 +1,21 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Versioning;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using WpfControl = System.Windows.Controls.UserControl;
-using WpfButton = System.Windows.Controls.Button;
-using Color = System.Windows.Media.Color;
-using System.Windows.Media.Animation;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using WpfControl = Microsoft.UI.Xaml.Controls.UserControl;
+using WpfButton = Microsoft.UI.Xaml.Controls.Button;
+using Color = Windows.UI.Color;
+using Microsoft.UI.Xaml.Media.Animation;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NoIDSoftwork.AudioProcessor;
@@ -60,16 +67,16 @@ namespace PaDDY.Controls
                 FavBtn.Content = value ? "★" : "☆";
                 
                 if (value)
-                    FavBtn.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "AccentAmberBrush");
+                    FavBtn.SetResourceReference(Microsoft.UI.Xaml.Controls.Control.ForegroundProperty, "AccentAmberBrush");
                 else
-                    FavBtn.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "SubtleTextBrush");
+                    FavBtn.SetResourceReference(Microsoft.UI.Xaml.Controls.Control.ForegroundProperty, "SubtleTextBrush");
 
                 if (!_isPlaying)
                 {
                     if (value)
-                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                        TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
                     else
-                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                        TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "CardBorderBrush");
                 }
             }
         }
@@ -134,7 +141,7 @@ namespace PaDDY.Controls
 
             PreviewMouseMove += (_, e) =>
             {
-                if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed || _dragInProgress)
+                if (e.LeftButton != Microsoft.UI.Xaml.Input.MouseButtonState.Pressed || _dragInProgress)
                     return;
                 if (Entry == null || string.IsNullOrEmpty(Entry.RecordingId))
                     return;
@@ -151,8 +158,8 @@ namespace PaDDY.Controls
                 try
                 {
                     DragStarting?.Invoke(this);
-                    var data = new System.Windows.DataObject(PadDragFormat, this);
-                    System.Windows.DragDrop.DoDragDrop(this, data, System.Windows.DragDropEffects.Move);
+                    var data = new Microsoft.UI.Xaml.DataObject(PadDragFormat, this);
+                    Microsoft.UI.Xaml.DragDrop.DoDragDrop(this, data, Microsoft.UI.Xaml.DragDropEffects.Move);
                 }
                 catch { }
                 finally
@@ -166,7 +173,7 @@ namespace PaDDY.Controls
         public const string PadDragFormat = "PaddyRecordingPad";
 
         /// <summary>Mouse offset within the pad where the drag began (used to position the drag ghost).</summary>
-        public System.Windows.Point DragGrabOffset { get; private set; }
+        public Windows.Foundation.Point DragGrabOffset { get; private set; }
 
         /// <summary>Raised just before the drag-drop loop begins (host sets up the drag visual).</summary>
         public event Action<RecordingPadButton>? DragStarting;
@@ -174,7 +181,7 @@ namespace PaDDY.Controls
         /// <summary>Raised after the drag-drop loop completes (host tears down the visual and commits).</summary>
         public event Action<RecordingPadButton>? DragFinished;
 
-        private System.Windows.Point _dragStartPoint;
+        private Windows.Foundation.Point _dragStartPoint;
         private bool _dragInProgress;
 
         private static bool IsOverlayButton(FrameworkElement el)
@@ -183,7 +190,7 @@ namespace PaDDY.Controls
             while (current != null)
             {
                 if (current is WpfButton) return true;
-                current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+                current = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(current);
             }
             return false;
         }
@@ -266,7 +273,7 @@ namespace PaDDY.Controls
         }
 
         // ── Right-click: play on listen/monitor device only ───────────────────────────────────
-        private void OnMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void OnMouseRightButtonDown(object sender, PointerRoutedEventArgs e)
         {
             if (IsOverlayButton(e.OriginalSource as FrameworkElement ?? this)) return;
             e.Handled = true;
@@ -321,8 +328,8 @@ namespace PaDDY.Controls
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                Microsoft.UI.Xaml.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
+                    Microsoft.UI.Xaml.MessageBoxButton.OK, Microsoft.UI.Xaml.MessageBoxImage.Warning);
                 StopPlayback();
             }
         }
@@ -353,8 +360,8 @@ namespace PaDDY.Controls
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                Microsoft.UI.Xaml.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
+                    Microsoft.UI.Xaml.MessageBoxButton.OK, Microsoft.UI.Xaml.MessageBoxImage.Warning);
                 StopPlayback();
             }
         }
@@ -402,14 +409,14 @@ namespace PaDDY.Controls
 
             if (playing)
             {
-                TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentGreenBrush");
+                TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "AccentGreenBrush");
             }
             else
             {
                 if (_isFavorite)
-                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                    TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
                 else
-                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                    TileBorder.SetResourceReference(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, "CardBorderBrush");
             }
         }
 

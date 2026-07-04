@@ -1,11 +1,18 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media.Animation;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace PaDDY.Controls
 {
-    public partial class LoadingOverlay : System.Windows.Controls.UserControl
+    public partial class LoadingOverlay : Microsoft.UI.Xaml.Controls.UserControl
     {
         private Storyboard _animation;
 

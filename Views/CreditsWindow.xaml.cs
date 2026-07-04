@@ -1,8 +1,16 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Windows;
+using Microsoft.UI.Xaml;
+using PaDDY.Helpers;
 
 namespace PaDDY
 {
@@ -38,27 +46,32 @@ namespace PaDDY
         public CreditsWindow()
         {
             InitializeComponent();
-            Loaded += (_, _) => CreditsTextBox.Text = BuildCreditsText();
+            var appWindow = this.AppWindow;
+            var presenter = appWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
+            if (presenter != null)
+            {
+                presenter.IsResizable = false;
+            }
+
+            if (Content is FrameworkElement fe)
+            {
+                fe.Loaded += (_, _) => CreditsTextBox.Text = BuildCreditsText();
+            }
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
-
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
-        private void OpenLicensesFolder_Click(object sender, RoutedEventArgs e)
+        private async void OpenLicensesFolder_Click(object sender, RoutedEventArgs e)
         {
             string licensesDir = ResolveLicensesDirectory();
             if (Directory.Exists(licensesDir))
             {
-                Process.Start("explorer.exe", licensesDir);
+                Process.Start(new ProcessStartInfo("explorer.exe", licensesDir) { UseShellExecute = true });
             }
             else
             {
-                System.Windows.MessageBox.Show(this,
-                    "Unable to locate the licenses folder in this build.",
-                    "Credits and Licenses",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                await DialogHelper.ShowMessageAsync(Content.XamlRoot, "Credits and Licenses", "Unable to locate the licenses folder in this build.");
             }
         }
 

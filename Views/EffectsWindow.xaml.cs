@@ -1,5 +1,12 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System.Runtime.Versioning;
-using System.Windows;
+using Microsoft.UI.Xaml;
 using NoIDSoftwork.EffectProcessor;
 using NoIDSoftwork.EffectProcessor.Effects;
 
@@ -284,73 +291,73 @@ public partial class EffectsWindow : Window
 
     // ── Slider event handlers ─────────────────────────────────────────────────
 
-    private void FadeInSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void FadeInSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateFadeLabels();
     }
 
-    private void FadeOutSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void FadeOutSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateFadeLabels();
     }
 
-    private void GateThresholdSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void GateThresholdSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateGateLabels();
     }
 
-    private void GateAttackSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void GateAttackSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateGateLabels();
     }
 
-    private void GateReleaseSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void GateReleaseSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateGateLabels();
     }
 
-    private void EchoDelaySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void EchoDelaySlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateEchoLabels();
     }
 
-    private void EchoFeedbackSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void EchoFeedbackSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateEchoLabels();
     }
 
-    private void EchoMixSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void EchoMixSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateEchoLabels();
     }
 
-    private void CompSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void CompSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateCompLabels();
     }
 
-    private void DistSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void DistSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateDistLabels();
     }
 
-    private void ReverbSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void ReverbSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateReverbLabels();
     }
 
-    private void EqSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void EqSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         if (_loading) return;
         UpdateEqLabels();
@@ -428,49 +435,49 @@ public partial class EffectsWindow : Window
         Close();
     }
 
-    private void FadeChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void FadeChevron_Click(object sender, PointerRoutedEventArgs e)
     {
         bool expand = FadeContent.Visibility == Visibility.Collapsed;
         FadeContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         FadeChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 
-    private void GateChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void GateChevron_Click(object sender, PointerRoutedEventArgs e)
     {
         bool expand = GateContent.Visibility == Visibility.Collapsed;
         GateContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         GateChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 
-    private void EchoChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void EchoChevron_Click(object sender, PointerRoutedEventArgs e)
     {
         bool expand = EchoContent.Visibility == Visibility.Collapsed;
         EchoContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         EchoChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 
-    private void CompChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void CompChevron_Click(object sender, PointerRoutedEventArgs e)
     {
         bool expand = CompContent.Visibility == Visibility.Collapsed;
         CompContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         CompChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 
-    private void DistChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void DistChevron_Click(object sender, PointerRoutedEventArgs e)
     {
         bool expand = DistContent.Visibility == Visibility.Collapsed;
         DistContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         DistChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 
-    private void ReverbChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void ReverbChevron_Click(object sender, PointerRoutedEventArgs e)
     {
         bool expand = ReverbContent.Visibility == Visibility.Collapsed;
         ReverbContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         ReverbChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 
-    private void EqChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void EqChevron_Click(object sender, PointerRoutedEventArgs e)
     {
         bool expand = EqContent.Visibility == Visibility.Collapsed;
         EqContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;

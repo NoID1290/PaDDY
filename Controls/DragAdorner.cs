@@ -1,11 +1,12 @@
-using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Media;
-using System.Windows.Media.Effects;
-using System.Windows.Shapes;
-using Point = System.Windows.Point;
-using Size = System.Windows.Size;
-using Rectangle = System.Windows.Shapes.Rectangle;
+using Microsoft.UI.Xaml;
+using Windows.Foundation;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
+
+using Microsoft.UI.Xaml.Shapes;
+using Point = Windows.Foundation.Point;
+using Size = Windows.Foundation.Size;
+using Rectangle = Microsoft.UI.Xaml.Shapes.Rectangle;
 
 namespace PaDDY.Controls
 {

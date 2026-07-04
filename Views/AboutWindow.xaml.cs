@@ -1,11 +1,18 @@
-using System.Reflection;
-using System.Windows;
-using System.IO;
-using PaDDY.Services;
-using PaDDY.Helpers;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System;
-using Microsoft.Win32;
-using MessagingToolkit = System.Windows.MessageBox;
+using System.IO;
+using System.Reflection;
+using Microsoft.UI.Xaml;
+using PaDDY.Helpers;
+using PaDDY.Services;
+using WinRT.Interop;
+using Windows.Storage.Pickers;
 
 namespace PaDDY
 {
@@ -14,42 +21,52 @@ namespace PaDDY
         public AboutWindow()
         {
             InitializeComponent();
-            Loaded += (_, _) =>
+            var appWindow = this.AppWindow;
+            var presenter = appWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
+            if (presenter != null)
             {
-                var asm = Assembly.GetExecutingAssembly();
-                var ver = asm.GetName().Version;
-                var infoVersion = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                presenter.IsResizable = false;
+            }
 
-                string displayVersion;
-                if (ver != null)
+            // Using Window.Content.Loaded instead of Window.Loaded in WinUI 3
+            if (Content is FrameworkElement fe)
+            {
+                fe.Loaded += (_, _) =>
                 {
-                    displayVersion = $"Version {ver.Major}.{ver.Minor}.{ver.Build}";
-                    // Append pre-release suffix if present in the informational version
-                    if (infoVersion != null)
+                    var asm = Assembly.GetExecutingAssembly();
+                    var ver = asm.GetName().Version;
+                    var infoVersion = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+                    string displayVersion;
+                    if (ver != null)
                     {
-                        var plusIdx = infoVersion.IndexOf('+'); // strip build metadata if any
-                        var infoBase = plusIdx >= 0 ? infoVersion[..plusIdx] : infoVersion;
-                        var dashIdx = infoBase.IndexOf('-');
-                        if (dashIdx >= 0)
-                            displayVersion += " " + infoBase[dashIdx..];
+                        displayVersion = $"Version {ver.Major}.{ver.Minor}.{ver.Build}";
+                        if (infoVersion != null)
+                        {
+                            var plusIdx = infoVersion.IndexOf('+');
+                            var infoBase = plusIdx >= 0 ? infoVersion[..plusIdx] : infoVersion;
+                            var dashIdx = infoBase.IndexOf('-');
+                            if (dashIdx >= 0)
+                                displayVersion += " " + infoBase[dashIdx..];
+                        }
                     }
-                }
-                else
-                {
-                    displayVersion = "Version —";
-                }
+                    else
+                    {
+                        displayVersion = "Version —";
+                    }
 
-                VersionLabel.Text = displayVersion;
-            };
+                    VersionLabel.Text = displayVersion;
+                };
+            }
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
-
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
         private void CreditsButton_Click(object sender, RoutedEventArgs e)
         {
-            new CreditsWindow { Owner = this }.ShowDialog();
+            var win = new CreditsWindow();
+            win.Activate();
         }
 
         private void GitHubButton_Click(object sender, RoutedEventArgs e)
@@ -61,59 +78,49 @@ namespace PaDDY
             });
         }
 
-        private void ExportData_Click(object sender, RoutedEventArgs e)
+        private async void ExportData_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK",
-                FileName = $"PaDDY_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.PADBACK"
-            };
+            var picker = new FileSavePicker();
+            InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
+            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            picker.FileTypeChoices.Add("PaDDY Backup", new[] { ".PADBACK" });
+            picker.SuggestedFileName = $"PaDDY_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.PADBACK";
 
-            if (dlg.ShowDialog() == true)
+            var file = await picker.PickSaveFileAsync();
+            if (file != null)
             {
                 var backupService = new BackupService();
-                if (backupService.CreateBackup(dlg.FileName))
+                if (backupService.CreateBackup(file.Path))
                 {
-                    MessagingToolkit.Show(this, "Backup created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    await DialogHelper.ShowMessageAsync(Content.XamlRoot, "Success", "Backup created successfully.");
                 }
                 else
                 {
-                    MessagingToolkit.Show(this, "Failed to create backup. Please ensure your data files are intact.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    await DialogHelper.ShowMessageAsync(Content.XamlRoot, "Error", "Failed to create backup. Please ensure your data files are intact.");
                 }
             }
         }
 
-        private void ImportData_Click(object sender, RoutedEventArgs e)
+        private async void ImportData_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK"
-            };
+            var picker = new FileOpenPicker();
+            InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
+            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            picker.FileTypeFilter.Add(".PADBACK");
 
-            if (dlg.ShowDialog() == true)
+            var file = await picker.PickSingleFileAsync();
+            if (file != null)
             {
                 var backupService = new BackupService();
-                var mainWindow = Owner as MainWindow;
-                if (mainWindow != null)
+                // We cannot easily get Owner in WinUI 3 Window, but we can do a global reload if needed
+                // For now we'll just advise a restart since MainWindow handles its own load
+                if (backupService.RestoreBackup(file.Path))
                 {
-                    mainWindow.PrepareRecordingDataRestore();
-                }
-
-                if (backupService.RestoreBackup(dlg.FileName))
-                {
-                    if (mainWindow != null)
-                    {
-                        mainWindow.ReloadRecordingDataFromDisk();
-                        MessagingToolkit.Show(this, "Backup restored successfully and recordings have been reloaded.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-                        MessagingToolkit.Show(this, "Backup restored successfully. Please restart the application to apply changes.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+                    await DialogHelper.ShowMessageAsync(Content.XamlRoot, "Success", "Backup restored successfully. Please restart the application to apply changes.");
                 }
                 else
                 {
-                    MessagingToolkit.Show(this, "Failed to restore backup. Please ensure the file is a valid PaDDY backup.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    await DialogHelper.ShowMessageAsync(Content.XamlRoot, "Error", "Failed to restore backup. Please ensure the file is a valid PaDDY backup.");
                 }
             }
         }

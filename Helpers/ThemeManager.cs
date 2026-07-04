@@ -1,14 +1,12 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media;
-using Color = System.Windows.Media.Color;
-using Point = System.Windows.Point;
-using Application = System.Windows.Application;
-using Brush = System.Windows.Media.Brush;
-using ColorConverter = System.Windows.Media.ColorConverter;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
+using Color = Windows.UI.Color;
+using Point = Windows.Foundation.Point;
+using Application = Microsoft.UI.Xaml.Application;
+using Brush = Microsoft.UI.Xaml.Media.Brush;
 
 namespace PaDDY.Helpers
 {
@@ -414,10 +412,10 @@ namespace PaDDY.Helpers
             foreach (var kvp in palette)
             {
                 var color = ParseColor(kvp.Value);
-                if (res[kvp.Key] is SolidColorBrush brush && !brush.IsFrozen)
-                    brush.Color = color;        // mutable: updates Static + Dynamic consumers live
+                if (res[kvp.Key] is SolidColorBrush brush)
+                    brush.Color = color;        // WinUI: brushes are always mutable
                 else
-                    res[kvp.Key] = new SolidColorBrush(color); // frozen/missing: shadow at app level
+                    res[kvp.Key] = new SolidColorBrush(color);
             }
 
             // Retheme the gradient chrome brushes in place so secondary windows
@@ -441,16 +439,7 @@ namespace PaDDY.Helpers
             if (res[key] is not LinearGradientBrush brush) return;
             if (brush.GradientStops.Count != colors.Length) return;
 
-            if (brush.IsFrozen)
-            {
-                // Frozen resources can't be mutated: clone, recolour, and shadow at app level.
-                var clone = brush.Clone();
-                for (int i = 0; i < colors.Length; i++)
-                    clone.GradientStops[i].Color = colors[i];
-                res[key] = clone;
-                return;
-            }
-
+            // WinUI 3: brushes are not freezable; always mutable.
             for (int i = 0; i < colors.Length; i++)
                 brush.GradientStops[i].Color = colors[i];
         }
@@ -504,11 +493,11 @@ namespace PaDDY.Helpers
             }
         }
 
-        /// <summary>Toggles CPU-only (software) rendering and records the flag for animation guards.</summary>
+        /// <summary>Toggles performance mode flag. WinUI 3 always uses hardware-accelerated rendering.</summary>
         public static void ApplyPerformanceMode(bool enabled)
         {
             PerformanceMode = enabled;
-            RenderOptions.ProcessRenderMode = enabled ? RenderMode.SoftwareOnly : RenderMode.Default;
+            // WinUI 3 always renders via DirectX; no software-only mode toggle available.
         }
 
         // ── meter gradient factories ─────────────────────────────────────────
@@ -752,6 +741,28 @@ namespace PaDDY.Helpers
         }
 
         private static Color ParseColor(string hex)
-            => (Color)ColorConverter.ConvertFromString(hex);
+        {
+            // Manual ARGB hex parsing (WinUI 3 doesn't have ColorConverter.ConvertFromString)
+            if (hex.StartsWith('#')) hex = hex[1..];
+            byte a = 0xFF, r, g, b;
+            if (hex.Length == 8)
+            {
+                a = Convert.ToByte(hex[..2], 16);
+                r = Convert.ToByte(hex[2..4], 16);
+                g = Convert.ToByte(hex[4..6], 16);
+                b = Convert.ToByte(hex[6..8], 16);
+            }
+            else if (hex.Length == 6)
+            {
+                r = Convert.ToByte(hex[..2], 16);
+                g = Convert.ToByte(hex[2..4], 16);
+                b = Convert.ToByte(hex[4..6], 16);
+            }
+            else
+            {
+                r = g = b = 0xFF;
+            }
+            return Color.FromArgb(a, r, g, b);
+        }
     }
 }

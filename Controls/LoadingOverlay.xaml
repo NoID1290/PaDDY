@@ -34,7 +34,7 @@
         </Storyboard>
     </UserControl.Resources>
 
-    <Grid Background="{Binding Background, RelativeSource={RelativeSource AncestorType=UserControl}}">
+    <Grid Background="{Binding Background, RelativeSource={RelativeSource Self}}">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             
             <!-- Logo Container -->
@@ -50,9 +50,7 @@
                     <Path.RenderTransform>
                         <RotateTransform Angle="0"/>
                     </Path.RenderTransform>
-                    <Path.Effect>
-                        <DropShadowEffect Color="#FF4CAF50" BlurRadius="10" ShadowDepth="0" Opacity="0.8"/>
-                    </Path.Effect>
+                    
                 </Path>
 
                 <!-- Inner Logo -->
@@ -61,13 +59,7 @@
                         Background="#0F4CAF50" 
                         BorderBrush="#1EFFFFFF" 
                         BorderThickness="1">
-                    <Border.Effect>
-                        <DropShadowEffect x:Name="LogoGlow"
-                                          ShadowDepth="0"
-                                          BlurRadius="15"
-                                          Color="#FF4CAF50"
-                                          Opacity="0.5"/>
-                    </Border.Effect>
+                    
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="Pa"
                                    FontSize="16"
@@ -95,3 +87,6 @@
         </StackPanel>
     </Grid>
 </UserControl>
+
+
+

@@ -3,9 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="145"
         Height="90"
-             Cursor="Hand"
              RenderTransformOrigin="0.5,0.5"
-             MouseRightButtonDown="OnMouseRightButtonDown">
+             RightTapped="OnRightTapped">
     <UserControl.RenderTransform>
         <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1"/>
     </UserControl.RenderTransform>
@@ -43,8 +42,6 @@
                     Value="0"/>
             <Setter Property="Padding"
                     Value="0"/>
-            <Setter Property="Cursor"
-                    Value="Hand"/>
             <Setter Property="FontSize"
                     Value="11"/>
             <Setter Property="Width"
@@ -60,14 +57,7 @@
                             <ContentPresenter HorizontalAlignment="Center"
                                     VerticalAlignment="Center"/>
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver"
-                                    Value="True">
-                                <Setter TargetName="Bd"
-                                        Property="Background"
-                                        Value="#44FFFFFF"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
+                        
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -75,93 +65,14 @@
     </UserControl.Resources>
 
 <Border x:Name="TileBorder"
-             BorderBrush="{DynamicResource CardBorderBrush}"
-             Background="{DynamicResource CardBgBrush}"
+             BorderBrush="{ThemeResource CardBorderBrush}"
+             Background="{ThemeResource CardBgBrush}"
              BorderThickness="0.8"
              CornerRadius="6"
              UseLayoutRounding="True"
-             SnapsToDevicePixels="True">
+             >
 
-        <Border.Triggers>
-            <EventTrigger RoutedEvent="MouseEnter">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
-                                         Storyboard.TargetProperty="Opacity"
-                                         To="1" Duration="0:0:0.1"/>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleX"
-                                         To="1.04" Duration="0:0:0.15">
-                            <DoubleAnimation.EasingFunction> 
-                                <CubicEase EasingMode="EaseOut"/>
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleY"
-                                         To="1.04" Duration="0:0:0.15">
-                            <DoubleAnimation.EasingFunction> 
-                                <CubicEase EasingMode="EaseOut"/>
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-            <EventTrigger RoutedEvent="MouseLeave">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
-                                         Storyboard.TargetProperty="Opacity"
-                                         To="0" Duration="0:0:0.1"/>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleX"
-                                         To="1.0" Duration="0:0:0.15">
-                            <DoubleAnimation.EasingFunction>
-                                <CubicEase EasingMode="EaseOut"/>
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleY"
-                                         To="1.0" Duration="0:0:0.15">
-                            <DoubleAnimation.EasingFunction>
-                                <CubicEase EasingMode="EaseOut"/>
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-            <EventTrigger RoutedEvent="PreviewMouseLeftButtonDown">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleX"
-                                         To="0.96" Duration="0:0:0.08"/>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleY"
-                                         To="0.96" Duration="0:0:0.08"/>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-            <EventTrigger RoutedEvent="PreviewMouseLeftButtonUp">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleX"
-                                         To="1.02" Duration="0:0:0.1">
-                            <DoubleAnimation.EasingFunction>
-                                <CubicEase EasingMode="EaseOut"/>
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                        <DoubleAnimation Storyboard.TargetName="CardScale"
-                                         Storyboard.TargetProperty="ScaleY"
-                                         To="1.04" Duration="0:0:0.1">
-                            <DoubleAnimation.EasingFunction> 
-                                <CubicEase EasingMode="EaseOut"/>
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-        </Border.Triggers>
+        
 
         <!-- Root grid: content + overlay buttons -->
         <Grid>
@@ -189,7 +100,7 @@
                 <TextBlock x:Name="IconText"
                            Grid.Row="0"
                            Text="🎤"
-                           Foreground="{DynamicResource ControlTextBrush}"
+                           Foreground="{ThemeResource ControlTextBrush}"
                            FontSize="20"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"/>
@@ -198,7 +109,7 @@
                 <TextBlock x:Name="NameLabel"
                            Grid.Row="1"
                            Text="Recording"
-                           Foreground="{DynamicResource PrimaryTextBrush}"
+                           Foreground="{ThemeResource PrimaryTextBrush}"
                            FontSize="10"
                            Margin="0,-20,0,0"
                            FontWeight="SemiBold"
@@ -213,7 +124,7 @@
                            Grid.Row="1"
                            Text="0.0s"
                            Margin="0,25,0,0"
-                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           Foreground="{ThemeResource SecondaryTextBrush}"
                            FontSize="9"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Bottom"/>
@@ -225,33 +136,27 @@
                 <Button x:Name="FavBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="☆"
-                        Foreground="{DynamicResource SubtleTextBrush}"
+                        Foreground="{ThemeResource SubtleTextBrush}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Margin="4,4,0,0"
                         FontSize="15"
-                        ToolTip="Toggle favourite"
+                        ToolTipService.ToolTip="Toggle favourite"
                         Click="FavBtn_Click"/>
 
                 <!-- ✕ Delete — top-right -->
                 <Button x:Name="DelBtn"
                         Content="✕"
-                        Foreground="{DynamicResource SubtleTextBrush}"
+                        Foreground="{ThemeResource SubtleTextBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Margin="0,4,4,0"
-                        ToolTip="Delete"
+                        ToolTipService.ToolTip="Delete"
                         Click="DelBtn_Click">
                     <Button.Style>
                         <Style TargetType="Button"
                                 BasedOn="{StaticResource OverlayBtn}">
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver"
-                                        Value="True">
-                                    <Setter Property="Foreground"
-                                            Value="{DynamicResource AccentRedBrush}"/>
-                                </Trigger>
-                            </Style.Triggers>
+                            
                         </Style>
                     </Button.Style>
                 </Button>
@@ -260,35 +165,41 @@
                 <Button x:Name="RenameBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="✏"
-                        Foreground="{DynamicResource SubtleTextBrush}"
+                        Foreground="{ThemeResource SubtleTextBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Margin="0,0,4,4"
-                        ToolTip="Rename"
+                        ToolTipService.ToolTip="Rename"
                         Click="RenameBtn_Click"/>
 
                 <!-- ✂ Trim — bottom-left -->
                 <Button x:Name="TrimBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="✂"
-                        Foreground="{DynamicResource SubtleTextBrush}"
+                        Foreground="{ThemeResource SubtleTextBrush}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
                         Margin="4,0,0,4"
-                        ToolTip="Trim / Edit"
+                        ToolTipService.ToolTip="Trim / Edit"
                         Click="TrimBtn_Click"/>
 
                 <!-- 💾 Export — bottom-center -->
                 <Button x:Name="ExportBtn"
                         Style="{StaticResource OverlayBtn}"
                         Content="💾"
-                        Foreground="{DynamicResource SubtleTextBrush}"
+                        Foreground="{ThemeResource SubtleTextBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Margin="0,4,20,0"
-                        ToolTip="Export…"
+                        ToolTipService.ToolTip="Export…"
                         Click="ExportBtn_Click"/>
             </Grid>
         </Grid>
     </Border>
 </UserControl>
+
+
+
+
+
+

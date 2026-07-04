@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="NAudioWpfDemo.EqualizationDemo.EqualizationDemoView"
+<UserControl x:Class="NAudioWpfDemo.EqualizationDemo.EqualizationDemoView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -25,18 +25,23 @@
         </StackPanel>
         
         <StackPanel Orientation="Horizontal" Grid.Row="2">
-            <Button Command="{Binding OpenFileCommand}" Margin="2" Padding="4" ToolTip="Open">
+            <Button Command="{Binding OpenFileCommand}" Margin="2" Padding="4" ToolTipService.ToolTip="Open">
                 Open
             </Button>
-            <Button Command="{Binding StopCommand}" Margin="2" ToolTip="Stop">
+            <Button Command="{Binding StopCommand}" Margin="2" ToolTipService.ToolTip="Stop">
                 <Rectangle Fill="#404040" Width="15" Height="15" Margin="3" RadiusX="2" RadiusY="2"/>
             </Button>
-            <Button Command="{Binding PauseCommand}" Margin="2" ToolTip="Pause">
+            <Button Command="{Binding PauseCommand}" Margin="2" ToolTipService.ToolTip="Pause">
                 <Path Fill="#404040" Width="15" Height="15" Margin="3" Data="M 0,0 h 1 v 1 h -1 Z M 2,0 h 1 v 1 h -1 Z" Stretch="Fill" StrokeLineJoin="Round"/>
             </Button>
-            <Button Command="{Binding PlayCommand}" Margin="2" ToolTip="Play">
+            <Button Command="{Binding PlayCommand}" Margin="2" ToolTipService.ToolTip="Play">
                 <Path Fill="#404040" Margin="3" Width="15" Height="15" Data="M 0,0 L 1,1 L 0,2 Z" Stretch="Fill" StrokeLineJoin="Round"/>
             </Button>
         </StackPanel>
     </Grid>
 </UserControl>
+
+
+
+
+

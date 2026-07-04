@@ -1,11 +1,18 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Versioning;
-using System.Windows;
-using System.Windows.Forms;
-using System.Windows.Media;
-using System.Windows.Input;
+using Microsoft.UI.Xaml;
+
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Input;
 using NAudio.CoreAudioApi;
 using PaDDY.Helpers;
 
@@ -83,8 +90,8 @@ namespace PaDDY
             {
                 InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
                 InstallStreamDeckBtn.IsEnabled = false;
-                InstallStreamDeckBtn.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF4CAF50"));
-                InstallStreamDeckBtn.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
+                InstallStreamDeckBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush((Windows.UI.Color)Windows.UI.ColorConverter.ConvertFromString("#FF4CAF50"));
+                InstallStreamDeckBtn.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White);
             }
 
             // Codec
@@ -195,19 +202,19 @@ namespace PaDDY
             if (nvidiaDetected)
             {
                 CudaStatusText.Text = "NVIDIA GPU detected — CUDA acceleration available.";
-                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x60, 0x90, 0x60));
+                CudaStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    Windows.UI.Color.FromRgb(0x60, 0x90, 0x60));
             }
             else
             {
                 CudaStatusText.Text = "No NVIDIA GPU detected — CUDA acceleration unavailable.";
-                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x90));
+                CudaStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    Windows.UI.Color.FromRgb(0x60, 0x60, 0x90));
             }
         }
 
         private void ThemeCombo_SelectionChanged(object sender,
-            System.Windows.Controls.SelectionChangedEventArgs e)
+            Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
         {
             int i = ThemeCombo.SelectedIndex;
             if (i >= 0 && i < ThemeManager.Themes.Count)
@@ -215,7 +222,7 @@ namespace PaDDY
         }
 
         private void MeterSkinCombo_SelectionChanged(object sender,
-            System.Windows.Controls.SelectionChangedEventArgs e)
+            Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
         {
             int i = MeterSkinCombo.SelectedIndex;
             if (i >= 0 && i < ThemeManager.MeterSkins.Count)
@@ -250,7 +257,7 @@ namespace PaDDY
         }
 
         private void CodecCombo_SelectionChanged(object sender,
-            System.Windows.Controls.SelectionChangedEventArgs e)
+            Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
         {
             UpdateCodecInfo();
         }
@@ -264,14 +271,14 @@ namespace PaDDY
         }
 
         private void BufferDurationSlider_Changed(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (BufferDurationLabel == null) return;
             BufferDurationLabel.Text = $"{e.NewValue:0.#}s";
         }
 
         private void MaxRecordsSlider_Changed(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (MaxRecordsLabel == null) return;
             int val = (int)e.NewValue;
@@ -282,19 +289,19 @@ namespace PaDDY
         {
             _capturingKey = true;
             HotkeyKeyBox.Text = "Press a key…";
-            HotkeyKeyBox.Background = new System.Windows.Media.SolidColorBrush(
-                System.Windows.Media.Color.FromRgb(0x2F, 0x3A, 0x2F));
+            HotkeyKeyBox.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Windows.UI.Color.FromRgb(0x2F, 0x3A, 0x2F));
         }
 
         private void HotkeyKeyBox_LostFocus(object sender, RoutedEventArgs e)
         {
             _capturingKey = false;
-            HotkeyKeyBox.Background = new System.Windows.Media.SolidColorBrush(
-                System.Windows.Media.Color.FromRgb(0x2A, 0x2A, 0x2A));
+            HotkeyKeyBox.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Windows.UI.Color.FromRgb(0x2A, 0x2A, 0x2A));
             HotkeyKeyBox.Text = KeyHelper.VkToLabel(_capturedVk);
         }
 
-        private void HotkeyKeyBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void HotkeyKeyBox_PreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
             if (!_capturingKey) return;
             e.Handled = true;
@@ -380,7 +387,7 @@ namespace PaDDY
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show("Stream Deck Plugin not found in application resources.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        Microsoft.UI.Xaml.MessageBox.Show("Stream Deck Plugin not found in application resources.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
                 }
@@ -400,8 +407,8 @@ namespace PaDDY
                             {
                                 InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
                                 InstallStreamDeckBtn.IsEnabled = false;
-                                InstallStreamDeckBtn.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF4CAF50"));
-                                InstallStreamDeckBtn.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
+                                InstallStreamDeckBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush((Windows.UI.Color)Windows.UI.ColorConverter.ConvertFromString("#FF4CAF50"));
+                                InstallStreamDeckBtn.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White);
                             });
                             break;
                         }
@@ -410,19 +417,19 @@ namespace PaDDY
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Failed to install plugin:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
+                Microsoft.UI.Xaml.MessageBox.Show($"Failed to install plugin:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
-        {
-            // If the dialog was not confirmed, revert any live theme/meter preview.
-            if (DialogResult != true)
-            {
-                ThemeManager.ApplyTheme(_settings.Theme);
-                ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
-            }
-            base.OnClosing(e);
-        }
+        // protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        // {
+        //     // If the dialog was not confirmed, revert any live theme/meter preview.
+        //     if (DialogResult != true)
+        //     {
+        //         ThemeManager.ApplyTheme(_settings.Theme);
+        //         ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
+        //     }
+        //     base.OnClosing(e);
+        // }
     }
 }

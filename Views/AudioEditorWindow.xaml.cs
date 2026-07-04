@@ -1,14 +1,21 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Versioning;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using WpfRectangle = System.Windows.Shapes.Rectangle;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Media.Imaging;
+using WpfRectangle = Microsoft.UI.Xaml.Shapes.Rectangle;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NoIDSoftwork.AudioProcessor;
@@ -46,8 +53,8 @@ namespace PaDDY
         private double _waveformWidth;
         private double _gainDb = 0.0;
 
-        private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xFF, 0xC1, 0x07));
-        private static readonly SolidColorBrush MeterOverlayBrush = new(System.Windows.Media.Color.FromRgb(0x1A, 0x1A, 0x1A));
+        private static readonly SolidColorBrush PeakHotBrush = new(Windows.UI.Color.FromRgb(0xFF, 0xC1, 0x07));
+        private static readonly SolidColorBrush MeterOverlayBrush = new(Windows.UI.Color.FromRgb(0x1A, 0x1A, 0x1A));
         static AudioEditorWindow() { PeakHotBrush.Freeze(); MeterOverlayBrush.Freeze(); }
 
         // Inline effects panel
@@ -104,7 +111,7 @@ namespace PaDDY
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Could not read audio file:\n{ex.Message}", "PaDDY",
+                Microsoft.UI.Xaml.MessageBox.Show($"Could not read audio file:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 Close();
                 return;
@@ -155,7 +162,7 @@ namespace PaDDY
         // ── Waveform rendering ──────────────────────────────────────────────
 
         private void GainSlider_ValueChanged(object sender,
-            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+            Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             _gainDb = e.NewValue;
             if (GainLabel != null)
@@ -271,11 +278,11 @@ namespace PaDDY
         /// Returns the current theme's accent color from <see cref="Application.Current"/> resources.
         /// Falls back to a neutral green if the resource is unavailable.
         /// </summary>
-        private static System.Windows.Media.Color GetThemeAccentColor()
+        private static Windows.UI.Color GetThemeAccentColor()
         {
-            if (System.Windows.Application.Current?.Resources["AccentGreenBrush"] is SolidColorBrush brush)
+            if (Microsoft.UI.Xaml.Application.Current?.Resources["AccentGreenBrush"] is SolidColorBrush brush)
                 return brush.Color;
-            return System.Windows.Media.Color.FromRgb(0x4C, 0xAF, 0x50); // dark-theme green fallback
+            return Windows.UI.Color.FromRgb(0x4C, 0xAF, 0x50); // dark-theme green fallback
         }
 
         private static void SetPixel(byte[] pixels, int stride, int x, int y, byte r, byte g, byte b, byte a)
@@ -515,7 +522,7 @@ namespace PaDDY
             EffectSettingsManager.Save(settings);
         }
 
-        private void EffectSlider_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void EffectSlider_Changed(object sender, RangeBaseValueChangedEventArgs e)
         {
             if (_effectsLoading) return;
             UpdateEffectLabels();
@@ -528,7 +535,7 @@ namespace PaDDY
             CommitEffectsToChain();
         }
 
-        private void EffectsPanelChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void EffectsPanelChevron_Click(object sender, PointerRoutedEventArgs e)
         {
             bool expand = EffectsPanelContent.Visibility == Visibility.Collapsed;
             EffectsPanelContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
@@ -702,7 +709,7 @@ namespace PaDDY
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
+                Microsoft.UI.Xaml.MessageBox.Show($"Playback error:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 StopPreview();
             }
@@ -741,7 +748,7 @@ namespace PaDDY
                 FillBehavior = FillBehavior.HoldEnd
             };
             // No EasingFunction — linear by default
-            PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, anim);
+            PlaybackLineTransform.BeginAnimation(Microsoft.UI.Xaml.Media.TranslateTransform.XProperty, anim);
         }
 
         private void UpdatePlaybackLinePosition(double currentSec)
@@ -755,7 +762,7 @@ namespace PaDDY
             double clampedSec = Math.Clamp(currentSec, 0.0, _totalDurationSeconds);
             double fraction = clampedSec / _totalDurationSeconds;
             // Detach any running animation then set value directly
-            PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, null);
+            PlaybackLineTransform.BeginAnimation(Microsoft.UI.Xaml.Media.TranslateTransform.XProperty, null);
             PlaybackLineTransform.X = fraction * _waveformWidth;
         }
 
@@ -791,7 +798,7 @@ namespace PaDDY
                 _isPreviewing = false;
                 PlaybackLine.Visibility = Visibility.Collapsed;
                 // Detach the animation and reset position
-                PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, null);
+                PlaybackLineTransform.BeginAnimation(Microsoft.UI.Xaml.Media.TranslateTransform.XProperty, null);
                 PlaybackLineTransform.X = 0;
 
                 if (PlayBtn != null)
@@ -839,16 +846,16 @@ namespace PaDDY
                 var fillBar = new WpfRectangle { VerticalAlignment = VerticalAlignment.Stretch };
                 fillBar.Fill = new LinearGradientBrush
                 {
-                    StartPoint = new System.Windows.Point(0, 1),
-                    EndPoint = new System.Windows.Point(0, 0),
+                    StartPoint = new Windows.Foundation.Point(0, 1),
+                    EndPoint = new Windows.Foundation.Point(0, 0),
                     GradientStops = new GradientStopCollection
                     {
-                        new GradientStop(System.Windows.Media.Color.FromRgb(0x2E, 0x7D, 0x32), 0.0),
-                        new GradientStop(System.Windows.Media.Color.FromRgb(0x4C, 0xAF, 0x50), 0.35),
-                        new GradientStop(System.Windows.Media.Color.FromRgb(0xFD, 0xD8, 0x35), 0.70),
-                        new GradientStop(System.Windows.Media.Color.FromRgb(0xFF, 0x98, 0x00), 0.85),
-                        new GradientStop(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36), 0.95),
-                        new GradientStop(System.Windows.Media.Color.FromRgb(0xD5, 0x00, 0x00), 1.0)
+                        new GradientStop(Windows.UI.Color.FromRgb(0x2E, 0x7D, 0x32), 0.0),
+                        new GradientStop(Windows.UI.Color.FromRgb(0x4C, 0xAF, 0x50), 0.35),
+                        new GradientStop(Windows.UI.Color.FromRgb(0xFD, 0xD8, 0x35), 0.70),
+                        new GradientStop(Windows.UI.Color.FromRgb(0xFF, 0x98, 0x00), 0.85),
+                        new GradientStop(Windows.UI.Color.FromRgb(0xF4, 0x43, 0x36), 0.95),
+                        new GradientStop(Windows.UI.Color.FromRgb(0xD5, 0x00, 0x00), 1.0)
                     }
                 };
 
@@ -864,7 +871,7 @@ namespace PaDDY
                     Height = 2,
                     Background = PeakHotBrush,
                     VerticalAlignment = VerticalAlignment.Bottom,
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
+                    HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
                     Visibility = Visibility.Collapsed
                 };
 
@@ -1052,7 +1059,7 @@ namespace PaDDY
             catch (Exception ex)
             {
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
-                System.Windows.MessageBox.Show($"Trim failed:\n{ex.Message}", "PaDDY",
+                Microsoft.UI.Xaml.MessageBox.Show($"Trim failed:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
@@ -1088,7 +1095,7 @@ namespace PaDDY
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.MessageBox.Show($"Copy failed:\n{ex.Message}", "PaDDY",
+                    Microsoft.UI.Xaml.MessageBox.Show($"Copy failed:\n{ex.Message}", "PaDDY",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 return;
@@ -1170,7 +1177,7 @@ namespace PaDDY
             catch (Exception ex)
             {
                 try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
-                System.Windows.MessageBox.Show($"Save as copy failed:\n{ex.Message}", "PaDDY",
+                Microsoft.UI.Xaml.MessageBox.Show($"Save as copy failed:\n{ex.Message}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }

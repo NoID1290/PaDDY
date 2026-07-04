@@ -1,8 +1,8 @@
-using System.Windows;
+using Microsoft.UI.Xaml.Controls;
 
 namespace PaDDY.Controls
 {
-    public sealed partial class RenameDialog : Window
+    public sealed partial class RenameDialog : ContentDialog
     {
         public string NewName => NameTextBox.Text;
 
@@ -10,12 +10,7 @@ namespace PaDDY.Controls
         {
             InitializeComponent();
             NameTextBox.Text = currentName;
-            Loaded += (_, _) => { NameTextBox.Focus(); NameTextBox.SelectAll(); };
+            this.Opened += (s, e) => { NameTextBox.Focus(Microsoft.UI.Xaml.FocusState.Programmatic); NameTextBox.SelectAll(); };
         }
-
-        private void Ok_Click(object sender, RoutedEventArgs e) => DialogResult = true;
-        private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
-        private void ChromeClose_Click(object sender, RoutedEventArgs e) => DialogResult = false;
     }
 }
-

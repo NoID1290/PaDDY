@@ -1,18 +1,25 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Windows;
-using System.Windows.Media;
-using WpfApplication = System.Windows.Application;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 
 namespace PaDDY;
 
 /// <summary>
-/// Interaction logic for App.xaml
+/// Interaction logic for App.xaml — WinUI 3 version.
 /// </summary>
-public partial class App : WpfApplication
+public partial class App : Application
 {
     private Mutex? _instanceMutex;
+    private Window? _mainWindow;
 
     /// <summary>
     /// When the app is launched via a .PADBACK file association, the file path
@@ -37,23 +44,23 @@ public partial class App : WpfApplication
         var entry = FontVariants.FirstOrDefault(v => v.Key == variantKey);
         if (entry == default) entry = FontVariants.First(v => v.Key == "condensed-display");
 
-        // Two-argument overload correctly enumerates families from the specific embedded file.
-        var appFont = Fonts.GetFontFamilies(
-            new Uri("pack://application:,,,/"),
-            $"/Themes/Fonts/{entry.FileName}"
-        ).FirstOrDefault();
-
-        if (appFont != null)
-            Current.Resources["AppFont"] = appFont;
+        // WinUI 3: Use ms-appx:/// URI scheme for packaged, or relative path for unpackaged.
+        // For unpackaged apps, fonts deployed as Content items are in the output folder.
+        var appFont = new FontFamily($"Themes/Fonts/{entry.FileName}#PaDDY Font");
+        Current.Resources["AppFont"] = appFont;
     }
 
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        if (e.Args.Length >= 2 && e.Args[0] == "--download-models")
+        // WinUI 3 doesn't pass CLI args via LaunchActivatedEventArgs for unpackaged apps.
+        // Use Environment.GetCommandLineArgs() instead.
+        var cliArgs = System.Environment.GetCommandLineArgs().Skip(1).ToArray();
+
+        if (cliArgs.Length >= 2 && cliArgs[0] == "--download-models")
         {
-            string targetDir = e.Args[1];
+            string targetDir = cliArgs[1];
             System.IO.Directory.CreateDirectory(targetDir);
-            
+
             var types = new[] { Whisper.net.Ggml.GgmlType.Tiny, Whisper.net.Ggml.GgmlType.Base, Whisper.net.Ggml.GgmlType.Small };
             foreach (var type in types)
             {
@@ -73,15 +80,15 @@ public partial class App : WpfApplication
         _instanceMutex = new Mutex(true, "PaDDY_SingleInstance", out bool isNewInstance);
         if (!isNewInstance)
         {
-            System.Windows.MessageBox.Show("PaDDY is already running.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Information);
-            Shutdown();
+            // WinUI 3 doesn't have MessageBox; use Win32 MessageBox via P/Invoke.
+            NativeMessageBox("PaDDY is already running.", "PaDDY");
+            System.Environment.Exit(0);
             return;
         }
-        base.OnStartup(e);
 
         // Check if the app was launched by opening a .PADBACK file (file association).
         // The OS passes the file path as the first (non-flag) argument.
-        var padbackArg = e.Args.FirstOrDefault(a =>
+        var padbackArg = cliArgs.FirstOrDefault(a =>
             a.EndsWith(".PADBACK", System.StringComparison.OrdinalIgnoreCase) &&
             System.IO.File.Exists(a));
         if (padbackArg != null)
@@ -93,15 +100,20 @@ public partial class App : WpfApplication
         Helpers.ThemeManager.ApplyMeterSkin(settings.MeterSkin, settings.MeterDigitalDots);
         Helpers.ThemeManager.ApplyPerformanceMode(settings.PerformanceMode);
 
-        MainWindow = new MainWindow();
-        MainWindow.Show();
+        _mainWindow = new MainWindow();
+        _mainWindow.Activate();
     }
 
-    protected override void OnExit(ExitEventArgs e)
+    /// <summary>
+    /// Simple Win32 MessageBox for cases where no XAML window is available yet.
+    /// </summary>
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int MessageBoxW(System.IntPtr hWnd, string text, string caption, uint type);
+
+    private static void NativeMessageBox(string text, string caption)
     {
-        _instanceMutex?.ReleaseMutex();
-        _instanceMutex?.Dispose();
-        base.OnExit(e);
+        const uint MB_OK = 0x00000000;
+        const uint MB_ICONINFORMATION = 0x00000040;
+        MessageBoxW(System.IntPtr.Zero, text, caption, MB_OK | MB_ICONINFORMATION);
     }
 }
-
