@@ -6,20 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.6.0.0703] - 2026-07-03
 
-- fix Streamdeck installation in inno
-
-## [1.5.200.0702-Pre-release_1] - 2026-07-02
-
-- Fix audio recording since new cache
-
-## [1.5.100.0702-Pre-release_1] - 2026-07-02
-
-- Added SplashWindow
-- ui edit
+- Added Loading Screen on startup
 - Added Elgato Stream Deck plugin support
-- disable overlay engine starting
-- visual correction
-- Overlay dev started
+- Minor visual upgrades
 
 ## [1.5.3.0702] - 2026-07-02
 
