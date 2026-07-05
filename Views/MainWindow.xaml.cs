@@ -71,7 +71,12 @@ namespace PaDDY
                 MainLoadingOverlay.Hide();
                 if (_splashWindow != null)
                 {
-                    _splashWindow.Close();
+                    var dispatcher = _splashWindow.Dispatcher;
+                    dispatcher.Invoke(() =>
+                    {
+                        _splashWindow.Close();
+                        System.Windows.Threading.Dispatcher.FromThread(System.Threading.Thread.CurrentThread)?.InvokeShutdown();
+                    });
                     _splashWindow = null;
 
                     this.ShowInTaskbar = true;
@@ -178,8 +183,19 @@ namespace PaDDY
             }
             else
             {
-                _splashWindow = new SplashWindow();
-                _splashWindow.Show();
+                var splashReadyEvent = new System.Threading.ManualResetEvent(false);
+                var splashThread = new System.Threading.Thread(() =>
+                {
+                    _splashWindow = new SplashWindow();
+                    _splashWindow.Show();
+                    splashReadyEvent.Set();
+                    System.Windows.Threading.Dispatcher.Run();
+                });
+                splashThread.SetApartmentState(System.Threading.ApartmentState.STA);
+                splashThread.IsBackground = true;
+                splashThread.Start();
+                splashReadyEvent.WaitOne(2000);
+
                 this.ShowActivated = false;
                 this.WindowState = WindowState.Minimized;
                 this.Opacity = 0; // Hide the main window while it loads
