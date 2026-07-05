@@ -37,6 +37,7 @@
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" ExcludeFromSingleFile="true" />
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" ExcludeFromSingleFile="true" />
     <PackageReference Include="System.Management" Version="10.0.0-preview.4.25258.110" ExcludeFromSingleFile="true" />
+    <PackageReference Include="Vortice.Direct3D9" Version="3.6.2" ExcludeFromSingleFile="true" />
   </ItemGroup>
   <Target Name="ExcludeAppDllsFromSingleFile" BeforeTargets="_ComputeFilesToBundle" Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>
