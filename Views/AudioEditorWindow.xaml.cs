@@ -854,10 +854,10 @@ namespace PaDDY
 
                 var overlay = new WpfRectangle
                 {
-                    Fill = MeterOverlayBrush,
                     VerticalAlignment = VerticalAlignment.Top,
                     Height = 10000
                 };
+                overlay.SetResourceReference(WpfRectangle.FillProperty, "WindowBgBrush");
 
                 var peak = new Border
                 {
