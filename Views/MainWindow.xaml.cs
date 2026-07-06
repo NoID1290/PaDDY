@@ -97,15 +97,10 @@ namespace PaDDY
         private DateTime _lastMonitorMeterTick;
         private static readonly SolidColorBrush PeakHotBrush = new(System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36));
         private static readonly SolidColorBrush PeakColdBrush = new(System.Windows.Media.Color.FromRgb(0x44, 0x44, 0x44));
-        private static readonly SolidColorBrush InfoLabelPrefixBrush = new(System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x88));
-        private static readonly SolidColorBrush InfoLabelValueBrush = new(System.Windows.Media.Color.FromRgb(0x90, 0x90, 0xB8));
-
         static MainWindow()
         {
             PeakHotBrush.Freeze();
             PeakColdBrush.Freeze();
-            InfoLabelPrefixBrush.Freeze();
-            InfoLabelValueBrush.Freeze();
         }
 
         private void SetInfoLabel(TextBlock label, string prefix, string value)
@@ -116,8 +111,15 @@ namespace PaDDY
                 return;
             }
             label.Inlines.Clear();
-            label.Inlines.Add(new System.Windows.Documents.Run(prefix) { Foreground = InfoLabelPrefixBrush });
-            label.Inlines.Add(new System.Windows.Documents.Run(value) { Foreground = InfoLabelValueBrush });
+
+            var runPrefix = new System.Windows.Documents.Run(prefix);
+            runPrefix.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "SubtleTextBrush");
+
+            var runValue = new System.Windows.Documents.Run(value);
+            runValue.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "SecondaryTextBrush");
+
+            label.Inlines.Add(runPrefix);
+            label.Inlines.Add(runValue);
         }
 
         private bool _suppressSelectionEvents = true;
@@ -2700,8 +2702,12 @@ namespace PaDDY
         private void SetStatus(string text, string hexColor)
         {
             StatusLabel.Text = text;
-            StatusDot.Fill = new SolidColorBrush(
-                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
+            var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor);
+            StatusDot.Fill = new SolidColorBrush(color);
+            if (StatusDotGlow != null)
+            {
+                StatusDotGlow.Color = color;
+            }
         }
 
         private void UpdateThresholdMarker()

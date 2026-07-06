@@ -110,9 +110,9 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Save buffer to pad" Foreground="#FF9090B8" FontSize="11"/>
-                                <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="Ctrl + F9 (DEFAULT)" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                                <TextBlock Grid.Column="0" Text="Save buffer to pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
+                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
+                                    <TextBlock Text="Ctrl + F9 (DEFAULT)" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
                                 </Border>
                             </Grid>
                             
@@ -121,9 +121,9 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Edit selected pad" Foreground="#FF9090B8" FontSize="11"/>
-                                <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="E" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                                <TextBlock Grid.Column="0" Text="Edit selected pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
+                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
+                                    <TextBlock Text="E" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
                                 </Border>
                             </Grid>
 
@@ -132,9 +132,9 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Rename selected pad" Foreground="#FF9090B8" FontSize="11"/>
-                                <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="R" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                                <TextBlock Grid.Column="0" Text="Rename selected pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
+                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
+                                    <TextBlock Text="R" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
                                 </Border>
                             </Grid>
 
@@ -143,9 +143,9 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Monitor selected pad" Foreground="#FF9090B8" FontSize="11"/>
-                                <Border Grid.Column="1" Background="#FF0C0C18" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="MOUSE RIGHT-CLICK" Foreground="#FFB0B0CC" FontSize="11" FontFamily="Consolas"/>
+                                <TextBlock Grid.Column="0" Text="Monitor selected pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
+                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
+                                    <TextBlock Text="MOUSE RIGHT-CLICK" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
                                 </Border>
                             </Grid>    
 

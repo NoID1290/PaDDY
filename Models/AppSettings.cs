@@ -94,7 +94,7 @@ namespace PaDDY
         // Whisper model size: "tiny", "base", "small"
         public string SpeechModel { get; set; } = "base";
         // Language code (e.g. "en", "auto")
-        public string SpeechLanguage { get; set; } = "en";
+        public string SpeechLanguage { get; set; } = "Auto";
         // Use CUDA GPU acceleration for Whisper (requires NVIDIA GPU)
         public bool UseCudaForSpeech { get; set; } = false;
 
