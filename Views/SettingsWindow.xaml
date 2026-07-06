@@ -101,11 +101,11 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="TabBorder" Property="BorderBrush" Value="{StaticResource AccentGreenBrush}"/>
-                                        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                                        <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                                     </Trigger>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -172,7 +172,7 @@
                                    HorizontalAlignment="Right"
                                    VerticalAlignment="Center"
                                    Text="10s"
-                                   Foreground="#FFB0B0CC"/>
+                                   Foreground="{DynamicResource SecondaryTextBrush}"/>
                     </Grid>
                 </Border>
 
@@ -245,7 +245,7 @@
                                    HorizontalAlignment="Right"
                                    VerticalAlignment="Center"
                                    Text="∞"
-                                   Foreground="#FFB0B0CC"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    ToolTip="0 = unlimited. Favorites are never auto-deleted."/>
                     </Grid>
                 </Border>
@@ -497,8 +497,8 @@
                     <Border Grid.Row="1"
                             Margin="0,14,0,0"
                             Padding="0,12,0,0"
-                            Background="{StaticResource SecondaryFooterBackgroundBrush}"
-                            BorderBrush="#14FFFFFF"
+                            Background="{DynamicResource SecondaryFooterBackgroundBrush}"
+                            BorderBrush="{DynamicResource DividerBrush}"
                             BorderThickness="0,1,0,0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="OK"
@@ -506,9 +506,7 @@
                                     Margin="0,0,10,0"
                                     Click="OkButton_Click"
                                     IsDefault="True"
-                                    Background="#FF1A2E1A"
-                                    BorderBrush="#404CAF50"
-                                    Foreground="#FF9ECC9E"/>
+                                    Foreground="{DynamicResource AccentGreenBrush}"/>
                             <Button Content="Cancel"
                                     Width="88"
                                     Click="CancelButton_Click"

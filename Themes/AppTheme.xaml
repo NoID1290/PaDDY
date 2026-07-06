@@ -673,8 +673,8 @@
     <!-- InfoLineLabel: compact info text in the status bar -->
     <Style x:Key="InfoLineLabel" TargetType="TextBlock">
         <Setter Property="Foreground"    Value="{DynamicResource SubtleTextBrush}"/>
-        <Setter Property="FontSize"      Value="10"/>
-        <Setter Property="Margin"        Value="0,2,0,0"/>
+        <Setter Property="FontSize"      Value="10.5"/>
+        <Setter Property="Margin"        Value="0,4,0,0"/>
         <Setter Property="TextTrimming"  Value="CharacterEllipsis"/>
     </Style>
 
