@@ -76,12 +76,28 @@ namespace PaDDY
         public string? CopyFilePath { get; private set; }
         public bool ShouldSaveToFavorite => SaveToFavCheckBox.IsChecked == true;
 
-        public AudioEditorWindow(string filePath, string? recordingId = null, int outputDeviceIndex = -1, string? displayName = null)
+        public bool OutIsNonDestructive { get; private set; }
+        public double OutTrimStartFraction { get; private set; }
+        public double OutTrimEndFraction { get; private set; }
+        public double OutGainDb { get; private set; }
+
+        private readonly bool _initialIsNonDestructive;
+        private readonly long _initialTrimStartMs;
+        private readonly long _initialTrimEndMs;
+        private readonly double _initialGainDb;
+        private bool _isChangingNonDestructive;
+
+        public AudioEditorWindow(string filePath, string? recordingId = null, int outputDeviceIndex = -1, string? displayName = null,
+            bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
         {
             InitializeComponent();
             _filePath = filePath;
             _recordingId = recordingId;
             _outputDeviceIndex = outputDeviceIndex;
+            _initialIsNonDestructive = isNonDestructive;
+            _initialTrimStartMs = trimStartMs;
+            _initialTrimEndMs = trimEndMs;
+            _initialGainDb = gainDb;
 
             FileNameLabel.Text = !string.IsNullOrEmpty(displayName) ? displayName : Path.GetFileName(filePath); // Get real name
             //FileNameLabel.Text = Path.GetFileNameWithoutExtension(filePath); // Get raw name
@@ -100,6 +116,24 @@ namespace PaDDY
                 _totalDurationSeconds = Math.Max(_totalDuration.TotalSeconds, 0.001);
                 TotalDurationLabel.Text = FormatTime(_totalDuration);
 
+                // Load initial settings
+                if (_initialIsNonDestructive)
+                {
+                    _trimStartFraction = Math.Clamp((double)_initialTrimStartMs / 1000.0 / _totalDurationSeconds, 0.0, 1.0);
+                    if (_initialTrimEndMs > 0)
+                        _trimEndFraction = Math.Clamp((double)_initialTrimEndMs / 1000.0 / _totalDurationSeconds, _trimStartFraction, 1.0);
+                    else
+                        _trimEndFraction = 1.0;
+
+                    _gainDb = _initialGainDb;
+                }
+                else
+                {
+                    _trimStartFraction = 0.0;
+                    _trimEndFraction = 1.0;
+                    _gainDb = 0.0;
+                }
+
                 RenderWaveform(reader.AsSampleProvider(), reader.WaveFormat);
             }
             catch (Exception ex)
@@ -115,6 +149,14 @@ namespace PaDDY
             UpdateTimeLabels();
             EnsureVertMeterChannels(2);
             ResetVertMeter();
+
+            NonDestructiveCheckBox.Checked -= NonDestructiveCheckBox_Checked;
+            NonDestructiveCheckBox.Unchecked -= NonDestructiveCheckBox_Unchecked;
+            NonDestructiveCheckBox.IsChecked = _initialIsNonDestructive;
+            NonDestructiveCheckBox.Checked += NonDestructiveCheckBox_Checked;
+            NonDestructiveCheckBox.Unchecked += NonDestructiveCheckBox_Unchecked;
+
+            GainSlider.Value = _gainDb;
 
             // Load per-clip effect chain into inline panel
             _perClipChain = GetOrLoadEffectChain();
@@ -942,6 +984,28 @@ namespace PaDDY
             return (db + 60.0) / 60.0;
         }
 
+        private void NonDestructiveCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void NonDestructiveCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_isChangingNonDestructive) return;
+
+            var res = System.Windows.MessageBox.Show(
+                "Disabling non-destructive playback will discard its real-time effects, trim range, and gain settings. Are you sure you want to proceed?",
+                "PaDDY",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (res != MessageBoxResult.Yes)
+            {
+                _isChangingNonDestructive = true;
+                NonDestructiveCheckBox.IsChecked = true;
+                _isChangingNonDestructive = false;
+            }
+        }
+
         // ── Save (destructive trim) ────────────────────────────────────────
 
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
@@ -954,6 +1018,31 @@ namespace PaDDY
             bool noTrim = _trimStartFraction <= 0.001 && _trimEndFraction >= 0.999;
             bool noGain = Math.Abs(_gainDb) < 0.01;
             bool noEffects = GetOrLoadEffectChain().Effects.All(e => !e.IsEnabled);
+
+            if (NonDestructiveCheckBox.IsChecked == true)
+            {
+                SaveEffectSettings();
+                OutIsNonDestructive = true;
+                OutTrimStartFraction = _trimStartFraction;
+                OutTrimEndFraction = _trimEndFraction;
+                OutGainDb = _gainDb;
+                DialogResult = true;
+                return;
+            }
+
+            // Destructive Save: clear per-clip effects first
+            if (!string.IsNullOrEmpty(_recordingId))
+            {
+                try
+                {
+                    var settings = EffectSettingsManager.Load();
+                    settings.PerClipChains.Remove(_recordingId!);
+                    EffectSettingsManager.Save(settings);
+                }
+                catch { }
+            }
+
+            OutIsNonDestructive = false;
 
             // Nothing to do — no trim, no gain, no enabled effects
             if (noTrim && noGain && noEffects)

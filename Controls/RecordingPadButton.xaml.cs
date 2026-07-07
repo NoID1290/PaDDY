@@ -14,6 +14,9 @@ using NAudio.Wave.SampleProviders;
 using NoIDSoftwork.AudioProcessor;
 using PaDDY.Models;
 using PaDDY.Services;
+using PaDDY.Helpers;
+using NoIDSoftwork.EffectProcessor;
+using NoIDSoftwork.EffectProcessor.Effects;
 
 namespace PaDDY.Controls
 {
@@ -194,6 +197,8 @@ namespace PaDDY.Controls
             NameLabel.Text = entry.FileName;
             DurationLabel.Text = entry.DurationLabel;
             ToolTip = entry.FileName;
+            if (NdIndicator != null)
+                NdIndicator.Visibility = entry.IsNonDestructive ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // â”€â”€ Overlay button handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -232,7 +237,11 @@ namespace PaDDY.Controls
                 Entry.FilePath,
                 Entry.RecordingId,
                 TrimEditorOutputDeviceIndex - 1,
-                Entry.DisplayName)
+                Entry.DisplayName,
+                Entry.IsNonDestructive,
+                Entry.TrimStartMs,
+                Entry.TrimEndMs,
+                Entry.GainDb)
             {
                 Owner = Window.GetWindow(this)
             };
@@ -245,13 +254,32 @@ namespace PaDDY.Controls
                 }
                 else
                 {
-                    // In-place save — re-read duration from the trimmed temp file
-                    try
+                    Entry.IsNonDestructive = editor.OutIsNonDestructive;
+                    if (Entry.IsNonDestructive)
                     {
-                        using var reader = AudioReaderFactory.Open(Entry.FilePath);
-                        Entry.Duration = reader.TotalTime;
+                        try
+                        {
+                            using var reader = AudioReaderFactory.Open(Entry.FilePath);
+                            double totalSec = reader.TotalTime.TotalSeconds;
+                            Entry.TrimStartMs = (long)(editor.OutTrimStartFraction * totalSec * 1000);
+                            Entry.TrimEndMs = (long)(editor.OutTrimEndFraction * totalSec * 1000);
+                            Entry.GainDb = editor.OutGainDb;
+                            Entry.Duration = TimeSpan.FromSeconds((editor.OutTrimEndFraction - editor.OutTrimStartFraction) * totalSec);
+                        }
+                        catch { }
                     }
-                    catch { }
+                    else
+                    {
+                        Entry.TrimStartMs = 0;
+                        Entry.TrimEndMs = 0;
+                        Entry.GainDb = 0.0;
+                        try
+                        {
+                            using var reader = AudioReaderFactory.Open(Entry.FilePath);
+                            Entry.Duration = reader.TotalTime;
+                        }
+                        catch { }
+                    }
                     SetEntry(Entry);
                     RecordingEdited?.Invoke(Entry);
 
@@ -280,6 +308,66 @@ namespace PaDDY.Controls
             else StartPlayback();
         }
 
+        private ISampleProvider BuildNonDestructiveSource(IUnifiedAudioReader reader)
+        {
+            ISampleProvider sp = reader.AsSampleProvider();
+            if (Entry == null) return sp;
+
+            if (Entry.IsNonDestructive)
+            {
+                double startSec = Entry.TrimStartMs / 1000.0;
+                double endSec = Entry.TrimEndMs / 1000.0;
+
+                // Seek reader to the start offset
+                if (startSec > 0.001)
+                {
+                    reader.CurrentTime = TimeSpan.FromSeconds(startSec);
+                }
+
+                // Apply gain
+                if (Math.Abs(Entry.GainDb) > 0.01)
+                {
+                    sp = new VolumeSampleProvider(sp)
+                    {
+                        Volume = (float)Math.Pow(10.0, Entry.GainDb / 20.0)
+                    };
+                }
+
+                // Apply trim end (Take)
+                if (endSec > 0.001 && endSec > startSec)
+                {
+                    sp = new OffsetSampleProvider(sp)
+                    {
+                        Take = TimeSpan.FromSeconds(endSec - startSec)
+                    };
+                }
+
+                // Apply per-clip effects
+                var effectChain = EffectChainFactory.CreatePerClip();
+                var settings = EffectSettingsManager.Load();
+                if (settings.PerClipChains.TryGetValue(Entry.RecordingId, out var cfg))
+                {
+                    EffectSettingsManager.ApplyConfig(effectChain, cfg);
+                }
+
+                // Prepare effect chain (prime FadeEffect with total frames)
+                double durationSec = (endSec > startSec) ? (endSec - startSec) : (Entry.Duration.TotalSeconds);
+                effectChain.Reset();
+                long totalFrames = (long)(durationSec * sp.WaveFormat.SampleRate);
+                foreach (var effect in effectChain.Effects)
+                {
+                    if (effect is FadeEffect fade)
+                    {
+                        fade.TotalFrames = totalFrames;
+                        break;
+                    }
+                }
+
+                sp = new EffectSampleProvider(sp, effectChain);
+            }
+            return sp;
+        }
+
         private void StartPlayback()
         {
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
@@ -288,7 +376,8 @@ namespace PaDDY.Controls
             try
             {
                 _reader = AudioReaderFactory.Open(Entry.FilePath);
-                ISampleProvider playbackSource = BuildPlaybackSource(_reader.AsSampleProvider());
+                ISampleProvider rawSource = BuildNonDestructiveSource(_reader);
+                ISampleProvider playbackSource = BuildPlaybackSource(rawSource);
                 _outputVolumeProvider = new VolumeSampleProvider(playbackSource)
                 {
                     Volume = Math.Clamp(OutputVolume, 0.0f, 1.0f)
@@ -304,7 +393,8 @@ namespace PaDDY.Controls
                 if (ListenDeviceIndex >= -1)
                 {
                     _listenReader = AudioReaderFactory.Open(Entry.FilePath);
-                    ISampleProvider listenSource = BuildPlaybackSource(_listenReader.AsSampleProvider());
+                    ISampleProvider rawListen = BuildNonDestructiveSource(_listenReader);
+                    ISampleProvider listenSource = BuildPlaybackSource(rawListen);
                     _listenVolumeProvider = new VolumeSampleProvider(listenSource)
                     {
                         Volume = Math.Clamp(ListenVolume, 0.0f, 1.0f)
@@ -337,7 +427,8 @@ namespace PaDDY.Controls
             try
             {
                 _listenReader = AudioReaderFactory.Open(Entry.FilePath);
-                ISampleProvider listenSource = BuildPlaybackSource(_listenReader.AsSampleProvider());
+                ISampleProvider rawListen = BuildNonDestructiveSource(_listenReader);
+                ISampleProvider listenSource = BuildPlaybackSource(rawListen);
                 _listenVolumeProvider = new VolumeSampleProvider(listenSource)
                 {
                     Volume = Math.Clamp(ListenVolume, 0.0f, 1.0f)

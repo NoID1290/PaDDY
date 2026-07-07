@@ -140,7 +140,12 @@
                         <TextBlock x:Name="CodecInfoText"
                                    TextWrapping="Wrap"
                                    Foreground="#FF606090"
-                                   FontSize="11"/>
+                                   FontSize="11"
+                                   Margin="0,0,0,10"/>
+                        <CheckBox x:Name="NewRecordingsNonDestructiveCheck"
+                                  Content="New/next recordings are not destructive (real-time effects/trim)"
+                                  Checked="NewRecordingsNonDestructiveCheck_Checked"
+                                  Unchecked="NewRecordingsNonDestructiveCheck_Unchecked"/>
                     </StackPanel>
                 </Border>
 
