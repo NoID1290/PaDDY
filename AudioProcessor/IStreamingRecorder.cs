@@ -5,7 +5,7 @@ namespace NoIDSoftwork.AudioProcessor
 {
     /// <summary>
     /// Streams incoming raw PCM bytes directly into an encoded output file.
-    /// Implementations: WaveFileRecorder, Mp3Recorder, OpusRecorder, VorbisRecorder.
+    /// Implementations: WaveFileRecorder, Mp3Recorder, AacRecorder, OpusRecorder, VorbisRecorder.
     /// </summary>
     public interface IStreamingRecorder : IDisposable
     {

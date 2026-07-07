@@ -25,6 +25,8 @@ namespace NoIDSoftwork.AudioProcessor
                 "ogg" => new VorbisReaderAdapter(filePath),
                 "opus" => new OpusReaderAdapter(filePath),
                 "flac" => new FlacReaderAdapter(filePath),
+                "m4a" => new AacReaderAdapter(filePath),
+                "aac" => new AacReaderAdapter(filePath),
                 _ => new WavMp3ReaderAdapter(filePath)   // wav, mp3
             };
         }
@@ -283,5 +285,24 @@ namespace NoIDSoftwork.AudioProcessor
         {
             _fileStream.Dispose();
         }
+    }
+
+    // ── AAC (.m4a) ────────────────────────────────────────────────────────────
+
+    internal sealed class AacReaderAdapter : IUnifiedAudioReader
+    {
+        private readonly MediaFoundationReader _reader;
+
+        public AacReaderAdapter(string filePath) => _reader = new MediaFoundationReader(filePath);
+
+        public WaveFormat WaveFormat => _reader.WaveFormat;
+        public TimeSpan TotalTime => _reader.TotalTime;
+        public TimeSpan CurrentTime { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
+
+        public IWaveProvider AsWaveProvider() => _reader;
+        public ISampleProvider AsSampleProvider() => _reader.ToSampleProvider();
+        public int Read(byte[] buffer, int offset, int count) => _reader.Read(buffer, offset, count);
+
+        public void Dispose() => _reader.Dispose();
     }
 }

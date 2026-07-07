@@ -60,7 +60,7 @@ namespace PaDDY.Services
         /// <summary>Mic recording: number of channels (1=mono, 2=stereo).</summary>
         public int RecordChannels { get; set; } = 1;
 
-        /// <summary>Output codec: "wav", "mp3", "opus", or "ogg".</summary>
+        /// <summary>Output codec: "wav", "mp3", "aac", "opus", or "ogg".</summary>
         public string RecordCodec { get; set; } = "wav";
 
         /// <summary>Duration of the past-audio ring buffer in milliseconds.</summary>
@@ -424,6 +424,40 @@ namespace PaDDY.Services
                 if (!validRates.Contains(format.SampleRate))
                 {
                     reason = "OGG/Vorbis requires one of these sample rates: 8k, 11.025k, 16k, 22.05k, 32k, 44.1k, 48k.";
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (codec == "aac")
+            {
+                int[] validRates = { 44100, 48000 };
+
+                try
+                {
+                    var mediaTypes = NAudio.Wave.MediaFoundationEncoder.GetOutputMediaTypes(NAudio.MediaFoundation.AudioSubtypes.MFAudioFormat_AAC);
+                    if (mediaTypes == null || mediaTypes.Length == 0)
+                    {
+                        reason = "Windows Media Foundation AAC encoder is not available on this system.";
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    reason = $"AAC encoder initialization failed: {ex.Message}";
+                    return false;
+                }
+
+                if (format.Channels > 2)
+                {
+                    reason = "AAC supports only mono or stereo input.";
+                    return false;
+                }
+
+                if (!validRates.Contains(format.SampleRate))
+                {
+                    reason = "AAC requires a sample rate of 44.1k or 48k.";
                     return false;
                 }
 

@@ -13,6 +13,7 @@ namespace NoIDSoftwork.AudioProcessor
             "opus" => "opus",
             "ogg" => "ogg",
             "flac" => "flac",
+            "aac" => "m4a",
             _ => "wav"
         };
 
@@ -25,6 +26,7 @@ namespace NoIDSoftwork.AudioProcessor
             "opus" => new OpusRecorder(),
             "ogg" => new VorbisRecorder(),
             "flac" => new FlacRecorder(),
+            "aac" => new AacRecorder(),
             _ => new WaveFileRecorder()
         };
 
