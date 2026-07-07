@@ -2,7 +2,7 @@
 
 ![PaDDY Hero](logo/github/PaDDY-wordmark-font-transparent-2x.png)
 
-[![Version](https://img.shields.io/badge/version-1.6.0.0703-darkgreen)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.0.0707-darkgreen)](CHANGELOG.md)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
