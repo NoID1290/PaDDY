@@ -273,13 +273,6 @@
                             FontWeight="SemiBold"
                             Click="PlayBtn_Click"/>
                 </StackPanel>
-
-                <CheckBox x:Name="SaveToFavCheckBox"
-                          Content="Add to Favourites"
-                          Foreground="{DynamicResource SecondaryTextBrush}"
-                          FontSize="11.5"
-                          HorizontalAlignment="Left"
-                          VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
@@ -904,6 +897,21 @@
                 Padding="0,12,0,0"
                 Margin="0,10,0,0">
             <Grid>
+                <!-- Left: Checkboxes -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <CheckBox x:Name="SaveToFavCheckBox"
+                              Content="Add to Favourites"
+                              Foreground="{DynamicResource SecondaryTextBrush}"
+                              FontSize="11.5"
+                              Margin="0,0,16,0"/>
+                    <CheckBox x:Name="NonDestructiveCheckBox"
+                              Content="Non-Destructive Playback"
+                              Foreground="{DynamicResource SecondaryTextBrush}"
+                              FontSize="11.5"
+                              Checked="NonDestructiveCheckBox_Checked"
+                              Unchecked="NonDestructiveCheckBox_Unchecked"/>
+                </StackPanel>
+
                 <!-- Right: Cancel, Save as Copy, Save Trim -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Style="{StaticResource EditorBtn}"

@@ -64,6 +64,7 @@ namespace PaDDY
 
         // Trim Editor output device (0 = default, 1..N = devices 0..N-1)
         public int TrimEditorOutputDeviceIndex { get; set; } = 0;
+        public bool NewRecordingsNonDestructive { get; set; } = false;
 
         // ---- Overlay ----
         public bool OverlayEnabled { get; set; } = false;

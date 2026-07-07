@@ -27,6 +27,7 @@ namespace PaDDY
         public string SelectedDefaultPadTitleTemplate { get; private set; } = "Recording {timestamp}";
         public bool SelectedUseFocusedAppForPadTitle { get; private set; }
         public int SelectedTrimEditorOutputDeviceIndex { get; private set; }
+        public bool SelectedNewRecordingsNonDestructive { get; private set; }
 
         // Appearance / system
         public string SelectedTheme { get; private set; } = "dark";
@@ -62,6 +63,7 @@ namespace PaDDY
 
         private uint _capturedVk;
         private bool _capturingKey;
+        private bool _isChangingNonDestructiveGlobal;
 
         // Win32 ModKey flags
         private const uint MOD_SHIFT = 0x0004;
@@ -97,6 +99,12 @@ namespace PaDDY
             CodecCombo.SelectedIndex = codecIdx >= 0 ? codecIdx : 0;
             CodecCombo.SelectionChanged += CodecCombo_SelectionChanged;
             UpdateCodecInfo();
+
+            NewRecordingsNonDestructiveCheck.Checked -= NewRecordingsNonDestructiveCheck_Checked;
+            NewRecordingsNonDestructiveCheck.Unchecked -= NewRecordingsNonDestructiveCheck_Unchecked;
+            NewRecordingsNonDestructiveCheck.IsChecked = _settings.NewRecordingsNonDestructive;
+            NewRecordingsNonDestructiveCheck.Checked += NewRecordingsNonDestructiveCheck_Checked;
+            NewRecordingsNonDestructiveCheck.Unchecked += NewRecordingsNonDestructiveCheck_Unchecked;
 
             // Buffer duration
             double bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000.0, 0.5, 60.0);
@@ -336,6 +344,7 @@ namespace PaDDY
                 : DefaultPadTitleBox.Text.Trim();
             SelectedUseFocusedAppForPadTitle = UseFocusedAppNameCheck.IsChecked == true;
             SelectedTrimEditorOutputDeviceIndex = TrimOutputDeviceCombo.SelectedIndex;
+            SelectedNewRecordingsNonDestructive = NewRecordingsNonDestructiveCheck.IsChecked == true;
 
             int ti = ThemeCombo.SelectedIndex;
             SelectedTheme = (ti >= 0 && ti < ThemeManager.Themes.Count)
@@ -423,6 +432,28 @@ namespace PaDDY
                 ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             }
             base.OnClosing(e);
+        }
+
+        private void NewRecordingsNonDestructiveCheck_Checked(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void NewRecordingsNonDestructiveCheck_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_isChangingNonDestructiveGlobal) return;
+
+            var res = System.Windows.MessageBox.Show(
+                "Disabling this setting means all existing non-destructive recordings will lose their real-time trim, gain, and effects. Are you sure you want to proceed?",
+                "PaDDY",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (res != MessageBoxResult.Yes)
+            {
+                _isChangingNonDestructiveGlobal = true;
+                NewRecordingsNonDestructiveCheck.IsChecked = true;
+                _isChangingNonDestructiveGlobal = false;
+            }
         }
     }
 }

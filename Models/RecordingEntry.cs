@@ -24,6 +24,10 @@ namespace PaDDY.Models
         public TimeSpan Duration { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool IsFavorite { get; set; } = false;
+        public bool IsNonDestructive { get; set; } = false;
+        public long TrimStartMs { get; set; } = 0;
+        public long TrimEndMs { get; set; } = 0;
+        public double GainDb { get; set; } = 0.0;
         public string? PadPage { get; set; }
 
         /// <summary>Manual sort position within its panel/page (lower = earlier).</summary>

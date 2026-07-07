@@ -14,6 +14,10 @@ namespace PaDDY.Services
         public long DurationMs { get; init; }
         public DateTime CreatedAt { get; init; }
         public bool IsFavorite { get; set; }
+        public bool IsNonDestructive { get; set; }
+        public long TrimStartMs { get; set; }
+        public long TrimEndMs { get; set; }
+        public double GainDb { get; set; }
 
         /// <summary>Id of the pad page this recording is pinned to (empty = unassigned).</summary>
         public string PadPage { get; set; } = string.Empty;
@@ -112,6 +116,7 @@ namespace PaDDY.Services
 
             EnsurePadPageColumn();
             EnsureSortOrderColumn();
+            EnsureNonDestructiveColumns();
         }
 
         /// <summary>Adds the pad_page column to older databases that predate pad pages.</summary>
@@ -164,15 +169,54 @@ namespace PaDDY.Services
             alter.ExecuteNonQuery();
         }
 
+        private void EnsureNonDestructiveColumns()
+        {
+            var cols = new List<string>();
+            using (var info = _db.CreateCommand())
+            {
+                info.CommandText = "PRAGMA table_info(recordings)";
+                using var reader = info.ExecuteReader();
+                while (reader.Read())
+                {
+                    cols.Add(reader.GetString(1).ToLowerInvariant());
+                }
+            }
+
+            if (!cols.Contains("is_non_destructive"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN is_non_destructive INTEGER NOT NULL DEFAULT 0";
+                alter.ExecuteNonQuery();
+            }
+            if (!cols.Contains("trim_start_ms"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN trim_start_ms INTEGER NOT NULL DEFAULT 0";
+                alter.ExecuteNonQuery();
+            }
+            if (!cols.Contains("trim_end_ms"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN trim_end_ms INTEGER NOT NULL DEFAULT 0";
+                alter.ExecuteNonQuery();
+            }
+            if (!cols.Contains("gain_db"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN gain_db REAL NOT NULL DEFAULT 0.0";
+                alter.ExecuteNonQuery();
+            }
+        }
+
         // ── Write operations ───────────────────────────────────────────────────
 
-        public string Add(string displayName, string codec, TimeSpan duration, DateTime createdAt, byte[] audioData)
+        public string Add(string displayName, string codec, TimeSpan duration, DateTime createdAt, byte[] audioData, bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
         {
             string id = Guid.NewGuid().ToString("N");
             using var cmd = _db.CreateCommand();
             cmd.CommandText = """
-                INSERT INTO recordings(id, display_name, codec, duration_ms, created_at, is_favorite, audio_data)
-                VALUES(@id, @dn, @codec, @dur, @cat, 0, @data)
+                INSERT INTO recordings(id, display_name, codec, duration_ms, created_at, is_favorite, audio_data, is_non_destructive, trim_start_ms, trim_end_ms, gain_db)
+                VALUES(@id, @dn, @codec, @dur, @cat, 0, @data, @nd, @tstart, @tend, @gain)
                 """;
             cmd.Parameters.AddWithValue("@id", id);
             cmd.Parameters.AddWithValue("@dn", displayName);
@@ -180,8 +224,38 @@ namespace PaDDY.Services
             cmd.Parameters.AddWithValue("@dur", (long)duration.TotalMilliseconds);
             cmd.Parameters.AddWithValue("@cat", createdAt.ToString("O"));
             cmd.Parameters.AddWithValue("@data", audioData);
+            cmd.Parameters.AddWithValue("@nd", isNonDestructive ? 1L : 0L);
+            cmd.Parameters.AddWithValue("@tstart", trimStartMs);
+            cmd.Parameters.AddWithValue("@tend", trimEndMs);
+            cmd.Parameters.AddWithValue("@gain", gainDb);
             cmd.ExecuteNonQuery();
             return id;
+        }
+
+        public void UpdateNonDestructiveSettings(string id, bool isNonDestructive, long trimStartMs, long trimEndMs, double gainDb, long durationMs)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = """
+                UPDATE recordings 
+                SET is_non_destructive = @nd, trim_start_ms = @tstart, trim_end_ms = @tend, gain_db = @gain, duration_ms = @dur
+                WHERE id = @id
+                """;
+            cmd.Parameters.AddWithValue("@nd", isNonDestructive ? 1L : 0L);
+            cmd.Parameters.AddWithValue("@tstart", trimStartMs);
+            cmd.Parameters.AddWithValue("@tend", trimEndMs);
+            cmd.Parameters.AddWithValue("@gain", gainDb);
+            cmd.Parameters.AddWithValue("@dur", durationMs);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void UpdateDuration(string id, TimeSpan duration)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET duration_ms = @dur WHERE id = @id";
+            cmd.Parameters.AddWithValue("@dur", (long)duration.TotalMilliseconds);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
         }
 
         public void SetDisplayName(string id, string newDisplayName)
@@ -287,7 +361,7 @@ namespace PaDDY.Services
             var list = new List<RecordingRecord>();
             using var cmd = _db.CreateCommand();
             cmd.CommandText = """
-                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order
+                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db
                 FROM recordings
                 ORDER BY created_at DESC
                 """;
@@ -303,7 +377,11 @@ namespace PaDDY.Services
                     CreatedAt = DateTime.Parse(reader.GetString(4)),
                     IsFavorite = reader.GetInt64(5) != 0,
                     PadPage = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
-                    SortOrder = reader.IsDBNull(7) ? 0 : reader.GetInt64(7)
+                    SortOrder = reader.IsDBNull(7) ? 0 : reader.GetInt64(7),
+                    IsNonDestructive = reader.IsDBNull(8) ? false : (reader.GetInt64(8) != 0),
+                    TrimStartMs = reader.IsDBNull(9) ? 0 : reader.GetInt64(9),
+                    TrimEndMs = reader.IsDBNull(10) ? 0 : reader.GetInt64(10),
+                    GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11)
                 });
             }
             return list;

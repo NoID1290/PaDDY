@@ -208,15 +208,20 @@
                            MaxWidth="125"
                            MaxHeight="28"/>
 
-                <!-- Duration -->
-                <TextBlock x:Name="DurationLabel"
-                           Grid.Row="1"
-                           Text="0.0s"
-                           Margin="0,25,0,0"
-                           Foreground="{DynamicResource SecondaryTextBrush}"
-                           FontSize="9"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Bottom"/>
+                <!-- Duration and Non-Destructive badge -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,25,0,0">
+                    <TextBlock x:Name="DurationLabel"
+                               Text="0.0s"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               FontSize="9"/>
+                    <TextBlock x:Name="NdIndicator"
+                               Text=" ⚡"
+                               Foreground="{DynamicResource AccentGreenBrush}"
+                               FontSize="9"
+                               FontWeight="Bold"
+                               ToolTip="Non-destructive real-time playback"
+                               Visibility="Collapsed"/>
+                </StackPanel>
             </Grid>
 
             <!-- Overlay buttons -->

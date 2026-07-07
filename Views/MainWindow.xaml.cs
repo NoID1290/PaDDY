@@ -1543,6 +1543,41 @@ namespace PaDDY
             _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
             _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
 
+            bool wasND = _settings.NewRecordingsNonDestructive;
+            _settings.NewRecordingsNonDestructive = win.SelectedNewRecordingsNonDestructive;
+            if (wasND && !_settings.NewRecordingsNonDestructive)
+            {
+                foreach (var pad in _padCache.Values)
+                {
+                    if (pad.Entry != null && pad.Entry.IsNonDestructive)
+                    {
+                        pad.Entry.IsNonDestructive = false;
+                        pad.Entry.TrimStartMs = 0;
+                        pad.Entry.TrimEndMs = 0;
+                        pad.Entry.GainDb = 0.0;
+                        
+                        try
+                        {
+                            using var reader = AudioReaderFactory.Open(pad.Entry.FilePath);
+                            pad.Entry.Duration = reader.TotalTime;
+                        }
+                        catch { }
+
+                        pad.SetEntry(pad.Entry);
+
+                        _recordingStore.UpdateNonDestructiveSettings(
+                            pad.Entry.RecordingId,
+                            false,
+                            0,
+                            0,
+                            0.0,
+                            (long)pad.Entry.Duration.TotalMilliseconds
+                        );
+                    }
+                }
+                UpdatePadState();
+            }
+
             // Appearance
             _settings.Theme = win.SelectedTheme;
             _settings.MeterSkin = win.SelectedMeterSkin;
@@ -1823,7 +1858,7 @@ namespace PaDDY
                     lock (_recordingStore)
                     {
                         displayName = RecordingNameGenerator.BuildDisplayName(_settings, entry.CreatedAt, codec);
-                        id = _recordingStore.Add(displayName, codec, entry.Duration, entry.CreatedAt, audioBytes);
+                        id = _recordingStore.Add(displayName, codec, entry.Duration, entry.CreatedAt, audioBytes, _settings.NewRecordingsNonDestructive);
                         materializedPath = _recordingStore.MaterializeToTemp(id, codec);
                     }
 
@@ -1834,6 +1869,7 @@ namespace PaDDY
                         entry.RecordingId = id;
                         entry.DisplayName = displayName;
                         entry.FilePath = materializedPath;
+                        entry.IsNonDestructive = _settings.NewRecordingsNonDestructive;
                         AddPadButton(entry, toFavorites: false);
                         Forget(RefreshStorageInfoAsync());
                         if (_settings.AutoRenameWithSpeech) Forget(AutoRenameFromSpeechAsync(entry));
@@ -1991,8 +2027,30 @@ namespace PaDDY
                 if (string.IsNullOrEmpty(entry.RecordingId) || !File.Exists(entry.FilePath)) return;
                 try
                 {
-                    byte[] updated = File.ReadAllBytes(entry.FilePath);
-                    _recordingStore.UpdateAudioData(entry.RecordingId, updated);
+                    if (entry.IsNonDestructive)
+                    {
+                        _recordingStore.UpdateNonDestructiveSettings(
+                            entry.RecordingId,
+                            true,
+                            entry.TrimStartMs,
+                            entry.TrimEndMs,
+                            entry.GainDb,
+                            (long)entry.Duration.TotalMilliseconds
+                        );
+                    }
+                    else
+                    {
+                        byte[] updated = File.ReadAllBytes(entry.FilePath);
+                        _recordingStore.UpdateAudioData(entry.RecordingId, updated);
+                        _recordingStore.UpdateNonDestructiveSettings(
+                            entry.RecordingId,
+                            false,
+                            0,
+                            0,
+                            0.0,
+                            (long)entry.Duration.TotalMilliseconds
+                        );
+                    }
                 }
                 catch { }
                 Forget(RefreshStorageInfoAsync());
@@ -2284,7 +2342,11 @@ namespace PaDDY
                         CreatedAt = rec.CreatedAt,
                         IsFavorite = rec.IsFavorite,
                         PadPage = rec.PadPage,
-                        SortOrder = rec.SortOrder
+                        SortOrder = rec.SortOrder,
+                        IsNonDestructive = rec.IsNonDestructive,
+                        TrimStartMs = rec.TrimStartMs,
+                        TrimEndMs = rec.TrimEndMs,
+                        GainDb = rec.GainDb
                     };
                     var btn = CreatePadButton(entry);
                     _padCache[rec.Id] = btn;
