@@ -4,6 +4,15 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.7.0.0707] - 2026-07-07
+
+- Added Non-Destructive Recordings and Real-Time Effects
+- Added DX11 Interop for better performance
+- Fix loading animation freeze
+- Updated Meters UI
+- Updated Editor UI
+- Updated Status Information UI
+
 ## [1.6.0.0703] - 2026-07-03
 
 - Added Loading Screen on startup
