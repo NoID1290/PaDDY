@@ -4,7 +4,7 @@ title: Home
 ---
 
 <!-- markdownlint-disable MD033 -->
-
+<meta name="google-site-verification" content="BWApMIBBsK_hOKJBuRTUtVKgj3wVTcayKgDoyjzTk_Q" />
 <section class="hero">
   <div class="container">
     <img class="hero-image" src="{{ '/assets/img/hero.png' | relative_url }}" alt="PaDDY hero logo">
