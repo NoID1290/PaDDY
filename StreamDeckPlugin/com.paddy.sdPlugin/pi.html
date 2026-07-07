@@ -74,7 +74,7 @@
             for (var i = 0; i < pads.length; i++) {
                 var opt = document.createElement('option');
                 opt.value = pads[i].id;
-                opt.innerHTML = pads[i].title || pads[i].id;
+                opt.textContent = pads[i].title || pads[i].id;
                 select.appendChild(opt);
             }
             
