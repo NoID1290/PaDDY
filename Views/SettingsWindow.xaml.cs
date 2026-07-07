@@ -47,6 +47,7 @@ namespace PaDDY
         {
             ("wav",  "WAV (LCPM FORMAT)"),
             ("mp3",  "MP3 (LAME)"),
+            ("aac",  "AAC (.m4a)"),
             ("opus", "Opus (.opus)"),
             ("ogg",  "Ogg Vorbis (.ogg)"),
             ("flac", "FLAC (lossless)"),
@@ -56,6 +57,7 @@ namespace PaDDY
         {
             ["wav"] = "Lossless \u00b7 Raw audio LCPM format.",
             ["mp3"] = "Lossy \u00b7 Old, but still widely supported.",
+            ["aac"] = "Lossy \u00b7 High quality, widely compatible (Apple, YouTube, streaming).",
             ["opus"] = "Lossy \u00b7 Optimised for voice.",
             ["ogg"] = "Lossy \u00b7 High efficiency, provides better audio quality than MP3.",
             ["flac"] = "Lossless \u00b7 Raw quality, better size than WAV.",
