@@ -6,7 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.7.0.0707] - 2026-07-07
 
-- Added Non-Destructive Recordings and Real-Time Effects
+- Added Non-Destructive Recordings and Real-Time Eff ects
+- Added AAC codec support
 - Added DX11 Interop for better performance
 - Fix loading animation freeze
 - Updated Meters UI
