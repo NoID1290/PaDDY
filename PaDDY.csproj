@@ -85,6 +85,12 @@
     <Resource Include="Themes\Fonts\ari-w9500-condensed-display.ttf" />
     <Resource Include="Themes\Fonts\ari-w9500-display.ttf" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="DiscordGameSDK\discord_game_sdk.dll">
+      <Link>discord_game_sdk.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Target Name="RenameExeAfterBuild" AfterTargets="Build">
     <Move SourceFiles="$(OutputPath)NoIDSoftwork.Core.exe" DestinationFiles="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)NoIDSoftwork.Core.exe')" />
   </Target>

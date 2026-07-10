@@ -105,6 +105,10 @@ namespace PaDDY
         // Id of the currently active pad page (empty = first/all view).
         public string ActivePadPageId { get; set; } = string.Empty;
 
+        // ---- Discord Rich Presence ----
+        public bool DiscordRichPresenceEnabled { get; set; } = false;
+        public long DiscordClientId { get; set; } = 461618159171141643;
+
         private static readonly MessagePackSerializerOptions SerializerOptions =
             MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
 

@@ -42,6 +42,8 @@ namespace PaDDY
         public string SelectedSpeechModel { get; private set; } = "base";
         public string SelectedSpeechLanguage { get; private set; } = "en";
         public bool SelectedUseCudaForSpeech { get; private set; }
+        public bool SelectedDiscordRichPresenceEnabled { get; private set; }
+        public long SelectedDiscordClientId { get; private set; }
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -214,6 +216,10 @@ namespace PaDDY
                 CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
                     System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x90));
             }
+
+            // Discord Integration
+            DiscordRichPresenceCheck.IsChecked = _settings.DiscordRichPresenceEnabled;
+            DiscordClientIdBox.Text = _settings.DiscordClientId.ToString();
         }
 
         private void ThemeCombo_SelectionChanged(object sender,
@@ -364,6 +370,13 @@ namespace PaDDY
             SelectedSpeechModel = SpeechModelCombo.SelectedItem?.ToString() ?? "base";
             SelectedSpeechLanguage = string.IsNullOrWhiteSpace(SpeechLanguageBox.Text) ? "en" : SpeechLanguageBox.Text.Trim();
             SelectedUseCudaForSpeech = UseCudaCheck.IsChecked == true;
+
+            // Save Discord settings
+            SelectedDiscordRichPresenceEnabled = DiscordRichPresenceCheck.IsChecked == true;
+            if (long.TryParse(DiscordClientIdBox.Text, out long cid))
+                SelectedDiscordClientId = cid;
+            else
+                SelectedDiscordClientId = 461618159171141643;
 
             DialogResult = true;
         }
