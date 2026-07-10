@@ -973,6 +973,9 @@ namespace PaDDY
             RefreshInputFormatInfo();
 
             ApplyOverlayOptionsFromSettings();
+
+            // Initialize Discord Service
+            DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
         }
 
         private OverlayOptions BuildOverlayOptions()
@@ -1595,7 +1598,11 @@ namespace PaDDY
             _settings.SpeechModel = win.SelectedSpeechModel;
             _settings.SpeechLanguage = win.SelectedSpeechLanguage;
             _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
+            _settings.DiscordRichPresenceEnabled = win.SelectedDiscordRichPresenceEnabled;
+            _settings.DiscordClientId = win.SelectedDiscordClientId;
             _settings.Save();
+
+            DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
 
             App.ApplyFont(win.SelectedFontVariant);
             Helpers.ThemeManager.ApplyTheme(_settings.Theme);
@@ -2770,6 +2777,28 @@ namespace PaDDY
             {
                 StatusDotGlow.Color = color;
             }
+
+            // Update Discord Rich Presence
+            string details = "Idle";
+            string state = text;
+            bool isRecordingOrMonitoring = false;
+
+            if (text.Contains("Recording"))
+            {
+                details = "Recording audio clip";
+                isRecordingOrMonitoring = true;
+            }
+            else if (text.Contains("Listening") || text.Contains("Monitoring"))
+            {
+                details = "Monitoring audio";
+                isRecordingOrMonitoring = true;
+            }
+            else
+            {
+                details = "Idle";
+            }
+
+            DiscordService.Instance.UpdateActivity(details, state, isRecordingOrMonitoring);
         }
 
         private void UpdateThresholdMarker()
@@ -2875,6 +2904,7 @@ namespace PaDDY
             _recordingStore.CleanupAllTempFiles();
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();
+            DiscordService.Instance.Dispose();
         }
     }
 }
