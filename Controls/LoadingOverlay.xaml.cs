@@ -19,12 +19,12 @@ namespace PaDDY.Controls
         {
             LoadingText.Text = message;
             Visibility = Visibility.Visible;
-            _animation?.Begin();
+            _animation?.Begin(this, true);
         }
 
         public void Hide()
         {
-            _animation?.Stop();
+            _animation?.Stop(this);
             Visibility = Visibility.Collapsed;
         }
     }

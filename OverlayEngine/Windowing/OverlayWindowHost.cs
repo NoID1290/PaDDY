@@ -115,10 +115,18 @@ internal sealed class OverlayWindowHost : IDisposable
 
     public void UpdateOptions(OverlayOptions options)
     {
+        IntPtr hwnd;
         lock (_sync)
         {
             _options = options;
             _renderer.UpdateStyle(options.VisualStyle);
+            hwnd = _hwnd;
+        }
+
+        // Re-apply window opacity when the visual style changes.
+        if (hwnd != IntPtr.Zero)
+        {
+            NativeMethods.SetLayeredWindowAttributes(hwnd, 0, OpacityToByte(options.VisualStyle.Opacity), NativeMethods.LWA_ALPHA);
         }
     }
 
@@ -184,7 +192,11 @@ internal sealed class OverlayWindowHost : IDisposable
                 _hwnd = hwnd;
             }
 
-            NativeMethods.SetLayeredWindowAttributes(hwnd, 0, 255, NativeMethods.LWA_ALPHA);
+            // Apply per-window opacity so the game remains visible beneath the overlay.
+            // SetLayeredWindowAttributes(LWA_ALPHA) is the correct transparency mechanism
+            // for HWND swap chains; DwmExtendFrameIntoClientArea / AlphaMode.Premultiplied
+            // require CreateSwapChainForComposition (DirectComposition) instead.
+            NativeMethods.SetLayeredWindowAttributes(hwnd, 0, OpacityToByte(_options.VisualStyle.Opacity), NativeMethods.LWA_ALPHA);
             NativeMethods.ShowWindow(hwnd, NativeMethods.SW_SHOWNOACTIVATE);
             NativeMethods.UpdateWindow(hwnd);
 
@@ -252,6 +264,7 @@ internal sealed class OverlayWindowHost : IDisposable
                 }
                 else
                 {
+                    NativeMethods.ShowWindow(hwnd, NativeMethods.SW_HIDE);
                     NativeMethods.SetWindowPos(
                         hwnd,
                         NativeMethods.HWND_TOPMOST,
@@ -292,4 +305,8 @@ internal sealed class OverlayWindowHost : IDisposable
             _ => NativeMethods.DefWindowProc(hWnd, msg, wParam, lParam)
         };
     }
+
+    /// <summary>Converts a 0.0–1.0 opacity value to a 20–255 byte for SetLayeredWindowAttributes.</summary>
+    private static byte OpacityToByte(double opacity) =>
+        (byte)Math.Clamp((int)(opacity * 255), 20, 255);
 }

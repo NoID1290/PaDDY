@@ -9,6 +9,7 @@ internal static class NativeMethods
 
     internal const int IDC_ARROW = 32512;
     internal const int SW_SHOWNOACTIVATE = 4;
+    internal const int SW_HIDE = 0;
     internal const int HTTRANSPARENT = -1;
 
     internal const uint WM_CLOSE = 0x0010;
@@ -99,6 +100,9 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     internal static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
 
+    [DllImport("dwmapi.dll")]
+    internal static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
+
     [DllImport("user32.dll")]
     internal static extern bool PeekMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
 
@@ -147,6 +151,15 @@ internal static class NativeMethods
         public POINT pt;
         public uint lPrivate;
     }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct MARGINS
+{
+    public int Left;
+    public int Right;
+    public int Top;
+    public int Bottom;
 }
 
 [StructLayout(LayoutKind.Sequential)]
