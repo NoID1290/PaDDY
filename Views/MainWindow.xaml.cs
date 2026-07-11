@@ -268,6 +268,53 @@ namespace PaDDY
                 return;
             }
 
+#if DEBUG
+            // ── Debug only: Ctrl+Alt+O — force-show the overlay engine ──────────────
+            // This bypasses the Enabled check and attaches to PaDDY itself so the
+            // overlay is visible without needing a loopback process configured.
+            var isO = e.Key == Key.O || (e.Key == Key.System && e.SystemKey == Key.O);
+            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isO)
+            {
+                e.Handled = true;
+
+                // 1. Initialise if engine has never been started
+                if (_overlayEngine.State == OverlayEngineState.Created)
+                {
+                    _overlayEngine.Initialize(BuildOverlayOptions());
+                    System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] Initialized. State={_overlayEngine.State}");
+                }
+
+                // 2. Force Enabled=true — without this, Show() silently returns
+                var forceOptions = BuildOverlayOptions();
+                forceOptions.Enabled = true;
+                _overlayEngine.UpdateOptions(forceOptions);
+                System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] Options forced Enabled=true. State={_overlayEngine.State}");
+
+                // 3. Attach to the PaDDY process itself so bounds.Width > 0.
+                //    Without a valid attached window the render loop always hides the overlay.
+                uint selfPid = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
+                bool attached = _overlayEngine.AttachToProcess(selfPid);
+                System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] AttachToProcess(self={selfPid}) -> attached={attached}. State={_overlayEngine.State}");
+
+                // 4. Push a clearly labelled debug frame
+                _overlayEngine.UpdateFrame(new OverlayFrame
+                {
+                    Title = "[DEBUG] PaDDY Overlay",
+                    Lines = new[]
+                    {
+                        "Force-shown via Ctrl+Alt+O",
+                        $"Attached: {attached}  State: {_overlayEngine.State}"
+                    }
+                });
+
+                // 5. Show — state after AttachToProcess is already Running when Enabled=true,
+                //    so Show() is a belt-and-suspenders call but costs nothing.
+                _overlayEngine.Show();
+                System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] Show() called. Final State={_overlayEngine.State}");
+                return;
+            }
+#endif
+
             if (_hoveredPad == null) return;
             // Don't intercept when a text-entry control has keyboard focus
             if (Keyboard.FocusedElement is System.Windows.Controls.TextBox ||

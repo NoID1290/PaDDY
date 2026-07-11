@@ -31,6 +31,8 @@ internal sealed class D3D11D2DRenderer : IDisposable
 
     private OverlayVisualStyle _style = new();
     private bool _initialized;
+    private int _currentWidth;
+    private int _currentHeight;
 
     private static readonly SwapChainDescription1 PrimarySwapChainDescription = new()
     {
@@ -59,13 +61,20 @@ internal sealed class D3D11D2DRenderer : IDisposable
         lock (_sync)
         {
             _style = style;
-            CreateDeviceResources(hwnd, Math.Max(64, width), Math.Max(64, height));
+            width = Math.Max(64, width);
+            height = Math.Max(64, height);
+            CreateDeviceResources(hwnd, width, height);
+            _currentWidth = width;
+            _currentHeight = height;
             _initialized = true;
         }
     }
 
     public void Resize(int width, int height)
     {
+        width = Math.Max(64, width);
+        height = Math.Max(64, height);
+
         lock (_sync)
         {
             if (!_initialized || _swapChain == null || _d2dContext == null)
@@ -73,11 +82,25 @@ internal sealed class D3D11D2DRenderer : IDisposable
                 return;
             }
 
+            // Skip if the size hasn't actually changed.
+            if (width == _currentWidth && height == _currentHeight)
+            {
+                return;
+            }
+
+            // IMPORTANT: _d2dContext.Target holds a COM reference to the swap chain back
+            // buffer via the D2D bitmap. ResizeBuffers requires ALL references to be
+            // released first — failing to do so returns DXGI_ERROR_INVALID_CALL and the
+            // swap chain stays at its initial 64x64 size, causing massive text stretching.
+            _d2dContext.Target = null;
             _targetBitmap?.Dispose();
             _targetBitmap = null;
 
-            _swapChain.ResizeBuffers(2u, (uint)Math.Max(64, width), (uint)Math.Max(64, height), Format.B8G8R8A8_UNorm, SwapChainFlags.None);
+            _swapChain.ResizeBuffers(2u, (uint)width, (uint)height, Format.B8G8R8A8_UNorm, SwapChainFlags.None);
             RecreateTargetBitmap();
+
+            _currentWidth = width;
+            _currentHeight = height;
         }
     }
 
@@ -245,7 +268,9 @@ internal sealed class D3D11D2DRenderer : IDisposable
 
         _targetBitmap = _d2dContext.CreateBitmapFromDxgiSurface(surface, props);
         _d2dContext.Target = _targetBitmap;
-        _d2dContext.TextAntialiasMode = Vortice.Direct2D1.TextAntialiasMode.Cleartype;
+        // Grayscale antialiasing is required on transparent surfaces;
+        // ClearType produces colour fringing when there is no opaque background.
+        _d2dContext.TextAntialiasMode = Vortice.Direct2D1.TextAntialiasMode.Grayscale;
     }
 
     private static Color4 ParseColor(string hex, Color4 fallback)
