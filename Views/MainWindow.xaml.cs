@@ -330,6 +330,8 @@ namespace PaDDY
             // Yield to the UI thread so the loading overlay can actually render before we block it
             await Task.Delay(50);
 
+            ShowLoadingOverlay("Verifying application...");
+            await Task.Delay(50);
             PopulateCaptureSourceModes();
             PopulateInputDevices();
             PopulateLoopbackDevices();
@@ -338,14 +340,26 @@ namespace PaDDY
             PopulateListenOutputDevices();
             PopulateRecordingModes();
             PopulateSortOrderCombo();
+
+            ShowLoadingOverlay("Checking settings...");
+            await Task.Delay(50);
             ApplySettings();
+            ShowLoadingOverlay("Cleaning up temporary files...");
+            await Task.Delay(50);
+            _recordingStore.CleanupInternalTempRecordings();
+            _recordingStore.CleanupAllTempFiles();
+
             InitializePadPages();
-            PreloadAllPads();
+            await PreloadAllPadsAsync();
             RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
             RecordingPadButton.SuppressEntranceAnimation--;
             _suppressSelectionEvents = false;
+
+            ShowLoadingOverlay("Warming up audio effects...");
+            await Task.Delay(50);
+            _globalCaptureChain?.Reset();
 
             _captureService.RmsLevelChanged += OnRmsChanged;
             _captureService.RecordingCompleted += OnRecordingCompleted;
@@ -354,6 +368,8 @@ namespace PaDDY
 
             _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
 
+            ShowLoadingOverlay("Starting overlay engine...");
+            await Task.Delay(50);
             _overlayEngine.Initialize(BuildOverlayOptions());
             if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
             {
@@ -361,16 +377,37 @@ namespace PaDDY
                 _overlayEngine.Show();
             }
 
-
-
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
             WhisperARTTStatus();
             Forget(RefreshStorageInfoAsync());
+
+            ShowLoadingOverlay("Checking for new updates...");
+            await Task.Delay(50);
             _ = CheckForUpdateAsync();
 
+            ShowLoadingOverlay("Starting AI model and keeping it in memory...");
+            await Task.Delay(50);
+            try
+            {
+                _speechService = new Services.SpeechRecognitionService();
+                await _speechService.PreloadModelAsync(_settings.SpeechModel, _settings.UseCudaForSpeech);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to preload Whisper model: {ex.Message}");
+            }
 
+            ShowLoadingOverlay("Starting services...");
+            await Task.Delay(50);
             InitializeTrayIcon();
+
+            ShowLoadingOverlay("Connecting to Discord...");
+            await Task.Delay(50);
+            if (_settings.DiscordRichPresenceEnabled)
+            {
+                DiscordService.Instance.Initialize(true, _settings.DiscordClientId);
+            }
 
             _ipcServer = new TcpIpcServer(12900);
             _ipcServer.MessageReceived += IpcServer_MessageReceived;
@@ -445,7 +482,7 @@ namespace PaDDY
                 var backupService = new BackupService();
                 if (backupService.RestoreBackup(filePath))
                 {
-                    ReloadRecordingDataFromDisk();
+                    await ReloadRecordingDataFromDiskAsync();
                     System.Windows.MessageBox.Show(
                         this,
                         "Backup restored successfully.\nAll recordings and settings have been reloaded.",
@@ -2277,7 +2314,7 @@ namespace PaDDY
             _recordingStore.CleanupAllTempFiles();
         }
 
-        public void ReloadRecordingDataFromDisk()
+        public async Task ReloadRecordingDataFromDiskAsync()
         {
             try
             {
@@ -2308,7 +2345,7 @@ namespace PaDDY
             _suppressSelectionEvents = false;
 
             InitializePadPages();
-            PreloadAllPads();
+            await PreloadAllPadsAsync();
             RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
             LoadNonFavoritesFromStore();
@@ -2378,12 +2415,21 @@ namespace PaDDY
             SwitchToPadPage(favorites.Id);
         }
 
-        private void PreloadAllPads()
+        private async Task PreloadAllPadsAsync()
         {
             _padCache.Clear();
             var records = _recordingStore.GetAll();
+            int total = records.Count;
+            int count = 0;
             foreach (var rec in records)
             {
+                count++;
+                if (count % 5 == 0 || count == 1 || count == total)
+                {
+                    ShowLoadingOverlay($"Loading recordings ({count} / {total})...");
+                    await Task.Delay(10);
+                }
+
                 try
                 {
                     string tempPath = _recordingStore.MaterializeToTemp(rec.Id, rec.Codec);
