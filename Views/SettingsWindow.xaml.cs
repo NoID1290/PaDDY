@@ -452,13 +452,45 @@ namespace PaDDY
                 bool downloaded = PaDDY.Services.SpeechRecognitionService.IsModelDownloaded(model);
                 if (downloaded)
                 {
-                    DownloadModelBtn.Content = "Downloaded";
-                    DownloadModelBtn.IsEnabled = false;
+                    string sizeInfo = PaDDY.Services.SpeechRecognitionService.GetModelSizeString(model);
+                    if (!string.IsNullOrEmpty(sizeInfo))
+                        UninstallModelBtn.Content = $"Remove ({sizeInfo})";
+                    else
+                        UninstallModelBtn.Content = "Remove";
+                    
+                    DownloadModelBtn.Visibility = Visibility.Collapsed;
+                    UninstallModelBtn.Visibility = Visibility.Visible;
                 }
                 else
                 {
-                    DownloadModelBtn.Content = "Download";
-                    DownloadModelBtn.IsEnabled = true;
+                    string expectedSize = PaDDY.Services.SpeechRecognitionService.GetExpectedModelSizeString(model);
+                    DownloadModelBtn.Content = $"Download ({expectedSize})";
+                    DownloadModelBtn.Visibility = Visibility.Visible;
+                    UninstallModelBtn.Visibility = Visibility.Collapsed;
+                }
+            }
+        }
+
+        private void UninstallModelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (SpeechModelCombo.SelectedItem is not string model) return;
+            
+            var res = System.Windows.MessageBox.Show(
+                $"Are you sure you want to uninstall the {model} model?",
+                "PaDDY",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+                
+            if (res == MessageBoxResult.Yes)
+            {
+                bool deleted = PaDDY.Services.SpeechRecognitionService.DeleteModel(model);
+                if (deleted)
+                {
+                    UpdateDownloadButtonState();
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Could not delete the model. It might be bundled with the application or currently in use.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
         }

@@ -312,8 +312,9 @@
                             <TextBlock Grid.Column="0"
                                        Text="Model:"
                                        Style="{StaticResource SettingsLabel}"/>
-                            <ComboBox x:Name="SpeechModelCombo" Grid.Column="1" SelectionChanged="SpeechModelCombo_SelectionChanged"/>
+                            <ComboBox x:Name="SpeechModelCombo" Grid.Column="1" SelectionChanged="SpeechModelCombo_SelectionChanged" MinWidth="80"/>
                             <Button x:Name="DownloadModelBtn" Grid.Column="2" Content="Download" Margin="8,0,0,0" Padding="12,0" Height="28" Click="DownloadModelBtn_Click"/>
+                            <Button x:Name="UninstallModelBtn" Grid.Column="2" Content="Remove" Margin="8,0,0,0" Padding="12,0" Height="28" Click="UninstallModelBtn_Click" Visibility="Collapsed"/>
                         </Grid>
                         <ProgressBar x:Name="ModelDownloadProgress" Height="4" Margin="0,0,0,8" Visibility="Collapsed" Minimum="0" Maximum="100"/>
                         <TextBlock x:Name="ModelDownloadStatusText" FontSize="11" Margin="0,-4,0,8" Visibility="Collapsed"/>
