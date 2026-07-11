@@ -10,17 +10,23 @@
     
     <UserControl.Resources>
         <Storyboard x:Key="LoadingAnimation" RepeatBehavior="Forever">
-            <!-- Spin the outer ring -->
+            <!-- Fast inner ring spin (Counter-Clockwise) -->
             <DoubleAnimation 
-                Storyboard.TargetName="SpinningRing"
+                Storyboard.TargetName="InnerRing"
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                From="0" To="360" Duration="0:0:1.5" />
+                From="360" To="0" Duration="0:0:1.5" />
+                
+            <!-- Slow outer ring spin (Clockwise) -->
+            <DoubleAnimation 
+                Storyboard.TargetName="OuterRing"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                From="0" To="360" Duration="0:0:2.5" />
             
             <!-- Pulse the logo glow -->
             <DoubleAnimation 
                 Storyboard.TargetName="LogoGlow"
                 Storyboard.TargetProperty="Opacity"
-                From="0.2" To="1.0" Duration="0:0:1.0" AutoReverse="True">
+                From="0.3" To="0.8" Duration="0:0:1.5" AutoReverse="True">
                 <DoubleAnimation.EasingFunction>
                     <SineEase EasingMode="EaseInOut"/>
                 </DoubleAnimation.EasingFunction>
@@ -30,68 +36,118 @@
             <DoubleAnimation 
                 Storyboard.TargetName="LoadingText"
                 Storyboard.TargetProperty="Opacity"
-                From="0.4" To="1" Duration="0:0:1" AutoReverse="True"/>
+                From="0.4" To="1" Duration="0:0:1.5" AutoReverse="True">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
         </Storyboard>
     </UserControl.Resources>
 
     <Grid Background="{Binding Background, RelativeSource={RelativeSource AncestorType=UserControl}}">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            
-            <!-- Logo Container -->
-            <Grid Width="120" Height="120">
-                <!-- Outer spinning ring -->
-                <Path x:Name="SpinningRing"
-                      Data="M 60,10 A 50,50 0 1 1 10,60"
-                      Stroke="#FF4CAF50" 
-                      StrokeThickness="4" 
-                      StrokeEndLineCap="Round" 
-                      StrokeStartLineCap="Round"
-                      RenderTransformOrigin="0.5,0.5">
-                    <Path.RenderTransform>
-                        <RotateTransform Angle="0"/>
-                    </Path.RenderTransform>
-                    <Path.Effect>
-                        <DropShadowEffect Color="#FF4CAF50" BlurRadius="10" ShadowDepth="0" Opacity="0.8"/>
-                    </Path.Effect>
-                </Path>
+        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="10">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                
+                <!-- Logo Container -->
+                <Grid Width="140" Height="140" Margin="0,0,0,20">
+                    <!-- Outer spinning ring -->
+                    <Path x:Name="OuterRing"
+                          Data="M 70,10 A 60,60 0 1 1 10,70"
+                          StrokeThickness="4" 
+                          StrokeEndLineCap="Round" 
+                          StrokeStartLineCap="Round"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.Stroke>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#004CAF50" Offset="0"/>
+                                <GradientStop Color="#FF4CAF50" Offset="0.5"/>
+                                <GradientStop Color="#FF81C784" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Path.Stroke>
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="0"/>
+                        </Path.RenderTransform>
+                        <Path.Effect>
+                            <DropShadowEffect Color="#FF4CAF50" BlurRadius="12" ShadowDepth="0" Opacity="0.6"/>
+                        </Path.Effect>
+                    </Path>
 
-                <!-- Inner Logo -->
-                <Border Width="70" Height="70" 
-                        CornerRadius="35"
-                        Background="#0F4CAF50" 
-                        BorderBrush="#1EFFFFFF" 
-                        BorderThickness="1">
-                    <Border.Effect>
-                        <DropShadowEffect x:Name="LogoGlow"
-                                          ShadowDepth="0"
-                                          BlurRadius="15"
-                                          Color="#FF4CAF50"
-                                          Opacity="0.5"/>
-                    </Border.Effect>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="Pa"
-                                   FontSize="16"
-                                   FontWeight="Bold"
-                                   Foreground="#FF7070A8"
-                                   VerticalAlignment="Center"/>
-                        <TextBlock Text="DDY"
-                                   FontSize="16"
-                                   FontWeight="Bold"
-                                   Foreground="#FF4CAF50"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-            
-            <!-- Status Text -->
-            <TextBlock x:Name="LoadingText" 
-                       Text="Processing..." 
-                       Foreground="#FFC0C0D8" 
-                       FontSize="16" 
-                       FontFamily="Segoe UI"
-                       FontWeight="SemiBold"
-                       Margin="0,24,0,0" 
-                       HorizontalAlignment="Center" />
-        </StackPanel>
+                    <!-- Inner spinning ring -->
+                    <Path x:Name="InnerRing"
+                          Data="M 70,25 A 45,45 0 1 0 115,70"
+                          StrokeThickness="3" 
+                          StrokeEndLineCap="Round" 
+                          StrokeStartLineCap="Round"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.Stroke>
+                            <LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
+                                <GradientStop Color="#007070A8" Offset="0"/>
+                                <GradientStop Color="#FF7070A8" Offset="0.5"/>
+                                <GradientStop Color="#FFAAAAFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Path.Stroke>
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="0"/>
+                        </Path.RenderTransform>
+                        <Path.Effect>
+                            <DropShadowEffect Color="#FF7070A8" BlurRadius="8" ShadowDepth="0" Opacity="0.5"/>
+                        </Path.Effect>
+                    </Path>
+
+                    <!-- Inner Logo -->
+                    <Border Width="70" Height="70" 
+                            CornerRadius="35"
+                            Background="#15FFFFFF" 
+                            BorderBrush="#25FFFFFF" 
+                            BorderThickness="1">
+                        <Border.Effect>
+                            <DropShadowEffect x:Name="LogoGlow"
+                                              ShadowDepth="0"
+                                              BlurRadius="20"
+                                              Color="#FF4CAF50"
+                                              Opacity="0.5"/>
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="Pa"
+                                       FontSize="18"
+                                       FontWeight="ExtraBold"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FFAAAAFF" Offset="0"/>
+                                        <GradientStop Color="#FF7070A8" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                            <TextBlock Text="DDY"
+                                       FontSize="18"
+                                       FontWeight="ExtraBold"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FF81C784" Offset="0"/>
+                                        <GradientStop Color="#FF4CAF50" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+                
+                <!-- Status Text -->
+                <TextBlock x:Name="LoadingText" 
+                           Text="Processing..." 
+                           Foreground="#FFE0E0E0" 
+                           FontSize="16" 
+                           FontFamily="Segoe UI"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="#FF000000" BlurRadius="5" ShadowDepth="1" Opacity="0.5"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                
+            </StackPanel>
+        </Viewbox>
     </Grid>
 </UserControl>

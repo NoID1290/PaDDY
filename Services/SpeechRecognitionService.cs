@@ -57,6 +57,57 @@ namespace PaDDY.Services
             return File.Exists(bundledPath) || File.Exists(appDataPath);
         }
 
+        public static string GetExpectedModelSizeString(string? model)
+        {
+            GgmlType type = MapModel(model);
+            return type switch
+            {
+                GgmlType.Tiny => "75 MB",
+                GgmlType.Base => "142 MB",
+                GgmlType.Small => "466 MB",
+                GgmlType.Medium => "1.5 GB",
+                GgmlType.LargeV3 => "2.9 GB",
+                _ => "Unknown"
+            };
+        }
+
+        public static string GetModelSizeString(string? model)
+        {
+            GgmlType type = MapModel(model);
+            string fileName = ModelFileName(type);
+            string bundledPath = Path.Combine(AppContext.BaseDirectory, "models", fileName);
+            string appDataPath = Path.Combine(ModelsFolder, fileName);
+            
+            string? path = File.Exists(appDataPath) ? appDataPath : (File.Exists(bundledPath) ? bundledPath : null);
+            if (path != null)
+            {
+                long bytes = new FileInfo(path).Length;
+                if (bytes >= 1048576 * 1024L) // >= 1 GB
+                    return $"{(bytes / (1048576.0 * 1024.0)):F2} GB";
+                return $"{(bytes / 1048576.0):F0} MB";
+            }
+            return string.Empty;
+        }
+
+        public static bool DeleteModel(string? model)
+        {
+            GgmlType type = MapModel(model);
+            string fileName = ModelFileName(type);
+            string appDataPath = Path.Combine(ModelsFolder, fileName);
+            
+            // We only delete from appDataPath, we cannot delete bundled models
+            if (File.Exists(appDataPath))
+            {
+                try
+                {
+                    File.Delete(appDataPath);
+                    return true;
+                }
+                catch { }
+            }
+            return false;
+        }
+
         public static async Task DownloadModelAsync(string? model, IProgress<(double Percent, string StatusText)>? progress, CancellationToken ct = default)
         {
             GgmlType type = MapModel(model);
