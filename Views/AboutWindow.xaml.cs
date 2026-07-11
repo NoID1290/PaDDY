@@ -163,7 +163,7 @@ namespace PaDDY
             }
         }
 
-        private void ImportData_Click(object sender, RoutedEventArgs e)
+        private async void ImportData_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
@@ -183,7 +183,7 @@ namespace PaDDY
                 {
                     if (mainWindow != null)
                     {
-                        mainWindow.ReloadRecordingDataFromDisk();
+                        await mainWindow.ReloadRecordingDataFromDiskAsync();
                         MessagingToolkit.Show(this, "Backup restored successfully and recordings have been reloaded.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else

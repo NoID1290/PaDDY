@@ -154,6 +154,11 @@ namespace PaDDY.Services
             }
         }
 
+        public async Task PreloadModelAsync(string? model, bool useCuda, CancellationToken ct = default)
+        {
+            await GetFactoryAsync(model, useCuda, ct).ConfigureAwait(false);
+        }
+
         private async Task<WhisperFactory?> GetFactoryAsync(string? model, bool useCuda, CancellationToken ct)
         {
             GgmlType type = MapModel(model);
