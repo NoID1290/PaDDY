@@ -92,7 +92,7 @@ namespace PaDDY
 
         // ---- Speech-to-text auto-rename ----
         public bool AutoRenameWithSpeech { get; set; } = false;
-        // Whisper model size: "tiny", "base", "small"
+        // Whisper model size: "tiny", "base", "small", "medium", "large"
         public string SpeechModel { get; set; } = "base";
         // Language code (e.g. "en", "auto")
         public string SpeechLanguage { get; set; } = "Auto";

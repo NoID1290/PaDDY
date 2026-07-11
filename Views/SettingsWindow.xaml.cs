@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Input;
@@ -190,7 +191,7 @@ namespace PaDDY
             // Speech-to-text
             AutoRenameSpeechCheck.IsChecked = _settings.AutoRenameWithSpeech;
             SpeechModelCombo.Items.Clear();
-            string[] models = { "tiny", "base", "small" };
+            string[] models = { "tiny", "base", "small", "medium", "large" };
             int modelIdx = 1;
             for (int i = 0; i < models.Length; i++)
             {
@@ -199,6 +200,7 @@ namespace PaDDY
             }
             SpeechModelCombo.SelectedIndex = modelIdx;
             SpeechLanguageBox.Text = string.IsNullOrWhiteSpace(_settings.SpeechLanguage) ? "en" : _settings.SpeechLanguage;
+            UpdateDownloadButtonState();
 
             // CUDA GPU acceleration
             bool nvidiaDetected = Helpers.GpuHelper.IsNvidiaGpuAvailable;
@@ -435,6 +437,75 @@ namespace PaDDY
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"Failed to install plugin:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SpeechModelCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateDownloadButtonState();
+        }
+
+        private void UpdateDownloadButtonState()
+        {
+            if (SpeechModelCombo.SelectedItem is string model)
+            {
+                bool downloaded = PaDDY.Services.SpeechRecognitionService.IsModelDownloaded(model);
+                if (downloaded)
+                {
+                    DownloadModelBtn.Content = "Downloaded";
+                    DownloadModelBtn.IsEnabled = false;
+                }
+                else
+                {
+                    DownloadModelBtn.Content = "Download";
+                    DownloadModelBtn.IsEnabled = true;
+                }
+            }
+        }
+
+        private async void DownloadModelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (SpeechModelCombo.SelectedItem is not string model) return;
+            
+            DownloadModelBtn.IsEnabled = false;
+            SpeechModelCombo.IsEnabled = false;
+            ModelDownloadProgress.Visibility = Visibility.Visible;
+            ModelDownloadStatusText.Visibility = Visibility.Visible;
+            ModelDownloadProgress.IsIndeterminate = true;
+            ModelDownloadStatusText.Text = $"Downloading {model} model...";
+            
+            try
+            {
+                var progress = new Progress<(double Percent, string StatusText)>(p => 
+                {
+                    if (p.Percent < 0)
+                    {
+                        ModelDownloadProgress.IsIndeterminate = true;
+                    }
+                    else
+                    {
+                        ModelDownloadProgress.IsIndeterminate = false;
+                        ModelDownloadProgress.Value = p.Percent * 100;
+                    }
+                    ModelDownloadStatusText.Text = p.StatusText;
+                });
+                
+                await PaDDY.Services.SpeechRecognitionService.DownloadModelAsync(model, progress);
+                
+                ModelDownloadStatusText.Text = "Download complete!";
+                await System.Threading.Tasks.Task.Delay(2000);
+            }
+            catch (Exception ex)
+            {
+                ModelDownloadStatusText.Text = $"Download failed: {ex.Message}";
+                await System.Threading.Tasks.Task.Delay(3000);
+            }
+            finally
+            {
+                ModelDownloadProgress.Visibility = Visibility.Collapsed;
+                ModelDownloadStatusText.Visibility = Visibility.Collapsed;
+                SpeechModelCombo.IsEnabled = true;
+                UpdateDownloadButtonState();
             }
         }
 
