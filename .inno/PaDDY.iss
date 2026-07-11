@@ -150,7 +150,15 @@ var
   AppDataPath: string;
   Msg: string;
   Answer: Integer;
+  ResultCode: Integer;
 begin
+  // Ensure PaDDY is not running before uninstalling files
+  if CurUninstallStep = usUninstall then
+  begin
+    // Attempt to gracefully close the application, then force kill if still running
+    Exec('taskkill', '/IM ' + ExpandConstant('{#AppExeName}') + ' /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+
   if CurUninstallStep = usPostUninstall then
   begin
     // ── Remove .PADBACK file-type registry keys ──────────────────────────
