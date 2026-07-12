@@ -4,6 +4,15 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.8.0.0712-Pre-release_1] - 2026-07-12
+
+- Added auto-update option
+- New settings UI
+- Fix dragging Favorite file into empty main Recording Panel
+- Fix meters UI that appear blurry when PaDDY is maximized
+- Updated loading screen method
+- All gglm models in AR-STT are now available, tiny model now included in installer
+
 ## [1.7.1.0711] - 2026-07-11
 
 - Added Discord SDK
