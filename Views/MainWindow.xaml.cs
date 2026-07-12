@@ -201,7 +201,6 @@ namespace PaDDY
                 this.ShowActivated = false;
                 this.WindowState = WindowState.Minimized;
                 this.Opacity = 0; // Hide the main window while it loads
-                this.ShowInTaskbar = false;
                 this.IsHitTestVisible = false;
             }
 
