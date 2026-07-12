@@ -484,10 +484,9 @@ namespace PaDDY.Helpers
 
             if (digitalDots && _lastWidth > 0)
             {
-                int blocks = Math.Max(10, (int)(_lastWidth / 14));
-                inB = QuantizeGradient((LinearGradientBrush)inB, blocks);
-                outB = QuantizeGradient((LinearGradientBrush)outB, blocks);
-                monB = QuantizeGradient((LinearGradientBrush)monB, blocks);
+                inB = QuantizeGradient((LinearGradientBrush)inB, _lastWidth);
+                outB = QuantizeGradient((LinearGradientBrush)outB, _lastWidth);
+                monB = QuantizeGradient((LinearGradientBrush)monB, _lastWidth);
             }
 
             res["MeterInBrush"] = inB;
@@ -711,11 +710,12 @@ namespace PaDDY.Helpers
             return b;
         }
 
-        // Converts a continuous gradient into segmented discrete dots
-        private static LinearGradientBrush QuantizeGradient(LinearGradientBrush original, int numBlocks)
+        // Converts a continuous gradient into segmented discrete dots, snapping to integer pixels
+        private static Brush QuantizeGradient(LinearGradientBrush original, double width)
         {
-            var b = new LinearGradientBrush { StartPoint = original.StartPoint, EndPoint = original.EndPoint };
             double gapRatio = 0.2;
+            int blockWidth = 14;
+            int numBlocks = Math.Max(1, (int)(width / blockWidth));
 
             Color GetColor(double t)
             {
@@ -735,20 +735,39 @@ namespace PaDDY.Helpers
                 return stops[^1].Color;
             }
 
+            var drawingGroup = new DrawingGroup();
+            
+            // Solid black background to cover the gaps and remaining space
+            drawingGroup.Children.Add(new GeometryDrawing(
+                new SolidColorBrush(ParseColor("#FF000000")), 
+                null, 
+                new RectangleGeometry(new Rect(0, 0, width, 100))));
+
             for (int i = 0; i < numBlocks; i++)
             {
-                double start = (double)i / numBlocks;
-                double end = (double)(i + 1) / numBlocks;
-                double ledEnd = start + (end - start) * (1 - gapRatio);
+                int startP = i * blockWidth;
+                int ledEndP = startP + (int)Math.Round(blockWidth * (1 - gapRatio));
                 
-                Color c = GetColor(start + (end - start) * 0.5);
+                double centerT = (startP + ledEndP) * 0.5 / width;
+                Color c = GetColor(centerT);
                 
-                b.GradientStops.Add(new GradientStop(c, start));
-                b.GradientStops.Add(new GradientStop(c, ledEnd));
-                b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), ledEnd));
-                b.GradientStops.Add(new GradientStop(ParseColor("#FF000000"), end));
+                var rect = new Rect(startP, 0, ledEndP - startP, 100);
+                var drawing = new GeometryDrawing(new SolidColorBrush(c), null, new RectangleGeometry(rect));
+                drawingGroup.Children.Add(drawing);
             }
-            return b;
+            
+            var brush = new DrawingBrush(drawingGroup)
+            {
+                Stretch = Stretch.None,
+                AlignmentX = AlignmentX.Left,
+                AlignmentY = AlignmentY.Top,
+                TileMode = TileMode.None,
+                Viewport = new Rect(0, 0, width, 100),
+                ViewportUnits = BrushMappingMode.Absolute
+            };
+            
+            RenderOptions.SetEdgeMode(brush, EdgeMode.Aliased);
+            return brush;
         }
 
         private static Color ParseColor(string hex)

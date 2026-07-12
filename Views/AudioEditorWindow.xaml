@@ -7,6 +7,8 @@
         Width="1160" Height="620"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
         Background="{DynamicResource WindowGlowBrush}"
         Foreground="{DynamicResource PrimaryTextBrush}"
         FontFamily="{DynamicResource AppFont}">
