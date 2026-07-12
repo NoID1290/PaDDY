@@ -9,6 +9,8 @@
         Width="1380"
         MinWidth="1100"
         MinHeight="600"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
         Background="{DynamicResource WindowBgBrush}"
         Foreground="{DynamicResource PrimaryTextBrush}"
         FontFamily="{DynamicResource AppFont}">
