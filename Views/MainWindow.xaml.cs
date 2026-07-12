@@ -330,7 +330,7 @@ namespace PaDDY
             // Yield to the UI thread so the loading overlay can actually render before we block it
             await Task.Delay(50);
 
-            ShowLoadingOverlay("Verifying application...");
+            ShowLoadingOverlay("Verifying application");
             await Task.Delay(50);
             PopulateCaptureSourceModes();
             PopulateInputDevices();
@@ -341,10 +341,10 @@ namespace PaDDY
             PopulateRecordingModes();
             PopulateSortOrderCombo();
 
-            ShowLoadingOverlay("Checking settings...");
+            ShowLoadingOverlay("Checking settings");
             await Task.Delay(50);
             ApplySettings();
-            ShowLoadingOverlay("Cleaning up temporary files...");
+            ShowLoadingOverlay("Cleaning up temporary files");
             await Task.Delay(50);
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.CleanupAllTempFiles();
@@ -357,7 +357,7 @@ namespace PaDDY
             RecordingPadButton.SuppressEntranceAnimation--;
             _suppressSelectionEvents = false;
 
-            ShowLoadingOverlay("Warming up audio effects...");
+            ShowLoadingOverlay("Warming up audio effects");
             await Task.Delay(50);
             _globalCaptureChain?.Reset();
 
@@ -368,7 +368,7 @@ namespace PaDDY
 
             _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
 
-            ShowLoadingOverlay("Starting overlay engine...");
+            ShowLoadingOverlay("Starting overlay engine");
             await Task.Delay(50);
             _overlayEngine.Initialize(BuildOverlayOptions());
             if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
@@ -382,11 +382,11 @@ namespace PaDDY
             WhisperARTTStatus();
             Forget(RefreshStorageInfoAsync());
 
-            ShowLoadingOverlay("Checking for new updates...");
+            ShowLoadingOverlay("Checking for new updates");
             await Task.Delay(50);
             _ = CheckForUpdateAsync();
 
-            ShowLoadingOverlay("Starting AI model and keeping it in memory...");
+            ShowLoadingOverlay("Loading AR-STT model");
             await Task.Delay(50);
             try
             {
@@ -398,11 +398,11 @@ namespace PaDDY
                 System.Diagnostics.Debug.WriteLine($"Failed to preload Whisper model: {ex.Message}");
             }
 
-            ShowLoadingOverlay("Starting services...");
+            ShowLoadingOverlay("Starting services");
             await Task.Delay(50);
             InitializeTrayIcon();
 
-            ShowLoadingOverlay("Connecting to Discord...");
+            ShowLoadingOverlay("Connecting to Discord");
             await Task.Delay(50);
             if (_settings.DiscordRichPresenceEnabled)
             {
