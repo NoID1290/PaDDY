@@ -4,7 +4,7 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.8.0.0712-Pre-release_1] - 2026-07-12
+## [1.8.0.0712-Pre-release] - 2026-07-12
 
 - Added auto-update option
 - New settings UI
@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.1.0711] - 2026-07-11
 
 - Added Discord SDK
-- Uninstaller now close PaDDY if already open
+- Uninstaller now closes PaDDY if already open
 - Security update on dependencies
 
 ## [1.7.0.0707] - 2026-07-07
