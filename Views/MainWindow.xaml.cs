@@ -328,12 +328,12 @@ namespace PaDDY
         // ── Startup ────────────────────────────────────────────────────────────
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            ShowLoadingOverlay("Starting PaDDY...");
+            ShowLoadingOverlay("Core starting up");
             // Yield to the UI thread so the loading overlay can actually render before we block it
             await Task.Delay(50);
 
-            ShowLoadingOverlay("Verifying application");
-            await Task.Delay(50);
+            ShowLoadingOverlay("Warming up engine");
+            await Task.Delay(3000);
             PopulateCaptureSourceModes();
             PopulateInputDevices();
             PopulateLoopbackDevices();
@@ -343,10 +343,10 @@ namespace PaDDY
             PopulateRecordingModes();
             PopulateSortOrderCombo();
 
-            ShowLoadingOverlay("Checking settings");
-            await Task.Delay(50);
+            ShowLoadingOverlay("Applying settings");
+            await Task.Delay(1000);
             ApplySettings();
-            ShowLoadingOverlay("Cleaning up temporary files");
+            ShowLoadingOverlay("Cleaning up temp files");
             await Task.Delay(50);
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.CleanupAllTempFiles();
@@ -359,8 +359,8 @@ namespace PaDDY
             RecordingPadButton.SuppressEntranceAnimation--;
             _suppressSelectionEvents = false;
 
-            ShowLoadingOverlay("Warming up audio effects");
-            await Task.Delay(50);
+            ShowLoadingOverlay("Initializing audio effects");
+            await Task.Delay(1000);
             _globalCaptureChain?.Reset();
 
             _captureService.RmsLevelChanged += OnRmsChanged;
@@ -370,7 +370,7 @@ namespace PaDDY
 
             _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
 
-            ShowLoadingOverlay("Starting overlay engine");
+            ShowLoadingOverlay("Features starting");
             await Task.Delay(50);
             _overlayEngine.Initialize(BuildOverlayOptions());
             if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
@@ -399,7 +399,7 @@ namespace PaDDY
             {
                 // Auto-update: check → download → backup → install
                 ShowLoadingOverlay("Checking for updates...");
-                await Task.Delay(50);
+                await Task.Delay(1000);
                 var updateService = new Services.UpdateService();
                 updateService.StatusChanged += msg => ShowLoadingOverlay(msg);
                 updateService.DownloadProgressChanged += fraction =>
@@ -414,7 +414,7 @@ namespace PaDDY
                 var updateResult = await updateService.CheckForUpdateAsync();
                 if (updateResult != null)
                 {
-                    ShowLoadingOverlay($"Downloading PaDDY v{updateResult.LatestVersion}...");
+                    ShowLoadingOverlay($"Downloading update v{updateResult.LatestVersion}...");
                     var installerPath = await updateService.DownloadInstallerAsync(
                         updateResult.InstallerDownloadUrl, updateResult.AssetSizeBytes);
 
