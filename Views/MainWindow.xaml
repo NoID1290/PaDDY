@@ -1169,6 +1169,7 @@
                     <WrapPanel x:Name="FavoritesPanel" Orientation="Horizontal"
                                Background="Transparent"
                                AllowDrop="True"
+                               MinHeight="90"
                                DragOver="FavoritesPanel_DragOver"
                                Drop="FavoritesPanel_Drop"/>
                 </ScrollViewer>
