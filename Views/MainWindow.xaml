@@ -1226,7 +1226,10 @@
                           HorizontalScrollBarVisibility="Disabled"
                           Background="{DynamicResource WindowBgBrush}"
                           VerticalAlignment="Stretch"
-                          HorizontalAlignment="Stretch">
+                          HorizontalAlignment="Stretch"
+                          AllowDrop="True"
+                          DragOver="PadPanel_DragOver"
+                          Drop="PadPanel_Drop">
                 <StackPanel VerticalAlignment="Top">
                     <WrapPanel x:Name="PadPanel"
                                Margin="12"
