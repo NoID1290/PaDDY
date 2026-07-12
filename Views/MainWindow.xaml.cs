@@ -330,7 +330,7 @@ namespace PaDDY
         {
             ShowLoadingOverlay("Core starting up");
             // Yield to the UI thread so the loading overlay can actually render before we block it
-            await Task.Delay(50);
+            await Task.Delay(100);
 
             ShowLoadingOverlay("Warming up engine");
             await Task.Delay(3000);
@@ -344,7 +344,7 @@ namespace PaDDY
             PopulateSortOrderCombo();
 
             ShowLoadingOverlay("Applying settings");
-            await Task.Delay(1000);
+            await Task.Delay(500);
             ApplySettings();
             ShowLoadingOverlay("Cleaning up temp files");
             await Task.Delay(50);
@@ -360,7 +360,7 @@ namespace PaDDY
             _suppressSelectionEvents = false;
 
             ShowLoadingOverlay("Initializing audio effects");
-            await Task.Delay(1000);
+            await Task.Delay(400);
             _globalCaptureChain?.Reset();
 
             _captureService.RmsLevelChanged += OnRmsChanged;
