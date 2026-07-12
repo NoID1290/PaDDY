@@ -45,6 +45,7 @@ namespace PaDDY
         public bool SelectedUseCudaForSpeech { get; private set; }
         public bool SelectedDiscordRichPresenceEnabled { get; private set; }
         public long SelectedDiscordClientId { get; private set; }
+        public bool SelectedAutoInstallUpdates { get; private set; }
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -222,6 +223,9 @@ namespace PaDDY
             // Discord Integration
             DiscordRichPresenceCheck.IsChecked = _settings.DiscordRichPresenceEnabled;
             DiscordClientIdBox.Text = _settings.DiscordClientId.ToString();
+
+            // Auto-update
+            AutoInstallUpdatesCheck.IsChecked = _settings.AutoInstallUpdates;
         }
 
         private void ThemeCombo_SelectionChanged(object sender,
@@ -379,6 +383,9 @@ namespace PaDDY
                 SelectedDiscordClientId = cid;
             else
                 SelectedDiscordClientId = 461618159171141643;
+
+            // Auto-update
+            SelectedAutoInstallUpdates = AutoInstallUpdatesCheck.IsChecked == true;
 
             DialogResult = true;
         }

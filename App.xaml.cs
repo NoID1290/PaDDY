@@ -20,6 +20,12 @@ public partial class App : WpfApplication
     /// </summary>
     internal static string? PendingRestoreFilePath { get; private set; }
 
+    /// <summary>
+    /// True when the app was relaunched by the INNO installer after a silent update,
+    /// indicating that we should restore the auto-backup.
+    /// </summary>
+    internal static bool PendingUpdateRestore { get; private set; }
+
     /// <summary>Maps variant key → (embedded file name, display name).</summary>
     internal static readonly IReadOnlyList<(string Key, string FileName, string DisplayName)> FontVariants =
     [
@@ -86,6 +92,10 @@ public partial class App : WpfApplication
             System.IO.File.Exists(a));
         if (padbackArg != null)
             PendingRestoreFilePath = padbackArg;
+
+        // Check if this is a post-update restart (launched by INNO with --restore-update).
+        if (e.Args.Contains("--restore-update"))
+            PendingUpdateRestore = true;
 
         var settings = AppSettings.Load();
         ApplyFont(settings.AppFontVariant);

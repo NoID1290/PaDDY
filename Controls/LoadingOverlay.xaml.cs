@@ -93,6 +93,7 @@ namespace PaDDY.Controls
 
         public async void Hide()
         {
+            HideProgress();
             LoadingText.Text = ReadyMessages[_random.Next(ReadyMessages.Length)];
             int currentToken = ++_hideToken;
             
@@ -103,6 +104,27 @@ namespace PaDDY.Controls
                 _animation?.Stop(this);
                 Visibility = Visibility.Collapsed;
             }
+        }
+
+        /// <summary>
+        /// Shows the download progress bar with the given fraction (0.0 – 1.0).
+        /// </summary>
+        public void ShowProgress(double fraction)
+        {
+            fraction = Math.Clamp(fraction, 0.0, 1.0);
+            ProgressBarContainer.Visibility = Visibility.Visible;
+            ProgressBarFill.Width = fraction * 200.0;
+            ProgressPercentText.Text = $"{(int)(fraction * 100)}%";
+        }
+
+        /// <summary>
+        /// Hides the download progress bar.
+        /// </summary>
+        public void HideProgress()
+        {
+            ProgressBarContainer.Visibility = Visibility.Collapsed;
+            ProgressBarFill.Width = 0;
+            ProgressPercentText.Text = "0%";
         }
     }
 }
