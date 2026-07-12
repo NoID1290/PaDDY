@@ -2602,17 +2602,10 @@ namespace PaDDY
             FavoriteCountLabel.Text = $" — {favCount}";
             bool hasFavorites = favCount > 0;
             bool hasExtraPages = _settings.PadPages != null && _settings.PadPages.Count > 1;
-            FavoritesHeader.Visibility = (hasFavorites || hasExtraPages) ? Visibility.Visible : Visibility.Collapsed;
-
-            if (!hasFavorites)
-            {
-                FavoritesPanelBorder.Visibility = Visibility.Collapsed;
-                FavoritesCollapseIcon.Text = "▼";
-                FavoritesCollapseButton.ToolTip = "Expand favorites";
-                return;
-            }
-
             bool isCollapsed = _settings.FavoritesPanelCollapsed;
+
+            FavoritesHeader.Visibility = (hasFavorites || hasExtraPages || !isCollapsed) ? Visibility.Visible : Visibility.Collapsed;
+
             FavoritesPanelBorder.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
             FavoritesCollapseIcon.Text = isCollapsed ? "►" : "▼";
             FavoritesCollapseButton.ToolTip = isCollapsed ? "Expand favorites" : "Collapse favorites";
@@ -2620,8 +2613,6 @@ namespace PaDDY
 
         private void FavoritesCollapseButton_Click(object sender, RoutedEventArgs e)
         {
-            if (FavoritesPanel.Children.Count == 0) return;
-
             _settings.FavoritesPanelCollapsed = !_settings.FavoritesPanelCollapsed;
             _settings.Save();
             UpdatePadState();
