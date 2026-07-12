@@ -109,6 +109,9 @@ namespace PaDDY
         public bool DiscordRichPresenceEnabled { get; set; } = false;
         public long DiscordClientId { get; set; } = 461618159171141643;
 
+        // ---- Auto-update ----
+        public bool AutoInstallUpdates { get; set; } = false;
+
         private static readonly MessagePackSerializerOptions SerializerOptions =
             MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
 

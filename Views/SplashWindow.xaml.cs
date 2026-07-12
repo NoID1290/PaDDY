@@ -14,5 +14,15 @@ namespace PaDDY.Views
         {
             Dispatcher.Invoke(() => SplashLoadingOverlay.Show(message));
         }
+
+        public void UpdateProgress(double fraction)
+        {
+            Dispatcher.Invoke(() => SplashLoadingOverlay.ShowProgress(fraction));
+        }
+
+        public void HideProgress()
+        {
+            Dispatcher.Invoke(() => SplashLoadingOverlay.HideProgress());
+        }
     }
 }

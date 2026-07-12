@@ -384,9 +384,87 @@ namespace PaDDY
             WhisperARTTStatus();
             Forget(RefreshStorageInfoAsync());
 
-            ShowLoadingOverlay("Checking for new updates");
-            await Task.Delay(50);
-            _ = CheckForUpdateAsync();
+            // ── Auto-update / update check ──────────────────────────────────
+            if (Services.UpdateService.HasPendingRestore())
+            {
+                // Post-update restart: restore the auto-backup
+                ShowLoadingOverlay("Restoring your data...");
+                await Task.Delay(100);
+                var restoreService = new Services.UpdateService();
+                restoreService.StatusChanged += msg => ShowLoadingOverlay(msg);
+                restoreService.RestorePostUpdateBackup();
+                await Task.Delay(500);
+            }
+            else if (_settings.AutoInstallUpdates)
+            {
+                // Auto-update: check → download → backup → install
+                ShowLoadingOverlay("Checking for updates...");
+                await Task.Delay(50);
+                var updateService = new Services.UpdateService();
+                updateService.StatusChanged += msg => ShowLoadingOverlay(msg);
+                updateService.DownloadProgressChanged += fraction =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        _splashWindow?.UpdateProgress(fraction);
+                        MainLoadingOverlay.ShowProgress(fraction);
+                    });
+                };
+
+                var updateResult = await updateService.CheckForUpdateAsync();
+                if (updateResult != null)
+                {
+                    ShowLoadingOverlay($"Downloading PaDDY v{updateResult.LatestVersion}...");
+                    var installerPath = await updateService.DownloadInstallerAsync(
+                        updateResult.InstallerDownloadUrl, updateResult.AssetSizeBytes);
+
+                    if (installerPath != null)
+                    {
+                        // Hide progress bar before backup phase
+                        Dispatcher.Invoke(() =>
+                        {
+                            _splashWindow?.HideProgress();
+                            MainLoadingOverlay.HideProgress();
+                        });
+
+                        ShowLoadingOverlay("Backing up your data...");
+                        await Task.Delay(100);
+                        bool backupOk = updateService.CreatePreUpdateBackup();
+
+                        if (backupOk)
+                        {
+                            // Launch installer and exit — this method does not return
+                            updateService.LaunchInstallerAndExit(installerPath);
+                            return; // App is shutting down
+                        }
+                        else
+                        {
+                            // Backup failed — skip update, continue normal startup
+                            ShowLoadingOverlay("Backup failed — skipping update");
+                            await Task.Delay(1500);
+                        }
+                    }
+                    else
+                    {
+                        // Download failed — continue normal startup
+                        ShowLoadingOverlay("Download failed — skipping update");
+                        Dispatcher.Invoke(() =>
+                        {
+                            _splashWindow?.HideProgress();
+                            MainLoadingOverlay.HideProgress();
+                        });
+                        await Task.Delay(1500);
+                    }
+                }
+                // else: up-to-date, continue normal startup
+            }
+            else
+            {
+                // Passive update check (just shows the update notice link)
+                ShowLoadingOverlay("Checking for new updates");
+                await Task.Delay(50);
+                _ = CheckForUpdateAsync();
+            }
 
             ShowLoadingOverlay("Loading AR-STT model");
             await Task.Delay(50);
@@ -1686,6 +1764,7 @@ namespace PaDDY
             _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
             _settings.DiscordRichPresenceEnabled = win.SelectedDiscordRichPresenceEnabled;
             _settings.DiscordClientId = win.SelectedDiscordClientId;
+            _settings.AutoInstallUpdates = win.SelectedAutoInstallUpdates;
             _settings.Save();
 
             DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);

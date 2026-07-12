@@ -146,6 +146,43 @@
                         <DropShadowEffect Color="#FF000000" BlurRadius="5" ShadowDepth="1" Opacity="0.5"/>
                     </TextBlock.Effect>
                 </TextBlock>
+
+                <!-- Download Progress Bar (hidden by default) -->
+                <Grid x:Name="ProgressBarContainer" Visibility="Collapsed" 
+                      Width="200" Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <!-- Track -->
+                    <Border Grid.Row="0" Background="#20FFFFFF" CornerRadius="4" Height="8">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#FF000000" BlurRadius="3" ShadowDepth="0" Opacity="0.3"/>
+                        </Border.Effect>
+                    </Border>
+                    <!-- Fill -->
+                    <Border x:Name="ProgressBarFill" Grid.Row="0"
+                            CornerRadius="4" Height="8"
+                            HorizontalAlignment="Left" Width="0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FF4CAF50" Offset="0"/>
+                                <GradientStop Color="#FF81C784" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect Color="#FF4CAF50" BlurRadius="6" ShadowDepth="0" Opacity="0.5"/>
+                        </Border.Effect>
+                    </Border>
+                    <!-- Percentage -->
+                    <TextBlock x:Name="ProgressPercentText" Grid.Row="1"
+                               Text="0%"
+                               FontSize="11"
+                               FontFamily="Segoe UI"
+                               HorizontalAlignment="Center"
+                               Margin="0,4,0,0"
+                               Foreground="#FFB0B0B0"/>
+                </Grid>
                 
             </StackPanel>
         </Viewbox>

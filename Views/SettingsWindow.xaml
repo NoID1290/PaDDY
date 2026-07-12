@@ -488,6 +488,21 @@
                               Content="Start PaDDY when Windows starts"/>
                 </Border>
 
+                <!-- ── Updates ── -->
+                <StackPanel Style="{StaticResource GroupHeader}">
+                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                    <TextBlock Text="UPDATES" Style="{StaticResource HeaderText}"/>
+                </StackPanel>
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <CheckBox x:Name="AutoInstallUpdatesCheck"
+                                  Content="Automatically download and install updates on startup"
+                                  Margin="0,0,0,4"/>
+                        <TextBlock Text="When enabled, PaDDY will check for updates during startup, back up your data, install the update silently, and restore your data automatically."
+                                   Foreground="#FF606090" FontSize="11" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
                 <!-- ── Integrations ── -->
                 <StackPanel Style="{StaticResource GroupHeader}">
                     <Rectangle Style="{StaticResource HeaderAccentBar}"/>
