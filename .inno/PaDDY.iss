@@ -112,7 +112,7 @@ Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(
 Filename: "{app}\com.paddy.streamDeckPlugin"; Description: "Install Stream Deck Plugin"; Tasks: installstreamdeckplugin; Flags: shellexec waituntilidle skipifsilent
 
 ; Silent/update install — launch with --restore-update flag so PaDDY restores the auto-backup
-Filename: "{app}\{#AppExeName}"; Parameters: "--restore-update"; Flags: nowait skipifdontsilent
+Filename: "{app}\{#AppExeName}"; Parameters: "--restore-update"; Flags: nowait skipifnotsilent
 
 ; ============================================================================
 ; Register .PADBACK file type so it always opens with PaDDY and shows its icon
