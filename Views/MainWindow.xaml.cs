@@ -174,6 +174,20 @@ namespace PaDDY
             // first paint so the OS never flashes a black/unpainted window on screen.
             _startHiddenInTray = _settings.StartMinimizedInTray &&
                                  (_settings.MinimizeToTray || _settings.CloseToTray);
+
+            var splashReadyEvent = new System.Threading.ManualResetEvent(false);
+            var splashThread = new System.Threading.Thread(() =>
+            {
+                _splashWindow = new SplashWindow();
+                _splashWindow.Show();
+                splashReadyEvent.Set();
+                System.Windows.Threading.Dispatcher.Run();
+            });
+            splashThread.SetApartmentState(System.Threading.ApartmentState.STA);
+            splashThread.IsBackground = true;
+            splashThread.Start();
+            splashReadyEvent.WaitOne(2000);
+
             if (_startHiddenInTray)
             {
                 // Open minimized (and without stealing focus) so no black/unpainted
@@ -182,22 +196,11 @@ namespace PaDDY
                 ShowActivated = false;
                 WindowState = WindowState.Minimized;
                 _initialTrayMinimize = true;
+                this.Opacity = 0; // Hide the main window while it loads
+                this.IsHitTestVisible = false;
             }
             else
             {
-                var splashReadyEvent = new System.Threading.ManualResetEvent(false);
-                var splashThread = new System.Threading.Thread(() =>
-                {
-                    _splashWindow = new SplashWindow();
-                    _splashWindow.Show();
-                    splashReadyEvent.Set();
-                    System.Windows.Threading.Dispatcher.Run();
-                });
-                splashThread.SetApartmentState(System.Threading.ApartmentState.STA);
-                splashThread.IsBackground = true;
-                splashThread.Start();
-                splashReadyEvent.WaitOne(2000);
-
                 this.ShowActivated = false;
                 this.WindowState = WindowState.Minimized;
                 this.Opacity = 0; // Hide the main window while it loads
