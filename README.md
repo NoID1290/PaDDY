@@ -1,212 +1,156 @@
 # PaDDY
 
-![PaDDY Hero](logo/github/PaDDY-wordmark-font-transparent-2x.png)
+<p align="center">
+  <img src="logo/github/PaDDY-wordmark-font-transparent-2x.png" alt="PaDDY Hero" width="400">
+</p>
 
-[![Version](https://img.shields.io/badge/version-1.8.1.0712-darkgreen)](CHANGELOG.md)
-[![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://www.microsoft.com/windows)
-[![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+<p align="center">
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.8.1.0712-darkgreen?style=flat-square" alt="Version"></a>
+  <a href="https://www.microsoft.com/windows"><img src="https://img.shields.io/badge/platform-Windows-blue?style=flat-square" alt="Platform"></a>
+  <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-blue?style=flat-square" alt=".NET"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
+</p>
 
-Fast voice and system-audio capture for Windows, built around a pad-based workflow for recording, organizing, monitoring, trimming, and replaying short clips.
+<p align="center">
+  <strong>Fast voice and system-audio capture for Windows, built around a pad-based workflow for recording, organizing, monitoring, trimming, and replaying short clips.</strong>
+</p>
 
-- Website: <https://noid1290.github.io/PaDDY/>
-- Releases: <https://github.com/NoID1290/PaDDY/releases>
+<p align="center">
+  🌐 <a href="https://noid1290.github.io/PaDDY/">Official Website</a> • 📦 <a href="https://github.com/NoID1290/PaDDY/releases">Releases</a>
+</p>
 
-## Contents
+---
 
-- [Overview](#overview)
-- [Highlights](#highlights)
-- [Feature Details](#feature-details)
-- [Settings](#settings)
-- [Installation](#installation)
-- [Build from Source](#build-from-source)
-- [Usage](#usage)
-- [Screenshots](#screenshots)
-- [Changelog](#changelog)
-- [License](#license)
+## 📖 Table of Contents
+- [Overview](#-overview)
+- [Core Highlights](#-core-highlights)
+- [Deep Feature Breakdown](#-deep-feature-breakdown)
+- [Configuration & Placeholders](#-configuration--placeholders)
+- [Installation & Requirements](#-installation--requirements)
+- [Building From Source](#-building-from-source)
+- [Workflow Guide](#-workflow-guide)
+- [Screenshots](#-screenshots)
+- [License](#-license)
 
-## Overview
+---
 
-PaDDY is a Windows desktop recorder focused on low-friction capture.
-It supports microphone input, system loopback capture, and app-specific loopback capture, then lets you manage clips from a visual pad interface with favorites, trimming, naming rules, monitoring, and playback routing.
+## 🔍 Overview
 
-## Highlights
+**PaDDY** is a specialized Windows audio recorder engineered for **low-friction capture**. It simultaneously supports standard microphone input, full system loopback, and targeted, app-specific loopback. Captured clips are piped straight into a highly visual, pad-based interface where you can quickly preview, manage, trim, and apply real-time DSP effects—all backed by a lightning-fast SQLite storage layer.
 
-- **Two recording modes**
-  - **AutoVAD**: automatically starts and stops clips based on input activity
-  - **Key Buffer**: saves the last _N_ seconds using a global hotkey
-- **Multiple capture sources**
-  - microphone / line input
-  - full system loopback
-  - app-specific loopback capture
-- **Flexible recording formats**
-  - WAV
-  - MP3
-  - Opus
-  - Ogg Vorbis
-  - FLAC
-- **Modern monitoring and metering**
-  - live input, output, and monitor RMS meters
-  - threshold indicator and peak indicators
-  - optional separate monitor output device
-- **Pad-based clip workflow**
-  - instant playback from recording pads
-  - favorites section with collapsible panel
-  - rename, delete, clear, and sort recordings
-  - SQLite-backed recording management
-- **Built-in trim editor**
-  - waveform-based trimming
-  - preview playback
-  - save trim in place or as a copy
-  - optionally add trimmed output to favorites
-- **Effects processing**
-  - gain
-  - fade in / fade out
-  - noise gate
-  - echo
-  - 5-band equalizer
-- **Customization and convenience**
-  - configurable buffer duration
-  - global hotkey assignment
-  - automatic cleanup with favorites exemption
-  - custom naming templates with placeholders
-  - focused app naming support
-  - trim editor output device selection
-  - font variant selection
-  - single-instance protection
-  - update notice in the main window
+---
 
-## Feature Details
+## ✨ Core Highlights
 
-### Recording modes
+| Feature | Capabilities |
+| :--- | :--- |
+| **Dual Capture Modes** | **AutoVAD** (Voice Activity Detection) or **Key Buffer** (rolling retro-active cache). |
+| **Flexible Sources** | Microphone, line-in, entire Windows audio subsystem, or targeted app loopback. |
+| **Premium Formats** | Export flawlessly to **WAV**, **MP3**, **Opus**, **Ogg Vorbis**, or **FLAC**. |
+| **Pro Level Metering** | Live input, playback output, and independent monitor RMS meters with peak indicators. |
+| **SQLite Management** | Persistent, robust recording catalog tracking favorites, clip states, and metadata. |
 
-#### AutoVAD
-AutoVAD watches the incoming signal and creates clips automatically based on sensitivity and silence timeout settings.
-This is useful when you want hands-free voice capture.
+---
 
-#### Key Buffer
-Key Buffer continuously keeps a rolling buffer and saves the most recent audio when you press the configured global hotkey.
-This is useful when you want to capture something that already happened.
+## 🛠️ Deep Feature Breakdown
 
-### Input and capture
+### 🎙️ Advanced Capture Engines
 
-PaDDY supports several audio input flows:
+*   **AutoVAD Mode:** Monitors incoming audio signals dynamically, instantly cutting clips when active speech begins and cleanly stopping them when silence thresholds are met. Perfect for hands-free workflow capture.
+*   **Key Buffer Mode:** Keeps a continuous, low-overhead rolling audio buffer running silently in the background. Smash your global hotkey to pull and save the last N seconds of audio out of the past instantly.
 
-- **Mic / line capture** for voice or external input devices
-- **System loopback** for recording what Windows is playing
-- **App loopback** for targeting a specific audio-producing application
+### 🎛️ Destructive Trim & FX Engine
+The built-in Waveform Trim Editor gives you surgical control over your raw samples before or after saving:
+*   **Waveform Visualization:** Precise drag-and-drop handles for instant trimming.
+*   **Live Preview Processing:** Audition your trims seamlessly via designated audio endpoints.
+*   **Integrated DSP Effects:** 
+    *   Dynamic Pre/Post Gain staging.
+    *   Customizable Fade-In & Fade-Out curves.
+    *   Adjustable Noise Gate and Echo parameters.
+    *   Dedicated 5-band hardware-style EQ fixed at 80Hz, 250Hz, 1kHz, 4kHz, and 12kHz.
 
-The UI includes source selection, input device switching, input volume control, and mode-aware controls.
+---
 
-### Playback and monitoring
+## ⚙️ Configuration & Placeholders
 
-Playback can be routed to a selected output device, and pad monitoring can be enabled separately with its own device and volume control.
-The main window also exposes dedicated RMS meters for:
+Tailor your environment with highly granular control panels built directly into the UI:
 
-- input
-- playback output
-- monitor output
+*   **Auto-Cleanup Rules:** Set maximum historical recording caps to auto-purge stale files while safely exempting your Favorites.
+*   **Dynamic Custom Naming:** Generate intelligent filename patterns on the fly. 
 
-### Trim editor and effects
+    💡 Template Examples:
+    {timestamp}_{app}_{codec}.wav  ->  20260713-1152_Discord_Opus.wav
 
-The trim editor provides waveform-based editing with draggable trim handles, live preview, and quick save actions.
-You can save the edited result directly or create a copy.
+### Supported String Identifiers:
+*   `{timestamp}` – Exact localized system date and time stamp.
+*   `{codec}` – Current recording format profile.
+*   `{app}` – Dynamically identifies and maps the name of the focused application.
 
-Available processing and editing controls include:
+---
 
-- gain
-- fade in / fade out
-- noise gate
-- echo
-- 5-band EQ at **80Hz**, **250Hz**, **1kHz**, **4kHz**, and **12kHz**
+## 💾 Installation & Requirements
 
-## Settings
+### System Requirements
+*   **OS:** Windows 10 / Windows 11 (x64 Environment)
+*   **Dependencies:** Pre-packaged self-contained runtime included in release builds.
 
-PaDDY includes settings for:
+### Quick Start
+1. Move over to the Releases portal.
+2. Grab the latest `PaDDY_[version].zip` distribution.
+3. Extract the contents cleanly to your target directory.
+4. Fire up `PaDDY.exe` to get started.
 
-- recording codec selection
-- buffer history duration
-- buffer trigger hotkey
-- max recordings auto-cleanup
-- default pad naming template
-- focused app naming
-- trim editor output device
-- font variant / appearance
+---
 
-Naming placeholders currently include:
+## 💻 Building From Source
 
-- `{timestamp}`
-- `{codec}`
-- `{app}`
+For developers looking to extend the audio engine or customize pipeline wrappers.
 
-## Installation
+### Prerequisites
+*   Windows 10 / 11 SDK environment
+*   **.NET 10 SDK** compiler framework
 
-### Download a release
+### Build Pipeline Execution
+Open up a PowerShell instance inside the project root and run:
 
-1. Open [Releases](https://github.com/NoID1290/PaDDY/releases).
-2. Download the latest zip package.
-3. Extract the files.
-4. Run `PaDDY.exe`.
+    # Restore dependencies and solution structures
+    dotnet restore PaDDY.sln
 
-## Build from source
+    # Compile optimized runtime binaries
+    dotnet build PaDDY.csproj --configuration Release
 
-### Requirements
+### Technical Specs
+*   **Framework Architecture:** `net10.0-windows`
+*   **UI System:** Windows Presentation Foundation (WPF)
+*   **Compilation Target:** `win-x64` (Fully Self-Contained Deployment)
+*   **Storage Layer:** Local SQLite DB wrapper
 
-- Windows 10 or Windows 11
-- .NET 10 SDK
-- x64 environment
+---
 
-### Build
+## 🕹️ Workflow Guide
 
-```powershell
-dotnet restore PaDDY.sln
-dotnet build PaDDY.csproj --configuration Release
-```
+1. **Select Input Target:** Choose between Mic/Line, System Loopback, or Target Application.
+2. **Engage Capture Strategy:** Choose AutoVAD for vocal automation, or Key Buffer to capture recent action retrospectively.
+3. **Route & Adjust:** Fine-tune your recording thresholds, default audio profiles, and monitoring meters.
+4. **Manage via Pads:** Click, trigger, sort, and tag your captures immediately on the pad interface.
+5. **Polishing:** Use the trim interface and the 5-band EQ stack to polish and export your clips.
 
-### Project details
+---
 
-- **Framework:** `net10.0-windows`
-- **UI:** WPF
-- **Architecture:** `win-x64`
-- **Deployment:** self-contained
+## 📸 Screenshots
 
-## Usage
-
-1. Choose an input source.
-2. Select the relevant input or loopback device.
-3. Pick a recording mode:
-   - **AutoVAD** for automatic clip detection
-   - **Key Buffer** for hotkey-triggered capture
-4. Configure output, monitoring, or sensitivity settings as needed.
-5. Start monitoring / recording from the main window.
-6. Use recording pads to play, favorite, rename, trim, or delete clips.
-7. Open Settings to customize codecs, naming, cleanup, hotkeys, and editor playback.
-
-## Screenshots
-
+### Main Workspace Dashboard
 ![Main Window](logo/github/PaDDY_1tpzjJSm1D.png)
+
+### Waveform Visual Trim Editor
 ![Trim Editor](logo/github/PaDDY_1fndG4WBlK.png)
 
-## Recent additions
+---
 
-Some of the newer capabilities added after the original README include:
+## 📄 License
 
-- FLAC support
-- .NET 10 migration
-- app-specific loopback capture
-- SQLite-backed recording storage
-- improved playback and monitoring meters
-- new naming features and placeholders
-- collapsible favorites section
-- trim editor output device settings
-- effect processing pipeline for editing
-- single-instance protection
+Distributed under the **MIT License**. Check out LICENSE for full details.
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for the full release history.
-
-## License
-
-This project is licensed under the MIT License.
-NoID Softwork © 2020-2026.
+<p align="center">
+  <strong>NoID Softwork © 2020 - 2026</strong>
+</p>
