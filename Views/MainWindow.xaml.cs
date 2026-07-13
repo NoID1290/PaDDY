@@ -809,6 +809,7 @@ namespace PaDDY
                     pad.Entry.IsFavorite = true;
                     _recordingStore.SetFavorite(pad.Entry.RecordingId, true);
                     string pageId = _activePadPage != null && !_activePadPage.IsFavorites ? _activePadPage.Id : string.Empty;
+                    pad.Entry.PadPage = pageId;
                     _recordingStore.SetPadPage(pad.Entry.RecordingId, pageId);
                 }
                 PersistFavoritesOrder();
@@ -820,6 +821,7 @@ namespace PaDDY
                     pad.IsFavorite = false;
                     pad.Entry.IsFavorite = false;
                     _recordingStore.SetFavorite(pad.Entry.RecordingId, false);
+                    pad.Entry.PadPage = string.Empty;
                     _recordingStore.SetPadPage(pad.Entry.RecordingId, string.Empty);
                 }
                 SwitchToCustomSort();
@@ -921,7 +923,6 @@ namespace PaDDY
             }
         }
 
-        /// <summary>Moves a pad to a specific pad page (folder tab) target.</summary>
         private void MovePadToPage(RecordingPadButton pad, string pageId)
         {
             if (pad.Entry == null) return;
@@ -931,13 +932,20 @@ namespace PaDDY
 
             pad.IsFavorite = true;
             pad.Entry.IsFavorite = true;
+            string targetPage = toFavoritesPage ? string.Empty : pageId;
+            pad.Entry.PadPage = targetPage;
             _recordingStore.SetFavorite(pad.Entry.RecordingId, true);
-            _recordingStore.SetPadPage(pad.Entry.RecordingId, toFavoritesPage ? string.Empty : pageId);
+            _recordingStore.SetPadPage(pad.Entry.RecordingId, targetPage);
 
             // The pad now belongs to another page; remove it from the current view.
             (pad.Parent as System.Windows.Controls.Panel)?.Children.Remove(pad);
             PersistFavoritesOrder();
             UpdatePadState();
+
+            if (_activePadPage != null && pageId == _activePadPage.Id)
+            {
+                ReloadFavoritesPanel();
+            }
         }
 
         private void PersistFavoritesOrder()
@@ -2174,6 +2182,7 @@ namespace PaDDY
                         string pageId = (_activePadPage != null && !_activePadPage.IsFavorites)
                             ? _activePadPage.Id
                             : string.Empty;
+                        b.Entry.PadPage = pageId;
                         _recordingStore.SetPadPage(b.Entry.RecordingId, pageId);
                     }
                 }
@@ -2185,6 +2194,7 @@ namespace PaDDY
                     if (!string.IsNullOrEmpty(b.Entry.RecordingId))
                     {
                         _recordingStore.SetFavorite(b.Entry.RecordingId, false);
+                        b.Entry.PadPage = string.Empty;
                         _recordingStore.SetPadPage(b.Entry.RecordingId, string.Empty);
                     }
                     EnforceMaxRecords();
@@ -2489,6 +2499,15 @@ namespace PaDDY
 
             string deletedId = _activePadPage.Id;
             _recordingStore.ClearPadPage(deletedId);
+
+            foreach (var btn in _padCache.Values)
+            {
+                if (btn.Entry != null && btn.Entry.PadPage == deletedId)
+                {
+                    btn.Entry.PadPage = string.Empty;
+                }
+            }
+
             _settings.PadPages.RemoveAll(p => p.Id == deletedId);
             var favorites = _settings.EnsurePadPages();
             _settings.ActivePadPageId = favorites.Id;
