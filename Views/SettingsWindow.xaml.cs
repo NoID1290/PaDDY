@@ -40,7 +40,7 @@ namespace PaDDY
         public bool SelectedRunOnWindowsStartup { get; private set; }
         public int SelectedDetectionAlgorithm { get; private set; }
         public bool SelectedAutoRenameWithSpeech { get; private set; }
-        public string SelectedSpeechModel { get; private set; } = "base";
+        public string SelectedSpeechModel { get; private set; } = "tiny";
         public string SelectedSpeechLanguage { get; private set; } = "en";
         public bool SelectedUseCudaForSpeech { get; private set; }
         public bool SelectedDiscordRichPresenceEnabled { get; private set; }
@@ -193,7 +193,7 @@ namespace PaDDY
             AutoRenameSpeechCheck.IsChecked = _settings.AutoRenameWithSpeech;
             SpeechModelCombo.Items.Clear();
             string[] models = { "tiny", "base", "small", "medium", "large" };
-            int modelIdx = 1;
+            int modelIdx = 0;
             for (int i = 0; i < models.Length; i++)
             {
                 SpeechModelCombo.Items.Add(models[i]);
