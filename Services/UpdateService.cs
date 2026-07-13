@@ -16,6 +16,13 @@ namespace PaDDY.Services
     /// </summary>
     public class UpdateService
     {
+        private readonly bool _includePrerelease;
+
+        public UpdateService(bool includePrerelease = false)
+        {
+            _includePrerelease = includePrerelease;
+        }
+
         // ── Paths ────────────────────────────────────────────────────────────────
         private static string AutoBackupPath =>
             Path.Combine(AppDataPaths.AppDataRoot, ".update_backup.PADBACK");
@@ -24,8 +31,11 @@ namespace PaDDY.Services
             Path.Combine(Path.GetTempPath(), "PaDDY_Update_Installer.exe");
 
         // ── GitHub API ───────────────────────────────────────────────────────────
-        private const string ReleasesApiEndpoint =
+        private const string LatestReleaseApiEndpoint =
             "https://api.github.com/repos/NoID1290/PaDDY/releases/latest";
+
+        private const string AllReleasesApiEndpoint =
+            "https://api.github.com/repos/NoID1290/PaDDY/releases";
 
         // ── Events ───────────────────────────────────────────────────────────────
         /// <summary>Raised when the status message changes (e.g. "Checking for updates...").</summary>
@@ -42,28 +52,12 @@ namespace PaDDY.Services
 
         // ── Check ────────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Queries the GitHub releases API for the latest version.
-        /// Returns null if the app is already up-to-date or no installer asset is available.
-        /// </summary>
-        public async Task<UpdateCheckResult?> CheckForUpdateAsync(CancellationToken ct = default)
+        private UpdateCheckResult? ParseReleaseElement(JsonElement element)
         {
             try
             {
-                StatusChanged?.Invoke("Checking for updates...");
-
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-                http.DefaultRequestHeaders.UserAgent.ParseAdd("PaDDY-UpdateCheck/1.0");
-
-                using var response = await http.GetAsync(ReleasesApiEndpoint, ct);
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                await using var stream = await response.Content.ReadAsStreamAsync(ct);
-                using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
-
                 // Parse version from tag_name
-                if (!document.RootElement.TryGetProperty("tag_name", out var tagProp))
+                if (!element.TryGetProperty("tag_name", out var tagProp))
                     return null;
 
                 string tagName = tagProp.GetString() ?? string.Empty;
@@ -77,7 +71,7 @@ namespace PaDDY.Services
                     return null;
 
                 // Find installer asset: look for *Installer*.exe in assets[]
-                if (!document.RootElement.TryGetProperty("assets", out var assetsProp))
+                if (!element.TryGetProperty("assets", out var assetsProp))
                     return null;
 
                 string? downloadUrl = null;
@@ -102,6 +96,55 @@ namespace PaDDY.Services
                     return null;
 
                 return new UpdateCheckResult(latestVersion, downloadUrl, assetSize);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // ── Check ────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Queries the GitHub releases API for the latest version.
+        /// Returns null if the app is already up-to-date or no installer asset is available.
+        /// </summary>
+        public async Task<UpdateCheckResult?> CheckForUpdateAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                StatusChanged?.Invoke("Checking for updates...");
+
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                http.DefaultRequestHeaders.UserAgent.ParseAdd("PaDDY-UpdateCheck/1.0");
+
+                string endpoint = _includePrerelease ? AllReleasesApiEndpoint : LatestReleaseApiEndpoint;
+
+                using var response = await http.GetAsync(endpoint, ct);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+
+                if (_includePrerelease)
+                {
+                    if (document.RootElement.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var releaseElement in document.RootElement.EnumerateArray())
+                        {
+                            var result = ParseReleaseElement(releaseElement);
+                            if (result != null)
+                                return result;
+                        }
+                    }
+                }
+                else
+                {
+                    return ParseReleaseElement(document.RootElement);
+                }
+
+                return null;
             }
             catch (Exception ex)
             {

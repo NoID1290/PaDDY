@@ -46,6 +46,7 @@ namespace PaDDY
         public bool SelectedDiscordRichPresenceEnabled { get; private set; }
         public long SelectedDiscordClientId { get; private set; }
         public bool SelectedAutoInstallUpdates { get; private set; }
+        public bool SelectedDownloadBetaUpdates { get; private set; }
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -226,6 +227,7 @@ namespace PaDDY
 
             // Auto-update
             AutoInstallUpdatesCheck.IsChecked = _settings.AutoInstallUpdates;
+            DownloadBetaUpdatesCheck.IsChecked = _settings.DownloadBetaUpdates;
         }
 
         private void ThemeCombo_SelectionChanged(object sender,
@@ -386,6 +388,7 @@ namespace PaDDY
 
             // Auto-update
             SelectedAutoInstallUpdates = AutoInstallUpdatesCheck.IsChecked == true;
+            SelectedDownloadBetaUpdates = DownloadBetaUpdatesCheck.IsChecked == true;
 
             DialogResult = true;
         }
