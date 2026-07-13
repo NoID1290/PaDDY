@@ -27,13 +27,14 @@ namespace PaDDY.Services
         private bool _loadedUseCuda;
         private bool _disposed;
 
-        private static GgmlType MapModel(string? model) => (model ?? "base").Trim().ToLowerInvariant() switch
+        private static GgmlType MapModel(string? model) => (model ?? "tiny").Trim().ToLowerInvariant() switch
         {
             "tiny" => GgmlType.Tiny,
+            "base" => GgmlType.Base,
             "small" => GgmlType.Small,
             "medium" => GgmlType.Medium,
             "large" => GgmlType.LargeV3,
-            _ => GgmlType.Base,
+            _ => GgmlType.Tiny,
         };
 
         private static string ModelFileName(GgmlType type) => $"ggml-{type.ToString().ToLowerInvariant()}.bin";
