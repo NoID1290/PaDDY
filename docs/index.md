@@ -8,16 +8,25 @@ title: Home
 
 <style>
   :root {
-    --accent-color: #6f42c1;
-    --accent-hover: #5a32a3;
-    --bg-dark-alt: #1a1a24;
+    --bg-main: #0d1117;
+    --bg-dark-alt: #161b22;
+    --accent-color: #8a63d2;
+    --accent-hover: #704cb5;
+    --text-primary: #f0f6fc;
     --text-muted: #8b949e;
     --border-smooth: rgba(255, 255, 255, 0.08);
+    --card-bg: rgba(255, 255, 255, 0.02);
   }
   
+  body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary) !important;
+  }
+
   .paddy-hero {
-    padding: 5.5rem 0 4rem 0;
+    padding: 6rem 0 4rem 0;
     text-align: center;
+    background: radial-gradient(circle at top, rgba(138, 99, 210, 0.1) 0%, transparent 60%);
   }
   .paddy-tagline {
     font-size: 1.4rem;
@@ -62,6 +71,7 @@ title: Home
     font-weight: 700;
     margin-bottom: 0.5rem;
     letter-spacing: -0.03em;
+    color: var(--text-primary);
   }
   .paddy-section-subtitle {
     text-align: center;
@@ -77,7 +87,7 @@ title: Home
     margin-bottom: 2rem;
   }
   .paddy-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--card-bg);
     border: 1px solid var(--border-smooth);
     border-radius: 12px;
     padding: 2rem;
@@ -85,8 +95,9 @@ title: Home
   }
   .paddy-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-    border-color: rgba(111, 66, 193, 0.3);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    border-color: rgba(138, 99, 210, 0.4);
+    background: rgba(255, 255, 255, 0.04);
   }
   .paddy-card h3 {
     font-size: 1.25rem;
@@ -96,6 +107,7 @@ title: Home
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    color: #ffffff;
   }
   .paddy-card p {
     font-size: 0.95rem;
@@ -117,8 +129,8 @@ title: Home
     align-items: flex-start;
   }
   .paddy-step-num {
-    background: rgba(111, 66, 193, 0.15);
-    color: #ac8bec;
+    background: rgba(138, 99, 210, 0.2);
+    color: #b794f4;
     font-weight: 700;
     min-width: 36px;
     height: 36px;
@@ -127,6 +139,7 @@ title: Home
     align-items: center;
     justify-content: center;
     font-size: 0.95rem;
+    border: 1px solid rgba(138, 99, 210, 0.3);
   }
   .paddy-step-content strong {
     display: block;
@@ -142,17 +155,22 @@ title: Home
   }
   .paddy-figure {
     margin: 0;
-    background: #0d1117;
+    background: #090d12;
     border: 1px solid var(--border-smooth);
     border-radius: 14px;
     padding: 0.5rem;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
   }
   .paddy-img {
     border-radius: 10px;
     display: block;
     width: 100%;
     height: auto;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+  }
+  .paddy-img:hover {
+    opacity: 1;
   }
   .paddy-caption {
     padding: 1.25rem;
@@ -169,7 +187,7 @@ title: Home
     gap: 3.5rem;
   }
   .paddy-pre {
-    background: #0b0d12 !important;
+    background: #070a0e !important;
     border: 1px solid var(--border-smooth);
     border-radius: 10px;
     padding: 1.25rem !important;
@@ -177,6 +195,7 @@ title: Home
     font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
     font-size: 0.875rem;
     line-height: 1.6;
+    color: #e6edf3 !important;
   }
 </style>
 
@@ -236,7 +255,7 @@ title: Home
 </section>
 
 <!-- Workflow Mechanics -->
-<section id="usage" style="padding: 5rem 0; background: rgba(255,255,255,0.01); border-top: 1px solid var(--border-smooth); border-bottom: 1px solid var(--border-smooth);">
+<section id="usage" style="padding: 5rem 0; background: var(--bg-dark-alt); border-top: 1px solid var(--border-smooth); border-bottom: 1px solid var(--border-smooth);">
   <div class="container">
     <h2 class="paddy-section-title">Quick Start Workflow</h2>
     <p class="paddy-section-subtitle">Go from zero configuration to capturing perfect snippets in under a minute.</p>
@@ -298,21 +317,21 @@ title: Home
 </section>
 
 <!-- Compiling and Distribution Info -->
-<section id="install" style="padding: 5rem 0; background: rgba(255,255,255,0.01); border-top: 1px solid var(--border-smooth);">
+<section id="install" style="padding: 5rem 0; background: var(--bg-dark-alt); border-top: 1px solid var(--border-smooth);">
   <div class="container">
     <div class="paddy-split-layout">
       <div>
-        <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem; letter-spacing: -0.02em;">💾 Standard Installation</h3>
+        <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem; letter-spacing: -0.02em; color: #ffffff;">💾 Standard Installation</h3>
         <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">Pre-compiled release distributions are delivered completely self-contained—no configuration overhead or dependencies needed.</p>
         <ol style="padding-left: 1.2rem; line-height: 1.8; color: #e6edf3;">
-          <li>Navigate directly to the official <a href="https://github.com/NoID1290/PaDDY/releases" style="color: #ac8bec; text-decoration: none; font-weight: 500;">Releases portal</a>.</li>
+          <li>Navigate directly to the official <a href="https://github.com/NoID1290/PaDDY/releases" style="color: #b794f4; text-decoration: none; font-weight: 500;">Releases portal</a>.</li>
           <li>Grab the latest compressed release build: <code>PaDDY_[version].zip</code>.</li>
           <li>Extract files cleanly and launch <code>PaDDY.exe</code>.</li>
         </ol>
       </div>
       
       <div>
-        <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem; letter-spacing: -0.02em;">🛠️ Compilation From Source</h3>
+        <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem; letter-spacing: -0.02em; color: #ffffff;">🛠️ Compilation From Source</h3>
         <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">Requires an environment running Windows 10/11 along with an active <strong>.NET 10 SDK</strong> compiler profile context.</p>
         <pre class="paddy-pre"><code># Pull and link project component assemblies
 dotnet restore PaDDY.sln
@@ -327,8 +346,8 @@ dotnet build PaDDY.csproj --configuration Release</code></pre>
 <!-- Page Footer Navigation Context -->
 <section id="changelog" style="padding: 4rem 0 3rem 0; text-align: center; border-top: 1px solid var(--border-smooth);">
   <div class="container">
-    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Release Timeline</h3>
-    <p style="color: var(--text-muted); margin-bottom: 4rem;">Review full execution updates, patch items, or component version updates inside the <a href="https://github.com/NoID1290/PaDDY/blob/main/CHANGELOG.md" style="color: #ac8bec; text-decoration: none;">CHANGELOG.md file</a>.</p>
+    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">Release Timeline</h3>
+    <p style="color: var(--text-muted); margin-bottom: 4rem;">Review full execution updates, patch items, or component version updates inside the <a href="https://github.com/NoID1290/PaDDY/blob/main/CHANGELOG.md" style="color: #b794f4; text-decoration: none;">CHANGELOG.md file</a>.</p>
     <p style="font-size: 0.85rem; color: #57606a; font-family: monospace; letter-spacing: 0.05em; text-transform: uppercase;">NoID Softwork &copy; 2020 - 2026</p>
   </div>
 </section>
