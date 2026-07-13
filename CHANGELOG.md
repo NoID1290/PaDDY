@@ -4,6 +4,12 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.8.2.0713] - 2026-07-13
+
+- Fix the updater not showing progress bar during updates.
+- Fix base gglm model being force download on fresh install
+- Support for Downloading Beta/Pre-release Updates
+
 ## [1.8.1.0712] - 2026-07-12
 
 - Fix restore locking up the UI
