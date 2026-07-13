@@ -98,7 +98,6 @@ title: Home
     gap: 0.6rem;
   }
   .paddy-card p {
-    color: #col;
     font-size: 0.95rem;
     line-height: 1.6;
     margin: 0;
