@@ -2602,18 +2602,49 @@ namespace PaDDY
             FavoriteCountLabel.Text = $" — {favCount}";
             bool hasFavorites = favCount > 0;
             bool hasExtraPages = _settings.PadPages != null && _settings.PadPages.Count > 1;
-            bool isCollapsed = _settings.FavoritesPanelCollapsed;
+            
+            bool isFavCollapsed = _settings.FavoritesPanelCollapsed;
+            bool isRecCollapsed = _settings.RecordingsPanelCollapsed;
 
-            FavoritesHeader.Visibility = (hasFavorites || hasExtraPages || !isCollapsed) ? Visibility.Visible : Visibility.Collapsed;
+            FavoritesHeader.Visibility = (hasFavorites || hasExtraPages || !isFavCollapsed) ? Visibility.Visible : Visibility.Collapsed;
 
-            FavoritesPanelBorder.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
-            FavoritesCollapseIcon.Text = isCollapsed ? "►" : "▼";
-            FavoritesCollapseButton.ToolTip = isCollapsed ? "Expand favorites" : "Collapse favorites";
+            FavoritesPanelBorder.Visibility = isFavCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            FavoritesCollapseIcon.Text = isFavCollapsed ? "►" : "▼";
+            FavoritesCollapseButton.ToolTip = isFavCollapsed ? "Expand favorites" : "Collapse favorites";
+
+            RecordingsScrollViewer.Visibility = isRecCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            RecordingsCollapseIcon.Text = isRecCollapsed ? "►" : "▼";
+            RecordingsCollapseButton.ToolTip = isRecCollapsed ? "Expand recordings" : "Collapse recordings";
+
+            if (PadsContainerGrid != null && PadsContainerGrid.RowDefinitions.Count >= 4)
+            {
+                if (isRecCollapsed)
+                {
+                    // If recordings are hidden, Favorite panel takes all the window space
+                    PadsContainerGrid.RowDefinitions[1].Height = new GridLength(1, GridUnitType.Star);
+                    PadsContainerGrid.RowDefinitions[3].Height = new GridLength(0, GridUnitType.Auto);
+                    FavoritesPanelBorder.MaxHeight = double.PositiveInfinity;
+                }
+                else
+                {
+                    // If recordings are visible, Favorites gets Auto (up to ~3 rows) and Recordings takes the rest
+                    PadsContainerGrid.RowDefinitions[1].Height = new GridLength(1, GridUnitType.Auto);
+                    PadsContainerGrid.RowDefinitions[3].Height = new GridLength(1, GridUnitType.Star);
+                    FavoritesPanelBorder.MaxHeight = 318;
+                }
+            }
         }
 
         private void FavoritesCollapseButton_Click(object sender, RoutedEventArgs e)
         {
             _settings.FavoritesPanelCollapsed = !_settings.FavoritesPanelCollapsed;
+            _settings.Save();
+            UpdatePadState();
+        }
+
+        private void RecordingsCollapseButton_Click(object sender, RoutedEventArgs e)
+        {
+            _settings.RecordingsPanelCollapsed = !_settings.RecordingsPanelCollapsed;
             _settings.Save();
             UpdatePadState();
         }

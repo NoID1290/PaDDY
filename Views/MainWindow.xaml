@@ -1052,7 +1052,7 @@
         </Border>
 
         <!-- ═════════════════════ Row 3: Favorites + Recordings pad panel ═════════════════════ -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="3" x:Name="PadsContainerGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/> <!-- Favorites header -->
                 <RowDefinition Height="Auto"/> <!-- Favorites panel -->
@@ -1164,8 +1164,7 @@
                     Visibility="Collapsed"
                     Padding="12,6,12,6">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled"
-                              MaxHeight="318">
+                              HorizontalScrollBarVisibility="Disabled">
                     <WrapPanel x:Name="FavoritesPanel" Orientation="Horizontal"
                                Background="Transparent"
                                AllowDrop="True"
@@ -1217,12 +1216,29 @@
                                 Padding="10,2"
                                 ToolTip="Permanently delete recordings from disk"
                                 Click="DeleteAllFilesButton_Click"/>
+                        <Button x:Name="RecordingsCollapseButton"
+                                Width="22"
+                                Height="22"
+                                Margin="4,0,0,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                ToolTip="Collapse recordings"
+                                Click="RecordingsCollapseButton_Click">
+                            <TextBlock x:Name="RecordingsCollapseIcon"
+                                       Text="▼"
+                                       Foreground="#FF9090A0"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- ── Scrollable recordings area ── -->
-            <ScrollViewer Grid.Row="3"
+            <ScrollViewer x:Name="RecordingsScrollViewer" Grid.Row="3"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
                           Background="{DynamicResource WindowBgBrush}"
