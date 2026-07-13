@@ -176,24 +176,40 @@ namespace PaDDY
                 var mainWindow = Owner as MainWindow;
                 if (mainWindow != null)
                 {
-                    mainWindow.PrepareRecordingDataRestore();
+                    mainWindow.ShowLoadingOverlay("Restoring backup...");
+                    await Task.Delay(50); // Let the overlay render
                 }
 
-                if (backupService.RestoreBackup(dlg.FileName))
+                try
                 {
                     if (mainWindow != null)
                     {
-                        await mainWindow.ReloadRecordingDataFromDiskAsync();
-                        MessagingToolkit.Show(this, "Backup restored successfully and recordings have been reloaded.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        mainWindow.PrepareRecordingDataRestore();
+                    }
+
+                    if (backupService.RestoreBackup(dlg.FileName))
+                    {
+                        if (mainWindow != null)
+                        {
+                            await mainWindow.ReloadRecordingDataFromDiskAsync();
+                            MessagingToolkit.Show(this, "Backup restored successfully and recordings have been reloaded.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessagingToolkit.Show(this, "Backup restored successfully. Please restart the application to apply changes.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
                     }
                     else
                     {
-                        MessagingToolkit.Show(this, "Backup restored successfully. Please restart the application to apply changes.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessagingToolkit.Show(this, "Failed to restore backup. Please ensure the file is a valid PaDDY backup.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
-                else
+                finally
                 {
-                    MessagingToolkit.Show(this, "Failed to restore backup. Please ensure the file is a valid PaDDY backup.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    if (mainWindow != null)
+                    {
+                        mainWindow.HideLoadingOverlay();
+                    }
                 }
             }
         }
