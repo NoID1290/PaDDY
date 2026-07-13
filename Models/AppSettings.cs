@@ -49,6 +49,7 @@ namespace PaDDY
 
         // Favorites section UI state
         public bool FavoritesPanelCollapsed { get; set; } = false;
+        public bool RecordingsPanelCollapsed { get; set; } = false;
 
         // Volume controls (0–100 range)
         public double InputVolume { get; set; } = 80.0;
