@@ -4,14 +4,17 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.8.0.0712-Pre-release] - 2026-07-12
+## [1.8.0.0712] - 2026-07-12
 
 - Added auto-update option
 - New settings UI
+- Updated loading screen method
+- Recording panel can now be hidden
+- All gglm models in AR-STT are now available, tiny model now included in installer
 - Fix dragging Favorite file into empty main Recording Panel
 - Fix meters UI that appear blurry when PaDDY is maximized
-- Updated loading screen method
-- All gglm models in AR-STT are now available, tiny model now included in installer
+- Fix favorite/folder panel not being shown if empty
+- Fix cache In-Memory Pad Page Updates
 
 ## [1.7.1.0711] - 2026-07-11
 
