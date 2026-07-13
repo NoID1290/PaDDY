@@ -6,122 +6,331 @@ title: Home
 <!-- markdownlint-disable MD033 -->
 <meta name="google-site-verification" content="BWApMIBBsK_hOKJBuRTUtVKgj3wVTcayKgDoyjzTk_Q" />
 
-<!-- Hero Section -->
-<section class="hero">
-  <div class="container text-center">
-    <img class="hero-image" src="{{ '/assets/img/hero.png' | relative_url }}" alt="PaDDY wordmark logo" style="max-width: 400px; margin-bottom: 1.5rem;">
-    <p class="tagline" style="font-size: 1.35rem; font-weight: 500; max-width: 700px; margin: 0 auto 2rem;">
-      Fast voice and system-audio capture for Windows, built around a pad-based workflow for recording, organizing, monitoring, trimming, and replaying short clips.
+<style>
+  :root {
+    --accent-color: #6f42c1;
+    --accent-hover: #5a32a3;
+    --bg-dark-alt: #1a1a24;
+    --text-muted: #8b949e;
+    --border-smooth: rgba(255, 255, 255, 0.08);
+  }
+  
+  .paddy-hero {
+    padding: 5.5rem 0 4rem 0;
+    text-align: center;
+  }
+  .paddy-tagline {
+    font-size: 1.4rem;
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 720px;
+    margin: 1.5rem auto 2.5rem auto;
+    color: #e6edf3;
+  }
+  .paddy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.8rem;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+  }
+  .paddy-btn-primary {
+    background-color: var(--accent-color);
+    color: #ffffff !important;
+  }
+  .paddy-btn-primary:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+  }
+  .paddy-btn-secondary {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #c9d1d9 !important;
+    border: 1px solid var(--border-smooth);
+  }
+  .paddy-btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .paddy-section-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.03em;
+  }
+  .paddy-section-subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 3.5rem;
+    font-size: 1.05rem;
+  }
+
+  .paddy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.75rem;
+    margin-bottom: 2rem;
+  }
+  .paddy-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-smooth);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .paddy-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    border-color: rgba(111, 66, 193, 0.3);
+  }
+  .paddy-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .paddy-card p {
+    color: #col;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+    color: #afb8c1;
+  }
+
+  .paddy-step-list {
+    list-style: none;
+    padding: 0;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .paddy-step-item {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+    align-items: flex-start;
+  }
+  .paddy-step-num {
+    background: rgba(111, 66, 193, 0.15);
+    color: #ac8bec;
+    font-weight: 700;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+  }
+  .paddy-step-content strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: #f0f6fc;
+  }
+
+  .paddy-shots-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 2.5rem;
+  }
+  .paddy-figure {
+    margin: 0;
+    background: #0d1117;
+    border: 1px solid var(--border-smooth);
+    border-radius: 14px;
+    padding: 0.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+  .paddy-img {
+    border-radius: 10px;
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .paddy-caption {
+    padding: 1.25rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    border-top: 1px solid var(--border-smooth);
+    margin-top: 0.5rem;
+  }
+
+  .paddy-split-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 3.5rem;
+  }
+  .paddy-pre {
+    background: #0b0d12 !important;
+    border: 1px solid var(--border-smooth);
+    border-radius: 10px;
+    padding: 1.25rem !important;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+</style>
+
+<!-- Hero Block -->
+<section class="paddy-hero">
+  <div class="container">
+    <img src="{{ '/assets/img/hero.png' | relative_url }}" alt="PaDDY Logo" style="max-width: 360px; height: auto;">
+    <p class="paddy-tagline">
+      A lightweight, low-overhead Windows companion built to continuously stream, capture, manage, and process high-fidelity audio snippets instantly.
     </p>
-    <div class="cta-row" style="margin-bottom: 1rem;">
-      <a class="btn btn-primary" href="https://github.com/NoID1290/PaDDY/releases" style="padding: 0.75rem 1.5rem; font-weight: bold; margin-right: 0.75rem;">📦 Download Latest</a>
-      <a class="btn btn-secondary" href="https://github.com/NoID1290/PaDDY" style="padding: 0.75rem 1.5rem; font-weight: bold;">💻 View Source</a>
+    <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <a class="paddy-btn paddy-btn-primary" href="https://github.com/NoID1290/PaDDY/releases">📦 Download Release</a>
+      <a class="paddy-btn paddy-btn-secondary" href="https://github.com/NoID1290/PaDDY">💻 View Source</a>
     </div>
-    <p class="meta" style="font-family: monospace; opacity: 0.8;">v1.8.1.0712</p>
+    <span style="font-family: monospace; font-size: 0.9rem; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 0.25rem 0.75rem; border-radius: 20px; border: 1px solid var(--border-smooth);">v1.8.1.0712</span>
   </div>
 </section>
 
-<hr style="border: 0; border-top: 1px solid dashed; margin: 3rem 0; opacity: 0.2;">
-
-<!-- Feature Highlights Grid -->
-<section id="features" class="section">
+<!-- Features Grid -->
+<section id="features" style="padding: 5rem 0;">
   <div class="container">
-    <h2 style="text-align: center; margin-bottom: 2.5rem;">✨ Core Engine Highlights</h2>
-    <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-      <article class="card">
+    <h2 class="paddy-section-title">Engine Architecture</h2>
+    <p class="paddy-section-subtitle">Intelligent audio capturing logic bound to high-performance local management wrappers.</p>
+    
+    <div class="paddy-grid">
+      <article class="paddy-card">
         <h3>🎙️ AutoVAD Mode</h3>
-        <p>Monitors incoming audio signals dynamically, cutting clips when speech begins and cleanly stopping them when silence thresholds are met.</p>
+        <p>Monitors system voice thresholds dynamically, launching standalone clip sequences when speech activity initiates and breaking cleanly on silence timeout windows.</p>
       </article>
-      <article class="card">
-        <h3>⚡ Key Buffer Mode</h3>
-        <p>Keeps a continuous, low-overhead rolling audio buffer running silently. Smash a hotkey to save the last <em>N</em> seconds out of the past instantly.</p>
+      
+      <article class="paddy-card">
+        <h3>🔄 Retroactive Key Buffer</h3>
+        <p>Maintains a silent, zero-impact background cyclic allocation array. Instantly extract and commit the last <em>N</em> seconds of history via a global hotkey context.</p>
       </article>
-      <article class="card">
-        <h3>🎛️ App-Specific Loopback</h3>
-        <p>Target a distinct, audio-producing application window, or capture microphone inputs and system-wide outputs simultaneously.</p>
+      
+      <article class="paddy-card">
+        <h3>🎯 Focused App Loopback</h3>
+        <p>Isolate structural audio endpoints directly from specified thread windows (like Discord or specific game targets) while discarding standard system clutter.</p>
       </article>
-      <article class="card">
-        <h3>🎹 Pad-Based Workflow</h3>
-        <p>Persistent, robust SQLite database tracking favorites, clip states, and custom metadata directly from responsive dashboard pads.</p>
+      
+      <article class="paddy-card">
+        <h3>💾 Persistent Pad Deck</h3>
+        <p>Organize, favorite, cascade-sort, or queue multiple capture items using a fast SQLite data persistence backend tied into highly responsive modular structural pads.</p>
       </article>
-      <article class="card">
-        <h3>📊 Pro Level Metering</h3>
-        <p>Track live inputs, playback outputs, and independent monitor endpoints with dedicated RMS meters, thresholds, and peak indicators.</p>
+      
+      <article class="paddy-card">
+        <h3>📊 Realtime Telemetry Meters</h3>
+        <p>Track hardware input lines, master loopback mixes, and target monitor streams concurrently with hardware-accurate RMS meters and clipping peak indicators.</p>
       </article>
-      <article class="card">
-        <h3>✂️ Destructive Trim & FX</h3>
-        <p>Apply real-time DSP gain, fade curves, noise gates, echo, and a dedicated 5-band EQ (80Hz, 250Hz, 1kHz, 4kHz, 12kHz) inside a precise waveform editor.</p>
+      
+      <article class="paddy-card">
+        <h3>🎛️ Inline Waveform DSP</h3>
+        <p>Process operations inside a destructive local trim environment featuring dynamic gain curves, adjustable noise gating, echoing, and a fixed 5-band studio EQ array.</p>
       </article>
     </div>
   </div>
 </section>
 
-<!-- Quick Start Guide -->
-<section id="usage" class="section alt" style="padding: 4rem 0;">
+<!-- Workflow Mechanics -->
+<section id="usage" style="padding: 5rem 0; background: rgba(255,255,255,0.01); border-top: 1px solid var(--border-smooth); border-bottom: 1px solid var(--border-smooth);">
   <div class="container">
-    <h2>🕹️ Quick Start Workflow</h2>
-    <ol style="line-height: 1.8; font-size: 1.05rem;">
-      <li><strong>Select Input Target:</strong> Choose between Mic/Line, System Loopback, or Target Application.</li>
-      <li><strong>Engage Capture Strategy:</strong> Choose <em>AutoVAD</em> for vocal automation, or <em>Key Buffer</em> to capture recent action retrospectively.</li>
-      <li><strong>Route & Monitor:</strong> Fine-tune your recording thresholds, output devices, and live tracking meters.</li>
-      <li><strong>Manage via Pads:</strong> Replay, sort, favorite, and organize your clips cleanly on the main workspace.</li>
-      <li><strong>Polish & Export:</strong> Use the waveform trim interface and 5-band EQ stack to instantly output high-fidelity WAV, MP3, Opus, Ogg Vorbis, or FLAC files.</li>
-    </ol>
+    <h2 class="paddy-section-title">Quick Start Workflow</h2>
+    <p class="paddy-section-subtitle">Go from zero configuration to capturing perfect snippets in under a minute.</p>
+    
+    <ul class="paddy-step-list">
+      <li class="paddy-step-item">
+        <div class="paddy-step-num">1</div>
+        <div class="paddy-step-content">
+          <strong>Select Active Hardware Route</strong>
+          <span style="color: var(--text-muted);">Pick your standard microphone line-in, general Windows system mix, or pin an app-specific pipeline context.</span>
+        </div>
+      </li>
+      <li class="paddy-step-item">
+        <div class="paddy-step-num">2</div>
+        <div class="paddy-step-content">
+          <strong>Choose Capture Engine Profile</strong>
+          <span style="color: var(--text-muted);">Toggle AutoVAD for continuous automated monitoring, or enable Key Buffer to capture past actions on command.</span>
+        </div>
+      </li>
+      <li class="paddy-step-item">
+        <div class="paddy-step-num">3</div>
+        <div class="paddy-step-content">
+          <strong>Track Master Gauges</strong>
+          <span style="color: var(--text-muted);">Check localized decibel parameters using live VU indicators before initiating production workflow tracking.</span>
+        </div>
+      </li>
+      <li class="paddy-step-item">
+        <div class="paddy-step-num">4</div>
+        <div class="paddy-step-content">
+          <strong>Manipulate Saved Frames</strong>
+          <span style="color: var(--text-muted);">Trigger visual deck blocks to replay audio instantly, send assets to the favorites list, or apply processing algorithms.</span>
+        </div>
+      </li>
+    </ul>
   </div>
 </section>
 
-<!-- Screenshots Display -->
-<section id="screenshots" class="section">
+<!-- Workspace Interface Display -->
+<section id="screenshots" style="padding: 5rem 0;">
   <div class="container">
-    <h2 style="text-align: center; margin-bottom: 1rem;">📸 Software Interface</h2>
-    <p style="text-align: center; margin-bottom: 2.5rem; opacity: 0.8;">The main recording environment and wave processing editor in action.</p>
-    <div class="shots" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
-      <figure class="shot-card" style="margin: 0;">
-        <img src="{{ '/assets/img/main-window.png' | relative_url }}" alt="PaDDY main window showing recording pads and meters" style="border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%;">
-        <figcaption style="margin-top: 0.75rem; font-style: italic; opacity: 0.85;">Main workspace: Responsive tracking pads, source selectors, and system configuration profiles.</figcaption>
+    <h2 class="paddy-section-title">Application Interface</h2>
+    <p class="paddy-section-subtitle">Visual monitoring ecosystems constructed around native WPF layout engines.</p>
+    
+    <div class="paddy-shots-container">
+      <figure class="paddy-figure">
+        <img class="paddy-img" src="{{ '/assets/img/main-window.png' | relative_url }}" alt="Main interface pipeline tracking dashboard">
+        <figcaption class="paddy-caption">
+          <strong>Dashboard Workspace:</strong> Integrated structural clip pads, input tracking knobs, operational profile tags, and independent pipeline multi-meters.
+        </figcaption>
       </figure>
-      <figure class="shot-card" style="margin: 0;">
-        <img src="{{ '/assets/img/trim-editor.png' | relative_url }}" alt="PaDDY trim editor showing waveform and effect controls" style="border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%;">
-        <figcaption style="margin-top: 0.75rem; font-style: italic; opacity: 0.85;">Waveform trim interface: Surgical drag-and-drop handles with inline hardware-style effects mapping.</figcaption>
+      <figure class="paddy-figure">
+        <img class="paddy-img" src="{{ '/assets/img/trim-editor.png' | relative_url }}" alt="Destructive linear waveform editing workspace">
+        <figcaption class="paddy-caption">
+          <strong>Trim Processing Deck:</strong> Fine-grained waveform timeline positioning matching inline hardware EQ, noise gate modules, and dynamic multi-format export presets.
+        </figcaption>
       </figure>
     </div>
   </div>
 </section>
 
-<!-- Installation & Source Compiling -->
-<section id="install" class="section alt" style="padding: 4rem 0;">
+<!-- Compiling and Distribution Info -->
+<section id="install" style="padding: 5rem 0; background: rgba(255,255,255,0.01); border-top: 1px solid var(--border-smooth);">
   <div class="container">
-    <h2>💾 Deployment & Requirements</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; margin-top: 1.5rem;">
+    <div class="paddy-split-layout">
       <div>
-        <h3>Binary Installation</h3>
-        <p>Pre-packaged standalone release configurations for immediate execution.</p>
-        <ol style="line-height: 1.6;">
-          <li>Open the official <a href="https://github.com/NoID1290/PaDDY/releases">Releases portal</a>.</li>
-          <li>Grab the latest <code>PaDDY_[version].zip</code> archive distribution.</li>
-          <li>Extract cleanly to a folder directory and click <code>PaDDY.exe</code>.</li>
+        <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem; letter-spacing: -0.02em;">💾 Standard Installation</h3>
+        <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">Pre-compiled release distributions are delivered completely self-contained—no configuration overhead or dependencies needed.</p>
+        <ol style="padding-left: 1.2rem; line-height: 1.8; color: #e6edf3;">
+          <li>Navigate directly to the official <a href="https://github.com/NoID1290/PaDDY/releases" style="color: #ac8bec; text-decoration: none; font-weight: 500;">Releases portal</a>.</li>
+          <li>Grab the latest compressed release build: <code>PaDDY_[version].zip</code>.</li>
+          <li>Extract files cleanly and launch <code>PaDDY.exe</code>.</li>
         </ol>
       </div>
+      
       <div>
-        <h3>Compile From Source</h3>
-        <p>Requires an active Windows environment paired with the newer <strong>.NET 10 SDK</strong> compiler framework.</p>
-        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: monospace; font-size: 0.9rem;">
-# Restore solution components
+        <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 1rem; letter-spacing: -0.02em;">🛠️ Compilation From Source</h3>
+        <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">Requires an environment running Windows 10/11 along with an active <strong>.NET 10 SDK</strong> compiler profile context.</p>
+        <pre class="paddy-pre"><code># Pull and link project component assemblies
 dotnet restore PaDDY.sln
 
-# Build runtime deployment binaries
-dotnet build PaDDY.csproj --configuration Release</pre>
+# Target architectural optimized compilation profiles
+dotnet build PaDDY.csproj --configuration Release</code></pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Changelog & Meta Info -->
-<section id="changelog" class="section" style="padding: 3rem 0; text-align: center;">
+<!-- Page Footer Navigation Context -->
+<section id="changelog" style="padding: 4rem 0 3rem 0; text-align: center; border-top: 1px solid var(--border-smooth);">
   <div class="container">
-    <h2>📄 Project Documentation</h2>
-    <p>Track detailed releases, engine optimizations, framework migration commits, and historical logs inside the <a href="https://github.com/NoID1290/PaDDY/blob/main/CHANGELOG.md">CHANGELOG.md</a> profile.</p>
-    <p style="margin-top: 3rem; font-size: 0.9rem; opacity: 0.6;">NoID Softwork © 2020 - 2026</p>
+    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Release Timeline</h3>
+    <p style="color: var(--text-muted); margin-bottom: 4rem;">Review full execution updates, patch items, or component version updates inside the <a href="https://github.com/NoID1290/PaDDY/blob/main/CHANGELOG.md" style="color: #ac8bec; text-decoration: none;">CHANGELOG.md file</a>.</p>
+    <p style="font-size: 0.85rem; color: #57606a; font-family: monospace; letter-spacing: 0.05em; text-transform: uppercase;">NoID Softwork &copy; 2020 - 2026</p>
   </div>
 </section>
 
