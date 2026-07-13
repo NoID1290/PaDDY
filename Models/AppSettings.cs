@@ -112,6 +112,7 @@ namespace PaDDY
 
         // ---- Auto-update ----
         public bool AutoInstallUpdates { get; set; } = false;
+        public bool DownloadBetaUpdates { get; set; } = false;
 
         private static readonly MessagePackSerializerOptions SerializerOptions =
             MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);

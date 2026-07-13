@@ -400,7 +400,7 @@ namespace PaDDY
                 // Auto-update: check → download → backup → install
                 ShowLoadingOverlay("Checking for updates...");
                 await Task.Delay(1000);
-                var updateService = new Services.UpdateService();
+                var updateService = new Services.UpdateService(_settings.DownloadBetaUpdates);
                 updateService.StatusChanged += msg => ShowLoadingOverlay(msg);
                 updateService.DownloadProgressChanged += fraction =>
                 {
@@ -1773,6 +1773,7 @@ namespace PaDDY
             _settings.DiscordRichPresenceEnabled = win.SelectedDiscordRichPresenceEnabled;
             _settings.DiscordClientId = win.SelectedDiscordClientId;
             _settings.AutoInstallUpdates = win.SelectedAutoInstallUpdates;
+            _settings.DownloadBetaUpdates = win.SelectedDownloadBetaUpdates;
             _settings.Save();
 
             DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);

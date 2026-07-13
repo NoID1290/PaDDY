@@ -673,6 +673,21 @@
                                             </StackPanel>
                                             <CheckBox x:Name="AutoInstallUpdatesCheck" Grid.Column="1" VerticalAlignment="Center"/>
                                         </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Download Beta Updates -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Include Beta (Pre-Release) Updates" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Allows downloading beta / pre-release versions of PaDDY when checking for updates." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="DownloadBetaUpdatesCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                        </Grid>
                                     </StackPanel>
                                 </Border>
 
