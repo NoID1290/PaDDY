@@ -152,5 +152,5 @@ Open up a PowerShell instance inside the project root and run:
 Distributed under the **MIT License**. Check out LICENSE for full details.
 
 <p align="center">
-  <strong>NoID Softwork © 2020 - 2026</strong>
+  <strong>NoID Softwork, Vincent Leclair © 2020 - 2026</strong>
 </p>
