@@ -4,6 +4,10 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.8.4.0715-Pre-release_1] - 2026-07-15
+
+- Updated web
+
 ## [1.8.3.0715-Pre-release_1] - 2026-07-15
 
 - Testing PitchShiftEffect
