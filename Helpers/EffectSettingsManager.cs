@@ -120,6 +120,11 @@ internal static class EffectSettingsManager
                 cfg.Parameters["PresenceDb"] = eq.PresenceDb;
                 cfg.Parameters["TrebleDb"] = eq.TrebleDb;
                 break;
+            case PitchShiftEffect pitch:
+                cfg.Parameters["PitchSemitones"] = pitch.PitchSemitones;
+                cfg.Parameters["GrainSizeMs"] = pitch.GrainSizeMs;
+                cfg.Parameters["Mix"] = pitch.Mix;
+                break;
         }
 
         return cfg;
@@ -169,6 +174,11 @@ internal static class EffectSettingsManager
                 if (p.TryGetValue("MidDb", out var mi)) eq.MidDb = mi;
                 if (p.TryGetValue("PresenceDb", out var pr)) eq.PresenceDb = pr;
                 if (p.TryGetValue("TrebleDb", out var tr)) eq.TrebleDb = tr;
+                break;
+            case PitchShiftEffect pitch:
+                if (p.TryGetValue("PitchSemitones", out var psem)) pitch.PitchSemitones = psem;
+                if (p.TryGetValue("GrainSizeMs", out var pgs)) pitch.GrainSizeMs = pgs;
+                if (p.TryGetValue("Mix", out var pmix)) pitch.Mix = pmix;
                 break;
         }
     }

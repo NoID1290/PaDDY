@@ -541,6 +541,83 @@
                     </StackPanel>
                 </Border>
 
+                <!-- ── Pitch Shift ─────────────────────────────────────────── -->
+                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,8">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="22"/>
+                            </Grid.ColumnDefinitions>
+                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                            <TextBlock Grid.Column="1" Text="Pitch Shift"
+                                       Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                            <CheckBox Grid.Column="2" x:Name="PitchShiftEnabledCheck"
+                                       Foreground="{DynamicResource AccentGreenBrush}"
+                                       Content="Enable" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="3" x:Name="PitchShiftChevron" Text="&#x25BA;"
+                                       FontSize="9" Foreground="#FF6060A0"
+                                       VerticalAlignment="Center" Margin="4,0,0,0"
+                                       Cursor="Hand" MouseLeftButtonUp="PitchShiftChevron_Click"/>
+                        </Grid>
+                        <StackPanel x:Name="PitchShiftContent" Visibility="Collapsed" Margin="0,8,0,0">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="50"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Pitch (semitones)"
+                                           Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" x:Name="PitchShiftSemitonesSlider"
+                                        Minimum="-24" Maximum="24" TickFrequency="1"
+                                        ValueChanged="PitchShiftSlider_ValueChanged"/>
+                                <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                    <TextBlock x:Name="PitchShiftSemitonesLabel" Text="0"
+                                               Foreground="{DynamicResource AccentGreenBrush}" FontSize="10"
+                                               HorizontalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="50"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Grain Size (ms)"
+                                           Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" x:Name="PitchShiftGrainSizeSlider"
+                                        Minimum="10" Maximum="500" TickFrequency="10"
+                                        ValueChanged="PitchShiftSlider_ValueChanged"/>
+                                <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                    <TextBlock x:Name="PitchShiftGrainSizeLabel" Text="50"
+                                               Foreground="{DynamicResource AccentGreenBrush}" FontSize="10"
+                                               HorizontalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="50"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Mix (wet)"
+                                           Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" x:Name="PitchShiftMixSlider"
+                                        Minimum="0" Maximum="1" TickFrequency="0.05"
+                                        ValueChanged="PitchShiftSlider_ValueChanged"/>
+                                <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
+                                    <TextBlock x:Name="PitchShiftMixLabel" Text="1.00"
+                                               Foreground="{DynamicResource AccentGreenBrush}" FontSize="10"
+                                               HorizontalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- ── Equalizer ───────────────────────────────────────────── -->
                 <Border Style="{StaticResource GlassCard}" Margin="0,0,0,12">
                     <StackPanel>
