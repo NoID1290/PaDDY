@@ -482,7 +482,7 @@ namespace PaDDY
             await Task.Delay(50);
             InitializeTrayIcon();
 
-            ShowLoadingOverlay("Connecting to Discord");
+            ShowLoadingOverlay("Starting third-party services");
             await Task.Delay(50);
             if (_settings.DiscordRichPresenceEnabled)
             {

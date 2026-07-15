@@ -54,6 +54,7 @@ namespace PaDDY
         private bool _effectsLoading = true; // suppresses slider events until LoadEffectValues() runs
         private FadeEffect? _fade;
         private NoiseGateEffect? _gate;
+        private PitchShiftEffect? _pitchShift;
         private EchoEffect? _echo;
         private EqualizerEffect? _eq;
         private CompressorEffect? _compressor;
@@ -166,6 +167,7 @@ namespace PaDDY
                 {
                     case FadeEffect f: _fade = f; break;
                     case NoiseGateEffect g: _gate = g; break;
+                    case PitchShiftEffect p: _pitchShift = p; break;
                     case EchoEffect ec: _echo = ec; break;
                     case EqualizerEffect q: _eq = q; break;
                     case CompressorEffect c: _compressor = c; break;
@@ -456,6 +458,13 @@ namespace PaDDY
                     ReverbDampingSlider.Value = _reverb.Damping;
                     ReverbMixSlider.Value = _reverb.Mix;
                 }
+                if (_pitchShift != null)
+                {
+                    PitchShiftEnabledCheck.IsChecked = _pitchShift.IsEnabled;
+                    PitchShiftSemitonesSlider.Value = _pitchShift.PitchSemitones;
+                    PitchShiftGrainSizeSlider.Value = _pitchShift.GrainSizeMs;
+                    PitchShiftMixSlider.Value = _pitchShift.Mix;
+                }
                 UpdateEffectLabels();
             }
             finally
@@ -490,6 +499,12 @@ namespace PaDDY
             ReverbRoomLabel.Text = $"{ReverbRoomSlider.Value:F2}";
             ReverbDampingLabel.Text = $"{ReverbDampingSlider.Value:F2}";
             ReverbMixLabel.Text = $"{ReverbMixSlider.Value:F2}";
+            if (PitchShiftSemitonesSlider != null)
+                PitchShiftSemitonesLabel.Text = $"{(int)PitchShiftSemitonesSlider.Value:+#;-#;0}";
+            if (PitchShiftGrainSizeSlider != null)
+                PitchShiftGrainSizeLabel.Text = $"{(int)PitchShiftGrainSizeSlider.Value}";
+            if (PitchShiftMixSlider != null)
+                PitchShiftMixLabel.Text = $"{PitchShiftMixSlider.Value:F2}";
         }
 
         private void CommitEffectsToChain()
@@ -545,6 +560,13 @@ namespace PaDDY
                 _reverb.RoomSize = ReverbRoomSlider.Value;
                 _reverb.Damping = ReverbDampingSlider.Value;
                 _reverb.Mix = ReverbMixSlider.Value;
+            }
+            if (_pitchShift != null)
+            {
+                _pitchShift.IsEnabled = PitchShiftEnabledCheck.IsChecked == true;
+                _pitchShift.PitchSemitones = PitchShiftSemitonesSlider.Value;
+                _pitchShift.GrainSizeMs = PitchShiftGrainSizeSlider.Value;
+                _pitchShift.Mix = PitchShiftMixSlider.Value;
             }
             SaveEffectSettings();
         }
@@ -626,6 +648,13 @@ namespace PaDDY
             ReverbChevron.Text = expand ? "▼" : "►";
         }
 
+        private void PitchShiftHeaderButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool expand = PitchShiftContent.Visibility == Visibility.Collapsed;
+            PitchShiftContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            PitchShiftChevron.Text = expand ? "▼" : "►";
+        }
+
         private void ResetEffects_Click(object sender, RoutedEventArgs e)
         {
             _effectsLoading = true;
@@ -662,6 +691,10 @@ namespace PaDDY
                 ReverbRoomSlider.Value = 0.5;
                 ReverbDampingSlider.Value = 0.5;
                 ReverbMixSlider.Value = 0.3;
+                PitchShiftEnabledCheck.IsChecked = false;
+                PitchShiftSemitonesSlider.Value = 0;
+                PitchShiftGrainSizeSlider.Value = 50;
+                PitchShiftMixSlider.Value = 1.0;
             }
             finally { _effectsLoading = false; }
             UpdateEffectLabels();
