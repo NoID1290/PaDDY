@@ -23,6 +23,7 @@ public partial class EffectsWindow : Window
     private CompressorEffect? _comp;
     private DistortionEffect? _dist;
     private ReverbEffect? _reverb;
+    private PitchShiftEffect? _pitchShift;
 
     // Suppresses slider-changed callbacks while loading initial values
     private bool _loading;
@@ -47,6 +48,7 @@ public partial class EffectsWindow : Window
                 case CompressorEffect c: _comp = c; break;
                 case DistortionEffect d: _dist = d; break;
                 case ReverbEffect r: _reverb = r; break;
+                case PitchShiftEffect p: _pitchShift = p; break;
             }
         }
 
@@ -129,6 +131,16 @@ public partial class EffectsWindow : Window
                 ReverbDampSlider.Value = _reverb.Damping;
                 ReverbMixSlider.Value = _reverb.Mix;
                 UpdateReverbLabels();
+            }
+
+            // Pitch Shift
+            if (_pitchShift != null)
+            {
+                PitchShiftEnabledCheck.IsChecked = _pitchShift.IsEnabled;
+                PitchShiftSemitonesSlider.Value = _pitchShift.PitchSemitones;
+                PitchShiftGrainSizeSlider.Value = _pitchShift.GrainSizeMs;
+                PitchShiftMixSlider.Value = _pitchShift.Mix;
+                UpdatePitchShiftLabels();
             }
 
             // EQ
@@ -217,6 +229,14 @@ public partial class EffectsWindow : Window
             _reverb.Mix = ReverbMixSlider.Value;
         }
 
+        if (_pitchShift != null)
+        {
+            _pitchShift.IsEnabled = PitchShiftEnabledCheck.IsChecked == true;
+            _pitchShift.PitchSemitones = PitchShiftSemitonesSlider.Value;
+            _pitchShift.GrainSizeMs = PitchShiftGrainSizeSlider.Value;
+            _pitchShift.Mix = PitchShiftMixSlider.Value;
+        }
+
         if (_eq != null)
         {
             _eq.IsEnabled = EqEnabledCheck.IsChecked == true;
@@ -280,6 +300,13 @@ public partial class EffectsWindow : Window
         EqMidLabel.Text = $"{(int)EqMidSlider.Value:+#;-#;0} dB";
         EqPresenceLabel.Text = $"{(int)EqPresenceSlider.Value:+#;-#;0} dB";
         EqTrebleLabel.Text = $"{(int)EqTrebleSlider.Value:+#;-#;0} dB";
+    }
+
+    private void UpdatePitchShiftLabels()
+    {
+        PitchShiftSemitonesLabel.Text = $"{PitchShiftSemitonesSlider.Value:F1}";
+        PitchShiftGrainSizeLabel.Text = $"{(int)PitchShiftGrainSizeSlider.Value}";
+        PitchShiftMixLabel.Text = $"{PitchShiftMixSlider.Value:F2}";
     }
 
     // ── Slider event handlers ─────────────────────────────────────────────────
@@ -356,6 +383,12 @@ public partial class EffectsWindow : Window
         UpdateEqLabels();
     }
 
+    private void PitchShiftSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        UpdatePitchShiftLabels();
+    }
+
     // ── Buttons ───────────────────────────────────────────────────────────────
 
 
@@ -395,6 +428,11 @@ public partial class EffectsWindow : Window
             ReverbDampSlider.Value = 0.5;
             ReverbMixSlider.Value = 0.3;
 
+            PitchShiftEnabledCheck.IsChecked = false;
+            PitchShiftSemitonesSlider.Value = 0.0;
+            PitchShiftGrainSizeSlider.Value = 50.0;
+            PitchShiftMixSlider.Value = 1.0;
+
             EqEnabledCheck.IsChecked = false;
             EqSubBassSlider.Value = 0;
             EqBassSlider.Value = 0;
@@ -413,6 +451,7 @@ public partial class EffectsWindow : Window
         UpdateCompLabels();
         UpdateDistLabels();
         UpdateReverbLabels();
+        UpdatePitchShiftLabels();
         UpdateEqLabels();
     }
 
@@ -475,5 +514,12 @@ public partial class EffectsWindow : Window
         bool expand = EqContent.Visibility == Visibility.Collapsed;
         EqContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         EqChevron.Text = expand ? "\u25BC" : "\u25BA";
+    }
+
+    private void PitchShiftChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        bool expand = PitchShiftContent.Visibility == Visibility.Collapsed;
+        PitchShiftContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+        PitchShiftChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
 }

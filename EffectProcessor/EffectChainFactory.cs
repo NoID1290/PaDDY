@@ -16,6 +16,7 @@ public static class EffectChainFactory
     {
         var chain = new EffectChain();
         chain.Add(new NoiseGateEffect());
+        chain.Add(new PitchShiftEffect());
         chain.Add(new CompressorEffect());
         chain.Add(new DistortionEffect());
         chain.Add(new EchoEffect());
@@ -33,6 +34,7 @@ public static class EffectChainFactory
         var chain = new EffectChain();
         chain.Add(new FadeEffect());
         chain.Add(new NoiseGateEffect());
+        chain.Add(new PitchShiftEffect());
         chain.Add(new CompressorEffect());
         chain.Add(new DistortionEffect());
         chain.Add(new EchoEffect());
