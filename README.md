@@ -46,7 +46,7 @@
 | :--- | :--- |
 | **Dual Capture Modes** | **AutoVAD** (Voice Activity Detection) or **Key Buffer** (rolling retro-active cache). |
 | **Flexible Sources** | Microphone, line-in, entire Windows audio subsystem, or targeted app loopback. |
-| **Premium Formats** | Export flawlessly to **WAV**, **MP3**, **Opus**, **Ogg Vorbis**, or **FLAC**. |
+| **Premium Formats** | Export flawlessly to **WAV**, **MP3**, **Opus**, **Ogg Vorbis**, **AAC** or **FLAC**. |
 | **Pro Level Metering** | Live input, playback output, and independent monitor RMS meters with peak indicators. |
 | **SQLite Management** | Persistent, robust recording catalog tracking favorites, clip states, and metadata. |
 
