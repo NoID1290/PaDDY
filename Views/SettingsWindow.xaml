@@ -793,6 +793,59 @@
                                 </Border>
                             </StackPanel>
                         </TabItem>
+
+                        <!-- ══ BACKUP & RESTORE TAB ═════════════════════════════ -->
+                        <TabItem>
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                                    <TextBlock Text="&#xE8B5;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Backup &amp; Restore" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
+                            
+                            <StackPanel>
+                                <!-- Header -->
+                                <TextBlock Text="Backup &amp; Restore" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Secure and manage your recordings, library database, and settings configuration." FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+
+                                <!-- Backup and Restore operations group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="DATA MANAGEMENT" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <!-- Backup Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Backup Application Data" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Create a backup (.PADBACK) of all recordings, configuration, and pads." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button x:Name="BackupButton" Grid.Column="1" Content="Backup Now" Width="200" Height="28" Click="ExportData_Click" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Restore Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Restore Application Data" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Restore all recordings, configuration, and pads from a backup file." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button x:Name="RestoreButton" Grid.Column="1" Content="Restore Backup" Width="200" Height="28" Click="ImportData_Click" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </TabItem>
                     </TabControl>
 
                     <!-- Footer Section at the bottom right content column -->

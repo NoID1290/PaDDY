@@ -7,8 +7,10 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
 using PaDDY.Helpers;
+using PaDDY.Services;
 
 namespace PaDDY
 {
@@ -631,6 +633,79 @@ namespace PaDDY
                 _isChangingNonDestructiveGlobal = true;
                 NewRecordingsNonDestructiveCheck.IsChecked = true;
                 _isChangingNonDestructiveGlobal = false;
+            }
+        }
+
+        private void ExportData_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK",
+                FileName = $"PaDDY_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.PADBACK"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                var backupService = new BackupService();
+                if (backupService.CreateBackup(dlg.FileName))
+                {
+                    System.Windows.MessageBox.Show(this, "Backup created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show(this, "Failed to create backup. Please ensure your data files are intact.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private async void ImportData_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                var backupService = new BackupService();
+                var mainWindow = Owner as MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.ShowLoadingOverlay("Restoring backup...");
+                    await Task.Delay(50); // Let the overlay render
+                }
+
+                try
+                {
+                    if (mainWindow != null)
+                    {
+                        mainWindow.PrepareRecordingDataRestore();
+                    }
+
+                    if (backupService.RestoreBackup(dlg.FileName))
+                    {
+                        if (mainWindow != null)
+                        {
+                            await mainWindow.ReloadRecordingDataFromDiskAsync();
+                            System.Windows.MessageBox.Show(this, "Backup restored successfully and recordings have been reloaded.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show(this, "Backup restored successfully. Please restart the application to apply changes.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show(this, "Failed to restore backup. Please ensure the file is a valid PaDDY backup.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                finally
+                {
+                    if (mainWindow != null)
+                    {
+                        mainWindow.HideLoadingOverlay();
+                    }
+                }
             }
         }
     }
