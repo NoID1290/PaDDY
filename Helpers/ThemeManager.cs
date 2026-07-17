@@ -32,6 +32,7 @@ namespace PaDDY.Helpers
         /// <summary>Display name list for the overall theme selector (key, label).</summary>
         public static readonly IReadOnlyList<(string Key, string Label)> Themes =
         [
+            ("system",     "Follow System"),
             ("dark",       "Dark"),
             ("light",      "Light"),
             ("dark-green", "Dark Green"),
@@ -404,10 +405,19 @@ namespace PaDDY.Helpers
         /// <summary>Applies an overall colour theme by mutating the shared brush resources.</summary>
         public static void ApplyTheme(string? themeKey)
         {
-            if (string.IsNullOrWhiteSpace(themeKey) || !Palettes.ContainsKey(themeKey))
+            if (string.IsNullOrWhiteSpace(themeKey))
                 themeKey = DefaultTheme;
 
-            var palette = Palettes[themeKey];
+            string targetTheme = themeKey;
+            if (themeKey == "system")
+            {
+                targetTheme = IsWindowsDarkTheme() ? "dark" : "light";
+            }
+
+            if (!Palettes.ContainsKey(targetTheme))
+                targetTheme = DefaultTheme;
+
+            var palette = Palettes[targetTheme];
             var res = Application.Current?.Resources;
             if (res == null) return;
 
@@ -434,6 +444,27 @@ namespace PaDDY.Helpers
                 SetGradientStops(res, "SecondaryWindowBackgroundBrush", card, mid, win);
                 SetGradientStops(res, "SecondaryFooterBackgroundBrush", card, win);
             }
+        }
+
+        /// <summary>Queries the Windows registry to check if the OS theme is set to Dark.</summary>
+        public static bool IsWindowsDarkTheme()
+        {
+            try
+            {
+                using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"))
+                {
+                    var registryValueObject = key?.GetValue("AppsUseLightTheme");
+                    if (registryValueObject != null)
+                    {
+                        return (int)registryValueObject == 0;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback to dark theme on error
+            }
+            return true;
         }
 
         private static void SetGradientStops(ResourceDictionary res, string key, params Color[] colors)

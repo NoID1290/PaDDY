@@ -103,12 +103,30 @@ public partial class App : WpfApplication
         Helpers.ThemeManager.ApplyMeterSkin(settings.MeterSkin, settings.MeterDigitalDots);
         Helpers.ThemeManager.ApplyPerformanceMode(settings.PerformanceMode);
 
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+
         MainWindow = new MainWindow();
         MainWindow.Show();
     }
 
+    private void SystemEvents_UserPreferenceChanged(object sender, Microsoft.Win32.UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category == Microsoft.Win32.UserPreferenceCategory.General)
+        {
+            var currentSettings = AppSettings.Load();
+            if (currentSettings.Theme == "system")
+            {
+                Dispatcher?.Invoke(() =>
+                {
+                    Helpers.ThemeManager.ApplyTheme("system");
+                });
+            }
+        }
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
         _instanceMutex?.ReleaseMutex();
         _instanceMutex?.Dispose();
         base.OnExit(e);
