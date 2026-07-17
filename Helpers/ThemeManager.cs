@@ -402,6 +402,22 @@ namespace PaDDY.Helpers
             },
         };
 
+        /// <summary>Returns the color palette dictionary for a given theme key, resolving 'system' automatically.</summary>
+        public static Dictionary<string, string> GetPalette(string? themeKey)
+        {
+            if (string.IsNullOrWhiteSpace(themeKey) || themeKey == "system")
+            {
+                themeKey = IsWindowsDarkTheme() ? "dark" : "light";
+            }
+
+            if (Palettes.TryGetValue(themeKey, out var palette))
+            {
+                return palette;
+            }
+
+            return Palettes[DefaultTheme];
+        }
+
         /// <summary>Applies an overall colour theme by mutating the shared brush resources.</summary>
         public static void ApplyTheme(string? themeKey)
         {

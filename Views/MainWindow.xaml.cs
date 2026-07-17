@@ -91,6 +91,30 @@ namespace PaDDY
                 }
             });
         }
+
+        private void UpdateLoadingOverlayTheme()
+        {
+            try
+            {
+                var palette = Helpers.ThemeManager.GetPalette(_settings.Theme);
+                if (palette != null)
+                {
+                    var accent = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["AccentGreenBrush"]);
+                    var secondary = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["SubtleTextBrush"]);
+                    var text = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["PrimaryTextBrush"]);
+                    var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
+
+                    MainLoadingOverlay.ApplyThemeColors(accent, secondary, text);
+                    
+                    // For MainLoadingOverlay (the solid one in MainWindow), we use a semi-transparent version of the theme background
+                    MainLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
+                }
+            }
+            catch
+            {
+                // Fallback gracefully on any conversion/loading error
+            }
+        }
         private bool _performanceMode;
         private DateTime _lastInputMeterTick;
         private DateTime _lastOutputMeterTick;
@@ -208,6 +232,7 @@ namespace PaDDY
             }
 
             InitializeComponent();
+            UpdateLoadingOverlayTheme();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             StateChanged += MainWindow_StateChanged;
@@ -1796,6 +1821,7 @@ namespace PaDDY
 
             App.ApplyFont(win.SelectedFontVariant);
             Helpers.ThemeManager.ApplyTheme(_settings.Theme);
+            UpdateLoadingOverlayTheme();
             Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
             bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
@@ -2447,6 +2473,7 @@ namespace PaDDY
             _suppressSelectionEvents = true;
             ApplySettings();
             ThemeManager.ApplyTheme(_settings.Theme);
+            UpdateLoadingOverlayTheme();
             ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
             App.ApplyFont(_settings.AppFontVariant);
