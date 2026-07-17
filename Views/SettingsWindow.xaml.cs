@@ -115,6 +115,7 @@ namespace PaDDY
 
             // VST Plugin path
             VstPluginPathTextBox.Text = _settings.VstPluginPath;
+            Vst3PluginPathTextBox.Text = _settings.Vst3PluginPath;
 
             // Buffer duration
             double bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000.0, 0.5, 60.0);
@@ -402,6 +403,7 @@ namespace PaDDY
             SelectedDownloadBetaUpdates = DownloadBetaUpdatesCheck.IsChecked == true;
 
             _settings.VstPluginPath = VstPluginPathTextBox.Text;
+            _settings.Vst3PluginPath = Vst3PluginPathTextBox.Text;
 
             DialogResult = true;
             Close();
@@ -587,12 +589,26 @@ namespace PaDDY
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "VST2 Plugins (*.dll)|*.dll|All Files (*.*)|*.*",
-                Title = "Select VST Plugin"
+                Title = "Select VST2 Plugin"
             };
 
             if (dlg.ShowDialog(this) == true)
             {
                 VstPluginPathTextBox.Text = dlg.FileName;
+            }
+        }
+
+        private void BrowseVst3Button_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "VST3 Plugins (*.vst3)|*.vst3|All Files (*.*)|*.*",
+                Title = "Select VST3 Plugin"
+            };
+
+            if (dlg.ShowDialog(this) == true)
+            {
+                Vst3PluginPathTextBox.Text = dlg.FileName;
             }
         }
 

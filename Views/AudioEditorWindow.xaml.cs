@@ -60,7 +60,7 @@ namespace PaDDY
         private CompressorEffect? _compressor;
         private DistortionEffect? _distortion;
         private ReverbEffect? _reverb;
-        private Vst2Effect? _vstEffect;
+        private IVstEffect? _vstEffect;
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
@@ -179,7 +179,25 @@ namespace PaDDY
             LoadEffectValues();
 
             var settings = AppSettings.Load();
-            if (!string.IsNullOrEmpty(settings.VstPluginPath) && 
+
+            // Check VST3 first, then VST2
+            if (!string.IsNullOrEmpty(settings.Vst3PluginPath) && 
+                System.IO.File.Exists(settings.Vst3PluginPath))
+            {
+                try
+                {
+                    _vstEffect = new Vst3Effect(settings.Vst3PluginPath);
+                    _perClipChain.Add(_vstEffect);
+                    VstNameLabel.Text = _vstEffect.Name;
+                    ShowVstEditorButton.IsEnabled = true;
+                }
+                catch (Exception ex)
+                {
+                    VstNameLabel.Text = "VST3 Load failed";
+                    Console.WriteLine("VST3 Load error: " + ex);
+                }
+            }
+            else if (!string.IsNullOrEmpty(settings.VstPluginPath) && 
                 System.IO.File.Exists(settings.VstPluginPath))
             {
                 try
@@ -191,8 +209,8 @@ namespace PaDDY
                 }
                 catch (Exception ex)
                 {
-                    VstNameLabel.Text = "Load failed";
-                    Console.WriteLine("VST Load error: " + ex);
+                    VstNameLabel.Text = "VST2 Load failed";
+                    Console.WriteLine("VST2 Load error: " + ex);
                 }
             }
         }

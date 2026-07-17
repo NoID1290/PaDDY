@@ -206,7 +206,7 @@
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
-                                        <!-- VST Plugin Path -->
+                                        <!-- VST2 Plugin Path -->
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -223,6 +223,28 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBox x:Name="VstPluginPathTextBox" Grid.Column="0" Height="26" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
                                                 <Button x:Name="BrowseVstButton" Grid.Column="1" Content="..." Width="30" Height="26" Click="BrowseVstButton_Click"/>
+                                            </Grid>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- VST3 Plugin Path -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="VST3 Plugin Path" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Select a .vst3 plugin to be available in the Audio Editor." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Grid Grid.Column="1" Width="200" VerticalAlignment="Center">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="Vst3PluginPathTextBox" Grid.Column="0" Height="26" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
+                                                <Button x:Name="BrowseVst3Button" Grid.Column="1" Content="..." Width="30" Height="26" Click="BrowseVst3Button_Click"/>
                                             </Grid>
                                         </Grid>
                                     </StackPanel>

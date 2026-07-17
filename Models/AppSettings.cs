@@ -44,6 +44,7 @@ namespace PaDDY
 
         // VST Plugin Integration
         public string VstPluginPath { get; set; } = string.Empty;
+        public string Vst3PluginPath { get; set; } = string.Empty;
 
         // Sort order for the recordings pad panel
         // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest
