@@ -132,6 +132,7 @@ namespace PaDDY
             MaxRecordsLabel.Text = _settings.MaxRecords == 0 ? "∞" : _settings.MaxRecords.ToString();
 
             // Font variant
+            FontVariantCombo.SelectionChanged -= FontVariantCombo_SelectionChanged;
             FontVariantCombo.Items.Clear();
             int fontIdx = 0;
             for (int i = 0; i < App.FontVariants.Count; i++)
@@ -141,6 +142,7 @@ namespace PaDDY
                 if (v.Key == _settings.AppFontVariant) fontIdx = i;
             }
             FontVariantCombo.SelectedIndex = fontIdx;
+            FontVariantCombo.SelectionChanged += FontVariantCombo_SelectionChanged;
 
             // New pad naming
             DefaultPadTitleBox.Text = string.IsNullOrWhiteSpace(_settings.DefaultPadTitleTemplate)
@@ -244,6 +246,14 @@ namespace PaDDY
             int i = MeterSkinCombo.SelectedIndex;
             if (i >= 0 && i < ThemeManager.MeterSkins.Count)
                 ThemeManager.ApplyMeterSkin(ThemeManager.MeterSkins[i].Key, _settings.MeterDigitalDots); // live preview
+        }
+
+        private void FontVariantCombo_SelectionChanged(object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            int i = FontVariantCombo.SelectedIndex;
+            if (i >= 0 && i < App.FontVariants.Count)
+                App.ApplyFont(App.FontVariants[i].Key); // live preview
         }
 
         private void MeterDigitalDotsCheck_Changed(object sender, RoutedEventArgs e)
@@ -553,11 +563,12 @@ namespace PaDDY
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            // If the dialog was not confirmed, revert any live theme/meter preview.
+            // If the dialog was not confirmed, revert any live theme/meter/font preview.
             if (DialogResult != true)
             {
                 ThemeManager.ApplyTheme(_settings.Theme);
                 ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
+                App.ApplyFont(_settings.AppFontVariant);
             }
             base.OnClosing(e);
         }
