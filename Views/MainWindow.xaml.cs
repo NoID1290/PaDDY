@@ -363,6 +363,22 @@ namespace PaDDY
             await Task.Delay(400);
             _globalCaptureChain?.Reset();
 
+            ShowLoadingOverlay("VST plugins startup");
+            await Task.Delay(600);
+            var currentSettings = AppSettings.Load();
+            bool vstSettingsChanged = false;
+            if (!string.IsNullOrEmpty(currentSettings.VstPluginPath) && !File.Exists(currentSettings.VstPluginPath))
+            {
+                currentSettings.VstPluginPath = string.Empty;
+                vstSettingsChanged = true;
+            }
+            if (!string.IsNullOrEmpty(currentSettings.Vst3PluginPath) && !File.Exists(currentSettings.Vst3PluginPath))
+            {
+                currentSettings.Vst3PluginPath = string.Empty;
+                vstSettingsChanged = true;
+            }
+            if (vstSettingsChanged) currentSettings.Save();
+
             _captureService.RmsLevelChanged += OnRmsChanged;
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
