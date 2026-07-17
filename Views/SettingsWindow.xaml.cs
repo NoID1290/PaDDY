@@ -113,6 +113,9 @@ namespace PaDDY
             NewRecordingsNonDestructiveCheck.Checked += NewRecordingsNonDestructiveCheck_Checked;
             NewRecordingsNonDestructiveCheck.Unchecked += NewRecordingsNonDestructiveCheck_Unchecked;
 
+            // VST Plugin path
+            VstPluginPathTextBox.Text = _settings.VstPluginPath;
+
             // Buffer duration
             double bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000.0, 0.5, 60.0);
             BufferDurationSlider.Value = bufSec;
@@ -395,12 +398,13 @@ namespace PaDDY
                 SelectedDiscordClientId = cid;
             else
                 SelectedDiscordClientId = 461618159171141643;
-
-            // Auto-update
             SelectedAutoInstallUpdates = AutoInstallUpdatesCheck.IsChecked == true;
             SelectedDownloadBetaUpdates = DownloadBetaUpdatesCheck.IsChecked == true;
 
+            _settings.VstPluginPath = VstPluginPathTextBox.Text;
+
             DialogResult = true;
+            Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -571,6 +575,25 @@ namespace PaDDY
                 App.ApplyFont(_settings.AppFontVariant);
             }
             base.OnClosing(e);
+        }
+
+        private void DiscordRichPresenceCheck_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Unregister or disconnect immediately if desired, but applied on save
+        }
+
+        private void BrowseVstButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "VST2 Plugins (*.dll)|*.dll|All Files (*.*)|*.*",
+                Title = "Select VST Plugin"
+            };
+
+            if (dlg.ShowDialog(this) == true)
+            {
+                VstPluginPathTextBox.Text = dlg.FileName;
+            }
         }
 
         private void NewRecordingsNonDestructiveCheck_Checked(object sender, RoutedEventArgs e)

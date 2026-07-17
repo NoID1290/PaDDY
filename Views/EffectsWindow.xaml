@@ -59,7 +59,6 @@
                 Effect="{StaticResource SecondaryWindowShadow}">
             <StackPanel>
 
-
                 <!-- ── Fade In / Fade Out (per-clip only) ─────────────────── -->
                 <Border x:Name="FadeSection"
                         Style="{StaticResource GlassCard}"

@@ -350,6 +350,33 @@
                                   HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
 
+                            <!-- VST Plugins -->
+                            <Border x:Name="VstSection" Style="{StaticResource GlassCard}" Margin="0,0,0,4">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="22"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                        <TextBlock Grid.Column="1" Text="VST Plugins" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                        <TextBlock Grid.Column="2" x:Name="VstChevron" Text="&#x25BC;" FontSize="9" Foreground="#FF6060A0" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="VstChevron_Click"/>
+                                    </Grid>
+                                    <StackPanel x:Name="VstContent" Visibility="Visible" Margin="0,8,0,0">
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Plugin" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1" x:Name="VstNameLabel" Text="None loaded (Configure in Settings)" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        </Grid>
+                                        <Button x:Name="ShowVstEditorButton" Content="Show Plugin Editor" Style="{StaticResource EditorBtn}" Height="24" Padding="8,0" Margin="0,4,0,0" IsEnabled="False" Click="ShowVstEditor_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Fade In / Fade Out -->
                             <Border Style="{StaticResource GlassCard}" Margin="0,0,0,4">
                                 <StackPanel>

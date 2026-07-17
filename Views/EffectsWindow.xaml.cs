@@ -1,5 +1,7 @@
 using System.Runtime.Versioning;
 using System.Windows;
+using System.Windows.Interop;
+using Microsoft.Win32;
 using NoIDSoftwork.EffectProcessor;
 using NoIDSoftwork.EffectProcessor.Effects;
 

@@ -40,8 +40,10 @@ namespace PaDDY
         // Max recordings before auto-cleanup (0 = unlimited). Favorites are exempt.
         public int MaxRecords { get; set; } = 0;
 
-        // Output codec for new recordings: "wav", "mp3", "opus", "ogg"
         public string RecordCodec { get; set; } = "wav";
+
+        // VST Plugin Integration
+        public string VstPluginPath { get; set; } = string.Empty;
 
         // Sort order for the recordings pad panel
         // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest

@@ -60,6 +60,7 @@ namespace PaDDY
         private CompressorEffect? _compressor;
         private DistortionEffect? _distortion;
         private ReverbEffect? _reverb;
+        private Vst2Effect? _vstEffect;
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
@@ -176,6 +177,24 @@ namespace PaDDY
                 }
             }
             LoadEffectValues();
+
+            var settings = AppSettings.Load();
+            if (!string.IsNullOrEmpty(settings.VstPluginPath) && 
+                System.IO.File.Exists(settings.VstPluginPath))
+            {
+                try
+                {
+                    _vstEffect = new Vst2Effect(settings.VstPluginPath);
+                    _perClipChain.Add(_vstEffect);
+                    VstNameLabel.Text = _vstEffect.Name;
+                    ShowVstEditorButton.IsEnabled = true;
+                }
+                catch (Exception ex)
+                {
+                    VstNameLabel.Text = "Load failed";
+                    Console.WriteLine("VST Load error: " + ex);
+                }
+            }
         }
 
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1517,6 +1536,21 @@ namespace PaDDY
                 int read = _reader.Read(buffer, offset, toRead);
                 _bytesRemaining -= read;
                 return read;
+            }
+        }
+        private void VstChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            bool expand = VstContent.Visibility == Visibility.Collapsed;
+            VstContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            VstChevron.Text = expand ? "\u25BC" : "\u25BA";
+        }
+
+        private void ShowVstEditor_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vstEffect != null)
+            {
+                var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+                _vstEffect.OpenEditor(hwnd);
             }
         }
     }
