@@ -33,6 +33,8 @@ namespace PaDDY
             new() { Name = "SQLitePCLRaw", License = "Apache-2.0", Usage = "Native SQLite provider for the recordings database", LicenseFile = "SQLitePCLRaw-LICENSE.txt" },
             new() { Name = "Whisper.net", License = "MIT", Usage = "On-device speech-to-text for auto-renaming", LicenseFile = "Whisper.net-LICENSE.txt" },
             new() { Name = "Whisper.net.Runtime.Cuda", License = "MIT", Usage = "CUDA GPU acceleration for Whisper speech-to-text", LicenseFile = "Whisper.net-LICENSE.txt" },
+            new() { Name = "AudioPlugSharp", License = "MIT", Usage = "VST3 plugin hosting support", LicenseFile = "AudioPlugSharp-LICENSE.txt" },
+            new() { Name = "VST.NET (vstnet)", License = "MIT", Usage = "VST2 plugin hosting support", LicenseFile = "VST.NET-LICENSE.txt" },
         };
 
         public CreditsWindow()
@@ -81,6 +83,9 @@ namespace PaDDY
             sb.AppendLine("Native runtime dependency:");
             sb.AppendLine("- libmp3lame.32.dll and libmp3lame.64.dll (used by NAudio.Lame at runtime)");
             sb.AppendLine("  License context: LGPL (see upstream LAME project licensing)");
+            sb.AppendLine();
+            sb.AppendLine("Trademark Notices:");
+            sb.AppendLine("- VST is a registered trademark of Steinberg Media Technologies GmbH.");
             sb.AppendLine();
 
             foreach (var dependency in Dependencies)
