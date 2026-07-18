@@ -26,4 +26,9 @@
     <PackageReference Include="VST.NET2-Host" Version="2.1.10" />
     <PackageReference Include="VST.NET2-Plugin" Version="2.1.10" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Plugins\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -180,37 +180,53 @@ namespace PaDDY
 
             var settings = AppSettings.Load();
 
-            // Check VST3 first, then VST2
+            string? targetVstPath = null;
+            bool isVst3 = false;
+
             if (!string.IsNullOrEmpty(settings.Vst3PluginPath) && 
-                System.IO.File.Exists(settings.Vst3PluginPath))
+                (System.IO.File.Exists(settings.Vst3PluginPath) || System.IO.Directory.Exists(settings.Vst3PluginPath)))
             {
-                try
-                {
-                    _vstEffect = new Vst3Effect(settings.Vst3PluginPath);
-                    _perClipChain.Add(_vstEffect);
-                    VstNameLabel.Text = _vstEffect.Name;
-                    ShowVstEditorButton.IsEnabled = true;
-                }
-                catch (Exception ex)
-                {
-                    VstNameLabel.Text = "VST3 Load failed";
-                    Console.WriteLine("VST3 Load error: " + ex);
-                }
+                targetVstPath = settings.Vst3PluginPath;
+                isVst3 = true;
             }
             else if (!string.IsNullOrEmpty(settings.VstPluginPath) && 
                 System.IO.File.Exists(settings.VstPluginPath))
             {
+                targetVstPath = settings.VstPluginPath;
+                isVst3 = false;
+            }
+            else
+            {
+                // Fall back to default vendored VST2 dynamics plugin (mdaDynamics.dll)
+                string defaultVst2 = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "VST2", "mdaDynamics.dll");
+                if (System.IO.File.Exists(defaultVst2))
+                {
+                    targetVstPath = defaultVst2;
+                    isVst3 = false;
+                }
+            }
+
+            if (targetVstPath != null)
+            {
                 try
                 {
-                    _vstEffect = new Vst2Effect(settings.VstPluginPath);
+                    if (isVst3)
+                    {
+                        _vstEffect = new Vst3Effect(targetVstPath);
+                    }
+                    else
+                    {
+                        _vstEffect = new Vst2Effect(targetVstPath);
+                    }
                     _perClipChain.Add(_vstEffect);
                     VstNameLabel.Text = _vstEffect.Name;
                     ShowVstEditorButton.IsEnabled = true;
                 }
                 catch (Exception ex)
                 {
-                    VstNameLabel.Text = "VST2 Load failed";
-                    Console.WriteLine("VST2 Load error: " + ex);
+                    string format = isVst3 ? "VST3" : "VST2";
+                    VstNameLabel.Text = $"{format} Load failed";
+                    Console.WriteLine($"{format} Load error: " + ex);
                 }
             }
         }

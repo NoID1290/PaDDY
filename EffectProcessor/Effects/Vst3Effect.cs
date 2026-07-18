@@ -11,7 +11,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
 
         public Vst3Effect(string pluginPath)
         {
-            if (!File.Exists(pluginPath))
+            if (!File.Exists(pluginPath) && !Directory.Exists(pluginPath))
                 throw new FileNotFoundException("VST3 Plugin not found.", pluginPath);
                 
             Name = Path.GetFileNameWithoutExtension(pluginPath);
