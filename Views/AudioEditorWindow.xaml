@@ -369,8 +369,8 @@
                                                 <ColumnDefinition Width="60"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Plugin" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="1" x:Name="VstNameLabel" Text="None loaded (Configure in Settings)" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="0" Text="Plugins" Style="{StaticResource SettingsLabel}" VerticalAlignment="Top"/>
+                                            <TextBlock Grid.Column="1" x:Name="VstNameLabel" Text="None loaded (Configure in Settings)" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                         </Grid>
                                         <Button x:Name="ShowVstEditorButton" Content="Show Plugin Editor" Style="{StaticResource EditorBtn}" Height="24" Padding="8,0" Margin="0,4,0,0" IsEnabled="False" Click="ShowVstEditor_Click"/>
                                     </StackPanel>

@@ -60,7 +60,7 @@ namespace PaDDY
         private CompressorEffect? _compressor;
         private DistortionEffect? _distortion;
         private ReverbEffect? _reverb;
-        private IVstEffect? _vstEffect;
+        private readonly List<IVstEffect> _vstEffects = new();
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
@@ -178,56 +178,46 @@ namespace PaDDY
             }
             LoadEffectValues();
 
-            var settings = AppSettings.Load();
-
-            string? targetVstPath = null;
-            bool isVst3 = false;
-
-            if (!string.IsNullOrEmpty(settings.Vst3PluginPath) && 
-                (System.IO.File.Exists(settings.Vst3PluginPath) || System.IO.Directory.Exists(settings.Vst3PluginPath)))
+            // Load all default vendored VST plugins (VST2 + VST3)
+            var defaultPlugins = VstPluginManager.LoadDefaultPlugins();
+            foreach (var plugin in defaultPlugins)
             {
-                targetVstPath = settings.Vst3PluginPath;
-                isVst3 = true;
+                _vstEffects.Add(plugin);
+                _perClipChain.Add(plugin);
             }
-            else if (!string.IsNullOrEmpty(settings.VstPluginPath) && 
-                System.IO.File.Exists(settings.VstPluginPath))
+
+            // Load user-configured plugins (if different from defaults)
+            var settings = AppSettings.Load();
+            var userVst2 = VstPluginManager.TryLoadUserPlugin(settings.VstPluginPath);
+            if (userVst2 != null && !IsPluginAlreadyLoaded(userVst2.Name))
             {
-                targetVstPath = settings.VstPluginPath;
-                isVst3 = false;
+                _vstEffects.Add(userVst2);
+                _perClipChain.Add(userVst2);
             }
             else
             {
-                // Fall back to default vendored VST2 dynamics plugin (mdaDynamics.dll)
-                string defaultVst2 = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "VST2", "mdaDynamics.dll");
-                if (System.IO.File.Exists(defaultVst2))
-                {
-                    targetVstPath = defaultVst2;
-                    isVst3 = false;
-                }
+                (userVst2 as IDisposable)?.Dispose();
             }
 
-            if (targetVstPath != null)
+            var userVst3 = VstPluginManager.TryLoadUserPlugin(settings.Vst3PluginPath);
+            if (userVst3 != null && !IsPluginAlreadyLoaded(userVst3.Name))
             {
-                try
-                {
-                    if (isVst3)
-                    {
-                        _vstEffect = new Vst3Effect(targetVstPath);
-                    }
-                    else
-                    {
-                        _vstEffect = new Vst2Effect(targetVstPath);
-                    }
-                    _perClipChain.Add(_vstEffect);
-                    VstNameLabel.Text = _vstEffect.Name;
-                    ShowVstEditorButton.IsEnabled = true;
-                }
-                catch (Exception ex)
-                {
-                    string format = isVst3 ? "VST3" : "VST2";
-                    VstNameLabel.Text = $"{format} Load failed";
-                    Console.WriteLine($"{format} Load error: " + ex);
-                }
+                _vstEffects.Add(userVst3);
+                _perClipChain.Add(userVst3);
+            }
+            else
+            {
+                (userVst3 as IDisposable)?.Dispose();
+            }
+
+            // Update UI
+            if (_vstEffects.Count > 0)
+            {
+                var names = new List<string>();
+                foreach (var vst in _vstEffects)
+                    names.Add(vst.Name);
+                VstNameLabel.Text = string.Join(", ", names);
+                ShowVstEditorButton.IsEnabled = true;
             }
         }
 
@@ -1581,11 +1571,38 @@ namespace PaDDY
 
         private void ShowVstEditor_Click(object sender, RoutedEventArgs e)
         {
-            if (_vstEffect != null)
+            if (_vstEffects.Count == 0) return;
+
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            if (_vstEffects.Count == 1)
             {
-                var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-                _vstEffect.OpenEditor(hwnd);
+                _vstEffects[0].OpenEditor(hwnd);
             }
+            else
+            {
+                // Show a selection dialog for multiple plugins
+                var names = new List<string>();
+                foreach (var vst in _vstEffects)
+                    names.Add(vst.Name);
+
+                var msg = "Loaded VST Plugins:\n";
+                for (int i = 0; i < names.Count; i++)
+                    msg += $"\n  {i + 1}. {names[i]}";
+                msg += "\n\nOpening editor for the first plugin.";
+
+                System.Windows.MessageBox.Show(msg, "VST Plugins", MessageBoxButton.OK, MessageBoxImage.Information);
+                _vstEffects[0].OpenEditor(hwnd);
+            }
+        }
+
+        private bool IsPluginAlreadyLoaded(string name)
+        {
+            foreach (var vst in _vstEffects)
+            {
+                if (string.Equals(vst.Name, name, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
     }
 }

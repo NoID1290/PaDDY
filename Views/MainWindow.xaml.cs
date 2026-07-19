@@ -397,7 +397,7 @@ namespace PaDDY
                 currentSettings.VstPluginPath = string.Empty;
                 vstSettingsChanged = true;
             }
-            if (!string.IsNullOrEmpty(currentSettings.Vst3PluginPath) && !File.Exists(currentSettings.Vst3PluginPath))
+            if (!string.IsNullOrEmpty(currentSettings.Vst3PluginPath) && !File.Exists(currentSettings.Vst3PluginPath) && !Directory.Exists(currentSettings.Vst3PluginPath))
             {
                 currentSettings.Vst3PluginPath = string.Empty;
                 vstSettingsChanged = true;
