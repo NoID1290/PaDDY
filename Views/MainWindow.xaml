@@ -110,6 +110,7 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Tag" Value="{DynamicResource AccentGreenBrush}"/>
             <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -117,35 +118,53 @@
                         <Border x:Name="LogoShell"
                                 Padding="8,6"
                                 CornerRadius="10"
-                                Background="#00000000"
-                                BorderBrush="#00FFFFFF"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
                                 BorderThickness="1">
                             <Border.Effect>
                                 <DropShadowEffect x:Name="LogoGlow"
                                                   ShadowDepth="0"
                                                   BlurRadius="0"
-                                                  Color="#FF4CAF50"
+                                                  Color="{Binding Tag.Color, RelativeSource={RelativeSource TemplatedParent}}"
                                                   Opacity="0"/>
                             </Border.Effect>
                             <Grid>
-                                <StackPanel Orientation="Horizontal" Margin="8,0">
+                                <StackPanel Orientation="Horizontal" Margin="4,0">
+                                    <!-- Stylized Launchpad Grid Icon -->
+                                    <Grid x:Name="LogoIcon" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                        <Grid.RenderTransform>
+                                            <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                        </Grid.RenderTransform>
+                                        <UniformGrid Rows="2" Columns="2">
+                                            <Border CornerRadius="2.2" Margin="1" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.5"/>
+                                            <Border CornerRadius="2.2" Margin="1" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.75"/>
+                                            <Border CornerRadius="2.2" Margin="1" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.75"/>
+                                            <Border CornerRadius="2.2" Margin="1" Background="{DynamicResource AccentGreenBrush}"/>
+                                        </UniformGrid>
+                                    </Grid>
+
+                                    <!-- Typography -->
                                     <TextBlock Text="Pa"
-                                               FontSize="20"
-                                               FontWeight="Bold"
-                                               Foreground="#FF7070A8"
+                                               FontSize="19"
+                                               FontWeight="ExtraBold"
+                                               Foreground="{DynamicResource PrimaryTextBrush}"
+                                               TextOptions.TextFormattingMode="Display"
+                                               TextOptions.TextRenderingMode="ClearType"
                                                VerticalAlignment="Center"/>
                                     <TextBlock Text="DDY"
-                                               FontSize="20"
-                                               FontWeight="Bold"
-                                               Foreground="#FF4CAF50"
+                                               FontSize="19"
+                                               FontWeight="ExtraBold"
+                                               Foreground="{DynamicResource AccentGreenBrush}"
+                                               TextOptions.TextFormattingMode="Display"
+                                               TextOptions.TextRenderingMode="ClearType"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="LogoShell" Property="Background" Value="#0CFFFFFF"/>
-                                <Setter TargetName="LogoShell" Property="BorderBrush" Value="#1EFFFFFF"/>
+                                <Setter TargetName="LogoShell" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                                <Setter TargetName="LogoShell" Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                                 <Trigger.EnterActions>
                                     <BeginStoryboard x:Name="LogoHoverStoryboard">
                                         <Storyboard>
@@ -159,7 +178,23 @@
                                             </DoubleAnimation>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0.38"
+                                                             To="0.45"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                             To="1.12"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                             To="1.12"
                                                              Duration="0:0:0.2">
                                                 <DoubleAnimation.EasingFunction>
                                                     <CubicEase EasingMode="EaseOut"/>
@@ -188,12 +223,29 @@
                                                     <CubicEase EasingMode="EaseIn"/>
                                                 </DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                             To="1"
+                                                             Duration="0:0:0.16">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseIn"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                             To="1"
+                                                             Duration="0:0:0.16">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseIn"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="LogoShell" Property="Opacity" Value="0.82"/>
+                                <Setter TargetName="LogoShell" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                                <Setter TargetName="LogoShell" Property="Opacity" Value="0.85"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

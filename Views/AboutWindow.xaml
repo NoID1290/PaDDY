@@ -60,6 +60,15 @@
                     <!-- Row 0 — Logo / header -->
                     <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,8,0,16">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <!-- Logo Icon -->
+                            <Grid Width="28" Height="28" Margin="0,0,14,0" VerticalAlignment="Center">
+                                <UniformGrid Rows="2" Columns="2">
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.5"/>
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.8"/>
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.8"/>
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource AccentGreenBrush}"/>
+                                </UniformGrid>
+                            </Grid>
                             <TextBlock Text="Pa"
                                        FontSize="36"
                                        FontWeight="ExtraBold"
