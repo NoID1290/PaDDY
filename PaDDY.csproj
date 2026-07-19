@@ -39,7 +39,6 @@
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" />
     <PackageReference Include="System.Management" Version="10.0.0-preview.4.25258.110" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.6.2" />
-    <PackageReference Include="VST.NET2-Host" Version="2.1.10" />
     <PackageReference Include="AudioPlugSharp" Version="0.7.13" />
     <PackageReference Include="AudioPlugSharpHost" Version="0.7.13" />
   </ItemGroup>

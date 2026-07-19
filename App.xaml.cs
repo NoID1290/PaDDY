@@ -26,6 +26,15 @@ public partial class App : WpfApplication
     /// </summary>
     internal static bool PendingUpdateRestore { get; private set; }
 
+    public static bool IsDebugMode { get; private set; }
+    public static event System.Action? DebugModeChanged;
+
+    public static void ToggleDebugMode()
+    {
+        IsDebugMode = !IsDebugMode;
+        DebugModeChanged?.Invoke();
+    }
+
     /// <summary>Maps variant key → (embedded file name, display name).</summary>
     internal static readonly IReadOnlyList<(string Key, string FileName, string DisplayName)> FontVariants =
     [

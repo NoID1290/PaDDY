@@ -83,7 +83,17 @@ namespace PaDDY
         {
             _settings = settings;
             InitializeComponent();
+
+            VstSettingsPanel.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            App.DebugModeChanged += OnDebugModeChanged;
+            
             Loaded += OnLoaded;
+            Closed += (_, _) => App.DebugModeChanged -= OnDebugModeChanged;
+        }
+
+        private void OnDebugModeChanged()
+        {
+            VstSettingsPanel.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

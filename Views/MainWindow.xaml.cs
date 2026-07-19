@@ -49,7 +49,7 @@ namespace PaDDY
         private bool _forceExit;
         private PadPage? _activePadPage;
         private Services.SpeechRecognitionService? _speechService;
-        private bool _overlayDevUnlocked = false;
+
         private TcpIpcServer? _ipcServer;
         private bool _isRecording;
 
@@ -245,6 +245,11 @@ namespace PaDDY
             this.PreviewKeyDown += OnPadHotKey;
             PadMonitorMeterHostL.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
             PadMonitorMeterHostR.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
+            
+            App.DebugModeChanged += () =>
+            {
+                OverlayConfigPanel.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            };
         }
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
@@ -290,8 +295,7 @@ namespace PaDDY
             if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isD)
             {
                 e.Handled = true;
-                _overlayDevUnlocked = !_overlayDevUnlocked;
-                OverlayConfigPanel.Visibility = _overlayDevUnlocked ? Visibility.Visible : Visibility.Collapsed;
+                App.ToggleDebugMode();
                 return;
             }
 

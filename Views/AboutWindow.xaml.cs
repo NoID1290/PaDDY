@@ -73,7 +73,18 @@ namespace PaDDY
             {
                 System.Windows.Media.CompositionTarget.Rendering -= OnCompositionRendering;
                 _dx11Image?.Dispose();
+                App.DebugModeChanged -= OnDebugModeChanged;
             };
+
+            App.DebugModeChanged += OnDebugModeChanged;
+        }
+
+        private void OnDebugModeChanged()
+        {
+            if (App.IsDebugMode && DevVisualizerBorder.Visibility != Visibility.Visible)
+                ToggleDevVisualizer();
+            else if (!App.IsDebugMode && DevVisualizerBorder.Visibility == Visibility.Visible)
+                ToggleDevVisualizer();
         }
 
         private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -82,7 +93,7 @@ namespace PaDDY
             if ((System.Windows.Input.Keyboard.Modifiers & (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Alt)) == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Alt) && isD)
             {
                 e.Handled = true;
-                ToggleDevVisualizer();
+                App.ToggleDebugMode();
             }
         }
 

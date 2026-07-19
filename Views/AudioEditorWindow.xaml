@@ -351,7 +351,7 @@
                         <StackPanel>
 
                             <!-- VST Plugins -->
-                            <Border x:Name="VstSection" Style="{StaticResource GlassCard}" Margin="0,0,0,4">
+                            <Border x:Name="VstSection" Style="{StaticResource GlassCard}" Margin="0,0,0,4" Visibility="Collapsed">
                                 <StackPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>

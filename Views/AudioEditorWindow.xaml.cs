@@ -93,6 +93,10 @@ namespace PaDDY
             bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
         {
             InitializeComponent();
+            
+            VstSection.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            App.DebugModeChanged += OnDebugModeChanged;
+
             _filePath = filePath;
             _recordingId = recordingId;
             _outputDeviceIndex = outputDeviceIndex;
@@ -106,7 +110,16 @@ namespace PaDDY
 
             Loaded += OnLoaded;
             WaveformGrid.SizeChanged += WaveformGrid_SizeChanged;
-            Closed += (_, _) => StopPreview();
+            Closed += (_, _) => 
+            {
+                StopPreview();
+                App.DebugModeChanged -= OnDebugModeChanged;
+            };
+        }
+
+        private void OnDebugModeChanged()
+        {
+            VstSection.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
