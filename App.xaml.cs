@@ -32,6 +32,14 @@ public partial class App : WpfApplication
     public static void ToggleDebugMode()
     {
         IsDebugMode = !IsDebugMode;
+        if (IsDebugMode)
+        {
+            Helpers.ConsoleHelper.ShowConsole();
+        }
+        else
+        {
+            Helpers.ConsoleHelper.HideConsole();
+        }
         DebugModeChanged?.Invoke();
     }
 

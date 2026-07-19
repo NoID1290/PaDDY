@@ -8,7 +8,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
     {
         public string Name { get; }
         public string Description { get; }
-        public bool IsEnabled { get; set; } = true;
+        public bool IsEnabled { get; set; } = false;
 
         private IntPtr _moduleHandle;
         private IntPtr _effectPtr;
@@ -110,6 +110,9 @@ namespace NoIDSoftwork.EffectProcessor.Effects
 
             EnsureBuffers(channels, sampleCount);
 
+            int inputChannels = _inputChannelBuffers!.Length;
+            int outputChannels = _outputChannelBuffers!.Length;
+
             // De-interleave
             for (int c = 0; c < channels; c++)
             {
@@ -119,7 +122,19 @@ namespace NoIDSoftwork.EffectProcessor.Effects
                 }
             }
 
-            ProcessVst2Audio(channels, sampleCount);
+            // If mono source and stereo plugin, copy channel 0 to channel 1
+            if (channels == 1 && inputChannels >= 2)
+            {
+                Array.Copy(_inputChannelBuffers![0], _inputChannelBuffers![1], sampleCount);
+            }
+
+            // Clear any remaining input channels
+            for (int c = Math.Max(channels, 2); c < inputChannels; c++)
+            {
+                Array.Clear(_inputChannelBuffers![c], 0, sampleCount);
+            }
+
+            ProcessVst2Audio(inputChannels, outputChannels, sampleCount);
 
             // Interleave back
             for (int c = 0; c < channels; c++)
@@ -151,35 +166,46 @@ namespace NoIDSoftwork.EffectProcessor.Effects
 
         private void EnsureBuffers(int channels, int sampleCount)
         {
-            if (_inputChannelBuffers != null && _inputChannelBuffers.Length == channels &&
-                _inputChannelBuffers[0].Length >= sampleCount)
+            int inputChannels = Math.Max(Math.Max(2, channels), _effect.numInputs);
+            int outputChannels = Math.Max(Math.Max(2, channels), _effect.numOutputs);
+
+            if (_inputChannelBuffers != null && _inputChannelBuffers.Length == inputChannels &&
+                _inputChannelBuffers[0].Length >= sampleCount &&
+                _outputChannelBuffers != null && _outputChannelBuffers.Length == outputChannels &&
+                _outputChannelBuffers[0].Length >= sampleCount)
                 return;
 
             FreeBufferPins();
 
-            _inputChannelBuffers = new float[channels][];
-            _outputChannelBuffers = new float[channels][];
-            _inputPinHandles = new GCHandle[channels];
-            _outputPinHandles = new GCHandle[channels];
+            _inputChannelBuffers = new float[inputChannels][];
+            _outputChannelBuffers = new float[outputChannels][];
+            _inputPinHandles = new GCHandle[inputChannels];
+            _outputPinHandles = new GCHandle[outputChannels];
 
-            for (int c = 0; c < channels; c++)
+            for (int c = 0; c < inputChannels; c++)
             {
                 _inputChannelBuffers[c] = new float[sampleCount];
-                _outputChannelBuffers[c] = new float[sampleCount];
                 _inputPinHandles[c] = GCHandle.Alloc(_inputChannelBuffers[c], GCHandleType.Pinned);
+            }
+            for (int c = 0; c < outputChannels; c++)
+            {
+                _outputChannelBuffers[c] = new float[sampleCount];
                 _outputPinHandles[c] = GCHandle.Alloc(_outputChannelBuffers[c], GCHandleType.Pinned);
             }
         }
 
-        private void ProcessVst2Audio(int channels, int sampleCount)
+        private void ProcessVst2Audio(int inputChannels, int outputChannels, int sampleCount)
         {
             if (_effectPtr == IntPtr.Zero || _inputPinHandles == null || _outputPinHandles == null) return;
 
-            IntPtr[] inputPtrs = new IntPtr[channels];
-            IntPtr[] outputPtrs = new IntPtr[channels];
-            for (int c = 0; c < channels; c++)
+            IntPtr[] inputPtrs = new IntPtr[inputChannels];
+            IntPtr[] outputPtrs = new IntPtr[outputChannels];
+            for (int c = 0; c < inputChannels; c++)
             {
                 inputPtrs[c] = _inputPinHandles[c].AddrOfPinnedObject();
+            }
+            for (int c = 0; c < outputChannels; c++)
+            {
                 outputPtrs[c] = _outputPinHandles[c].AddrOfPinnedObject();
             }
 

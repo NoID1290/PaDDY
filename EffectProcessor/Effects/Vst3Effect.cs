@@ -13,7 +13,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
     {
         public string Name { get; }
         public string Description { get; }
-        public bool IsEnabled { get; set; } = true;
+        public bool IsEnabled { get; set; } = false;
 
         private IntPtr _moduleHandle;
         private IPluginFactory? _factory;
@@ -215,6 +215,8 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             // Ensure buffers are allocated
             EnsureBuffers(channels, sampleCount);
 
+            int bufferChannels = Math.Max(2, channels);
+
             // De-interleave input samples
             for (int c = 0; c < channels; c++)
             {
@@ -222,14 +224,24 @@ namespace NoIDSoftwork.EffectProcessor.Effects
                 {
                     _inputChannelBuffers![c][i] = buffer[offset + i * channels + c];
                 }
-                // Copy input to output as starting point
+            }
+
+            // If incoming is mono (channels == 1) but we allocated stereo, copy channel 0 to channel 1
+            if (channels == 1 && bufferChannels >= 2)
+            {
+                Array.Copy(_inputChannelBuffers![0], _inputChannelBuffers![1], sampleCount);
+            }
+
+            // Copy input to output as starting point
+            for (int c = 0; c < bufferChannels; c++)
+            {
                 Array.Copy(_inputChannelBuffers![c], _outputChannelBuffers![c], sampleCount);
             }
 
             // Process through VST3
             try
             {
-                ProcessVst3Audio(channels, sampleCount);
+                ProcessVst3Audio(bufferChannels, sampleCount);
             }
             catch
             {
@@ -278,18 +290,20 @@ namespace NoIDSoftwork.EffectProcessor.Effects
 
         private void EnsureBuffers(int channels, int sampleCount)
         {
-            if (_inputChannelBuffers != null && _inputChannelBuffers.Length == channels &&
+            int bufferChannels = Math.Max(2, channels); // Always allocate at least stereo (2 channels) to prevent crashes in stereo VST3 plugins
+
+            if (_inputChannelBuffers != null && _inputChannelBuffers.Length == bufferChannels &&
                 _inputChannelBuffers[0].Length >= sampleCount)
                 return;
 
             FreeBufferPins();
 
-            _inputChannelBuffers = new float[channels][];
-            _outputChannelBuffers = new float[channels][];
-            _inputPinHandles = new GCHandle[channels];
-            _outputPinHandles = new GCHandle[channels];
+            _inputChannelBuffers = new float[bufferChannels][];
+            _outputChannelBuffers = new float[bufferChannels][];
+            _inputPinHandles = new GCHandle[bufferChannels];
+            _outputPinHandles = new GCHandle[bufferChannels];
 
-            for (int c = 0; c < channels; c++)
+            for (int c = 0; c < bufferChannels; c++)
             {
                 _inputChannelBuffers[c] = new float[sampleCount];
                 _outputChannelBuffers[c] = new float[sampleCount];
