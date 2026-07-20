@@ -746,36 +746,44 @@ namespace PaDDY
         /// </summary>
         private static void PauseResumeStoryboards(System.Windows.DependencyObject root, bool pause)
         {
-            try
+            // Pause/resume Storyboards stored in the element's trigger collection.
+            // Note: GetCurrentState(), Pause(), and Resume() all throw InvalidOperationException
+            // when the storyboard has never been interactively applied to the element (e.g. a
+            // hover animation on an element the user never hovered). A try/catch per-call is the
+            // only safe guard — there is no pre-flight query that avoids the exception.
+            if (root is System.Windows.FrameworkElement fe)
             {
-                // Pause/resume Storyboards stored in the element's trigger collection
-                if (root is System.Windows.FrameworkElement fe)
+                foreach (System.Windows.TriggerBase trigger in fe.Triggers)
                 {
-                    foreach (System.Windows.TriggerBase trigger in fe.Triggers)
+                    if (trigger is System.Windows.EventTrigger et)
                     {
-                        if (trigger is System.Windows.EventTrigger et)
+                        foreach (System.Windows.TriggerAction action in et.Actions)
                         {
-                            foreach (System.Windows.TriggerAction action in et.Actions)
+                            if (action is System.Windows.Media.Animation.BeginStoryboard bsb &&
+                                bsb.Storyboard != null)
                             {
-                                if (action is System.Windows.Media.Animation.BeginStoryboard bsb &&
-                                    bsb.Storyboard != null)
+                                try
                                 {
                                     if (pause) bsb.Storyboard.Pause(fe);
                                     else       bsb.Storyboard.Resume(fe);
                                 }
+                                catch (InvalidOperationException) { /* storyboard not yet started on this element */ }
                             }
                         }
                     }
                 }
             }
-            catch { /* non-critical – ignore elements in unusual states */ }
 
             // Recurse into children
             int childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
             for (int i = 0; i < childCount; i++)
             {
-                var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
-                PauseResumeStoryboards(child, pause);
+                try
+                {
+                    var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+                    PauseResumeStoryboards(child, pause);
+                }
+                catch { /* child may be in a disconnected or unusual state */ }
             }
         }
 
