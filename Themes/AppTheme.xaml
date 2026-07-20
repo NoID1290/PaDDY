@@ -689,7 +689,7 @@
         <Setter Property="Background"      Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Foreground"      Value="{DynamicResource ChromeButtonFgBrush}"/>
-        <Setter Property="FontSize"        Value="11"/>
+        <Setter Property="FontSize"        Value="10"/>
         <Setter Property="Cursor"          Value="Arrow"/>
         <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/> 
         <Setter Property="Template">
@@ -697,15 +697,18 @@
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
-                            BorderThickness="0">
+                            CornerRadius="4"
+                            SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#20FFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#10FFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -714,72 +717,30 @@
     </Style>
 
     <!-- Minimize button -->
-    <Style x:Key="ChromeMinBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}">
-        <Setter Property="Foreground" Value="#FFD0D4E0"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd"
-                            Background="{TemplateBinding Background}"
-                            BorderThickness="5">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#20FFFFFF"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#10FFFFFF"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>                
-            </Setter.Value>
-        </Setter>
-    </Style>
+    <Style x:Key="ChromeMinBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}"/>
 
     <!-- Maximize / Restore button -->
-    <Style x:Key="ChromeMaxBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}">
-        <Setter Property="Foreground" Value="#FFD0D4E0"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd"
-                            Background="{TemplateBinding Background}"
-                            BorderThickness="5">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#20FFFFFF"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#10FFFFFF"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>                
-            </Setter.Value>
-        </Setter>
-    </Style>    
+    <Style x:Key="ChromeMaxBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}"/>    
 
     <!-- Close button — red hover -->
     <Style x:Key="ChromeCloseBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}">
-        <Setter Property="Foreground" Value="#FFD0D4E0"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
-                            BorderThickness="5">
+                            CornerRadius="4"
+                            SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#FFC62828"/>
-                            <Setter Property="Foreground"                 Value="#FFFFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#FFE81123"/>
+                            <Setter Property="Foreground"                 Value="White"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#FF8E1515"/>
-                            <Setter Property="Foreground"                 Value="#FFFFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#FFF1707A"/>
+                            <Setter Property="Foreground"                 Value="White"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

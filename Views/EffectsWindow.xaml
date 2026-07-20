@@ -29,7 +29,7 @@
         <!-- Custom title bar -->
         <Border Grid.Row="0"
                 Background="{DynamicResource TitleBarGradient}"
-                BorderBrush="#16FFFFFF"
+                BorderBrush="{DynamicResource DividerBrush}"
                 BorderThickness="0,0,0,1">
             <Grid>
                 <TextBlock x:Name="TitleText"
@@ -43,7 +43,7 @@
                         ToolTip="Close"
                         IsCancel="True"
                         Click="ChromeClose_Click">
-                    <TextBlock Text="&#x2715;" FontSize="11" FontFamily="Segoe UI"/>
+                    <TextBlock Text="&#xE8BB;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
                 </Button>
             </Grid>
         </Border>

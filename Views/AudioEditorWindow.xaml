@@ -65,7 +65,7 @@
                 <!-- Custom title bar -->
                 <Border Grid.Row="0"
                         Background="{DynamicResource TitleBarGradient}"
-                        BorderBrush="#16FFFFFF"
+                        BorderBrush="{DynamicResource DividerBrush}"
                         BorderThickness="0,0,0,1"
                         CornerRadius="12,12,0,0">
                     <Grid>
@@ -79,10 +79,7 @@
                                 HorizontalAlignment="Right"
                                 ToolTip="Close"
                                 Click="ChromeClose_Click">
-                                <Button.Effect>
-                                    <DropShadowEffect Color="#FFFF5555" BlurRadius="8" ShadowDepth="0"/>
-                                </Button.Effect>
-                            <TextBlock Text="&#x2715;" FontSize="14" FontFamily="Segoe UI"/>
+                            <TextBlock Text="&#xE8BB;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
                         </Button>
                     </Grid>
                 </Border>

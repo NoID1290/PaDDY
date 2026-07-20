@@ -261,13 +261,13 @@ namespace PaDDY
             if (WindowState == WindowState.Maximized)
             {
                 SystemCommands.RestoreWindow(this);
-                ChromeMaxIcon.Text = "\u2610"; // □
+                ChromeMaxIcon.Text = "\uE922"; // Maximize (Segoe MDL2 Assets)
                 ChromeMaxRestoreBtn.ToolTip = "Maximize";
             }
             else
             {
                 SystemCommands.MaximizeWindow(this);
-                ChromeMaxIcon.Text = "\u2750"; // ❐ (restore icon)
+                ChromeMaxIcon.Text = "\uE923"; // Restore (Segoe MDL2 Assets)
                 ChromeMaxRestoreBtn.ToolTip = "Restore";
             }
         }
