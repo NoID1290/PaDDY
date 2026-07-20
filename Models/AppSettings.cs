@@ -83,6 +83,8 @@ namespace PaDDY
         public bool MeterDigitalDots { get; set; } = false;
         // Performance mode: CPU-only rendering, limited animations
         public bool PerformanceMode { get; set; } = false;
+        // Pause all decorative animation rendering when PaDDY is not the active window
+        public bool PauseAnimationsWhenUnfocused { get; set; } = false;
 
         // ---- System tray / startup ----
         public bool RunOnWindowsStartup { get; set; } = false;

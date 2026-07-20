@@ -116,6 +116,7 @@ namespace PaDDY
             }
         }
         private bool _performanceMode;
+        private bool _pauseAnimationsWhenUnfocused;
         private DateTime _lastInputMeterTick;
         private DateTime _lastOutputMeterTick;
         private DateTime _lastMonitorMeterTick;
@@ -236,6 +237,8 @@ namespace PaDDY
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             StateChanged += MainWindow_StateChanged;
+            Activated += OnWindowActivated;
+            Deactivated += OnWindowDeactivated;
             ThresholdCanvas.SizeChanged += (_, _) =>
             {
                 UpdateThresholdMarker();
@@ -689,6 +692,90 @@ namespace PaDDY
                 {
                     Hide();
                 }
+            }
+        }
+
+        // ── Focus-based animation suspension ──────────────────────────────────
+
+        private void OnWindowActivated(object? sender, EventArgs e)
+        {
+            if (_pauseAnimationsWhenUnfocused)
+                SetAnimationsPaused(false);
+        }
+
+        private void OnWindowDeactivated(object? sender, EventArgs e)
+        {
+            if (_pauseAnimationsWhenUnfocused)
+                SetAnimationsPaused(true);
+        }
+
+        /// <summary>
+        /// Pauses or resumes all decorative animation rendering:
+        /// meter decay DispatcherTimers and any running XAML Storyboards.
+        /// Audio capture and recording are unaffected.
+        /// </summary>
+        private void SetAnimationsPaused(bool paused)
+        {
+            // ── Meter decay timers ──────────────────────────────────────────
+            if (paused)
+            {
+                _meterDecayTimer?.Stop();
+                _outputMeterDecayTimer?.Stop();
+                _inputMeterResetTimer?.Stop();
+            }
+            else
+            {
+                // Only restart timers that were actually running (i.e. metering is active)
+                if (_inputMeterUpdatesEnabled)
+                {
+                    if (_meterDecayTimer != null) _meterDecayTimer.Start();
+                    if (_outputMeterDecayTimer != null) _outputMeterDecayTimer.Start();
+                }
+            }
+
+            // ── XAML Storyboards (glow pulses, hover effects, etc.) ─────────
+            // Walk the visual tree to find and pause/resume all ClockGroups
+            // driven by Storyboards attached to UI elements.
+            PauseResumeStoryboards(this, paused);
+        }
+
+        /// <summary>
+        /// Recursively walks the visual tree from <paramref name="root"/> and
+        /// pauses or resumes every active <see cref="System.Windows.Media.Animation.Storyboard"/>
+        /// clock found on each element.
+        /// </summary>
+        private static void PauseResumeStoryboards(System.Windows.DependencyObject root, bool pause)
+        {
+            try
+            {
+                // Pause/resume Storyboards stored in the element's trigger collection
+                if (root is System.Windows.FrameworkElement fe)
+                {
+                    foreach (System.Windows.TriggerBase trigger in fe.Triggers)
+                    {
+                        if (trigger is System.Windows.EventTrigger et)
+                        {
+                            foreach (System.Windows.TriggerAction action in et.Actions)
+                            {
+                                if (action is System.Windows.Media.Animation.BeginStoryboard bsb &&
+                                    bsb.Storyboard != null)
+                                {
+                                    if (pause) bsb.Storyboard.Pause(fe);
+                                    else       bsb.Storyboard.Resume(fe);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { /* non-critical – ignore elements in unusual states */ }
+
+            // Recurse into children
+            int childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+                PauseResumeStoryboards(child, pause);
             }
         }
 
@@ -1166,6 +1253,7 @@ namespace PaDDY
             _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
 
             _performanceMode = _settings.PerformanceMode;
+            _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
 
             // Apply saved global effect config to the live chain and assign to capture service
             EffectSettingsManager.ApplyConfig(_globalCaptureChain, _effectSettings.GlobalChain);
@@ -1821,6 +1909,7 @@ namespace PaDDY
             _settings.Theme = win.SelectedTheme;
             _settings.MeterSkin = win.SelectedMeterSkin;
             _settings.PerformanceMode = win.SelectedPerformanceMode;
+            _settings.PauseAnimationsWhenUnfocused = win.SelectedPauseAnimationsWhenUnfocused;
 
             // System tray / startup
             _settings.MinimizeToTray = win.SelectedMinimizeToTray;
@@ -1861,6 +1950,7 @@ namespace PaDDY
             }
             _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
             _performanceMode = _settings.PerformanceMode;
+            _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
 
             _captureService.RecordCodec = win.SelectedCodec;
             _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;

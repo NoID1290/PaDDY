@@ -601,17 +601,36 @@
                                     <TextBlock Text="PERFORMANCE" Style="{StaticResource HeaderText}"/>
                                 </StackPanel>
                                 <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                                    <Grid Margin="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                            <TextBlock Text="Low-Resource Performance Mode" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                            <TextBlock Text="Enforces CPU-only rendering and limits decorative animations. Helpful on older laptops to reduce resource usage." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <CheckBox x:Name="PerformanceModeCheck" Grid.Column="1" VerticalAlignment="Center"/>
-                                    </Grid>
+                                    <StackPanel Margin="0,6">
+                                        <!-- Low-resource performance mode -->
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Low-Resource Performance Mode" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Enforces CPU-only rendering and limits decorative animations. Helpful on older laptops to reduce resource usage." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="PerformanceModeCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Divider -->
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,10"/>
+
+                                        <!-- Pause animations when unfocused -->
+                                        <Grid Margin="0,0,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Pause Animations When Unfocused" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Stops all decorative animation rendering (meter decay, glow pulses, storyboards) when PaDDY is not the active window, freeing CPU and GPU resources." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="PauseAnimationsWhenUnfocusedCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </StackPanel>
                                 </Border>
                             </StackPanel>
                         </TabItem>
