@@ -417,11 +417,14 @@ namespace PaDDY
 
             ShowLoadingOverlay("Features starting");
             await Task.Delay(50);
-            _overlayEngine.Initialize(BuildOverlayOptions());
-            if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
+            if (_settings.OverlayEnabled)
             {
-                _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
-                _overlayEngine.Show();
+                _overlayEngine.Initialize(BuildOverlayOptions());
+                if (_settings.AppLoopbackProcessId != 0)
+                {
+                    _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
+                    _overlayEngine.Show();
+                }
             }
 
             RefreshOutputFormatInfo();
@@ -1214,6 +1217,11 @@ namespace PaDDY
 
         private void ApplyOverlayOptionsFromSettings()
         {
+            if (_settings.OverlayEnabled && _overlayEngine.State == OverlayEngineState.Created)
+            {
+                _overlayEngine.Initialize(BuildOverlayOptions());
+            }
+
             if (_overlayEngine.State == OverlayEngineState.Created || _overlayEngine.State == OverlayEngineState.Disposed)
             {
                 return;
@@ -1405,16 +1413,27 @@ namespace PaDDY
         {
             if (!_settings.OverlayEnabled)
             {
-                _overlayEngine.Hide();
-                _overlayEngine.Detach();
+                if (_overlayEngine.State != OverlayEngineState.Created && _overlayEngine.State != OverlayEngineState.Disposed)
+                {
+                    _overlayEngine.Hide();
+                    _overlayEngine.Detach();
+                }
                 return;
             }
 
             if (processId == 0)
             {
-                _overlayEngine.Hide();
-                _overlayEngine.Detach();
+                if (_overlayEngine.State != OverlayEngineState.Created && _overlayEngine.State != OverlayEngineState.Disposed)
+                {
+                    _overlayEngine.Hide();
+                    _overlayEngine.Detach();
+                }
                 return;
+            }
+
+            if (_overlayEngine.State == OverlayEngineState.Created)
+            {
+                _overlayEngine.Initialize(BuildOverlayOptions());
             }
 
             if (_overlayEngine.AttachToProcess(processId))
