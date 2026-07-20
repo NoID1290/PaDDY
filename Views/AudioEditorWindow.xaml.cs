@@ -122,42 +122,125 @@ namespace PaDDY
             VstSection.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Show loading overlay
+            AudioEditorLoadingOverlay.Show("Loading audio...");
+
+            // Apply theme colors to the loading overlay
             try
             {
-                using var reader = AudioReaderFactory.Open(_filePath);
-                _totalDuration = reader.TotalTime;
-                _totalDurationSeconds = Math.Max(_totalDuration.TotalSeconds, 0.001);
-                TotalDurationLabel.Text = FormatTime(_totalDuration);
-
-                // Load initial settings
-                if (_initialIsNonDestructive)
+                var activeSettings = AppSettings.Load();
+                var palette = ThemeManager.GetPalette(activeSettings.Theme);
+                if (palette != null)
                 {
-                    _trimStartFraction = Math.Clamp((double)_initialTrimStartMs / 1000.0 / _totalDurationSeconds, 0.0, 1.0);
-                    if (_initialTrimEndMs > 0)
-                        _trimEndFraction = Math.Clamp((double)_initialTrimEndMs / 1000.0 / _totalDurationSeconds, _trimStartFraction, 1.0);
-                    else
-                        _trimEndFraction = 1.0;
-
-                    _gainDb = _initialGainDb;
+                    var accent = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["AccentGreenBrush"]);
+                    var secondary = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["SubtleTextBrush"]);
+                    var text = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["PrimaryTextBrush"]);
+                    var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
+                    AudioEditorLoadingOverlay.ApplyThemeColors(accent, secondary, text);
+                    // Semi-transparent overlay matching theme
+                    AudioEditorLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
                 }
-                else
+            }
+            catch
+            {
+                // Fallback gracefully on any theme loading failure
+            }
+
+            string filePath = _filePath;
+            double totalDurationSeconds = 0;
+            TimeSpan totalDuration = TimeSpan.Zero;
+            (float min, float max)[]? peaks = null;
+
+            int width = (int)WaveformGrid.ActualWidth;
+            int height = (int)WaveformGrid.ActualHeight;
+            if (width < 10 || height < 10) { width = 680; height = 180; }
+
+            bool success = false;
+            string? errorMessage = null;
+
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() =>
                 {
-                    _trimStartFraction = 0.0;
-                    _trimEndFraction = 1.0;
-                    _gainDb = 0.0;
-                }
+                    using var reader = AudioReaderFactory.Open(filePath);
+                    totalDuration = reader.TotalTime;
+                    totalDurationSeconds = Math.Max(totalDuration.TotalSeconds, 0.001);
 
-                RenderWaveform(reader.AsSampleProvider(), reader.WaveFormat);
+                    var sampleProvider = reader.AsSampleProvider();
+                    var waveFormat = reader.WaveFormat;
+                    int channels = waveFormat.Channels;
+                    long totalMonoSamples = (long)(totalDurationSeconds * waveFormat.SampleRate);
+
+                    float[] buffer = new float[waveFormat.SampleRate * channels]; // 1 sec chunks
+                    peaks = new (float min, float max)[width];
+                    for (int i = 0; i < width; i++)
+                        peaks[i] = (0f, 0f);
+
+                    long samplesRead = 0;
+                    int read;
+                    while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        int monoRead = read / channels;
+                        for (int i = 0; i < monoRead; i++)
+                        {
+                            float sample = 0f;
+                            for (int ch = 0; ch < channels; ch++)
+                                sample += buffer[i * channels + ch];
+                            sample /= channels;
+
+                            long monoIndex = samplesRead + i;
+                            int bucket = totalMonoSamples > 0
+                                ? (int)(monoIndex * width / totalMonoSamples)
+                                : 0;
+                            if (bucket >= width) bucket = width - 1;
+
+                            if (sample < peaks[bucket].min) peaks[bucket] = (sample, peaks[bucket].max);
+                            if (sample > peaks[bucket].max) peaks[bucket] = (peaks[bucket].min, sample);
+                        }
+                        samplesRead += monoRead;
+                    }
+                });
+                success = true;
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Could not read audio file:\n{ex.Message}", "PaDDY",
+                errorMessage = ex.Message;
+            }
+
+            if (!success)
+            {
+                System.Windows.MessageBox.Show($"Could not read audio file:\n{errorMessage}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 Close();
                 return;
             }
+
+            _totalDuration = totalDuration;
+            _totalDurationSeconds = totalDurationSeconds;
+            TotalDurationLabel.Text = FormatTime(_totalDuration);
+
+            // Load initial settings
+            if (_initialIsNonDestructive)
+            {
+                _trimStartFraction = Math.Clamp((double)_initialTrimStartMs / 1000.0 / _totalDurationSeconds, 0.0, 1.0);
+                if (_initialTrimEndMs > 0)
+                    _trimEndFraction = Math.Clamp((double)_initialTrimEndMs / 1000.0 / _totalDurationSeconds, _trimStartFraction, 1.0);
+                else
+                    _trimEndFraction = 1.0;
+
+                _gainDb = _initialGainDb;
+            }
+            else
+            {
+                _trimStartFraction = 0.0;
+                _trimEndFraction = 1.0;
+                _gainDb = 0.0;
+            }
+
+            _originalPeaks = peaks;
+            RenderWaveformFromPeaks();
 
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
             UpdateHandlePositions();
@@ -232,6 +315,8 @@ namespace PaDDY
                 VstNameLabel.Text = string.Join(", ", names);
                 ShowVstEditorButton.IsEnabled = true;
             }
+
+            AudioEditorLoadingOverlay.Hide(instantly: true);
         }
 
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)

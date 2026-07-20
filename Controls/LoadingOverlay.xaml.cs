@@ -91,15 +91,18 @@ namespace PaDDY.Controls
             }
         }
 
-        public async void Hide()
+        public async void Hide(bool instantly = false)
         {
             HideProgress();
             LoadingText.Text = ReadyMessages[_random.Next(ReadyMessages.Length)];
             int currentToken = ++_hideToken;
             
-            await Task.Delay(2000);
+            if (!instantly)
+            {
+                await Task.Delay(2000);
+            }
             
-            if (currentToken == _hideToken)
+            if (instantly || currentToken == _hideToken)
             {
                 _animation?.Stop(this);
                 Visibility = Visibility.Collapsed;
