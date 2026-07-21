@@ -752,6 +752,22 @@
                                         </Grid>
                                     </StackPanel>
                                 </Border>
+                            </StackPanel>
+                        </TabItem>
+
+                        <!-- ══ THIRD PARTIIS TAB ════════════════════════════════ -->
+                        <TabItem>
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                                    <TextBlock Text="&#xE71D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Third Party options" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
+                            
+                            <StackPanel>
+                                <!-- Header -->
+                                <TextBlock Text="Third Party Integrations" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Configure third party plugins and external integrations." FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
 
                                 <!-- Hardware Integrations Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
