@@ -176,53 +176,6 @@ namespace PaDDY.Services
                 if (!backupFilePath.EndsWith(".PADBACK", StringComparison.OrdinalIgnoreCase))
                     backupFilePath += ".PADBACK";
 
-                using var zipMemory = new MemoryStream();
-
-                string? tempRecordingBackup = null;
-                try
-                {
-                    using (var archive = new ZipArchive(zipMemory, ZipArchiveMode.Create, true))
-                    {
-                        if (File.Exists(UsrDataPath))
-                        {
-                            tempRecordingBackup = CreateRecordingDatabaseBackupFile();
-                            var recordingEntry = archive.CreateEntry(Path.GetFileName(UsrDataPath));
-                            using (var sourceStream = new FileStream(tempRecordingBackup, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                            using (var entryStream = recordingEntry.Open())
-                            {
-                                sourceStream.CopyTo(entryStream);
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("Skipping missing recording store file during backup.");
-                        }
-
-                        if (File.Exists(UsrDataSettings))
-                        {
-                            var settingsEntry = archive.CreateEntry(Path.GetFileName(UsrDataSettings));
-                            using var sourceStream = new FileStream(UsrDataSettings, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                            using var entryStream = settingsEntry.Open();
-                            sourceStream.CopyTo(entryStream);
-                        }
-
-                        if (File.Exists(UsrDataEffectSettings))
-                        {
-                            var effectEntry = archive.CreateEntry(Path.GetFileName(UsrDataEffectSettings));
-                            using var sourceStream = new FileStream(UsrDataEffectSettings, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                            using var entryStream = effectEntry.Open();
-                            sourceStream.CopyTo(entryStream);
-                        }
-                    }
-                }
-                finally
-                {
-                    if (!string.IsNullOrEmpty(tempRecordingBackup))
-                        TryDeleteFile(tempRecordingBackup);
-                }
-
-                zipMemory.Position = 0;
-
                 using var output = File.Create(backupFilePath);
 
                 // Write proprietary header/signature
@@ -237,11 +190,52 @@ namespace PaDDY.Services
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.PKCS7;
 
-                using var cryptoStream =
-                    new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write);
+                using (var cryptoStream = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                {
+                    string? tempRecordingBackup = null;
+                    try
+                    {
+                        using (var archive = new ZipArchive(cryptoStream, ZipArchiveMode.Create, leaveOpen: true))
+                        {
+                            if (File.Exists(UsrDataPath))
+                            {
+                                tempRecordingBackup = CreateRecordingDatabaseBackupFile();
+                                var recordingEntry = archive.CreateEntry(Path.GetFileName(UsrDataPath));
+                                using (var sourceStream = new FileStream(tempRecordingBackup, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                                using (var entryStream = recordingEntry.Open())
+                                {
+                                    sourceStream.CopyTo(entryStream);
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Skipping missing recording store file during backup.");
+                            }
 
-                zipMemory.CopyTo(cryptoStream);
-                cryptoStream.FlushFinalBlock();
+                            if (File.Exists(UsrDataSettings))
+                            {
+                                var settingsEntry = archive.CreateEntry(Path.GetFileName(UsrDataSettings));
+                                using var sourceStream = new FileStream(UsrDataSettings, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                using var entryStream = settingsEntry.Open();
+                                sourceStream.CopyTo(entryStream);
+                            }
+
+                            if (File.Exists(UsrDataEffectSettings))
+                            {
+                                var effectEntry = archive.CreateEntry(Path.GetFileName(UsrDataEffectSettings));
+                                using var sourceStream = new FileStream(UsrDataEffectSettings, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                using var entryStream = effectEntry.Open();
+                                sourceStream.CopyTo(entryStream);
+                            }
+                        }
+                        cryptoStream.FlushFinalBlock();
+                    }
+                    finally
+                    {
+                        if (!string.IsNullOrEmpty(tempRecordingBackup))
+                            TryDeleteFile(tempRecordingBackup);
+                    }
+                }
 
                 Console.WriteLine($"Backup created successfully: {backupFilePath}");
                 return true;
@@ -259,6 +253,7 @@ namespace PaDDY.Services
         public bool RestoreBackup(string backupFilePath)
         {
             string? tempDirectory = null;
+            string? tempZipPath = null;
 
             try
             {
@@ -284,10 +279,11 @@ namespace PaDDY.Services
                 using var cryptoStream =
                     new CryptoStream(input, aes.CreateDecryptor(), CryptoStreamMode.Read);
 
-                using var zipMemory = new MemoryStream();
-                cryptoStream.CopyTo(zipMemory);
-
-                zipMemory.Position = 0;
+                tempZipPath = Path.Combine(Path.GetTempPath(), $"PaDDY_BackupDecrypt_{Guid.NewGuid():N}.zip");
+                using (var tempZipStream = File.Create(tempZipPath))
+                {
+                    cryptoStream.CopyTo(tempZipStream);
+                }
 
                 tempDirectory = Path.Combine(
                     Path.GetTempPath(),
@@ -295,7 +291,7 @@ namespace PaDDY.Services
 
                 Directory.CreateDirectory(tempDirectory);
 
-                using (var archive = new ZipArchive(zipMemory, ZipArchiveMode.Read))
+                using (var archive = ZipFile.OpenRead(tempZipPath))
                 {
                     archive.ExtractToDirectory(tempDirectory, true);
                 }
@@ -354,6 +350,9 @@ namespace PaDDY.Services
             }
             finally
             {
+                if (!string.IsNullOrWhiteSpace(tempZipPath))
+                    TryDeleteFile(tempZipPath);
+
                 if (!string.IsNullOrWhiteSpace(tempDirectory) &&
                     Directory.Exists(tempDirectory))
                 {

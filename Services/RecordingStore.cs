@@ -342,13 +342,15 @@ namespace PaDDY.Services
         public void DeleteAll(IEnumerable<string> ids)
         {
             using var tx = _db.BeginTransaction();
+            using var cmd = _db.CreateCommand();
+            cmd.Transaction = tx;
+            cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
+            var param = cmd.Parameters.Add("@id", SqliteType.Text);
+
             foreach (var id in ids)
             {
                 CleanupTempFile(id);
-                using var cmd = _db.CreateCommand();
-                cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Transaction = tx;
+                param.Value = id;
                 cmd.ExecuteNonQuery();
             }
             tx.Commit();

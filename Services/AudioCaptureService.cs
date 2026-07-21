@@ -92,9 +92,31 @@ namespace PaDDY.Services
         private double _noiseFloorDb = -60.0;
 
         // Ring pre-buffer
-        private readonly Queue<byte[]> _preBuffer = new();
+        private readonly struct PreBufferChunk
+        {
+            public readonly byte[] Buffer;
+            public readonly int Length;
+
+            public PreBufferChunk(byte[] buffer, int length)
+            {
+                Buffer = buffer;
+                Length = length;
+            }
+        }
+
+        private readonly Queue<PreBufferChunk> _preBuffer = new();
         private int _preBufferBytes;
         private int _preBufferCapacity;
+
+        private void ClearPreBuffer()
+        {
+            while (_preBuffer.Count > 0)
+            {
+                var chunk = _preBuffer.Dequeue();
+                System.Buffers.ArrayPool<byte>.Shared.Return(chunk.Buffer);
+            }
+            _preBufferBytes = 0;
+        }
 
         // KeyBuffer trigger flag (set from any thread, consumed on audio thread)
         private volatile bool _captureBufferNow;
@@ -159,8 +181,7 @@ namespace PaDDY.Services
             _captureIn = capture;
             _captureFormat = capture.WaveFormat;
             _preBufferCapacity = (_captureFormat.AverageBytesPerSecond * PastBufferDurationMs) / 1000;
-            _preBuffer.Clear();
-            _preBufferBytes = 0;
+            ClearPreBuffer();
             _isRecording = false;
             _captureBufferNow = false;
 
@@ -203,15 +224,16 @@ namespace PaDDY.Services
             if (RecordingMode == AudioRecordingMode.KeyBuffer)
             {
                 // Only maintain ring buffer and fire when triggered
-                var chunk = new byte[e.BytesRecorded];
-                Buffer.BlockCopy(e.Buffer, 0, chunk, 0, e.BytesRecorded);
-                _preBuffer.Enqueue(chunk);
-                _preBufferBytes += chunk.Length;
+                var rented = System.Buffers.ArrayPool<byte>.Shared.Rent(e.BytesRecorded);
+                Buffer.BlockCopy(e.Buffer, 0, rented, 0, e.BytesRecorded);
+                _preBuffer.Enqueue(new PreBufferChunk(rented, e.BytesRecorded));
+                _preBufferBytes += e.BytesRecorded;
 
                 while (_preBufferBytes > _preBufferCapacity && _preBuffer.Count > 0)
                 {
                     var removed = _preBuffer.Dequeue();
                     _preBufferBytes -= removed.Length;
+                    System.Buffers.ArrayPool<byte>.Shared.Return(removed.Buffer);
                 }
 
                 if (_captureBufferNow)
@@ -278,15 +300,16 @@ namespace PaDDY.Services
                 }
                 else
                 {
-                    var chunk = new byte[e.BytesRecorded];
-                    Buffer.BlockCopy(e.Buffer, 0, chunk, 0, e.BytesRecorded);
-                    _preBuffer.Enqueue(chunk);
-                    _preBufferBytes += chunk.Length;
+                    var rented = System.Buffers.ArrayPool<byte>.Shared.Rent(e.BytesRecorded);
+                    Buffer.BlockCopy(e.Buffer, 0, rented, 0, e.BytesRecorded);
+                    _preBuffer.Enqueue(new PreBufferChunk(rented, e.BytesRecorded));
+                    _preBufferBytes += e.BytesRecorded;
 
                     while (_preBufferBytes > _preBufferCapacity && _preBuffer.Count > 0)
                     {
                         var removed = _preBuffer.Dequeue();
                         _preBufferBytes -= removed.Length;
+                        System.Buffers.ArrayPool<byte>.Shared.Return(removed.Buffer);
                     }
                 }
             }
@@ -334,14 +357,21 @@ namespace PaDDY.Services
                 // Reset effect state at the start of each clip so fade/envelope begins fresh
                 CaptureEffectChain?.Reset();
 
-                foreach (var chunk in _preBuffer)
+                bool appendSuccess = true;
+                while (_preBuffer.Count > 0)
                 {
-                    if (!TryAppendSamples(chunk, chunk.Length))
-                        return false;
+                    var chunk = _preBuffer.Dequeue();
+                    if (appendSuccess)
+                    {
+                        if (!TryAppendSamples(chunk.Buffer, chunk.Length))
+                            appendSuccess = false;
+                    }
+                    System.Buffers.ArrayPool<byte>.Shared.Return(chunk.Buffer);
                 }
 
-                _preBuffer.Clear();
                 _preBufferBytes = 0;
+                if (!appendSuccess) return false;
+
                 RecordingStateChanged?.Invoke(true);
                 return true;
             }
@@ -659,9 +689,40 @@ namespace PaDDY.Services
                     rmsR = rmsL;
                 }
             }
+            else if (bytesPerSample == 2)
+            {
+                // PCM 16-bit optimized span branch: zero-copy cast, no per-sample method calls
+                ReadOnlySpan<short> samples16 = MemoryMarshal.Cast<byte, short>(buffer.AsSpan(0, count));
+                if (channels >= 2)
+                {
+                    double sumL = 0, sumR = 0;
+                    int samplesL = 0, samplesR = 0;
+                    for (int si = 0; si < samples16.Length; si++)
+                    {
+                        double normalized = samples16[si] / 32768.0;
+                        double sq = normalized * normalized;
+                        int channelIndex = si % channels;
+                        if (channelIndex == 0) { sumL += sq; samplesL++; }
+                        else if (channelIndex == 1) { sumR += sq; samplesR++; }
+                    }
+                    rmsL = samplesL > 0 ? Math.Sqrt(sumL / samplesL) : 0;
+                    rmsR = samplesR > 0 ? Math.Sqrt(sumR / samplesR) : 0;
+                }
+                else
+                {
+                    double sum = 0;
+                    for (int si = 0; si < samples16.Length; si++)
+                    {
+                        double normalized = samples16[si] / 32768.0;
+                        sum += normalized * normalized;
+                    }
+                    rmsL = samples16.Length > 0 ? Math.Sqrt(sum / samples16.Length) : 0;
+                    rmsR = rmsL;
+                }
+            }
             else
             {
-                // PCM 16/24/32-bit integer
+                // PCM 24/32-bit integer fallback
                 if (channels >= 2)
                 {
                     double sumL = 0, sumR = 0;
@@ -749,6 +810,7 @@ namespace PaDDY.Services
             if (_disposed) return;
             _disposed = true;
             Stop();
+            ClearPreBuffer();
             _recorder.Dispose();
         }
     }
