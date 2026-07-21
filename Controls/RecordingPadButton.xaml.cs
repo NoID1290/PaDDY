@@ -101,9 +101,20 @@ namespace PaDDY.Controls
         public event Action<RecordingEntry>? RecordingEdited;
         /// <summary>Fired when "Save as Copy" produces a new file; args are (newFilePath, addToFavorite).</summary>
         public event Action<string, bool>? RecordingCopied;
+        /// <summary>Fired when the user changes the pad color; args are (entry, newHexColor).</summary>
+        public event Action<RecordingEntry, string>? PadColorChanged;
         public RecordingPadButton()
         {
             InitializeComponent();
+
+            // Re-apply custom colors if the global theme is modified/re-evaluated.
+            ThemeManager.ThemeChanged += () =>
+            {
+                if (Entry != null)
+                {
+                    ApplyPadColor(Entry.PadColor);
+                }
+            };
 
             // Play entrance animation when loaded — skip during bulk loads (startup / page switch)
             Loaded += (_, _) =>
@@ -202,6 +213,8 @@ namespace PaDDY.Controls
             ToolTip = entry.FileName;
             if (NdIndicator != null)
                 NdIndicator.Visibility = entry.IsNonDestructive ? Visibility.Visible : Visibility.Collapsed;
+
+            ApplyPadColor(entry.PadColor);
         }
 
         // â”€â”€ Overlay button handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -223,6 +236,28 @@ namespace PaDDY.Controls
         {
             e.Handled = true;
             OpenRename();
+        }
+
+        private void ColorBtn_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            OpenColorPicker();
+        }
+
+        public void OpenColorPicker()
+        {
+            if (Entry == null) return;
+            var dialog = new Views.PadColorPickerDialog(Entry.PadColor, Entry.FileName)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                string newColor = dialog.SelectedHexColor;
+                Entry.PadColor = newColor;
+                ApplyPadColor(newColor);
+                PadColorChanged?.Invoke(Entry, newColor);
+            }
         }
 
         private void TrimBtn_Click(object sender, RoutedEventArgs e)
@@ -510,7 +545,98 @@ namespace PaDDY.Controls
                 if (_isFavorite)
                     TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
                 else
-                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                {
+                    if (Entry != null && !string.IsNullOrWhiteSpace(Entry.PadColor))
+                    {
+                        try
+                        {
+                            var c = (Color)System.Windows.Media.ColorConverter.ConvertFromString(Entry.PadColor);
+                            TileBorder.BorderBrush = new SolidColorBrush(c);
+                        }
+                        catch
+                        {
+                            TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                        }
+                    }
+                    else
+                    {
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                    }
+                }
+            }
+        }
+
+        public void ApplyPadColor(string? hexColor)
+        {
+            if (string.IsNullOrWhiteSpace(hexColor))
+            {
+                TileBorder.SetResourceReference(System.Windows.Controls.Border.BackgroundProperty, "CardBgBrush");
+                if (!_isPlaying)
+                {
+                    if (_isFavorite)
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                    else
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                }
+
+                // Restore default theme-based text and icon brushes
+                NameLabel.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryTextBrush");
+                DurationLabel.SetResourceReference(TextBlock.ForegroundProperty, "SecondaryTextBrush");
+                IconText.SetResourceReference(TextBlock.ForegroundProperty, "ControlTextBrush");
+
+                FavBtn.SetResourceReference(WpfButton.ForegroundProperty, _isFavorite ? "AccentAmberBrush" : "SubtleTextBrush");
+                ColorBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                DelBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                ExportBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                RenameBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                TrimBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+            }
+            else
+            {
+                try
+                {
+                    var baseColor = (Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor);
+
+                    // Darken background slightly for rich tone & high text readability
+                    var bg = Color.FromArgb(0xEE, (byte)(baseColor.R * 0.45), (byte)(baseColor.G * 0.45), (byte)(baseColor.B * 0.45));
+                    TileBorder.Background = new SolidColorBrush(bg);
+
+                    if (!_isPlaying)
+                    {
+                        if (_isFavorite)
+                            TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                        else
+                            TileBorder.BorderBrush = new SolidColorBrush(baseColor);
+                    }
+
+                    // Calculate perceived brightness of the resulting background color (YIQ formula)
+                    double brightness = (bg.R * 299 + bg.G * 587 + bg.B * 114) / 1000.0;
+
+                    // If background is dark, force light text colors for perfect readability
+                    System.Windows.Media.Brush textBrush = brightness < 128 ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Black;
+                    System.Windows.Media.Brush subtleBrush = brightness < 128 
+                        ? new SolidColorBrush(Color.FromRgb(0xBB, 0xCC, 0xEE)) 
+                        : new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x55));
+
+                    NameLabel.Foreground = textBrush;
+                    DurationLabel.Foreground = subtleBrush;
+                    IconText.Foreground = textBrush;
+
+                    if (!_isFavorite)
+                        FavBtn.Foreground = subtleBrush;
+                    else
+                        FavBtn.SetResourceReference(WpfButton.ForegroundProperty, "AccentAmberBrush");
+
+                    ColorBtn.Foreground = subtleBrush;
+                    DelBtn.Foreground = subtleBrush;
+                    ExportBtn.Foreground = subtleBrush;
+                    RenameBtn.Foreground = subtleBrush;
+                    TrimBtn.Foreground = subtleBrush;
+                }
+                catch
+                {
+                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BackgroundProperty, "CardBgBrush");
+                }
             }
         }
 

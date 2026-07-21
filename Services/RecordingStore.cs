@@ -18,6 +18,7 @@ namespace PaDDY.Services
         public long TrimStartMs { get; set; }
         public long TrimEndMs { get; set; }
         public double GainDb { get; set; }
+        public string PadColor { get; set; } = string.Empty;
 
         /// <summary>Id of the pad page this recording is pinned to (empty = unassigned).</summary>
         public string PadPage { get; set; } = string.Empty;
@@ -117,6 +118,7 @@ namespace PaDDY.Services
             EnsurePadPageColumn();
             EnsureSortOrderColumn();
             EnsureNonDestructiveColumns();
+            EnsurePadColorColumn();
         }
 
         /// <summary>Adds the pad_page column to older databases that predate pad pages.</summary>
@@ -208,6 +210,30 @@ namespace PaDDY.Services
             }
         }
 
+        private void EnsurePadColorColumn()
+        {
+            bool exists = false;
+            using (var info = _db.CreateCommand())
+            {
+                info.CommandText = "PRAGMA table_info(recordings)";
+                using var reader = info.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (string.Equals(reader.GetString(1), "pad_color", StringComparison.OrdinalIgnoreCase))
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (exists) return;
+
+            using var alter = _db.CreateCommand();
+            alter.CommandText = "ALTER TABLE recordings ADD COLUMN pad_color TEXT NOT NULL DEFAULT ''";
+            alter.ExecuteNonQuery();
+        }
+
         // ── Write operations ───────────────────────────────────────────────────
 
         public string Add(string displayName, string codec, TimeSpan duration, DateTime createdAt, byte[] audioData, bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
@@ -272,6 +298,15 @@ namespace PaDDY.Services
             using var cmd = _db.CreateCommand();
             cmd.CommandText = "UPDATE recordings SET is_favorite=@fav WHERE id=@id";
             cmd.Parameters.AddWithValue("@fav", isFavorite ? 1L : 0L);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void SetPadColor(string id, string hexColor)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET pad_color=@pc WHERE id=@id";
+            cmd.Parameters.AddWithValue("@pc", hexColor ?? string.Empty);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
@@ -363,7 +398,7 @@ namespace PaDDY.Services
             var list = new List<RecordingRecord>();
             using var cmd = _db.CreateCommand();
             cmd.CommandText = """
-                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db
+                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db, pad_color
                 FROM recordings
                 ORDER BY created_at DESC
                 """;
@@ -383,7 +418,8 @@ namespace PaDDY.Services
                     IsNonDestructive = reader.IsDBNull(8) ? false : (reader.GetInt64(8) != 0),
                     TrimStartMs = reader.IsDBNull(9) ? 0 : reader.GetInt64(9),
                     TrimEndMs = reader.IsDBNull(10) ? 0 : reader.GetInt64(10),
-                    GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11)
+                    GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11),
+                    PadColor = reader.IsDBNull(12) ? string.Empty : reader.GetString(12)
                 });
             }
             return list;

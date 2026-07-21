@@ -29,6 +29,9 @@ namespace PaDDY.Helpers
         public static bool MeterDigitalDots { get; private set; } = false;
         private static double _lastWidth = 0;
 
+        /// <summary>Fired when the application theme is changed/reapplied.</summary>
+        public static event Action? ThemeChanged;
+
         /// <summary>Display name list for the overall theme selector (key, label).</summary>
         public static readonly IReadOnlyList<(string Key, string Label)> Themes =
         [
@@ -460,6 +463,8 @@ namespace PaDDY.Helpers
                 SetGradientStops(res, "SecondaryWindowBackgroundBrush", card, mid, win);
                 SetGradientStops(res, "SecondaryFooterBackgroundBrush", card, win);
             }
+
+            ThemeChanged?.Invoke();
         }
 
         /// <summary>Queries the Windows registry to check if the OS theme is set to Dark.</summary>

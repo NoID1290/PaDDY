@@ -30,6 +30,9 @@ namespace PaDDY.Models
         public double GainDb { get; set; } = 0.0;
         public string? PadPage { get; set; }
 
+        /// <summary>Custom background color hex string for the pad (e.g., "#FF00D2FF"). Empty/null = default theme color.</summary>
+        public string PadColor { get; set; } = string.Empty;
+
         /// <summary>Manual sort position within its panel/page (lower = earlier).</summary>
         public long SortOrder { get; set; } = 0;
 

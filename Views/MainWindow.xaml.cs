@@ -2576,6 +2576,12 @@ namespace PaDDY
                 Forget(RefreshStorageInfoAsync());
             };
 
+            btn.PadColorChanged += (entry, newHexColor) =>
+            {
+                if (string.IsNullOrEmpty(entry.RecordingId)) return;
+                _recordingStore.SetPadColor(entry.RecordingId, newHexColor);
+            };
+
             btn.FavoriteToggled += (s, _) =>
             {
                 if (s is not RecordingPadButton b || b.Entry == null) return;
@@ -2955,7 +2961,8 @@ namespace PaDDY
                         IsNonDestructive = rec.IsNonDestructive,
                         TrimStartMs = rec.TrimStartMs,
                         TrimEndMs = rec.TrimEndMs,
-                        GainDb = rec.GainDb
+                        GainDb = rec.GainDb,
+                        PadColor = rec.PadColor
                     };
                     var btn = CreatePadButton(entry);
                     _padCache[rec.Id] = btn;

@@ -238,6 +238,17 @@
                         ToolTip="Toggle favourite"
                         Click="FavBtn_Click"/>
 
+                <!-- 🎨 Color — top-left (right of Favorite) -->
+                <Button x:Name="ColorBtn"
+                        Style="{StaticResource OverlayBtn}"
+                        Content="🎨"
+                        Foreground="{DynamicResource SubtleTextBrush}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="24,4,0,0"
+                        ToolTip="Change Color"
+                        Click="ColorBtn_Click"/>
+
                 <!-- ✕ Delete — top-right -->
                 <Button x:Name="DelBtn"
                         Content="✕"
@@ -261,6 +272,17 @@
                     </Button.Style>
                 </Button>
 
+                <!-- 💾 Export — top-right (left of Delete) -->
+                <Button x:Name="ExportBtn"
+                        Style="{StaticResource OverlayBtn}"
+                        Content="💾"
+                        Foreground="{DynamicResource SubtleTextBrush}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,4,24,0"
+                        ToolTip="Export…"
+                        Click="ExportBtn_Click"/>
+
                 <!-- ✏ Rename — bottom-right -->
                 <Button x:Name="RenameBtn"
                         Style="{StaticResource OverlayBtn}"
@@ -282,17 +304,6 @@
                         Margin="4,0,0,4"
                         ToolTip="Trim / Edit"
                         Click="TrimBtn_Click"/>
-
-                <!-- 💾 Export — bottom-center -->
-                <Button x:Name="ExportBtn"
-                        Style="{StaticResource OverlayBtn}"
-                        Content="💾"
-                        Foreground="{DynamicResource SubtleTextBrush}"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Margin="0,4,20,0"
-                        ToolTip="Export…"
-                        Click="ExportBtn_Click"/>
             </Grid>
         </Grid>
     </Border>
