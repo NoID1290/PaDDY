@@ -649,7 +649,41 @@ namespace PaDDY
             }
         }
 
-        private void ExportData_Click(object sender, RoutedEventArgs e)
+        public void ShowLoadingOverlay(string message = "Processing...")
+        {
+            UpdateLoadingOverlayTheme();
+            SettingsLoadingOverlay.Show(message);
+        }
+
+        public void HideLoadingOverlay(bool instantly = false)
+        {
+            SettingsLoadingOverlay.Hide(instantly);
+        }
+
+        private void UpdateLoadingOverlayTheme()
+        {
+            try
+            {
+                var themeKey = _settings?.Theme ?? "dark";
+                var palette = ThemeManager.GetPalette(themeKey);
+                if (palette != null)
+                {
+                    var accent = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["AccentGreenBrush"]);
+                    var secondary = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["SubtleTextBrush"]);
+                    var text = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["PrimaryTextBrush"]);
+                    var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
+
+                    SettingsLoadingOverlay.ApplyThemeColors(accent, secondary, text);
+                    SettingsLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
+                }
+            }
+            catch
+            {
+                // Fallback gracefully on any conversion/loading error
+            }
+        }
+
+        private async void ExportData_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new Microsoft.Win32.SaveFileDialog
             {
@@ -659,8 +693,34 @@ namespace PaDDY
 
             if (dlg.ShowDialog() == true)
             {
-                var backupService = new BackupService();
-                if (backupService.CreateBackup(dlg.FileName))
+                var mainWindow = Owner as MainWindow;
+                ShowLoadingOverlay("Creating backup...");
+                if (mainWindow != null)
+                {
+                    mainWindow.ShowLoadingOverlay("Creating backup...");
+                }
+                await Task.Delay(50); // Let the overlay render
+
+                bool success = false;
+                var backupPath = dlg.FileName;
+                try
+                {
+                    success = await Task.Run(() =>
+                    {
+                        var backupService = new BackupService();
+                        return backupService.CreateBackup(backupPath);
+                    });
+                }
+                finally
+                {
+                    HideLoadingOverlay();
+                    if (mainWindow != null)
+                    {
+                        mainWindow.HideLoadingOverlay();
+                    }
+                }
+
+                if (success)
                 {
                     System.Windows.MessageBox.Show(this, "Backup created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -680,13 +740,13 @@ namespace PaDDY
 
             if (dlg.ShowDialog() == true)
             {
-                var backupService = new BackupService();
                 var mainWindow = Owner as MainWindow;
+                ShowLoadingOverlay("Restoring backup...");
                 if (mainWindow != null)
                 {
                     mainWindow.ShowLoadingOverlay("Restoring backup...");
-                    await Task.Delay(50); // Let the overlay render
                 }
+                await Task.Delay(50); // Let the overlay render
 
                 try
                 {
@@ -695,7 +755,14 @@ namespace PaDDY
                         mainWindow.PrepareRecordingDataRestore();
                     }
 
-                    if (backupService.RestoreBackup(dlg.FileName))
+                    var backupPath = dlg.FileName;
+                    bool restoreSuccess = await Task.Run(() =>
+                    {
+                        var backupService = new BackupService();
+                        return backupService.RestoreBackup(backupPath);
+                    });
+
+                    if (restoreSuccess)
                     {
                         if (mainWindow != null)
                         {
@@ -714,6 +781,7 @@ namespace PaDDY
                 }
                 finally
                 {
+                    HideLoadingOverlay();
                     if (mainWindow != null)
                     {
                         mainWindow.HideLoadingOverlay();
