@@ -66,6 +66,7 @@ namespace PaDDY
 
         // Stored waveform peaks for gain-responsive re-render
         private (float min, float max)[]? _originalPeaks;
+        private List<(float min, float max)>? _rawBlockPeaks;
 
         // Vertical meter state
         private MeteringSampleProvider? _meterProvider;
@@ -151,7 +152,6 @@ namespace PaDDY
             string filePath = _filePath;
             double totalDurationSeconds = 0;
             TimeSpan totalDuration = TimeSpan.Zero;
-            (float min, float max)[]? peaks = null;
 
             int width = (int)WaveformGrid.ActualWidth;
             int height = (int)WaveformGrid.ActualHeight;
@@ -213,24 +213,7 @@ namespace PaDDY
                     if (blockCount > 0)
                         dynamicPeaks.Add((blockMin, blockMax));
 
-                    // Pass 2: Merge dynamicPeaks into exactly 'width' pixel buckets.
-                    // totalMonoSamples is now the ground truth from what was actually decoded.
-                    peaks = new (float min, float max)[width];
-                    for (int i = 0; i < width; i++) peaks[i] = (0f, 0f);
-
-                    int dynCount = dynamicPeaks.Count;
-                    if (dynCount > 0)
-                    {
-                        for (int bi = 0; bi < dynCount; bi++)
-                        {
-                            int bucket = (int)((long)bi * width / dynCount);
-                            if (bucket >= width) bucket = width - 1;
-                            var (dMin, dMax) = dynamicPeaks[bi];
-                            if (dMin < peaks[bucket].min) peaks[bucket] = (dMin, peaks[bucket].max);
-                            if (dMax > peaks[bucket].max) peaks[bucket] = (peaks[bucket].min, dMax);
-                        }
-                    }
-
+                    _rawBlockPeaks = dynamicPeaks;
                 });
                 success = true;
             }
@@ -269,10 +252,9 @@ namespace PaDDY
                 _gainDb = 0.0;
             }
 
-            _originalPeaks = peaks;
-            RenderWaveformFromPeaks();
-
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
+            UpdatePeaksForWidth((int)_waveformWidth);
+            RenderWaveformFromPeaks();
             UpdateHandlePositions();
             UpdateTimeLabels();
             EnsureVertMeterChannels(2);
@@ -352,6 +334,8 @@ namespace PaDDY
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
+            UpdatePeaksForWidth((int)_waveformWidth);
+            RenderWaveformFromPeaks();
             UpdateHandlePositions();
 
             if (_isPreviewing && _reader != null)
@@ -364,6 +348,61 @@ namespace PaDDY
                     StartPlaybackAnimation(currentSec, _playbackEndSec, TimeSpan.FromSeconds(remaining));
                 else
                     UpdatePlaybackLinePosition(currentSec);
+            }
+        }
+
+        private void UpdatePeaksForWidth(int width)
+        {
+            if (_rawBlockPeaks == null || width <= 0) return;
+            var peaks = new (float min, float max)[width];
+            for (int i = 0; i < width; i++) peaks[i] = (0f, 0f);
+
+            int dynCount = _rawBlockPeaks.Count;
+            if (dynCount > 0)
+            {
+                for (int bi = 0; bi < dynCount; bi++)
+                {
+                    int bucket = (int)((long)bi * width / dynCount);
+                    if (bucket >= width) bucket = width - 1;
+                    var (dMin, dMax) = _rawBlockPeaks[bi];
+                    if (dMin < peaks[bucket].min) peaks[bucket] = (dMin, peaks[bucket].max);
+                    if (dMax > peaks[bucket].max) peaks[bucket] = (peaks[bucket].min, dMax);
+                }
+            }
+            _originalPeaks = peaks;
+        }
+
+        private void ZoomSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (ZoomLabel != null)
+            {
+                ZoomLabel.Text = $"{e.NewValue:0.0}x";
+            }
+            UpdateWaveformZoom();
+        }
+
+        private void WaveformScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateWaveformZoom();
+        }
+
+        private void UpdateWaveformZoom()
+        {
+            if (WaveformScrollViewer == null || WaveformGrid == null || ZoomSlider == null) return;
+            double zoom = ZoomSlider.Value;
+            if (zoom <= 1.0)
+            {
+                WaveformGrid.Width = double.NaN; // Auto-size to viewport
+                WaveformScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            }
+            else
+            {
+                double viewportWidth = WaveformScrollViewer.ActualWidth;
+                if (viewportWidth > 0)
+                {
+                    WaveformGrid.Width = viewportWidth * zoom;
+                    WaveformScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                }
             }
         }
 

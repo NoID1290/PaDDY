@@ -138,81 +138,86 @@
                 <Border.Effect>
                     <StaticResource ResourceKey="PanelShadow"/>
                 </Border.Effect>
-                <Grid x:Name="WaveformGrid">
-                    <!-- Background Grid Lines -->
-                    <Grid x:Name="GridLines" IsHitTestVisible="False" Opacity="0.08">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
-                            <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="1" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="2" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="3" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="4" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="5" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="6" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="7" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                        <Border Grid.Column="8" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
-                    </Grid>
-                    <Grid x:Name="HorizontalGridLines" IsHitTestVisible="False" Opacity="0.06">
-                        <Grid.RowDefinitions>
-                            <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <Border Grid.Row="0" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
-                        <Border Grid.Row="1" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
-                        <Border Grid.Row="2" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
-                    </Grid>
-
-                    <Image x:Name="WaveformImage"
-                           Stretch="Fill"
-                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-
-                    <!-- Dark semi-transparent overlays for the unselected regions, referencing the window background -->
-                    <Border x:Name="LeftOverlay"
-                            Background="{DynamicResource WindowBgBrush}"
-                            Opacity="0.55"
-                            HorizontalAlignment="Left"
-                            Width="0"/>
-                    <Border x:Name="RightOverlay"
-                            Background="{DynamicResource WindowBgBrush}"
-                            Opacity="0.55"
-                            HorizontalAlignment="Right"
-                            Width="0"/>
-
-                    <!-- Playback position indicator (DAW style playhead) -->
-                    <Border x:Name="PlaybackLine"
-                            Width="16"
-                            HorizontalAlignment="Left"
-                            Visibility="Collapsed"
-                            IsHitTestVisible="False">
-                        <Border.RenderTransform>
-                            <TranslateTransform x:Name="PlaybackLineTransform" X="0"/>
-                        </Border.RenderTransform>
-                        <Grid>
-                            <Border Width="1.5" Background="{DynamicResource AccentAmberBrush}" HorizontalAlignment="Center"/>
-                            <Path Data="M3,0 L13,0 L8,8 Z" Fill="{DynamicResource AccentAmberBrush}" Width="16" Height="8" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+                <ScrollViewer x:Name="WaveformScrollViewer"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Disabled"
+                              SizeChanged="WaveformScrollViewer_SizeChanged">
+                    <Grid x:Name="WaveformGrid">
+                        <!-- Background Grid Lines -->
+                        <Grid x:Name="GridLines" IsHitTestVisible="False" Opacity="0.08">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+                                <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="1" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="2" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="3" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="4" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="5" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="6" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="7" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                            <Border Grid.Column="8" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
                         </Grid>
-                    </Border>
+                        <Grid x:Name="HorizontalGridLines" IsHitTestVisible="False" Opacity="0.06">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
+                            <Border Grid.Row="1" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
+                            <Border Grid.Row="2" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
+                        </Grid>
 
-                    <!-- Left trim handle -->
-                    <Thumb x:Name="LeftHandle"
-                           Width="16"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Stretch"
-                           Cursor="SizeWE"
-                           DragDelta="LeftHandle_DragDelta"
-                           Template="{StaticResource DawHandleTemplate}"/>
+                        <Image x:Name="WaveformImage"
+                               Stretch="Fill"
+                               RenderOptions.BitmapScalingMode="NearestNeighbor"/>
 
-                    <!-- Right trim handle -->
-                    <Thumb x:Name="RightHandle"
-                           Width="16"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Stretch"
-                           Cursor="SizeWE"
-                           DragDelta="RightHandle_DragDelta"
-                           Template="{StaticResource DawHandleTemplate}"/>
-                </Grid>
+                        <!-- Dark semi-transparent overlays for the unselected regions, referencing the window background -->
+                        <Border x:Name="LeftOverlay"
+                                Background="{DynamicResource WindowBgBrush}"
+                                Opacity="0.55"
+                                HorizontalAlignment="Left"
+                                Width="0"/>
+                        <Border x:Name="RightOverlay"
+                                Background="{DynamicResource WindowBgBrush}"
+                                Opacity="0.55"
+                                HorizontalAlignment="Right"
+                                Width="0"/>
+
+                        <!-- Playback position indicator (DAW style playhead) -->
+                        <Border x:Name="PlaybackLine"
+                                Width="16"
+                                HorizontalAlignment="Left"
+                                Visibility="Collapsed"
+                                IsHitTestVisible="False">
+                            <Border.RenderTransform>
+                                <TranslateTransform x:Name="PlaybackLineTransform" X="0"/>
+                            </Border.RenderTransform>
+                            <Grid>
+                                <Border Width="1.5" Background="{DynamicResource AccentAmberBrush}" HorizontalAlignment="Center"/>
+                                <Path Data="M3,0 L13,0 L8,8 Z" Fill="{DynamicResource AccentAmberBrush}" Width="16" Height="8" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Left trim handle -->
+                        <Thumb x:Name="LeftHandle"
+                               Width="16"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Stretch"
+                               Cursor="SizeWE"
+                               DragDelta="LeftHandle_DragDelta"
+                               Template="{StaticResource DawHandleTemplate}"/>
+
+                        <!-- Right trim handle -->
+                        <Thumb x:Name="RightHandle"
+                               Width="16"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Stretch"
+                               Cursor="SizeWE"
+                               DragDelta="RightHandle_DragDelta"
+                               Template="{StaticResource DawHandleTemplate}"/>
+                    </Grid>
+                </ScrollViewer>
             </Border>
 
             <!-- Vertical level meter -->
@@ -240,23 +245,23 @@
                 Margin="0,8,0,0">
             <Grid>
                 <TextBlock x:Name="StartTimeLabel"
-                           Text="0.00s"
-                           Foreground="{DynamicResource AccentGreenBrush}"
-                           FontSize="11.5"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Left"/>
+                            Text="0.00s"
+                            Foreground="{DynamicResource AccentGreenBrush}"
+                            FontSize="11.5"
+                            FontWeight="SemiBold"
+                            HorizontalAlignment="Left"/>
                 <TextBlock x:Name="TrimmedDurationLabel"
-                           Text="Trimmed: 0.0s"
-                           Foreground="{DynamicResource PrimaryTextBrush}"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center"/>
+                            Text="Trimmed: 0.0s"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            HorizontalAlignment="Center"/>
                 <TextBlock x:Name="EndTimeLabel"
-                           Text="0.00s"
-                           Foreground="{DynamicResource AccentGreenBrush}"
-                           FontSize="11.5"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Right"/>
+                            Text="0.00s"
+                            Foreground="{DynamicResource AccentGreenBrush}"
+                            FontSize="11.5"
+                            FontWeight="SemiBold"
+                            HorizontalAlignment="Right"/>
             </Grid>
         </Border>
 
@@ -272,6 +277,18 @@
                             FontSize="12.5"
                             FontWeight="SemiBold"
                             Click="PlayBtn_Click"/>
+                </StackPanel>
+
+                <!-- Zoom Control -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Zoom:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Slider x:Name="ZoomSlider"
+                            Minimum="1" Maximum="10" Value="1"
+                            Width="120"
+                            TickFrequency="0.5" IsSnapToTickEnabled="True"
+                            VerticalAlignment="Center"
+                            ValueChanged="ZoomSlider_ValueChanged"/>
+                    <TextBlock x:Name="ZoomLabel" Text="1.0x" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0" Width="32"/>
                 </StackPanel>
             </Grid>
         </Border>
