@@ -265,7 +265,6 @@
             </Grid>
         </Border>
 
-        <!-- Row 3 — Centered Playback Preview Controls -->
         <Border Grid.Row="3" Margin="0,10,0,0">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -277,6 +276,14 @@
                             FontSize="12.5"
                             FontWeight="SemiBold"
                             Click="PlayBtn_Click"/>
+                    <TextBlock x:Name="PlaybackTimecodeLabel"
+                               Text="00:00.000 / 00:00.000"
+                               Foreground="{DynamicResource SubtleTextBrush}"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Margin="16,0,0,0"
+                               FontFamily="Consolas, Courier New, monospace"/>
                 </StackPanel>
 
                 <!-- Zoom Control -->

@@ -34,6 +34,7 @@ namespace PaDDY
 
         private IWavePlayer? _player;
         private IUnifiedAudioReader? _reader;
+        private System.Windows.Threading.DispatcherTimer? _timecodeTimer;
         private bool _isPreviewing;
         private bool _isStoppingPreview;
 
@@ -257,6 +258,7 @@ namespace PaDDY
             RenderWaveformFromPeaks();
             UpdateHandlePositions();
             UpdateTimeLabels();
+            UpdatePlaybackTimecode(0.0);
             EnsureVertMeterChannels(2);
             ResetVertMeter();
 
@@ -603,6 +605,56 @@ namespace PaDDY
             TrimmedDurationLabel.Text = $"Trimmed: {FormatTime(TimeSpan.FromSeconds(trimmed))}";
 
             SaveBtn.IsEnabled = trimmed >= MinTrimSeconds;
+        }
+
+        private void UpdatePlaybackTimecode(double currentSec)
+        {
+            if (PlaybackTimecodeLabel != null)
+            {
+                PlaybackTimecodeLabel.Text = $"{FormatDetailedTimecode(TimeSpan.FromSeconds(currentSec))} / {FormatDetailedTimecode(_totalDuration)}";
+            }
+        }
+
+        private static string FormatDetailedTimecode(TimeSpan ts)
+        {
+            if (ts.TotalHours >= 1)
+            {
+                return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}.{ts.Milliseconds:D3}";
+            }
+            return $"{ts.Minutes:D2}:{ts.Seconds:D2}.{ts.Milliseconds:D3}";
+        }
+
+        private void StartTimecodeTimer()
+        {
+            StopTimecodeTimer();
+            _timecodeTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(30)
+            };
+            _timecodeTimer.Tick += TimecodeTimer_Tick;
+            _timecodeTimer.Start();
+        }
+
+        private void StopTimecodeTimer()
+        {
+            if (_timecodeTimer != null)
+            {
+                _timecodeTimer.Stop();
+                _timecodeTimer.Tick -= TimecodeTimer_Tick;
+                _timecodeTimer = null;
+            }
+        }
+
+        private void TimecodeTimer_Tick(object? sender, EventArgs e)
+        {
+            if (!_isPreviewing)
+            {
+                StopTimecodeTimer();
+                return;
+            }
+            double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
+            double currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
+            UpdatePlaybackTimecode(currentSec);
         }
 
         // ── Playback preview ────────────────────────────────────────────────
@@ -984,6 +1036,7 @@ namespace PaDDY
                 _playbackEndSec = endSec;
                 _playbackStartedAt = DateTime.UtcNow;
                 StartPlaybackAnimation(startSec, endSec, TimeSpan.FromSeconds(endSec - startSec));
+                StartTimecodeTimer();
             }
             catch (Exception ex)
             {
@@ -1051,6 +1104,8 @@ namespace PaDDY
 
             try
             {
+                StopTimecodeTimer();
+                UpdatePlaybackTimecode(0.0);
                 if (_meterProvider != null)
                 {
                     _meterProvider.StreamVolume -= OnMeterStreamVolume;
