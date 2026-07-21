@@ -756,7 +756,7 @@
                             </StackPanel>
                         </TabItem>
 
-                        <!-- ══ THIRD PARTIIS TAB ════════════════════════════════ -->
+                        <!-- ══ THIRD PARTY TAB ════════════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,0,0,0">

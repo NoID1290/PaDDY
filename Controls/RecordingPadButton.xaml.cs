@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using WpfControl = System.Windows.Controls.UserControl;
 using WpfButton = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
@@ -86,6 +87,8 @@ namespace PaDDY.Controls
         private VolumeSampleProvider? _listenVolumeProvider;
         private PlaybackMeterProvider? _listenMeterProvider;
         private bool _isPlaying;
+        private DispatcherTimer? _countdownTimer;
+        private TimeSpan _playbackTotalDuration;
 
         /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
         public event EventHandler? DeleteRequested;
@@ -390,6 +393,9 @@ namespace PaDDY.Controls
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _player.Play();
 
+                // Start the countdown timer using the main reader
+                StartCountdownTimer(_reader);
+
                 if (ListenDeviceIndex >= -1)
                 {
                     _listenReader = AudioReaderFactory.Open(Entry.FilePath);
@@ -440,6 +446,9 @@ namespace PaDDY.Controls
                 _listenPlayer.Volume = 1.0f;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _listenPlayer.Play();
+
+                // Start the countdown timer using the listen reader
+                StartCountdownTimer(_listenReader);
                 SetPlayingVisual(true);
             }
             catch (Exception ex)
@@ -452,6 +461,7 @@ namespace PaDDY.Controls
 
         public void StopPlayback()
         {
+            StopCountdownTimer();
             _player?.Stop();
             _player?.Dispose();
             _player = null;
@@ -501,6 +511,84 @@ namespace PaDDY.Controls
                     TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
                 else
                     TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+            }
+        }
+
+        // ── Countdown timer ────────────────────────────────────────────────
+        private void StartCountdownTimer(IUnifiedAudioReader? reader)
+        {
+            if (reader == null || Entry == null) return;
+
+            // Calculate the effective playback duration
+            if (Entry.IsNonDestructive && Entry.TrimEndMs > Entry.TrimStartMs)
+            {
+                _playbackTotalDuration = TimeSpan.FromMilliseconds(Entry.TrimEndMs - Entry.TrimStartMs);
+            }
+            else
+            {
+                _playbackTotalDuration = Entry.Duration;
+            }
+
+            _countdownTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(200)
+            };
+            _countdownTimer.Tick += CountdownTimer_Tick;
+            _countdownTimer.Start();
+        }
+
+        private void StopCountdownTimer()
+        {
+            if (_countdownTimer != null)
+            {
+                _countdownTimer.Stop();
+                _countdownTimer.Tick -= CountdownTimer_Tick;
+                _countdownTimer = null;
+            }
+
+            // Restore the static duration label
+            if (Entry != null)
+                DurationLabel.Text = Entry.DurationLabel;
+        }
+
+        private void CountdownTimer_Tick(object? sender, EventArgs e)
+        {
+            // Use whichever reader is active
+            var reader = _reader ?? _listenReader;
+            if (reader == null || Entry == null)
+            {
+                StopCountdownTimer();
+                return;
+            }
+
+            try
+            {
+                TimeSpan currentPos = reader.CurrentTime;
+
+                // For non-destructive clips, offset current position relative to trim start
+                TimeSpan elapsed;
+                if (Entry.IsNonDestructive && Entry.TrimStartMs > 0)
+                {
+                    elapsed = currentPos - TimeSpan.FromMilliseconds(Entry.TrimStartMs);
+                    if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
+                }
+                else
+                {
+                    elapsed = currentPos;
+                }
+
+                TimeSpan remaining = _playbackTotalDuration - elapsed;
+                if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+
+                // Format the remaining time the same way as DurationLabel
+                DurationLabel.Text = remaining.TotalSeconds < 60
+                    ? $"{remaining.TotalSeconds:0.0}s"
+                    : $"{(int)remaining.TotalMinutes}m {remaining.Seconds:00}s";
+            }
+            catch
+            {
+                // Reader may have been disposed on another thread — just stop
+                StopCountdownTimer();
             }
         }
 
