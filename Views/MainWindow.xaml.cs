@@ -862,7 +862,16 @@ namespace PaDDY
             // ── XAML Storyboards (glow pulses, hover effects, etc.) ─────────
             // Walk the visual tree to find and pause/resume all ClockGroups
             // driven by Storyboards attached to UI elements.
-            PauseResumeStoryboards(this, paused);
+            var oldTraceLevel = System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level;
+            try
+            {
+                System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level = System.Diagnostics.SourceLevels.Error;
+                PauseResumeStoryboards(this, paused);
+            }
+            finally
+            {
+                System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level = oldTraceLevel;
+            }
         }
 
         /// <summary>
