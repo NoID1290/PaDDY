@@ -6,7 +6,7 @@
         Title="PaDDY — Settings"
         Icon="/PaDDY.ico"
         Width="880"
-        Height="620"
+        Height="650"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         UseLayoutRounding="True"
@@ -276,15 +276,15 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="250"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="Target Loudness (LUFS)" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="Standard target loudness level (EBU R128 broadcast recommendation: -14.0 LUFS)." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                                <Slider x:Name="TargetLufsSlider" Width="160" Minimum="-24.0" Maximum="-6.0" Value="-14.0" TickFrequency="1.0" SmallChange="0.5" LargeChange="1.0" ValueChanged="TargetLufsSlider_ValueChanged" VerticalAlignment="Center"/>
-                                                <TextBlock x:Name="TargetLufsValueText" Text="-14.0 LUFS" Width="60" TextAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                                                <Slider x:Name="TargetLufsSlider" Width="150" Minimum="-24.0" Maximum="-6.0" Value="-14.0" TickFrequency="1.0" SmallChange="0.5" LargeChange="1.0" ValueChanged="TargetLufsSlider_ValueChanged" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="TargetLufsValueText" Text="-14.0 LUFS" Width="80" Margin="8,0,0,0" TextAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
