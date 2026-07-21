@@ -250,6 +250,46 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- Loudness Normalization Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="LOUDNESS NORMALIZATION (EBU R128)" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <!-- Auto Normalize toggle -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Auto-Normalize Loudness" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Automatically scale loudness of newly recorded and imported clips to the target LUFS level." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="AutoNormalizeCheck" Grid.Column="1" VerticalAlignment="Center" Checked="AutoNormalizeCheck_Changed" Unchecked="AutoNormalizeCheck_Changed"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Target LUFS slider -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Target Loudness (LUFS)" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Standard target loudness level (EBU R128 broadcast recommendation: -14.0 LUFS)." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <Slider x:Name="TargetLufsSlider" Width="160" Minimum="-24.0" Maximum="-6.0" Value="-14.0" TickFrequency="1.0" SmallChange="0.5" LargeChange="1.0" ValueChanged="TargetLufsSlider_ValueChanged" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="TargetLufsValueText" Text="-14.0 LUFS" Width="60" TextAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
                                 <!-- Buffer Recording Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
                                     <Rectangle Style="{StaticResource HeaderAccentBar}"/>

@@ -210,7 +210,14 @@ namespace PaDDY.Controls
             Entry = entry;
             NameLabel.Text = entry.FileName;
             DurationLabel.Text = entry.DurationLabel;
-            ToolTip = entry.FileName;
+            if (!string.IsNullOrWhiteSpace(entry.Transcription))
+            {
+                ToolTip = $"{entry.FileName}\n\n🤖 Transcription: \"{entry.Transcription}\"\n🏷️ Tags: {entry.Tags}";
+            }
+            else
+            {
+                ToolTip = entry.FileName;
+            }
             if (NdIndicator != null)
                 NdIndicator.Visibility = entry.IsNonDestructive ? Visibility.Visible : Visibility.Collapsed;
 
@@ -796,6 +803,88 @@ namespace PaDDY.Controls
 
             if (dlg.ShowDialog() != true) return;
             File.Copy(Entry.FilePath, dlg.FileName, overwrite: true);
+        }
+
+        private void OnPadMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (Entry == null) return;
+
+            var cm = new System.Windows.Controls.ContextMenu();
+
+            var itemPlayMonitor = new System.Windows.Controls.MenuItem { Header = "🎧 Play on Monitor Only" };
+            itemPlayMonitor.Click += (_, _) => StartPlaybackListenOnly();
+            cm.Items.Add(itemPlayMonitor);
+
+            cm.Items.Add(new System.Windows.Controls.Separator());
+
+            var itemNorm = new System.Windows.Controls.MenuItem { Header = "🔊 Normalize Loudness (LUFS)" };
+            itemNorm.Click += (_, _) => NormalizeLoudness();
+            cm.Items.Add(itemNorm);
+
+            var itemTranscribe = new System.Windows.Controls.MenuItem { Header = "🤖 Transcribe & Auto-Tag" };
+            itemTranscribe.Click += (_, _) => TranscribePad();
+            cm.Items.Add(itemTranscribe);
+
+            cm.Items.Add(new System.Windows.Controls.Separator());
+
+            var itemRename = new System.Windows.Controls.MenuItem { Header = "✏ Rename" };
+            itemRename.Click += (_, _) => OpenRename();
+            cm.Items.Add(itemRename);
+
+            var itemDel = new System.Windows.Controls.MenuItem { Header = "✕ Delete" };
+            itemDel.Click += (_, _) => MenuDelete_Click(this, new RoutedEventArgs());
+            cm.Items.Add(itemDel);
+
+            cm.IsOpen = true;
+            e.Handled = true;
+        }
+
+        public void NormalizeLoudness()
+        {
+            if (Entry == null || !File.Exists(Entry.FilePath)) return;
+
+            try
+            {
+                double measuredLufs = LoudnessNormalizer.MeasureIntegratedLoudness(Entry.FilePath);
+                bool success = LoudnessNormalizer.NormalizeWavFile(Entry.FilePath, Entry.FilePath, -14.0);
+                if (success)
+                {
+                    double newLufs = LoudnessNormalizer.MeasureIntegratedLoudness(Entry.FilePath);
+                    Entry.LufsValue = newLufs;
+                    System.Windows.MessageBox.Show($"Pad normalized successfully!\nOriginal Loudness: {measuredLufs:F1} LUFS\nNormalized Loudness: {newLufs:F1} LUFS", "LUFS Loudness Normalization", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to normalize pad: {ex.Message}", "Normalization Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        public async void TranscribePad()
+        {
+            if (Entry == null || !File.Exists(Entry.FilePath)) return;
+
+            try
+            {
+                using var service = new SpeechRecognitionService();
+                string text = await service.TranscribeAsync(Entry.FilePath, "tiny", "Auto");
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    string tags = SpeechRecognitionService.ExtractTags(text);
+                    Entry.Transcription = text;
+                    Entry.Tags = tags;
+                    ToolTip = $"{Entry.FileName}\n\n🤖 Transcription: \"{text}\"\n🏷️ Tags: {tags}";
+                    System.Windows.MessageBox.Show($"Transcription: \"{text}\"\nGenerated Tags: {tags}", "Speech Transcription", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("No speech was recognized in this pad.", "Speech Transcription", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Transcription error: {ex.Message}", "Speech Recognition", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
         }
     }
 }

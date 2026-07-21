@@ -25,6 +25,10 @@ namespace PaDDY.Services
 
         /// <summary>Manual sort position within its panel/page (lower = earlier).</summary>
         public long SortOrder { get; set; }
+
+        public double? LufsValue { get; set; }
+        public string Transcription { get; set; } = string.Empty;
+        public string Tags { get; set; } = string.Empty;
     }
     /// <summary>
     /// Persistent recording storage backed by a SQLite database (recordings.dat).
@@ -119,6 +123,7 @@ namespace PaDDY.Services
             EnsureSortOrderColumn();
             EnsureNonDestructiveColumns();
             EnsurePadColorColumn();
+            EnsureLufsAndSpeechColumns();
         }
 
         /// <summary>Adds the pad_page column to older databases that predate pad pages.</summary>
@@ -232,6 +237,58 @@ namespace PaDDY.Services
             using var alter = _db.CreateCommand();
             alter.CommandText = "ALTER TABLE recordings ADD COLUMN pad_color TEXT NOT NULL DEFAULT ''";
             alter.ExecuteNonQuery();
+        }
+
+        private void EnsureLufsAndSpeechColumns()
+        {
+            var cols = new List<string>();
+            using (var info = _db.CreateCommand())
+            {
+                info.CommandText = "PRAGMA table_info(recordings)";
+                using var reader = info.ExecuteReader();
+                while (reader.Read())
+                {
+                    cols.Add(reader.GetString(1).ToLowerInvariant());
+                }
+            }
+
+            if (!cols.Contains("lufs_value"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN lufs_value REAL NULL";
+                alter.ExecuteNonQuery();
+            }
+            if (!cols.Contains("transcription"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN transcription TEXT NOT NULL DEFAULT ''";
+                alter.ExecuteNonQuery();
+            }
+            if (!cols.Contains("tags"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN tags TEXT NOT NULL DEFAULT ''";
+                alter.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdateLufs(string id, double lufs)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET lufs_value=@lufs WHERE id=@id";
+            cmd.Parameters.AddWithValue("@lufs", lufs);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void UpdateTranscription(string id, string transcription, string tags)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET transcription=@tr, tags=@tg WHERE id=@id";
+            cmd.Parameters.AddWithValue("@tr", transcription ?? string.Empty);
+            cmd.Parameters.AddWithValue("@tg", tags ?? string.Empty);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
         }
 
         // ── Write operations ───────────────────────────────────────────────────
@@ -398,7 +455,7 @@ namespace PaDDY.Services
             var list = new List<RecordingRecord>();
             using var cmd = _db.CreateCommand();
             cmd.CommandText = """
-                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db, pad_color
+                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db, pad_color, lufs_value, transcription, tags
                 FROM recordings
                 ORDER BY created_at DESC
                 """;
@@ -419,7 +476,10 @@ namespace PaDDY.Services
                     TrimStartMs = reader.IsDBNull(9) ? 0 : reader.GetInt64(9),
                     TrimEndMs = reader.IsDBNull(10) ? 0 : reader.GetInt64(10),
                     GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11),
-                    PadColor = reader.IsDBNull(12) ? string.Empty : reader.GetString(12)
+                    PadColor = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+                    LufsValue = reader.IsDBNull(13) ? null : reader.GetDouble(13),
+                    Transcription = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+                    Tags = reader.IsDBNull(15) ? string.Empty : reader.GetString(15)
                 });
             }
             return list;

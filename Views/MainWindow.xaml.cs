@@ -49,6 +49,7 @@ namespace PaDDY
         private bool _forceExit;
         private PadPage? _activePadPage;
         private Services.SpeechRecognitionService? _speechService;
+        private readonly LiveMicModulatorService _liveMicModulator = new();
 
         private TcpIpcServer? _ipcServer;
         private bool _isRecording;
@@ -249,6 +250,14 @@ namespace PaDDY
             }
 
             InitializeComponent();
+            App.DebugModeChanged += () =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    LiveMicBtn.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+                });
+            };
+            LiveMicBtn.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
             UpdateLoadingOverlayTheme();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
@@ -3635,8 +3644,36 @@ namespace PaDDY
                         entry.RecordingId = id;
                         entry.FilePath = _recordingStore.MaterializeToTemp(id, result.Codec);
 
+                        if (_settings.AutoNormalizeOnCapture && File.Exists(entry.FilePath))
+                        {
+                            LoudnessNormalizer.NormalizeWavFile(entry.FilePath, entry.FilePath, _settings.TargetLoudnessLufs);
+                            double newLufs = LoudnessNormalizer.MeasureIntegratedLoudness(entry.FilePath);
+                            entry.LufsValue = newLufs;
+                            _recordingStore.UpdateLufs(id, newLufs);
+                        }
+
                         AddPadButton(entry, toFavorites: false);
                         importedCount++;
+
+                        if (_settings.AutoSpeechIndexingEnabled && File.Exists(entry.FilePath))
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    using var speech = new SpeechRecognitionService();
+                                    string text = await speech.TranscribeAsync(entry.FilePath, _settings.SpeechModel, _settings.SpeechLanguage, _settings.UseCudaForSpeech);
+                                    if (!string.IsNullOrWhiteSpace(text))
+                                    {
+                                        string tags = SpeechRecognitionService.ExtractTags(text);
+                                        entry.Transcription = text;
+                                        entry.Tags = tags;
+                                        _recordingStore.UpdateTranscription(id, text, tags);
+                                    }
+                                }
+                                catch { }
+                            });
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -3665,6 +3702,60 @@ namespace PaDDY
                     "Import Warning", 
                     System.Windows.MessageBoxButton.OK, 
                     System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void LiveMicBtn_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (LiveMicBtn.IsChecked == true)
+            {
+                _liveMicModulator.Start(_settings.InputDeviceIndex, _settings.OutputDeviceIndex, _settings.SecondaryOutputDeviceIndex, _settings.DualOutputEnabled);
+                _liveMicModulator.IsFxEnabled = _settings.LiveMicFxEnabled;
+                LiveMicBtn.Content = "🎙️ Live Mic ON";
+                SetStatus("Live Mic Modulator active", "#FF4CAF50");
+            }
+            else
+            {
+                _liveMicModulator.Stop();
+                LiveMicBtn.Content = "🎙️ Live Mic";
+                SetStatus("Live Mic Modulator stopped", "#FF9090A0");
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = SearchTextBox.Text?.Trim() ?? string.Empty;
+            SearchPlaceholder.Visibility = string.IsNullOrEmpty(query) ? Visibility.Visible : Visibility.Collapsed;
+            ClearSearchBtn.Visibility = string.IsNullOrEmpty(query) ? Visibility.Collapsed : Visibility.Visible;
+            FilterPads(query);
+        }
+
+        private void ClearSearchBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SearchTextBox.Text = string.Empty;
+        }
+
+        private void FilterPads(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                foreach (var pad in _padCache.Values)
+                {
+                    pad.Visibility = Visibility.Visible;
+                }
+                return;
+            }
+
+            string q = query.ToLowerInvariant();
+            foreach (var pad in _padCache.Values)
+            {
+                if (pad.Entry == null) continue;
+                bool match = (pad.Entry.FileName != null && pad.Entry.FileName.ToLowerInvariant().Contains(q)) ||
+                             (pad.Entry.DisplayName != null && pad.Entry.DisplayName.ToLowerInvariant().Contains(q)) ||
+                             (pad.Entry.Tags != null && pad.Entry.Tags.ToLowerInvariant().Contains(q)) ||
+                             (pad.Entry.Transcription != null && pad.Entry.Transcription.ToLowerInvariant().Contains(q));
+
+                pad.Visibility = match ? Visibility.Visible : Visibility.Collapsed;
             }
         }
     }

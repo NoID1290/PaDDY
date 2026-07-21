@@ -130,6 +130,13 @@ namespace PaDDY
             VstPluginPathTextBox.Text = _settings.VstPluginPath;
             Vst3PluginPathTextBox.Text = _settings.Vst3PluginPath;
 
+            // Loudness Normalization
+            AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
+            double lufsVal = Math.Clamp(_settings.TargetLoudnessLufs, -24.0, -6.0);
+            TargetLufsSlider.Value = lufsVal;
+            if (TargetLufsValueText != null)
+                TargetLufsValueText.Text = $"{lufsVal:0.0} LUFS";
+
             // Buffer duration
             double bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000.0, 0.5, 60.0);
             BufferDurationSlider.Value = bufSec;
@@ -419,9 +426,23 @@ namespace PaDDY
 
             _settings.VstPluginPath = VstPluginPathTextBox.Text;
             _settings.Vst3PluginPath = Vst3PluginPathTextBox.Text;
+            _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
+            _settings.TargetLoudnessLufs = Math.Round(TargetLufsSlider.Value, 1);
 
             DialogResult = true;
             Close();
+        }
+
+        private void AutoNormalizeCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (AutoNormalizeCheck.IsChecked.HasValue)
+                _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked.Value;
+        }
+
+        private void TargetLufsSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (TargetLufsValueText != null)
+                TargetLufsValueText.Text = $"{e.NewValue:0.0} LUFS";
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

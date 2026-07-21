@@ -105,6 +105,21 @@ namespace PaDDY
         // Use CUDA GPU acceleration for Whisper (requires NVIDIA GPU)
         public bool UseCudaForSpeech { get; set; } = false;
 
+        // ---- LUFS Normalization ----
+        public bool AutoNormalizeOnCapture { get; set; } = false;
+        public double TargetLoudnessLufs { get; set; } = -14.0;
+
+        // ---- Live Mic Modulator & Dual-Bus Routing ----
+        public bool LiveMicEnabled { get; set; } = false;
+        public int LiveMicDeviceIndex { get; set; } = 0;
+        public bool LiveMicFxEnabled { get; set; } = false;
+        public double LiveMicGain { get; set; } = 100.0;
+        public bool DualOutputEnabled { get; set; } = false;
+        public int SecondaryOutputDeviceIndex { get; set; } = 0;
+
+        // ---- AI Speech Auto Indexing ----
+        public bool AutoSpeechIndexingEnabled { get; set; } = true;
+
         // ---- Custom pad pages ----
         // Ordered list of user pad pages. The first page is the default ("Favorites" semantics).
         public List<PadPage> PadPages { get; set; } = new();

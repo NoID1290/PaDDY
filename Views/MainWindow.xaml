@@ -431,6 +431,16 @@
 
                 <!-- Action buttons + custom caption buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ToggleButton x:Name="LiveMicBtn"
+                                  Content="🎙️ Live Mic"
+                                  Height="32"
+                                  Padding="12,0"
+                                  Margin="0,0,8,0"
+                                  ToolTip="Toggle Real-time Live Microphone Modulator &amp; Dual-Bus Routing"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                                  Visibility="Collapsed"
+                                  Checked="LiveMicBtn_CheckedChanged"
+                                  Unchecked="LiveMicBtn_CheckedChanged"/>
                     <Button x:Name="ConfigToggleBtn"
                             Style="{StaticResource TopBarBtn}"
                             Margin="0,0,6,0"
@@ -1360,6 +1370,21 @@
                                    FontSize="10"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"/>
+
+                        <!-- Instant Soundboard Search Bar -->
+                        <Border Width="220" Height="24" CornerRadius="12" Background="#18FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" Margin="16,0,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="11" Foreground="#FF9090A0" Margin="8,0,4,0" VerticalAlignment="Center"/>
+                                <TextBox x:Name="SearchTextBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="11" VerticalAlignment="Center" TextChanged="SearchTextBox_TextChanged"/>
+                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="Search clips &amp; transcripts..." FontSize="11" Foreground="#FF707080" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                                <Button x:Name="ClearSearchBtn" Grid.Column="2" Content="✕" Width="16" Height="16" FontSize="10" Background="Transparent" Foreground="#FF9090A0" BorderThickness="0" Visibility="Collapsed" Click="ClearSearchBtn_Click" Margin="0,0,4,0"/>
+                            </Grid>
+                        </Border>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Right">

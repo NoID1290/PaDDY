@@ -30,6 +30,15 @@ namespace PaDDY.Models
         public double GainDb { get; set; } = 0.0;
         public string? PadPage { get; set; }
 
+        /// <summary>Measured integrated loudness in LUFS (EBU R128).</summary>
+        public double? LufsValue { get; set; }
+
+        /// <summary>Speech-to-text transcription string (Whisper.net).</summary>
+        public string? Transcription { get; set; }
+
+        /// <summary>Comma-separated list of tags or auto-generated search keywords.</summary>
+        public string? Tags { get; set; }
+
         /// <summary>Custom background color hex string for the pad (e.g., "#FF00D2FF"). Empty/null = default theme color.</summary>
         public string PadColor { get; set; } = string.Empty;
 
