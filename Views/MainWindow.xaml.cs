@@ -53,6 +53,14 @@ namespace PaDDY
         private TcpIpcServer? _ipcServer;
         private bool _isRecording;
 
+        // ── Fullscreen state ───────────────────────────────────────────────────
+        private bool _isFullscreen;
+        private WindowState _preFullscreenWindowState;
+        private WindowStyle _preFullscreenWindowStyle;
+        private ResizeMode _preFullscreenResizeMode;
+        private Rect _preFullscreenBounds;
+        private double _preFullscreenChromeHeight;
+
         private SplashWindow? _splashWindow;
 
         public void ShowLoadingOverlay(string message = "Processing...")
@@ -288,6 +296,98 @@ namespace PaDDY
         private void ChromeClose_Click(object sender, RoutedEventArgs e)
             => SystemCommands.CloseWindow(this);
 
+        // ── Fullscreen (F11) ──────────────────────────────────────────────────
+        private void ChromeFullscreen_Click(object sender, RoutedEventArgs e)
+            => ToggleFullscreen();
+
+        private void ToggleFullscreen()
+        {
+            if (_isFullscreen)
+                ExitFullscreen();
+            else
+                EnterFullscreen();
+        }
+
+        private void EnterFullscreen()
+        {
+            if (_isFullscreen) return;
+
+            // Save current state for restoration
+            _preFullscreenWindowState = WindowState;
+            _preFullscreenWindowStyle = WindowStyle;
+            _preFullscreenResizeMode = ResizeMode;
+            _preFullscreenBounds = new Rect(Left, Top, Width, Height);
+
+            var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
+            _preFullscreenChromeHeight = chrome?.CaptionHeight ?? 60;
+
+            // Must restore first if maximized, then set style, then maximize again.
+            // This avoids the WPF bug where WindowStyle change doesn't take effect
+            // while already maximized.
+            if (WindowState == WindowState.Maximized)
+                WindowState = WindowState.Normal;
+
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+
+            // Remove chrome caption so the title bar area becomes content space
+            if (chrome != null)
+                chrome.CaptionHeight = 0;
+
+            WindowState = WindowState.Maximized;
+            _isFullscreen = true;
+
+            // Update maximize button icon to reflect state
+            ChromeMaxIcon.Text = "\uE923"; // Restore icon
+            ChromeMaxRestoreBtn.ToolTip = "Restore";
+
+            // Update fullscreen button
+            ChromeFullscreenIcon.Text = "\uE73F"; // Exit fullscreen icon
+            ChromeFullscreenBtn.ToolTip = "Exit Fullscreen (F11)";
+        }
+
+        private void ExitFullscreen()
+        {
+            if (!_isFullscreen) return;
+
+            _isFullscreen = false;
+
+            // Restore window chrome
+            var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
+            if (chrome != null)
+                chrome.CaptionHeight = _preFullscreenChromeHeight;
+
+            // Restore window style
+            WindowState = WindowState.Normal;
+            WindowStyle = _preFullscreenWindowStyle;
+            ResizeMode = _preFullscreenResizeMode;
+
+            // Restore position and size
+            Left = _preFullscreenBounds.Left;
+            Top = _preFullscreenBounds.Top;
+            Width = _preFullscreenBounds.Width;
+            Height = _preFullscreenBounds.Height;
+
+            // Restore previous window state (e.g. if was maximized before)
+            WindowState = _preFullscreenWindowState;
+
+            // Update maximize button icon
+            if (WindowState == WindowState.Maximized)
+            {
+                ChromeMaxIcon.Text = "\uE923"; // Restore icon
+                ChromeMaxRestoreBtn.ToolTip = "Restore";
+            }
+            else
+            {
+                ChromeMaxIcon.Text = "\uE922"; // Maximize icon
+                ChromeMaxRestoreBtn.ToolTip = "Maximize";
+            }
+
+            // Update fullscreen button
+            ChromeFullscreenIcon.Text = "\uE740"; // Enter fullscreen icon
+            ChromeFullscreenBtn.ToolTip = "Fullscreen (F11)";
+        }
+
         private void ToggleConfigPanel_Click(object sender, RoutedEventArgs e)
         {
             _configPanelVisible = !_configPanelVisible;
@@ -304,6 +404,22 @@ namespace PaDDY
 
         private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            // ── F11: toggle fullscreen ──────────────────────────────────────
+            if (e.Key == Key.F11)
+            {
+                e.Handled = true;
+                ToggleFullscreen();
+                return;
+            }
+
+            // ── Escape: exit fullscreen ─────────────────────────────────────
+            if (e.Key == Key.Escape && _isFullscreen)
+            {
+                e.Handled = true;
+                ExitFullscreen();
+                return;
+            }
+
             var isD = e.Key == Key.D || (e.Key == Key.System && e.SystemKey == Key.D);
             if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isD)
             {

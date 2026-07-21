@@ -395,7 +395,8 @@
         </Grid.RowDefinitions>
 
         <!-- ═══════════════════════ Row 0: Compact Top Bar ═══════════════════════ -->
-        <Border Grid.Row="0"
+        <Border x:Name="TopBarBorder"
+                Grid.Row="0"
                 BorderBrush="{DynamicResource DividerBrush}"
                 BorderThickness="0,0,0,1"
                 Background="{DynamicResource TitleBarGradient}">
@@ -457,6 +458,12 @@
                             ToolTip="Maximize"
                             Click="ChromeMaximize_Click">
                         <TextBlock x:Name="ChromeMaxIcon" Text="&#xE922;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
+                    </Button>
+                    <Button x:Name="ChromeFullscreenBtn"
+                            Style="{StaticResource ChromeMaxBtn}"
+                            ToolTip="Fullscreen (F11)"
+                            Click="ChromeFullscreen_Click">
+                        <TextBlock x:Name="ChromeFullscreenIcon" Text="&#xE740;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
                     </Button>
                     <Button Style="{StaticResource ChromeCloseBtn}"
                             ToolTip="Close"
