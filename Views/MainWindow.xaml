@@ -13,7 +13,10 @@
         SnapsToDevicePixels="True"
         Background="{DynamicResource WindowBgBrush}"
         Foreground="{DynamicResource PrimaryTextBrush}"
-        FontFamily="{DynamicResource AppFont}">
+        FontFamily="{DynamicResource AppFont}"
+        AllowDrop="True"
+        DragOver="Window_DragOver"
+        Drop="Window_Drop">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="60"
@@ -380,7 +383,7 @@
 
     </Window.Resources>
 
-    <Grid x:Name="MainRootGrid">
+    <Grid x:Name="MainRootGrid" AllowDrop="True" DragOver="Window_DragOver" Drop="Window_Drop">
         <Grid.Effect>
             <DropShadowEffect ShadowDepth="0"
                               BlurRadius="18"
@@ -1372,6 +1375,12 @@
                                   Margin="0,0,8,0"
                                   ToolTip="Sort order for recordings"
                                   SelectionChanged="SortOrderCombo_SelectionChanged"/>
+                        <Button Content="📁 Import Audio"
+                                Height="24"
+                                Padding="10,2"
+                                Margin="0,0,6,0"
+                                ToolTip="Import external audio file(s) from Windows"
+                                Click="ImportAudioButton_Click"/>
                         <Button Content="Clear Pads"
                                 Height="24"
                                 Padding="10,2"

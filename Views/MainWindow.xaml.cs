@@ -1124,6 +1124,12 @@ namespace PaDDY
         /// </summary>
         private void HandlePanelDragOver(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
         {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                Window_DragOver(sender: panel, e);
+                return;
+            }
+
             var pad = GetDraggedPad(e);
             e.Effects = pad != null ? System.Windows.DragDropEffects.Move : System.Windows.DragDropEffects.None;
             e.Handled = true;
@@ -1142,12 +1148,22 @@ namespace PaDDY
 
         private void FavoritesPanel_Drop(object sender, System.Windows.DragEventArgs e)
         {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                Window_Drop(sender, e);
+                return;
+            }
             // The pad has already been live-moved into place; commit happens in FinalizePadDrop.
             e.Handled = true;
         }
 
         private void PadPanel_Drop(object sender, System.Windows.DragEventArgs e)
         {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                Window_Drop(sender, e);
+                return;
+            }
             e.Handled = true;
         }
 
@@ -3537,6 +3553,119 @@ namespace PaDDY
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();
             DiscordService.Instance.Dispose();
+        }
+
+        // ── Audio Import & Drag/Drop ───────────────────────────────────────────
+        private async void ImportAudioButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Import Audio File(s)",
+                Filter = "Supported Audio Files (*.wav;*.mp3;*.ogg;*.flac;*.aiff;*.aif;*.wma;*.m4a;*.aac)|*.wav;*.mp3;*.ogg;*.flac;*.aiff;*.aif;*.wma;*.m4a;*.aac|All Files (*.*)|*.*",
+                Multiselect = true
+            };
+
+            if (dlg.ShowDialog(this) == true && dlg.FileNames.Length > 0)
+            {
+                await ProcessAudioImportsAsync(dlg.FileNames);
+            }
+        }
+
+        private void Window_DragOver(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files)
+                {
+                    if (files.Any(f => AudioImportService.IsSupportedExtension(f)))
+                    {
+                        e.Effects = System.Windows.DragDropEffects.Copy;
+                        e.Handled = true;
+                        return;
+                    }
+                }
+            }
+        }
+
+        private async void Window_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files && files.Length > 0)
+                {
+                    var supportedFiles = files.Where(f => AudioImportService.IsSupportedExtension(f)).ToArray();
+                    if (supportedFiles.Length > 0)
+                    {
+                        e.Handled = true;
+                        await ProcessAudioImportsAsync(supportedFiles);
+                    }
+                }
+            }
+        }
+
+        private async Task ProcessAudioImportsAsync(IEnumerable<string> filePaths)
+        {
+            var filesList = filePaths.ToList();
+            if (filesList.Count == 0) return;
+
+            ShowLoadingOverlay($"Importing {filesList.Count} audio file(s)...");
+            await Task.Delay(50); // Yield UI thread to ensure LoadingOverlay renders
+
+            int importedCount = 0;
+            int failedCount = 0;
+
+            foreach (var file in filesList)
+            {
+                ShowLoadingOverlay($"Verifying & converting: {System.IO.Path.GetFileName(file)}");
+                var result = await AudioImportService.ImportFileAsync(file);
+
+                if (result.Success && result.AudioData.Length > 0)
+                {
+                    try
+                    {
+                        var entry = new RecordingEntry
+                        {
+                            DisplayName = result.DisplayName,
+                            Duration = result.Duration,
+                            CreatedAt = DateTime.Now,
+                            IsFavorite = false
+                        };
+
+                        string id = _recordingStore.Add(result.DisplayName, result.Codec, entry.Duration, entry.CreatedAt, result.AudioData);
+                        entry.RecordingId = id;
+                        entry.FilePath = _recordingStore.MaterializeToTemp(id, result.Codec);
+
+                        AddPadButton(entry, toFavorites: false);
+                        importedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failedCount++;
+                        System.Diagnostics.Debug.WriteLine($"Failed to save imported file: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    failedCount++;
+                    System.Diagnostics.Debug.WriteLine($"Audio import error: {result.ErrorMessage}");
+                }
+            }
+
+            Forget(RefreshStorageInfoAsync());
+            HideLoadingOverlay();
+
+            if (importedCount > 0)
+            {
+                SetStatus($"Successfully imported {importedCount} audio clip(s)", "#FF4CAF50");
+            }
+            if (failedCount > 0)
+            {
+                System.Windows.MessageBox.Show(this, 
+                    $"{failedCount} file(s) could not be imported due to unsupported audio encoding.", 
+                    "Import Warning", 
+                    System.Windows.MessageBoxButton.OK, 
+                    System.Windows.MessageBoxImage.Warning);
+            }
         }
     }
 }
