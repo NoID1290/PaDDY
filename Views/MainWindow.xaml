@@ -1184,7 +1184,7 @@
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>           
                         <TextBlock x:Name="StorageInfoLabel"
-                                   Text="Output folder: calculating usage…"
+                                   Text="Storage data: calculating usage…"
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>
                         <TextBlock x:Name="StreamDeckStatusLabel"

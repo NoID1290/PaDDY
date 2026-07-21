@@ -449,6 +449,13 @@ namespace PaDDY.Services
             return new FileInfo(StorePath).Length;
         }
 
+        public int GetCount()
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM recordings";
+            return Convert.ToInt32(cmd.ExecuteScalar());
+        }
+
         /// <summary>
         /// Checkpoints the WAL file and runs VACUUM to reclaim disk space freed by deleted
         /// BLOB rows. Blocking — call from a background thread.

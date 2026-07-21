@@ -2978,18 +2978,10 @@ namespace PaDDY
         {
             try
             {
-                long dbBytes = await Task.Run(() => _recordingStore.GetStoreSizeBytes());
-                string root = Path.GetPathRoot(RecordingStore.StorePath) ?? string.Empty;
-                string value;
-                if (!string.IsNullOrWhiteSpace(root))
-                {
-                    var drive = new DriveInfo(root);
-                    value = $"{FormatByteSize(dbBytes)} | {FormatByteSize(drive.AvailableFreeSpace)} free";
-                }
-                else
-                {
-                    value = $"{FormatByteSize(dbBytes)}";
-                }
+                (long dbBytes, int count) = await Task.Run(() =>
+                    (_recordingStore.GetStoreSizeBytes(), _recordingStore.GetCount())
+                );
+                string value = $"{count} files | {FormatByteSize(dbBytes)}";
                 SetInfoLabel(StorageInfoLabel, "Storage data: ", value);
             }
             catch
