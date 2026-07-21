@@ -55,56 +55,163 @@ namespace NoIDSoftwork.AudioProcessor
 
     /// <summary>
     /// FLAC reader adapter.
-    /// Playback uses NAudio.Flac.FlacReader (WaveStream → WasapiOut).
-    /// Sample data for waveform rendering uses CUETools FlakeReader, which is the
-    /// companion decoder to FlakeWriter and reliably decodes every FLAC file we write.
+    ///
+    /// Ground-truth decoder: CUETools <see cref="FlakeReader"/>.
+    ///   • <see cref="TotalTime"/>   – derived from <c>FlakeReader.Length</c> (actual frame count).
+    ///   • <see cref="CurrentTime"/> – seeks via <c>FlakeReader.Position</c> (sample-frame accurate).
+    ///   • <see cref="Read"/>        – delivers integer PCM from FlakeReader (used for trim export).
+    ///   • <see cref="AsSampleProvider"/> – wraps FlakeReader to yield IEEE-float samples (waveform).
+    ///
+    /// Playback only: <see cref="NAudio.Flac.FlacReader"/> is kept solely for
+    /// <see cref="AsWaveProvider()"/> because WASAPI requires a WaveStream.
+    /// All duration/seek/sample logic uses FlakeReader to stay consistent.
     /// </summary>
     internal sealed class FlacReaderAdapter : IUnifiedAudioReader
     {
-        private readonly FlacReader _reader;
+        // Playback only — provides WaveStream for WASAPI
+        private readonly FlacReader _playbackReader;
+
+        // Ground-truth decoder — owns duration, seeking, raw byte output, and float samples
+        private readonly FlakeReader _flakeReader;
+        private readonly AudioPCMConfig _pcm;
+        private readonly AudioBuffer _decodeBuffer;
+        private readonly WaveFormat _waveFormat;
+        private readonly TimeSpan _totalTime;
         private readonly string _filePath;
+
+        // Rolling byte window from the last decoded FlakeReader block
+        private byte[]? _pendingBytes;
+        private int _pendingOffset;
+        private int _pendingEnd;
 
         public FlacReaderAdapter(string filePath)
         {
             _filePath = filePath;
-            _reader = new FlacReader(filePath);
+            _playbackReader = new FlacReader(filePath);
+
+            _flakeReader = new FlakeReader(filePath, null);
+            _pcm = _flakeReader.PCM;
+
+            // Build a WaveFormat that exactly matches the integer PCM FlakeReader outputs
+            _waveFormat = new WaveFormat(_pcm.SampleRate, _pcm.BitsPerSample, _pcm.ChannelCount);
+
+            // FlakeReader.Length is the total number of PCM frames — the authoritative count
+            _totalTime = TimeSpan.FromSeconds((double)_flakeReader.Length / _pcm.SampleRate);
+
+            _decodeBuffer = new AudioBuffer(_pcm, 4096);
         }
 
-        public WaveFormat WaveFormat => _reader.WaveFormat;
-        public TimeSpan TotalTime => _reader.TotalTime;
+        public WaveFormat WaveFormat => _waveFormat;
+        public TimeSpan TotalTime => _totalTime;
 
         public TimeSpan CurrentTime
         {
-            get => _reader.CurrentTime;
-            set => _reader.CurrentTime = value;
+            get => TimeSpan.FromSeconds((double)_flakeReader.Position / _pcm.SampleRate);
+            set
+            {
+                // Seek via FlakeReader.Position (sample-frame granularity, no silent failures)
+                long targetFrame = (long)(value.TotalSeconds * _pcm.SampleRate);
+                targetFrame = Math.Clamp(targetFrame, 0L, _flakeReader.Length);
+                _flakeReader.Position = targetFrame;
+
+                // Discard any pending decoded bytes from before the seek
+                _pendingBytes = null;
+                _pendingOffset = 0;
+                _pendingEnd = 0;
+
+                // Keep the playback reader loosely in sync (best-effort; only used for WASAPI)
+                try { _playbackReader.CurrentTime = value; } catch { }
+            }
         }
 
-        public IWaveProvider AsWaveProvider() => _reader;
+        /// <summary>WASAPI playback only. Do not use for sample data.</summary>
+        public IWaveProvider AsWaveProvider() => _playbackReader;
 
-        // Use FlakeReader (CUETools) for float sample decoding — guaranteed compatibility
-        // with files written by FlakeWriter.  NAudio.Flac.FlacReader.Read(float[]) is a
-        // stub that returns -1 and cannot be used as an ISampleProvider.
-        public ISampleProvider AsSampleProvider() => new FlakeReaderSampleProvider(_filePath);
+        /// <summary>
+        /// Waveform rendering or playback — IEEE float samples decoded by FlakeReader.
+        /// Wraps the adapter's own <see cref="_flakeReader"/>, which has already been seeked
+        /// to the desired start position via <see cref="CurrentTime"/>.
+        /// </summary>
+        public ISampleProvider AsSampleProvider() => new FlakeReaderSampleProvider(_pcm, _flakeReader);
 
-        public int Read(byte[] buffer, int offset, int count) => _reader.Read(buffer, offset, count);
+        /// <summary>
+        /// Raw integer PCM bytes from FlakeReader — used by trim/export.
+        /// Bytes are in the same format as <see cref="WaveFormat"/> (little-endian signed PCM).
+        /// </summary>
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            int written = 0;
+            int bytesPerSample = (_pcm.BitsPerSample + 7) / 8;
+            int bytesPerFrame  = bytesPerSample * _pcm.ChannelCount;
 
-        public void Dispose() => _reader.Dispose();
+            while (written < count)
+            {
+                // Drain any already-decoded bytes first
+                if (_pendingOffset < _pendingEnd)
+                {
+                    int toCopy = Math.Min(count - written, _pendingEnd - _pendingOffset);
+                    Buffer.BlockCopy(_pendingBytes!, _pendingOffset, buffer, offset + written, toCopy);
+                    _pendingOffset += toCopy;
+                    written += toCopy;
+                    continue;
+                }
+
+                // Decode the next block
+                int framesDecoded = _flakeReader.Read(_decodeBuffer, 4096);
+                if (framesDecoded == 0) break;
+
+                _pendingBytes  = _decodeBuffer.Bytes;
+                _pendingOffset = 0;
+                _pendingEnd    = framesDecoded * bytesPerFrame;
+            }
+
+            // Align to a whole frame boundary before returning
+            int aligned = written - (written % bytesPerFrame);
+            return aligned;
+        }
+
+        public void Dispose()
+        {
+            _playbackReader.Dispose();
+            // FlakeReader does not implement IDisposable; nothing to dispose
+        }
+
+        // ── Float sample provider (waveform rendering) ─────────────────────
 
         private sealed class FlakeReaderSampleProvider : ISampleProvider
         {
             private readonly FlakeReader _flakeReader;
-            private readonly AudioBuffer _buf;
-            private readonly int _channels;
-            private readonly int _bytesPerSample;
-            private readonly float _scale;
+            private AudioBuffer _buf = null!;
+            private int _channels;
+            private int _bytesPerSample;
+            private float _scale;
             private byte[]? _rawBytes;
             private int _bufByteOffset;
             private int _bufByteEnd;
 
-            public FlakeReaderSampleProvider(string filePath)
+            /// <summary>
+            /// Shared-reader constructor: wraps an existing <see cref="FlakeReader"/> at
+            /// its current position (used for playback after a seek).
+            /// </summary>
+            public FlakeReaderSampleProvider(AudioPCMConfig pcm, FlakeReader sharedReader)
             {
+                _flakeReader = sharedReader;
+                Init(pcm);
+            }
+
+            /// <summary>
+            /// File-open constructor: opens an independent reader from position 0
+            /// (kept for any caller that needs a standalone reader at the start of the file).
+            /// </summary>
+            public FlakeReaderSampleProvider(AudioPCMConfig pcm, string filePath)
+            {
+                // Open an independent FlakeReader so callers don't share read position
                 _flakeReader = new FlakeReader(filePath, null);
-                var pcm = _flakeReader.PCM;
+                Init(pcm);
+            }
+
+            private void Init(AudioPCMConfig pcm)
+            {
                 _channels = pcm.ChannelCount;
                 _bytesPerSample = (pcm.BitsPerSample + 7) / 8;
                 _scale = pcm.BitsPerSample <= 16 ? 32768f
@@ -114,7 +221,8 @@ namespace NoIDSoftwork.AudioProcessor
                 WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(pcm.SampleRate, pcm.ChannelCount);
             }
 
-            public WaveFormat WaveFormat { get; }
+            public WaveFormat WaveFormat { get; private set; } = null!;
+
 
             public int Read(float[] buffer, int offset, int count)
             {
@@ -125,7 +233,7 @@ namespace NoIDSoftwork.AudioProcessor
                     {
                         int framesRead = _flakeReader.Read(_buf, 4096);
                         if (framesRead == 0) break;
-                        _rawBytes = _buf.Bytes; // AudioBuffer.Interlace stored PCM here
+                        _rawBytes = _buf.Bytes;
                         _bufByteOffset = 0;
                         _bufByteEnd = framesRead * _channels * _bytesPerSample;
                     }

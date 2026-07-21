@@ -171,15 +171,23 @@ namespace PaDDY
                     var sampleProvider = reader.AsSampleProvider();
                     var waveFormat = reader.WaveFormat;
                     int channels = waveFormat.Channels;
-                    long totalMonoSamples = (long)(totalDurationSeconds * waveFormat.SampleRate);
 
-                    float[] buffer = new float[waveFormat.SampleRate * channels]; // 1 sec chunks
-                    peaks = new (float min, float max)[width];
-                    for (int i = 0; i < width; i++)
-                        peaks[i] = (0f, 0f);
-
+                    // Pass 1: Decode all samples and accumulate min/max into a flat list.
+                    // We don't know the exact sample count up-front (TotalTime estimate from
+                    // different decoders can differ), so we use a dynamic list keyed by
+                    // time-fraction bucket and resize at the end.
+                    float[] buffer = new float[waveFormat.SampleRate * channels]; // 1-sec chunks
+                    var dynamicPeaks = new List<(float min, float max)>();
                     long samplesRead = 0;
                     int read;
+
+                    // First decode pass — accumulate peaks into a per-sample list
+                    // (temporarily one entry per mono sample; we merge into width buckets below)
+                    // To avoid huge allocations we track min/max per 64-sample block
+                    const int blockSize = 64;
+                    float blockMin = 0f, blockMax = 0f;
+                    int blockCount = 0;
+
                     while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
                     {
                         int monoRead = read / channels;
@@ -190,17 +198,39 @@ namespace PaDDY
                                 sample += buffer[i * channels + ch];
                             sample /= channels;
 
-                            long monoIndex = samplesRead + i;
-                            int bucket = totalMonoSamples > 0
-                                ? (int)(monoIndex * width / totalMonoSamples)
-                                : 0;
-                            if (bucket >= width) bucket = width - 1;
+                            if (sample < blockMin) blockMin = sample;
+                            if (sample > blockMax) blockMax = sample;
+                            blockCount++;
 
-                            if (sample < peaks[bucket].min) peaks[bucket] = (sample, peaks[bucket].max);
-                            if (sample > peaks[bucket].max) peaks[bucket] = (peaks[bucket].min, sample);
+                            if (blockCount >= blockSize)
+                            {
+                                dynamicPeaks.Add((blockMin, blockMax));
+                                blockMin = 0f; blockMax = 0f; blockCount = 0;
+                            }
                         }
                         samplesRead += monoRead;
                     }
+                    if (blockCount > 0)
+                        dynamicPeaks.Add((blockMin, blockMax));
+
+                    // Pass 2: Merge dynamicPeaks into exactly 'width' pixel buckets.
+                    // totalMonoSamples is now the ground truth from what was actually decoded.
+                    peaks = new (float min, float max)[width];
+                    for (int i = 0; i < width; i++) peaks[i] = (0f, 0f);
+
+                    int dynCount = dynamicPeaks.Count;
+                    if (dynCount > 0)
+                    {
+                        for (int bi = 0; bi < dynCount; bi++)
+                        {
+                            int bucket = (int)((long)bi * width / dynCount);
+                            if (bucket >= width) bucket = width - 1;
+                            var (dMin, dMax) = dynamicPeaks[bi];
+                            if (dMin < peaks[bucket].min) peaks[bucket] = (dMin, peaks[bucket].max);
+                            if (dMax > peaks[bucket].max) peaks[bucket] = (peaks[bucket].min, dMax);
+                        }
+                    }
+
                 });
                 success = true;
             }
@@ -1232,38 +1262,28 @@ namespace PaDDY
                 {
                     var format = reader.WaveFormat;
 
-                    // Advance to the trim start point.
-                    // For Opus files, OpusOggReadStream.SeekTo does not clear its internal
-                    // _nextDataPacket after seeking, so the first decoded frame is stale audio
-                    // from before the seek.  SeekTo(0) also corrupts stream state entirely.
-                    // For FLAC, FlacReader.Position silently fails to seek when the target sample
-                    // falls within the final block (no frame has SampleOffset >= target), leaving
-                    // the reader at position 0 and causing the wrong region to be encoded.
-                    // Use decode-and-discard for both Opus and FLAC to guarantee exact seek accuracy.
+                    // Seek to trim start.
+                    // For Opus: SeekTo can surface stale packets, so use decode-and-discard.
+                    // For FLAC: FlacReaderAdapter.CurrentTime now seeks via FlakeReader.Position,
+                    //   which is sample-frame accurate and does not silently fail.
+                    // For all other formats: CurrentTime seek is reliable.
                     string fileExt = Path.GetExtension(_filePath).TrimStart('.').ToLowerInvariant();
                     if (startSec > 0.001)
                     {
-                        if (fileExt == "opus" || fileExt == "flac")
+                        if (fileExt == "opus")
                         {
-                            if (fileExt == "flac")
+                            // Opus still needs decode-and-discard because SeekTo can surface stale packets.
+                            int blockAlignSkip = format.BlockAlign;
+                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                            skipBytes = skipBytes / blockAlignSkip * blockAlignSkip;
+                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                            long skipped = 0;
+                            while (skipped < skipBytes)
                             {
-                                reader.CurrentTime = TimeSpan.FromSeconds(startSec);
-                            }
-                            else
-                            {
-                                // Opus still needs decode-and-discard because SeekTo can surface stale packets.
-                                int blockAlignSkip = format.BlockAlign;
-                                long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
-                                skipBytes = skipBytes / blockAlignSkip * blockAlignSkip;
-                                byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
-                                long skipped = 0;
-                                while (skipped < skipBytes)
-                                {
-                                    int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
-                                    int readSkip = reader.Read(skipBuf, 0, toSkip);
-                                    if (readSkip == 0) break;
-                                    skipped += readSkip;
-                                }
+                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                if (readSkip == 0) break;
+                                skipped += readSkip;
                             }
                         }
                         else
@@ -1272,12 +1292,14 @@ namespace PaDDY
                         }
                     }
 
-                    // Duration of the trimmed region in bytes
+                    // Duration of the trimmed region.
+                    // Use frame count to avoid AverageBytesPerSecond estimation errors
+                    // (especially relevant for FLAC where the PCM layout from FlakeReader
+                    //  is now exact integer PCM and sampleRate * blockAlign is the real rate).
                     double trimDuration = endSec - startSec;
-                    long bytesToWrite = (long)(trimDuration * format.AverageBytesPerSecond);
                     int blockAlign = format.BlockAlign;
-                    bytesToWrite = bytesToWrite / blockAlign * blockAlign;
-                    if (bytesToWrite <= 0) return;
+                    long framesToWrite = (long)(trimDuration * format.SampleRate);
+                    if (framesToWrite <= 0) return;
 
                     float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
 
@@ -1289,10 +1311,11 @@ namespace PaDDY
                     recorder.BeginRecording(tempPath, format);
 
                     byte[] buffer = new byte[format.SampleRate * blockAlign];
-                    long written = 0;
-                    while (written < bytesToWrite)
+                    long framesWritten = 0;
+                    while (framesWritten < framesToWrite)
                     {
-                        int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
+                        long framesRemaining = framesToWrite - framesWritten;
+                        int toRead = (int)Math.Min(buffer.Length, framesRemaining * blockAlign);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
                         int alignedRead = AlignRecordedByteCount(read, format);
@@ -1301,7 +1324,7 @@ namespace PaDDY
                             ApplyGainToBuffer(buffer, alignedRead, format, gainFactor);
                         ApplyEffectsToBuffer(buffer, alignedRead, format, effectChain);
                         recorder.AppendSamples(buffer, 0, alignedRead);
-                        written += alignedRead;
+                        framesWritten += alignedRead / blockAlign;
                     }
                     recorder.Finish();
                 }
@@ -1366,25 +1389,18 @@ namespace PaDDY
                     string fileExt = ext.TrimStart('.').ToLowerInvariant();
                     if (startSec > 0.001)
                     {
-                        if (fileExt == "opus" || fileExt == "flac")
+                        if (fileExt == "opus")
                         {
-                            if (fileExt == "flac")
+                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                            skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
+                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                            long skipped = 0;
+                            while (skipped < skipBytes)
                             {
-                                reader.CurrentTime = TimeSpan.FromSeconds(startSec);
-                            }
-                            else
-                            {
-                                long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
-                                skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
-                                byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
-                                long skipped = 0;
-                                while (skipped < skipBytes)
-                                {
-                                    int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
-                                    int readSkip = reader.Read(skipBuf, 0, toSkip);
-                                    if (readSkip == 0) break;
-                                    skipped += readSkip;
-                                }
+                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                if (readSkip == 0) break;
+                                skipped += readSkip;
                             }
                         }
                         else
@@ -1394,10 +1410,9 @@ namespace PaDDY
                     }
 
                     double trimDuration = endSec - startSec;
-                    long bytesToWrite = (long)(trimDuration * format.AverageBytesPerSecond);
                     int blockAlign = format.BlockAlign;
-                    bytesToWrite = bytesToWrite / blockAlign * blockAlign;
-                    if (bytesToWrite <= 0) return;
+                    long framesToWrite = (long)(trimDuration * format.SampleRate);
+                    if (framesToWrite <= 0) return;
 
                     float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
 
@@ -1409,10 +1424,11 @@ namespace PaDDY
                     recorder.BeginRecording(tempPath, format);
 
                     byte[] buffer = new byte[format.SampleRate * blockAlign];
-                    long written = 0;
-                    while (written < bytesToWrite)
+                    long framesWritten = 0;
+                    while (framesWritten < framesToWrite)
                     {
-                        int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
+                        long framesRemaining = framesToWrite - framesWritten;
+                        int toRead = (int)Math.Min(buffer.Length, framesRemaining * blockAlign);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
                         int alignedRead = AlignRecordedByteCount(read, format);
@@ -1421,7 +1437,7 @@ namespace PaDDY
                             ApplyGainToBuffer(buffer, alignedRead, format, gainFactor);
                         ApplyEffectsToBuffer(buffer, alignedRead, format, effectChain);
                         recorder.AppendSamples(buffer, 0, alignedRead);
-                        written += alignedRead;
+                        framesWritten += alignedRead / blockAlign;
                     }
                     recorder.Finish();
                 }
