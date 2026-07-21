@@ -170,6 +170,14 @@ namespace PaDDY
         private DateTime _monitorPeakHoldTimeL = DateTime.MinValue;
         private DateTime _monitorPeakHoldTimeR = DateTime.MinValue;
 
+        // Last known meter levels (linear)
+        private double _lastRmsL;
+        private double _lastRmsR;
+        private double _lastOutputRmsL;
+        private double _lastOutputRmsR;
+        private double _lastMonitorRmsL;
+        private double _lastMonitorRmsR;
+
         // Meter decay animation (input)
         private System.Windows.Threading.DispatcherTimer? _meterDecayTimer;
         private System.Windows.Threading.DispatcherTimer? _inputMeterResetTimer;
@@ -243,11 +251,13 @@ namespace PaDDY
             {
                 UpdateThresholdMarker();
                 Helpers.ThemeManager.UpdateMeterSkinSize(ThresholdCanvas.ActualWidth);
+                UpdateInputMeterOverlaysLayout();
+                UpdateOutputMeterOverlaysLayout();
             };
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
-            PadMonitorMeterHostL.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
-            PadMonitorMeterHostR.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
+            PadMonitorMeterHostL.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
+            PadMonitorMeterHostR.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
             
             App.DebugModeChanged += () =>
             {
@@ -2007,6 +2017,9 @@ namespace PaDDY
 
         private void OnRmsChanged(double left, double right)
         {
+            _lastRmsL = left;
+            _lastRmsR = right;
+
             // Throttle OUTSIDE the Dispatcher call to avoid flooding the UI message queue
             var now = DateTime.UtcNow;
             if ((now - _lastInputMeterTick).TotalMilliseconds < 30)
@@ -2050,8 +2063,46 @@ namespace PaDDY
             }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
+        private void UpdateInputMeterOverlaysLayout()
+        {
+            double meterWidth = ThresholdCanvas.ActualWidth;
+            if (meterWidth <= 0) return;
+
+            if (_meterDecayTimer != null && _meterDecayTimer.IsEnabled)
+            {
+                _decayTargetL = meterWidth;
+                _decayTargetR = meterWidth;
+                return;
+            }
+
+            if (_lastRmsL <= 0 || MonitorToggle.IsChecked != true || !_inputMeterUpdatesEnabled)
+            {
+                MeterOverlayL.Width = 10000;
+            }
+            else
+            {
+                double dbL = LinearToDb(_lastRmsL);
+                double filledL = DbToMeterFraction(dbL) * meterWidth;
+                MeterOverlayL.Width = Math.Max(0, meterWidth - filledL);
+            }
+
+            if (_lastRmsR <= 0 || MonitorToggle.IsChecked != true || !_inputMeterUpdatesEnabled)
+            {
+                MeterOverlayR.Width = 10000;
+            }
+            else
+            {
+                double dbR = LinearToDb(_lastRmsR);
+                double filledR = DbToMeterFraction(dbR) * meterWidth;
+                MeterOverlayR.Width = Math.Max(0, meterWidth - filledR);
+            }
+        }
+
         private void UpdateOutputMeter(double left, double right)
         {
+            _lastOutputRmsL = left;
+            _lastOutputRmsR = right;
+
             var now = DateTime.UtcNow;
             if ((now - _lastOutputMeterTick).TotalMilliseconds < 30)
                 return;
@@ -2090,8 +2141,46 @@ namespace PaDDY
             }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
+        private void UpdateOutputMeterOverlaysLayout()
+        {
+            double meterWidth = ThresholdCanvas.ActualWidth;
+            if (meterWidth <= 0) return;
+
+            if (_outputMeterDecayTimer != null && _outputMeterDecayTimer.IsEnabled)
+            {
+                _outputDecayTargetL = meterWidth;
+                _outputDecayTargetR = meterWidth;
+                return;
+            }
+
+            if (_lastOutputRmsL <= 0)
+            {
+                OutputMeterOverlayL.Width = 10000;
+            }
+            else
+            {
+                double dbL = LinearToDb(_lastOutputRmsL);
+                double filledL = DbToMeterFraction(dbL) * meterWidth;
+                OutputMeterOverlayL.Width = Math.Max(0, meterWidth - filledL);
+            }
+
+            if (_lastOutputRmsR <= 0)
+            {
+                OutputMeterOverlayR.Width = 10000;
+            }
+            else
+            {
+                double dbR = LinearToDb(_lastOutputRmsR);
+                double filledR = DbToMeterFraction(dbR) * meterWidth;
+                OutputMeterOverlayR.Width = Math.Max(0, meterWidth - filledR);
+            }
+        }
+
         private void UpdatePadMonitorMeter(double left, double right)
         {
+            _lastMonitorRmsL = left;
+            _lastMonitorRmsR = right;
+
             var now = DateTime.UtcNow;
             if ((now - _lastMonitorMeterTick).TotalMilliseconds < 30)
                 return;
@@ -2129,6 +2218,45 @@ namespace PaDDY
                 MonitorPeakIndicatorL.Background = (now - _monitorPeakHoldTimeL).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
                 MonitorPeakIndicatorR.Background = (now - _monitorPeakHoldTimeR).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
             }), System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+        private void UpdateMonitorMeterOverlaysLayout()
+        {
+            if (!_settings.ListenOutputEnabled)
+            {
+                ResetPadMonitorMeter();
+                return;
+            }
+
+            double meterWidthL = PadMonitorMeterHostL.ActualWidth;
+            if (meterWidthL > 0)
+            {
+                if (_lastMonitorRmsL <= 0)
+                {
+                    PadMonitorMeterOverlayL.Width = 10000;
+                }
+                else
+                {
+                    double dbL = LinearToDb(_lastMonitorRmsL);
+                    double filledL = DbToMeterFraction(dbL) * meterWidthL;
+                    PadMonitorMeterOverlayL.Width = Math.Max(0, meterWidthL - filledL);
+                }
+            }
+
+            double meterWidthR = PadMonitorMeterHostR.ActualWidth;
+            if (meterWidthR > 0)
+            {
+                if (_lastMonitorRmsR <= 0)
+                {
+                    PadMonitorMeterOverlayR.Width = 10000;
+                }
+                else
+                {
+                    double dbR = LinearToDb(_lastMonitorRmsR);
+                    double filledR = DbToMeterFraction(dbR) * meterWidthR;
+                    PadMonitorMeterOverlayR.Width = Math.Max(0, meterWidthR - filledR);
+                }
+            }
         }
 
         private void StartOutputMeterDecay()
