@@ -870,7 +870,7 @@ namespace PaDDY
         {
             bool expand = EffectsPanelContent.Visibility == Visibility.Collapsed;
             EffectsPanelContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            EffectsPanelChevron.Text = expand ? "\u25C4" : "\u25BA";
+            EffectsPanelChevron.Text = expand ? "▼ HIDE PROCESSOR RACK" : "▲ SHOW PROCESSOR RACK";
         }
 
         private void FadeHeaderButton_Click(object sender, RoutedEventArgs e)
