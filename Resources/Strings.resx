@@ -266,7 +266,6 @@
   <data name="RestoreBtn" xml:space="preserve"><value>Restore Backup</value></data>
 
   <!-- Audio Editor -->
-  <data name="AudioEditorTitle" xml:space="preserve"><value>PaDDY — Audio Editor</value></data>
   <data name="BtnPlay" xml:space="preserve"><value>Play</value></data>
   <data name="BtnPause" xml:space="preserve"><value>Pause</value></data>
   <data name="BtnTrim" xml:space="preserve"><value>Trim Selection</value></data>
@@ -293,6 +292,41 @@
   <data name="AboutDescription" xml:space="preserve"><value>Real-Time Retro Soundboard &amp; Intelligent Buffer Capture Engine</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
   <data name="AboutCredits" xml:space="preserve"><value>Credits &amp; Licensing</value></data>
+
+  <!-- Audio Editor & FX -->
+  <data name="AudioEditorTitle" xml:space="preserve"><value>Audio Editor &amp; Trim</value></data>
+  <data name="TrimmedLabel" xml:space="preserve"><value>Trimmed: {0}</value></data>
+  <data name="PreviewBtn" xml:space="preserve"><value>▶  Preview</value></data>
+  <data name="ZoomLabel" xml:space="preserve"><value>Zoom:</value></data>
+  <data name="EffectsProcessorHeader" xml:space="preserve"><value>EFFECTS PROCESSOR</value></data>
+  <data name="FxGain" xml:space="preserve"><value>Gain</value></data>
+  <data name="FxFade" xml:space="preserve"><value>Fade In / Fade Out</value></data>
+  <data name="FxFadeInMs" xml:space="preserve"><value>Fade In (ms)</value></data>
+  <data name="FxFadeOutMs" xml:space="preserve"><value>Fade Out (ms)</value></data>
+  <data name="FxNoiseGate" xml:space="preserve"><value>Noise Gate</value></data>
+  <data name="FxThresholdDb" xml:space="preserve"><value>Threshold (dB)</value></data>
+  <data name="FxAttackMs" xml:space="preserve"><value>Attack (ms)</value></data>
+  <data name="FxReleaseMs" xml:space="preserve"><value>Release (ms)</value></data>
+  <data name="FxPitchShift" xml:space="preserve"><value>Pitch Shift</value></data>
+  <data name="FxPitchSemitones" xml:space="preserve"><value>Pitch (semitones)</value></data>
+  <data name="FxGrainSizeMs" xml:space="preserve"><value>Grain Size (ms)</value></data>
+  <data name="FxMixWet" xml:space="preserve"><value>Mix (wet)</value></data>
+  <data name="FxCompressor" xml:space="preserve"><value>Compressor</value></data>
+  <data name="FxRatio" xml:space="preserve"><value>Ratio</value></data>
+  <data name="FxMakeupDb" xml:space="preserve"><value>Makeup (dB)</value></data>
+  <data name="FxDistortion" xml:space="preserve"><value>Distortion</value></data>
+  <data name="FxDrive" xml:space="preserve"><value>Drive</value></data>
+  <data name="FxOutput" xml:space="preserve"><value>Output</value></data>
+  <data name="FxEcho" xml:space="preserve"><value>Echo</value></data>
+  <data name="FxDelayMs" xml:space="preserve"><value>Delay (ms)</value></data>
+  <data name="FxFeedback" xml:space="preserve"><value>Feedback</value></data>
+  <data name="FxReverb" xml:space="preserve"><value>Reverb</value></data>
+  <data name="FxRoomSize" xml:space="preserve"><value>Room Size</value></data>
+  <data name="FxDamping" xml:space="preserve"><value>Damping</value></data>
+  <data name="FxEqualizer" xml:space="preserve"><value>Equalizer (5-Band)</value></data>
+  <data name="Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="AddToFavourites" xml:space="preserve"><value>Add to Favourites</value></data>
+  <data name="NonDestructivePlayback" xml:space="preserve"><value>Non-Destructive Playback</value></data>
 
   <!-- Dialogs & Buttons -->
   <data name="ResetAll" xml:space="preserve"><value>Reset All</value></data>

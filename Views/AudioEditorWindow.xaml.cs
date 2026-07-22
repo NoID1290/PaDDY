@@ -602,7 +602,7 @@ namespace PaDDY
 
             StartTimeLabel.Text = $"{startSec:0.00}s";
             EndTimeLabel.Text = $"{endSec:0.00}s";
-            TrimmedDurationLabel.Text = $"Trimmed: {FormatTime(TimeSpan.FromSeconds(trimmed))}";
+            TrimmedDurationLabel.Text = string.Format(LocalizationManager.Instance["TrimmedLabel"], FormatTime(TimeSpan.FromSeconds(trimmed)));
 
             SaveBtn.IsEnabled = trimmed >= MinTrimSeconds;
         }

@@ -266,7 +266,6 @@
   <data name="RestoreBtn" xml:space="preserve"><value>Restaurer la sauvegarde</value></data>
 
   <!-- Audio Editor -->
-  <data name="AudioEditorTitle" xml:space="preserve"><value>PaDDY — Éditeur Audio</value></data>
   <data name="BtnPlay" xml:space="preserve"><value>Lecture</value></data>
   <data name="BtnPause" xml:space="preserve"><value>Pause</value></data>
   <data name="BtnTrim" xml:space="preserve"><value>Rogner la sélection</value></data>
@@ -293,6 +292,41 @@
   <data name="AboutDescription" xml:space="preserve"><value>Table de son rétro temps réel &amp; Moteur de capture intelligent</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
   <data name="AboutCredits" xml:space="preserve"><value>Crédits &amp; Licences</value></data>
+
+  <!-- Audio Editor & FX -->
+  <data name="AudioEditorTitle" xml:space="preserve"><value>Éditeur Audio &amp; Rognage</value></data>
+  <data name="TrimmedLabel" xml:space="preserve"><value>Rogné : {0}</value></data>
+  <data name="PreviewBtn" xml:space="preserve"><value>▶  Aperçu</value></data>
+  <data name="ZoomLabel" xml:space="preserve"><value>Zoom :</value></data>
+  <data name="EffectsProcessorHeader" xml:space="preserve"><value>PROCESSEUR D'EFFETS</value></data>
+  <data name="FxGain" xml:space="preserve"><value>Gain</value></data>
+  <data name="FxFade" xml:space="preserve"><value>Fondu d'entrée / Fondu de sortie</value></data>
+  <data name="FxFadeInMs" xml:space="preserve"><value>Fondu d'entrée (ms)</value></data>
+  <data name="FxFadeOutMs" xml:space="preserve"><value>Fondu de sortie (ms)</value></data>
+  <data name="FxNoiseGate" xml:space="preserve"><value>Noise Gate</value></data>
+  <data name="FxThresholdDb" xml:space="preserve"><value>Seuil (dB)</value></data>
+  <data name="FxAttackMs" xml:space="preserve"><value>Attaque (ms)</value></data>
+  <data name="FxReleaseMs" xml:space="preserve"><value>Relâchement (ms)</value></data>
+  <data name="FxPitchShift" xml:space="preserve"><value>Modification de hauteur</value></data>
+  <data name="FxPitchSemitones" xml:space="preserve"><value>Hauteur (demi-tons)</value></data>
+  <data name="FxGrainSizeMs" xml:space="preserve"><value>Taille de grain (ms)</value></data>
+  <data name="FxMixWet" xml:space="preserve"><value>Mixage (effet)</value></data>
+  <data name="FxCompressor" xml:space="preserve"><value>Compresseur</value></data>
+  <data name="FxRatio" xml:space="preserve"><value>Ratio</value></data>
+  <data name="FxMakeupDb" xml:space="preserve"><value>Gain de compensation (dB)</value></data>
+  <data name="FxDistortion" xml:space="preserve"><value>Distorsion</value></data>
+  <data name="FxDrive" xml:space="preserve"><value>Surcharge (Drive)</value></data>
+  <data name="FxOutput" xml:space="preserve"><value>Sortie</value></data>
+  <data name="FxEcho" xml:space="preserve"><value>Écho</value></data>
+  <data name="FxDelayMs" xml:space="preserve"><value>Délai (ms)</value></data>
+  <data name="FxFeedback" xml:space="preserve"><value>Réinjection (Feedback)</value></data>
+  <data name="FxReverb" xml:space="preserve"><value>Réverbération</value></data>
+  <data name="FxRoomSize" xml:space="preserve"><value>Taille de pièce</value></data>
+  <data name="FxDamping" xml:space="preserve"><value>Amortissement</value></data>
+  <data name="FxEqualizer" xml:space="preserve"><value>Égaliseur (5 Bandes)</value></data>
+  <data name="Enable" xml:space="preserve"><value>Activer</value></data>
+  <data name="AddToFavourites" xml:space="preserve"><value>Ajouter aux favoris</value></data>
+  <data name="NonDestructivePlayback" xml:space="preserve"><value>Lecture non destructive</value></data>
 
   <!-- Dialogs & Buttons -->
   <data name="ResetAll" xml:space="preserve"><value>Tout réinitialiser</value></data>

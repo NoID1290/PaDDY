@@ -71,7 +71,7 @@
                         BorderThickness="0,0,0,1"
                         CornerRadius="12,12,0,0">
                     <Grid>
-                        <TextBlock Text="Audio Editor &amp; Trim"
+                        <TextBlock Text="{p:Loc AudioEditorTitle}"
                                    Foreground="{DynamicResource AccentTitleBrush}"
                                    FontSize="12"
                                    FontWeight="SemiBold"
@@ -271,7 +271,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button x:Name="PlayBtn"
                             Style="{StaticResource EditorBtn}"
-                            Content="▶  Preview"
+                            Content="{p:Loc PreviewBtn}"
                             Width="120"
                             Height="34"
                             FontSize="12.5"
@@ -289,7 +289,7 @@
 
                 <!-- Zoom Control -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Zoom:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Text="{p:Loc ZoomLabel}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <Slider x:Name="ZoomSlider"
                             Minimum="1" Maximum="10" Value="1"
                             Width="120"
@@ -338,8 +338,8 @@
 
                     <!-- Panel header -->
                     <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
-                        <TextBlock Text="EFFECTS PROCESSOR" Foreground="{DynamicResource AccentTitleBrush}" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <Button Content="Reset" HorizontalAlignment="Right"
+                        <TextBlock Text="{p:Loc EffectsProcessorHeader}" Foreground="{DynamicResource AccentTitleBrush}" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button Content="{p:Loc ResetAll}" HorizontalAlignment="Right"
                                 FontSize="10.5" Height="22" Padding="12,2"
                                 Click="ResetEffects_Click"/>
                     </Grid>
@@ -354,7 +354,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="56"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Gain"
+                            <TextBlock Grid.Column="0" Text="{p:Loc FxGain}"
                                        Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11.5" VerticalAlignment="Center"/>
                             <Slider x:Name="GainSlider" Grid.Column="1"
                                     Minimum="-24" Maximum="24" Value="0"
@@ -418,11 +418,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Fade In / Fade Out" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxFade}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="FadeChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="FadeEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="FadeEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <StackPanel x:Name="FadeContent" Visibility="Collapsed" Margin="0,4,0,0">
@@ -439,7 +439,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Fade In (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxFadeInMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="FadeInSlider" Minimum="0" Maximum="5000" TickFrequency="100" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="FadeInLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -451,7 +451,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Fade Out (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxFadeOutMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="FadeOutSlider" Minimum="0" Maximum="5000" TickFrequency="100" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="FadeOutLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -479,11 +479,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Noise Gate" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxNoiseGate}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="GateChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="GateEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="GateEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <StackPanel x:Name="GateContent" Visibility="Collapsed" Margin="0,4,0,0">
@@ -500,7 +500,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Threshold (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxThresholdDb}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="GateThresholdSlider" Minimum="-80" Maximum="0" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="GateThresholdLabel" Text="-40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -512,7 +512,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Attack (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxAttackMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="GateAttackSlider" Minimum="1" Maximum="200" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="GateAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -524,7 +524,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Release (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxReleaseMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="GateReleaseSlider" Minimum="10" Maximum="2000" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="GateReleaseLabel" Text="100" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -552,11 +552,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Pitch Shift" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxPitchShift}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="PitchShiftChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="PitchShiftEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="PitchShiftEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <StackPanel x:Name="PitchShiftContent" Visibility="Collapsed" Margin="0,4,0,0">
@@ -573,7 +573,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Pitch (semitones)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxPitchSemitones}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="PitchShiftSemitonesSlider" Minimum="-24" Maximum="24" TickFrequency="1" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="PitchShiftSemitonesLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -585,7 +585,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Grain Size (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxGrainSizeMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="PitchShiftGrainSizeSlider" Minimum="10" Maximum="500" TickFrequency="10" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="PitchShiftGrainSizeLabel" Text="50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -597,7 +597,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Mix (wet)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="PitchShiftMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="PitchShiftMixLabel" Text="1.00" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -625,11 +625,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Compressor" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxCompressor}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="CompressorChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="CompressorEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="CompressorEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <StackPanel x:Name="CompressorContent" Visibility="Collapsed" Margin="0,4,0,0">
@@ -646,7 +646,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Threshold (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxThresholdDb}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="CompThresholdSlider" Minimum="-60" Maximum="0" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompThresholdLabel" Text="-18" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -658,7 +658,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Ratio" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxRatio}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="CompRatioSlider" Minimum="1" Maximum="20" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompRatioLabel" Text="4.0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -670,7 +670,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Attack (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxAttackMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="CompAttackSlider" Minimum="1" Maximum="200" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -682,7 +682,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Release (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxReleaseMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="CompReleaseSlider" Minimum="10" Maximum="2000" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompReleaseLabel" Text="120" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -694,7 +694,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Makeup (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMakeupDb}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="CompMakeupSlider" Minimum="0" Maximum="24" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="CompMakeupLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -722,11 +722,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Distortion" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxDistortion}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="DistortionChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="DistortionEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="DistortionEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <StackPanel x:Name="DistortionContent" Visibility="Collapsed" Margin="0,4,0,0">
@@ -743,7 +743,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Drive" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxDrive}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="DistDriveSlider" Minimum="1" Maximum="50" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="DistDriveLabel" Text="8" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -755,7 +755,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Mix (wet)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="DistMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="DistMixLabel" Text="0.60" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -767,7 +767,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Output" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxOutput}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="DistOutputSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="DistOutputLabel" Text="0.80" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -795,11 +795,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Echo" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxEcho}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="EchoChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="EchoEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="EchoEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <StackPanel x:Name="EchoContent" Visibility="Collapsed" Margin="0,4,0,0">
@@ -818,7 +818,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Delay (ms)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxDelayMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="EchoDelaySlider" Minimum="50" Maximum="2000" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="EchoDelayLabel" Text="200" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -830,7 +830,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Feedback" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxFeedback}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="EchoFeedbackSlider" Minimum="0" Maximum="0.95" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="EchoFeedbackLabel" Text="0.30" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -842,7 +842,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Mix (wet)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="EchoMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="EchoMixLabel" Text="0.40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -870,11 +870,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Reverb" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxReverb}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="ReverbChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="ReverbEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="ReverbEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <StackPanel x:Name="ReverbContent" Visibility="Collapsed" Margin="0,4,0,0">
@@ -891,7 +891,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Room Size" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxRoomSize}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="ReverbRoomSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="ReverbRoomLabel" Text="0.50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -903,7 +903,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Damping" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxDamping}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="ReverbDampingSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="ReverbDampingLabel" Text="0.50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -915,7 +915,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Mix (wet)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
                                             <Slider Grid.Column="1" x:Name="ReverbMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
                                             <Border Grid.Column="2" Style="{StaticResource ValueBadge}" Margin="6,0,0,0">
                                                 <TextBlock x:Name="ReverbMixLabel" Text="0.30" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
@@ -943,11 +943,11 @@
                                                     <ColumnDefinition Width="22"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                <TextBlock Grid.Column="1" Text="Equalizer (5-Band)" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{p:Loc FxEqualizer}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0"/>
                                                 <TextBlock Grid.Column="2" x:Name="EqChevron" Text="&#x25BA;" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                             </Grid>
                                         </Button>
-                                        <CheckBox Grid.Column="1" x:Name="EqEnabledCheck" Content="Enable" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                        <CheckBox Grid.Column="1" x:Name="EqEnabledCheck" Content="{p:Loc Enable}" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" VerticalAlignment="Center" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                     </Grid>
                                     
                                     <!-- Horizontal 5-band EQ -->
@@ -1025,12 +1025,12 @@
                 <!-- Left: Checkboxes -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                     <CheckBox x:Name="SaveToFavCheckBox"
-                              Content="Add to Favourites"
+                              Content="{p:Loc AddToFavourites}"
                               Foreground="{DynamicResource SecondaryTextBrush}"
                               FontSize="11.5"
                               Margin="0,0,16,0"/>
                     <CheckBox x:Name="NonDestructiveCheckBox"
-                              Content="Non-Destructive Playback"
+                              Content="{p:Loc NonDestructivePlayback}"
                               Foreground="{DynamicResource SecondaryTextBrush}"
                               FontSize="11.5"
                               Checked="NonDestructiveCheckBox_Checked"
