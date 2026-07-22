@@ -42,6 +42,9 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             var plugins = new List<IVstEffect>();
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
+            // Ensure embedded VST plugins are extracted if missing from disk
+            EnsureEmbeddedPluginsExtracted(baseDir);
+
             // Load VST2 plugins from Plugins/VST2/
             string vst2Dir = Path.Combine(baseDir, "Plugins", "VST2");
             if (Directory.Exists(vst2Dir))
@@ -123,6 +126,45 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Extracts embedded default VST plugins to disk if they are missing or deleted.
+        /// </summary>
+        private static void EnsureEmbeddedPluginsExtracted(string baseDir)
+        {
+            var assembly = typeof(VstPluginManager).Assembly;
+            string[] embeddedPluginResources = new[]
+            {
+                "Plugins.VST2.mdaDe-ess.dll",
+                "Plugins.VST2.mdaDynamics.dll"
+            };
+
+            foreach (string resourceName in embeddedPluginResources)
+            {
+                try
+                {
+                    // Map logical resource name to output disk path (e.g. Plugins/VST2/mdaDe-ess.dll)
+                    string fileName = resourceName.Replace("Plugins.VST2.", "");
+                    string targetDir = Path.Combine(baseDir, "Plugins", "VST2");
+                    string targetPath = Path.Combine(targetDir, fileName);
+
+                    if (!File.Exists(targetPath))
+                    {
+                        Directory.CreateDirectory(targetDir);
+                        using var stream = assembly.GetManifestResourceStream(resourceName);
+                        if (stream != null)
+                        {
+                            using var fileStream = File.Create(targetPath);
+                            stream.CopyTo(fileStream);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to unpack embedded resource '{resourceName}': {ex.Message}");
+                }
+            }
         }
     }
 }

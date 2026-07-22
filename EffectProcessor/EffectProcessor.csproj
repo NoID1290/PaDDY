@@ -28,5 +28,11 @@
     <None Update="Plugins\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include="Plugins\VST2\mdaDe-ess.dll">
+      <LogicalName>Plugins.VST2.mdaDe-ess.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Plugins\VST2\mdaDynamics.dll">
+      <LogicalName>Plugins.VST2.mdaDynamics.dll</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
