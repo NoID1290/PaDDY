@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common / Controls -->
+  <data name="AppName" xml:space="preserve"><value>PaDDY</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Default" xml:space="preserve"><value>Default</value></data>
+
+  <!-- MainWindow -->
+  <data name="MainWindowTitle" xml:space="preserve"><value>PaDDY — Audio Soundboard &amp; Buffer</value></data>
+  <data name="NavRecordings" xml:space="preserve"><value>Recordings</value></data>
+  <data name="NavFavorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="NavPages" xml:space="preserve"><value>Pages</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="NavEffects" xml:space="preserve"><value>Effects</value></data>
+  <data name="NavAudioEditor" xml:space="preserve"><value>Audio Editor</value></data>
+  <data name="NavAbout" xml:space="preserve"><value>About</value></data>
+  <data name="BtnRecord" xml:space="preserve"><value>RECORD</value></data>
+  <data name="BtnRecording" xml:space="preserve"><value>RECORDING...</value></data>
+  <data name="BtnStop" xml:space="preserve"><value>STOP</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="StatusRecording" xml:space="preserve"><value>Recording in progress...</value></data>
+  <data name="StatusProcessing" xml:space="preserve"><value>Processing audio buffer...</value></data>
+  <data name="StatusPlaying" xml:space="preserve"><value>Playing sound...</value></data>
+  <data name="PadPageDefaultTitle" xml:space="preserve"><value>Main Page</value></data>
+  <data name="PadPageAdd" xml:space="preserve"><value>Add New Page</value></data>
+  <data name="PadPageRename" xml:space="preserve"><value>Rename Page</value></data>
+  <data name="PadPageDelete" xml:space="preserve"><value>Delete Page</value></data>
+
+  <!-- Context Menu -->
+  <data name="ContextPlay" xml:space="preserve"><value>Play</value></data>
+  <data name="ContextEdit" xml:space="preserve"><value>Edit Sound</value></data>
+  <data name="ContextRename" xml:space="preserve"><value>Rename Pad</value></data>
+  <data name="ContextDelete" xml:space="preserve"><value>Delete Pad</value></data>
+  <data name="ContextFavorite" xml:space="preserve"><value>Add to Favorites</value></data>
+  <data name="ContextUnfavorite" xml:space="preserve"><value>Remove from Favorites</value></data>
+  <data name="ContextColor" xml:space="preserve"><value>Change Pad Color</value></data>
+  <data name="ContextExport" xml:space="preserve"><value>Export File</value></data>
+
+  <!-- SettingsWindow -->
+  <data name="SettingsTitle" xml:space="preserve"><value>PaDDY — Settings</value></data>
+  <data name="SettingsTabGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="SettingsTabAudio" xml:space="preserve"><value>Audio Devices</value></data>
+  <data name="SettingsTabAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="SettingsTabOverlay" xml:space="preserve"><value>Overlay</value></data>
+  <data name="SettingsTabHotkeys" xml:space="preserve"><value>Hotkeys</value></data>
+  <data name="SettingsTabSpeech" xml:space="preserve"><value>Speech Recognition</value></data>
+  <data name="SettingsTabUpdates" xml:space="preserve"><value>Updates</value></data>
+
+  <!-- Settings Appearance -->
+  <data name="LanguageSetting" xml:space="preserve"><value>Language</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="LanguageFrench" xml:space="preserve"><value>Français</value></data>
+  <data name="ThemeSetting" xml:space="preserve"><value>Theme</value></data>
+  <data name="FontSetting" xml:space="preserve"><value>Font Family</value></data>
+  <data name="MeterSkinSetting" xml:space="preserve"><value>Audio Meter Skin</value></data>
+  <data name="PerformanceModeSetting" xml:space="preserve"><value>Performance Mode</value></data>
+  <data name="PauseAnimationsSetting" xml:space="preserve"><value>Pause Animations When Unfocused</value></data>
+
+  <!-- Audio Editor -->
+  <data name="AudioEditorTitle" xml:space="preserve"><value>PaDDY — Audio Editor</value></data>
+  <data name="BtnPlay" xml:space="preserve"><value>Play</value></data>
+  <data name="BtnPause" xml:space="preserve"><value>Pause</value></data>
+  <data name="BtnTrim" xml:space="preserve"><value>Trim Selection</value></data>
+  <data name="BtnCrop" xml:space="preserve"><value>Crop Outside</value></data>
+  <data name="BtnFadeIn" xml:space="preserve"><value>Fade In</value></data>
+  <data name="BtnFadeOut" xml:space="preserve"><value>Fade Out</value></data>
+  <data name="BtnVolume" xml:space="preserve"><value>Volume</value></data>
+  <data name="BtnNormalize" xml:space="preserve"><value>Normalize</value></data>
+  <data name="BtnVst" xml:space="preserve"><value>VST Effects</value></data>
+  <data name="BtnExportWav" xml:space="preserve"><value>Export WAV</value></data>
+  <data name="BtnExportMp3" xml:space="preserve"><value>Export MP3</value></data>
+
+  <!-- Effects -->
+  <data name="EffectsTitle" xml:space="preserve"><value>PaDDY — Real-Time FX</value></data>
+  <data name="EffectPitch" xml:space="preserve"><value>Pitch Shift</value></data>
+  <data name="EffectReverb" xml:space="preserve"><value>Reverb</value></data>
+  <data name="EffectEcho" xml:space="preserve"><value>Echo / Delay</value></data>
+  <data name="EffectEqualizer" xml:space="preserve"><value>Graphic Equalizer</value></data>
+  <data name="EffectPresets" xml:space="preserve"><value>FX Presets</value></data>
+  <data name="EffectBypass" xml:space="preserve"><value>Bypass All Effects</value></data>
+
+  <!-- About & Credits -->
+  <data name="AboutTitle" xml:space="preserve"><value>About PaDDY</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>Real-Time Retro Soundboard &amp; Intelligent Buffer Capture Engine</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="AboutCredits" xml:space="preserve"><value>Credits &amp; Licensing</value></data>
+
+  <!-- Dialogs -->
+  <data name="RenameDialogTitle" xml:space="preserve"><value>Rename Pad</value></data>
+  <data name="RenameDialogPrompt" xml:space="preserve"><value>Enter new title for this sound pad:</value></data>
+  <data name="DeleteAllTitle" xml:space="preserve"><value>Delete All Recordings</value></data>
+  <data name="DeleteAllPrompt" xml:space="preserve"><value>Are you sure you want to delete all non-favorite recordings? This action cannot be undone.</value></data>
+  <data name="ColorPickerTitle" xml:space="preserve"><value>Select Pad Color</value></data>
+
+  <!-- System Tray -->
+  <data name="TrayOpen" xml:space="preserve"><value>Open PaDDY</value></data>
+  <data name="TraySettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>Exit</value></data>
+  <data name="TrayStatus" xml:space="preserve"><value>PaDDY is running in background</value></data>
+</root>

@@ -76,6 +76,8 @@ namespace PaDDY
         public double OverlayOpacity { get; set; } = 0.9;
 
         // ---- Appearance ----
+        // Language code: "en", "fr"
+        public string Language { get; set; } = "en";
         // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula"
         public string Theme { get; set; } = "dark";
         // Audio meter skin: "default", "8bit", "70s", "neon", "grayscale", "inferno", "aurora", "cyber-sunset", "forest", "toxic"

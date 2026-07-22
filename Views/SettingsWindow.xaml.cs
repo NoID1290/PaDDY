@@ -33,6 +33,7 @@ namespace PaDDY
         public bool SelectedNewRecordingsNonDestructive { get; private set; }
 
         // Appearance / system
+        public string SelectedLanguage { get; private set; } = "en";
         public string SelectedTheme { get; private set; } = "dark";
         public string SelectedMeterSkin { get; private set; } = "default";
         public bool SelectedPerformanceMode { get; private set; }
@@ -177,7 +178,15 @@ namespace PaDDY
             // Trim editor output
             PopulateTrimOutputDevices();
 
-            // Appearance: theme + meter skin
+            // Appearance: language + theme + meter skin
+            SelectedLanguage = _settings.Language;
+            LanguageCombo.SelectionChanged -= LanguageCombo_SelectionChanged;
+            if (_settings.Language == "fr")
+                LanguageCombo.SelectedIndex = 1;
+            else
+                LanguageCombo.SelectedIndex = 0;
+            LanguageCombo.SelectionChanged += LanguageCombo_SelectionChanged;
+
             ThemeCombo.SelectionChanged -= ThemeCombo_SelectionChanged;
             ThemeCombo.Items.Clear();
             int themeIdx = 0;
@@ -255,6 +264,18 @@ namespace PaDDY
             // Auto-update
             AutoInstallUpdatesCheck.IsChecked = _settings.AutoInstallUpdates;
             DownloadBetaUpdatesCheck.IsChecked = _settings.DownloadBetaUpdates;
+        }
+
+        private void LanguageCombo_SelectionChanged(object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (LanguageCombo.SelectedItem is ComboBoxItem item && item.Tag is string lang)
+            {
+                SelectedLanguage = lang;
+                _settings.Language = lang;
+                LocalizationManager.Instance.SetCulture(lang);
+                _settings.Save();
+            }
         }
 
         private void ThemeCombo_SelectionChanged(object sender,

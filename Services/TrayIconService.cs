@@ -42,9 +42,16 @@ namespace PaDDY.Services
                 Renderer = new PaddyToolStripRenderer()
             };
 
-            var showItem = new ToolStripMenuItem("Show PaDDY", null, (_, _) => ShowRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
-            var settingsItem = new ToolStripMenuItem("Settings…", null, (_, _) => SettingsRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
-            var exitItem = new ToolStripMenuItem("Exit", null, (_, _) => ExitRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
+            var showItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayOpen"], null, (_, _) => ShowRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
+            var settingsItem = new ToolStripMenuItem(LocalizationManager.Instance["TraySettings"], null, (_, _) => SettingsRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
+            var exitItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayExit"], null, (_, _) => ExitRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
+
+            LocalizationManager.Instance.PropertyChanged += (_, _) =>
+            {
+                showItem.Text = LocalizationManager.Instance["TrayOpen"];
+                settingsItem.Text = LocalizationManager.Instance["TraySettings"];
+                exitItem.Text = LocalizationManager.Instance["TrayExit"];
+            };
 
             menu.Items.Add(showItem);
             menu.Items.Add(settingsItem);

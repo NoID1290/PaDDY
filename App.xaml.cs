@@ -115,6 +115,7 @@ public partial class App : WpfApplication
             PendingUpdateRestore = true;
 
         var settings = AppSettings.Load();
+        Services.LocalizationManager.Instance.SetCulture(settings.Language);
         ApplyFont(settings.AppFontVariant);
         Helpers.ThemeManager.ApplyTheme(settings.Theme);
         Helpers.ThemeManager.ApplyMeterSkin(settings.MeterSkin, settings.MeterDigitalDots);

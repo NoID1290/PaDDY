@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:controls="clr-namespace:PaDDY.Controls"
-        Title="PaDDY — Settings"
+        xmlns:p="clr-namespace:PaDDY.Helpers"
+        Title="{p:Loc SettingsTitle}"
         Icon="/PaDDY.ico"
         Width="880"
         Height="650"
@@ -563,6 +564,28 @@
                                 <!-- Header -->
                                 <TextBlock Text="Visual Customization" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
                                 <TextBlock Text="Customize typography, app themes, volume meters, and UI hardware rendering modes." FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+
+                                <!-- Language Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="{p:Loc LanguageSetting}" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <Grid Margin="0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{p:Loc LanguageSetting}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                            <TextBlock Text="Select user interface language." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="LanguageCombo" Grid.Column="1" Width="200" VerticalAlignment="Center" SelectionChanged="LanguageCombo_SelectionChanged">
+                                            <ComboBoxItem x:Name="LangEnItem" Content="{p:Loc LanguageEnglish}" Tag="en"/>
+                                            <ComboBoxItem x:Name="LangFrItem" Content="{p:Loc LanguageFrench}" Tag="fr"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
 
                                 <!-- Font Variant Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
