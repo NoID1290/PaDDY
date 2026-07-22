@@ -70,6 +70,45 @@
   <data name="NavEffects" xml:space="preserve"><value>Effets</value></data>
   <data name="NavAudioEditor" xml:space="preserve"><value>Éditeur Audio</value></data>
   <data name="NavAbout" xml:space="preserve"><value>À propos</value></data>
+  <data name="StartMonitoring" xml:space="preserve"><value>Démarrer la capture</value></data>
+  <data name="StopMonitoring" xml:space="preserve"><value>Arrêter la capture</value></data>
+  <data name="AudioPanel" xml:space="preserve"><value>Panneau Audio</value></data>
+  <data name="InputGroup" xml:space="preserve"><value>ENTRÉE</value></data>
+  <data name="SourceLabel" xml:space="preserve"><value>Source</value></data>
+  <data name="MicLineLabel" xml:space="preserve"><value>Micro/Ligne</value></data>
+  <data name="LoopbackLabel" xml:space="preserve"><value>Bouclage</value></data>
+  <data name="AppLoopbackLabel" xml:space="preserve"><value>Application</value></data>
+  <data name="VolumeLabel" xml:space="preserve"><value>Volume</value></data>
+  <data name="PadMonitoringGroup" xml:space="preserve"><value>ÉCOUTE DES PADS</value></data>
+  <data name="EnableMonitorCheck" xml:space="preserve"><value>Activer l'écoute</value></data>
+  <data name="DeviceLabel" xml:space="preserve"><value>Périphérique</value></data>
+  <data name="DetectionGroup" xml:space="preserve"><value>DÉTECTION</value></data>
+  <data name="ModeLabel" xml:space="preserve"><value>Mode</value></data>
+  <data name="SensitivityLabel" xml:space="preserve"><value>Sensibilité</value></data>
+  <data name="SilenceTimeoutLabel" xml:space="preserve"><value>Délai de silence</value></data>
+  <data name="OutputGroup" xml:space="preserve"><value>SORTIE</value></data>
+  <data name="OverlayGroup" xml:space="preserve"><value>INCRUSTATION</value></data>
+  <data name="EnableOverlayCheck" xml:space="preserve"><value>Activer l'incrustation en jeu</value></data>
+  <data name="OpacityLabel" xml:space="preserve"><value>Opacité</value></data>
+  <data name="FpsLabel" xml:space="preserve"><value>FPS</value></data>
+  <data name="RecordingsHeader" xml:space="preserve"><value>ENREGISTREMENTS</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Rechercher clips &amp; transcriptions...</value></data>
+  <data name="ImportAudioBtn" xml:space="preserve"><value>Importer Audio</value></data>
+  <data name="ClearPadsBtn" xml:space="preserve"><value>Effacer les pads</value></data>
+  <data name="DeleteAllFilesBtn" xml:space="preserve"><value>Supprimer tous les fichiers</value></data>
+  <data name="NoRecordingsHint" xml:space="preserve"><value>Aucun enregistrement pour le moment&#x0a;Démarrer la capture pour enregistrer des sons !</value></data>
+  <data name="StatusIdle" xml:space="preserve"><value>En attente — appuyez sur Démarrer pour commencer</value></data>
+  <data name="InputFormatPrefix" xml:space="preserve"><value>Format d'entrée : </value></data>
+  <data name="InputFormatWaiting" xml:space="preserve"><value>en attente de capture</value></data>
+  <data name="InputFormatDetecting" xml:space="preserve"><value>détection...</value></data>
+  <data name="RecordingFormatPrefix" xml:space="preserve"><value>Format d'enregistrement : </value></data>
+  <data name="StorageDataPrefix" xml:space="preserve"><value>Données de stockage : </value></data>
+  <data name="StorageDataFiles" xml:space="preserve"><value>{0} fichiers | {1}</value></data>
+  <data name="StorageDataError" xml:space="preserve"><value>Impossible de lire les données</value></data>
+  <data name="STTPrefix" xml:space="preserve"><value>STT-AR : </value></data>
+  <data name="STTUnavailable" xml:space="preserve"><value>indisponible</value></data>
+  <data name="STTEnabled" xml:space="preserve"><value>activé</value></data>
+  <data name="STTDisabled" xml:space="preserve"><value>désactivé</value></data>
   <data name="BtnRecord" xml:space="preserve"><value>ENREGISTRER</value></data>
   <data name="BtnRecording" xml:space="preserve"><value>ENREGISTREMENT...</value></data>
   <data name="BtnStop" xml:space="preserve"><value>ARRÊTER</value></data>
@@ -92,25 +131,139 @@
   <data name="ContextColor" xml:space="preserve"><value>Changer la couleur</value></data>
   <data name="ContextExport" xml:space="preserve"><value>Exporter le fichier</value></data>
 
-  <!-- SettingsWindow -->
+  <!-- SettingsWindow Tabs -->
   <data name="SettingsTitle" xml:space="preserve"><value>PaDDY — Paramètres</value></data>
   <data name="SettingsTabGeneral" xml:space="preserve"><value>Général</value></data>
+  <data name="SettingsTabNaming" xml:space="preserve"><value>Nommage &amp; IA</value></data>
   <data name="SettingsTabAudio" xml:space="preserve"><value>Périphériques Audio</value></data>
   <data name="SettingsTabAppearance" xml:space="preserve"><value>Apparence</value></data>
+  <data name="SettingsTabSystem" xml:space="preserve"><value>Système</value></data>
+  <data name="SettingsTabThirdParty" xml:space="preserve"><value>Options tierces</value></data>
+  <data name="SettingsTabBackup" xml:space="preserve"><value>Sauvegarde &amp; Restauration</value></data>
   <data name="SettingsTabOverlay" xml:space="preserve"><value>Incrustation</value></data>
   <data name="SettingsTabHotkeys" xml:space="preserve"><value>Raccourcis</value></data>
   <data name="SettingsTabSpeech" xml:space="preserve"><value>Reconnaissance Vocale</value></data>
   <data name="SettingsTabUpdates" xml:space="preserve"><value>Mises à jour</value></data>
 
+  <!-- Settings General / Recording Configuration -->
+  <data name="RecConfigHeader" xml:space="preserve"><value>Configuration de l'enregistrement</value></data>
+  <data name="RecConfigSubtitle" xml:space="preserve"><value>Configurez les formats de capture audio, la durée du tampon passé, les raccourcis et le nettoyage du disque.</value></data>
+  <data name="RecFormatGroup" xml:space="preserve"><value>FORMAT D'ENREGISTREMENT</value></data>
+  <data name="CodecLabel" xml:space="preserve"><value>Codec</value></data>
+  <data name="CodecDesc" xml:space="preserve"><value>Choisissez le format de compression audio pour les nouveaux enregistrements.</value></data>
+  <data name="NonDestructiveLabel" xml:space="preserve"><value>Effets et rognage non destructifs</value></data>
+  <data name="NonDestructiveDesc" xml:space="preserve"><value>Conservez l'audio source brut pour ajuster le gain, les effets et les limites ultérieurement.</value></data>
+  <data name="LoudnessNormGroup" xml:space="preserve"><value>NORMALISATION DU VOLUME (EBU R128)</value></data>
+  <data name="AutoNormLabel" xml:space="preserve"><value>Normalisation automatique du volume</value></data>
+  <data name="AutoNormDesc" xml:space="preserve"><value>Ajuste automatiquement le volume des nouveaux clips enregistrés et importés au niveau LUFS cible.</value></data>
+  <data name="TargetLoudnessLabel" xml:space="preserve"><value>Volume cible (LUFS)</value></data>
+  <data name="TargetLoudnessDesc" xml:space="preserve"><value>Niveau de volume cible standard (recommandation EBU R128 : -14.0 LUFS).</value></data>
+  <data name="BufferRecGroup" xml:space="preserve"><value>ENREGISTREMENT TAMPON</value></data>
+  <data name="PastBufferLabel" xml:space="preserve"><value>Durée du tampon passé</value></data>
+  <data name="PastBufferDesc" xml:space="preserve"><value>Conserve le tampon audio passé en RAM pour une capture instantanée par raccourci.</value></data>
+  <data name="HotkeysGroup" xml:space="preserve"><value>RACCOURCIS CLAVIER</value></data>
+  <data name="BufferHotkeyLabel" xml:space="preserve"><value>Raccourci de capture du tampon</value></data>
+  <data name="BufferHotkeyDesc" xml:space="preserve"><value>Raccourci global pour capturer et enregistrer le tampon audio passé.</value></data>
+  <data name="DiskCleanupGroup" xml:space="preserve"><value>DISQUE &amp; NETTOYAGE</value></data>
+  <data name="MaxRecordsLabel" xml:space="preserve"><value>Rétention maximale des enregistrements</value></data>
+  <data name="MaxRecordsDesc" xml:space="preserve"><value>Purge automatiquement les plus anciens enregistrements non favoris lorsque la limite est atteinte (0 = illimité).</value></data>
+
+  <!-- Settings Naming & AI -->
+  <data name="NamingHeader" xml:space="preserve"><value>Nommage &amp; Transcription IA</value></data>
+  <data name="NamingSubtitle" xml:space="preserve"><value>Configurez les modèles de titres de pads, la détection des processus et la transcription Whisper AI.</value></data>
+  <data name="PadNamingGroup" xml:space="preserve"><value>NOMMAGE DES NOUVEAUX PADS</value></data>
+  <data name="TitleTemplateLabel" xml:space="preserve"><value>Modèle de titre par défaut</value></data>
+  <data name="TitleTemplateDesc" xml:space="preserve"><value>Les espaces réservés doivent utiliser des accolades : {timestamp}, {codec}, {app}.</value></data>
+  <data name="IncludeAppLabel" xml:space="preserve"><value>Inclure le nom de l'application active</value></data>
+  <data name="IncludeAppDesc" xml:space="preserve"><value>Détecte et ajoute le nom de l'application active aux nouveaux titres de pads.</value></data>
+  <data name="SpeechGroup" xml:space="preserve"><value>TRANSCRIPTION VOCALE IA</value></data>
+  <data name="AutoRenameSpeechLabel" xml:space="preserve"><value>Nommage automatique via transcription</value></data>
+  <data name="AutoRenameSpeechDesc" xml:space="preserve"><value>Traite l'audio vocal avec Whisper AI pour nommer les fichiers selon le contenu parlé.</value></data>
+  <data name="WhisperModelLabel" xml:space="preserve"><value>Taille du modèle Whisper</value></data>
+  <data name="WhisperModelDesc" xml:space="preserve"><value>Sélectionnez le modèle de reconnaissance vocale. Les modèles plus grands sont plus précis mais utilisent plus de ressources.</value></data>
+  <data name="WhisperLangLabel" xml:space="preserve"><value>Langue de transcription</value></data>
+  <data name="WhisperLangDesc" xml:space="preserve"><value>Précisez le code de langue Whisper (ex. 'en', 'fr', 'de') ou définissez sur 'auto'.</value></data>
+  <data name="CudaLabel" xml:space="preserve"><value>Accélération GPU CUDA</value></data>
+  <data name="CudaDesc" xml:space="preserve"><value>Exploite le matériel NVIDIA CUDA pour accélérer l'exécution du modèle vocal.</value></data>
+
+  <!-- Settings Audio Devices -->
+  <data name="AudioDevicesHeader" xml:space="preserve"><value>Paramètres de lecture</value></data>
+  <data name="AudioDevicesSubtitle" xml:space="preserve"><value>Configurez le routage de sortie et l'écoute pour l'édition.</value></data>
+  <data name="TrimOutputGroup" xml:space="preserve"><value>SORTIE DE L'ÉDITEUR</value></data>
+  <data name="TrimOutputLabel" xml:space="preserve"><value>Périphérique de sortie de l'éditeur</value></data>
+  <data name="TrimOutputDesc" xml:space="preserve"><value>Redirige l'audio de lecture vers un périphérique spécifique pendant l'édition et l'écoute.</value></data>
+
   <!-- Settings Appearance -->
+  <data name="AppearanceHeader" xml:space="preserve"><value>Personnalisation visuelle</value></data>
+  <data name="AppearanceSubtitle" xml:space="preserve"><value>Personnalisez la typographie, les thèmes d'application, les VU-mètres et les modes de rendu graphique.</value></data>
   <data name="LanguageSetting" xml:space="preserve"><value>Langue</value></data>
+  <data name="SelectLanguageDesc" xml:space="preserve"><value>Sélectionnez la langue de l'interface utilisateur.</value></data>
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
   <data name="LanguageFrench" xml:space="preserve"><value>Français</value></data>
+  <data name="Download" xml:space="preserve"><value>Télécharger</value></data>
+  <data name="Remove" xml:space="preserve"><value>Supprimer</value></data>
   <data name="ThemeSetting" xml:space="preserve"><value>Thème</value></data>
   <data name="FontSetting" xml:space="preserve"><value>Police de caractères</value></data>
-  <data name="MeterSkinSetting" xml:space="preserve"><value>Apparence du VU-mètre</value></data>
+  <data name="FontGroup" xml:space="preserve"><value>POLICE DE CARACTÈRES</value></data>
+  <data name="FontLabel" xml:space="preserve"><value>Police typographique de l'application</value></data>
+  <data name="FontDesc" xml:space="preserve"><value>Choisissez l'épaisseur et le style de disposition de la police d'interface.</value></data>
+  <data name="ThemeGroup" xml:space="preserve"><value>THÈMES &amp; APPARENCES</value></data>
+  <data name="ThemeLabel" xml:space="preserve"><value>Thème de l'application</value></data>
+  <data name="ThemeDesc" xml:space="preserve"><value>Sélectionnez le thème visuel général et la palette de couleurs.</value></data>
+  <data name="MeterSkinSetting" xml:space="preserve"><value>Style du VU-mètre</value></data>
+  <data name="MeterSkinLabel" xml:space="preserve"><value>Style des VU-mètres audio</value></data>
+  <data name="MeterSkinDesc" xml:space="preserve"><value>Modifiez les thèmes de couleur et la disposition des VU-mètres d'entrée.</value></data>
+  <data name="DigitalDotsLabel" xml:space="preserve"><value>Points DEL numériques segmentés</value></data>
+  <data name="DigitalDotsDesc" xml:space="preserve"><value>Affiche les VU-mètres sous forme de points DEL rétro segmentés.</value></data>
+  <data name="PerfGroup" xml:space="preserve"><value>PERFORMANCE</value></data>
   <data name="PerformanceModeSetting" xml:space="preserve"><value>Mode performance</value></data>
+  <data name="PerfModeLabel" xml:space="preserve"><value>Mode performance basse consommation</value></data>
+  <data name="PerfModeDesc" xml:space="preserve"><value>Force le rendu CPU et limite les animations décoratives. Utile sur les ordinateurs portables pour réduire l'utilisation des ressources.</value></data>
   <data name="PauseAnimationsSetting" xml:space="preserve"><value>Mettre en pause les animations en arrière-plan</value></data>
+  <data name="PauseAnimLabel" xml:space="preserve"><value>Mettre en pause les animations en arrière-plan</value></data>
+  <data name="PauseAnimDesc" xml:space="preserve"><value>Arrête le rendu des animations lorsque PaDDY n'est pas la fenêtre active, libérant le CPU et GPU.</value></data>
+
+  <!-- Settings System -->
+  <data name="SystemHeader" xml:space="preserve"><value>Système &amp; Intégrations</value></data>
+  <data name="SystemSubtitle" xml:space="preserve"><value>Gérez les services en arrière-plan, la zone de notification, le démarrage et les extensions.</value></data>
+  <data name="TrayGroup" xml:space="preserve"><value>ZONE DE NOTIFICATION</value></data>
+  <data name="MinTrayLabel" xml:space="preserve"><value>Réduire dans la zone de notification</value></data>
+  <data name="MinTrayDesc" xml:space="preserve"><value>Déplace la fenêtre vers la zone de notification lorsqu'elle est réduite.</value></data>
+  <data name="CloseTrayLabel" xml:space="preserve"><value>Le bouton fermer réduit dans la zone de notification</value></data>
+  <data name="CloseTrayDesc" xml:space="preserve"><value>Cliquer sur le bouton fermer masque la fenêtre dans la zone de notification au lieu de fermer PaDDY.</value></data>
+  <data name="StartMinLabel" xml:space="preserve"><value>Démarrer réduit dans la zone de notification</value></data>
+  <data name="StartMinDesc" xml:space="preserve"><value>Lance l'application directement réduite dans la zone de notification.</value></data>
+  <data name="StartupGroup" xml:space="preserve"><value>DÉMARRAGE &amp; MISES À JOUR</value></data>
+  <data name="RunStartupLabel" xml:space="preserve"><value>Lancer au démarrage de Windows</value></data>
+  <data name="RunStartupDesc" xml:space="preserve"><value>Démarre automatiquement PaDDY au démarrage de Windows.</value></data>
+  <data name="AutoUpdateLabel" xml:space="preserve"><value>Installation automatique des mises à jour</value></data>
+  <data name="AutoUpdateDesc" xml:space="preserve"><value>Vérifie, télécharge, sauvegarde, installe et restaure les données automatiquement au démarrage.</value></data>
+  <data name="BetaUpdateLabel" xml:space="preserve"><value>Inclure les versions Bêta (Pré-versions)</value></data>
+  <data name="BetaUpdateDesc" xml:space="preserve"><value>Autorise le téléchargement des versions bêta / pré-versions de PaDDY lors de la vérification des mises à jour.</value></data>
+
+  <!-- Settings Third Party options -->
+  <data name="ThirdPartyHeader" xml:space="preserve"><value>Intégrations tierces</value></data>
+  <data name="ThirdPartySubtitle" xml:space="preserve"><value>Configurez les extensions tierces et intégrations externes.</value></data>
+  <data name="StreamDeckGroup" xml:space="preserve"><value>PLUGIN ELGATO STREAM DECK</value></data>
+  <data name="StreamDeckLabel" xml:space="preserve"><value>Installer le plugin Elgato</value></data>
+  <data name="StreamDeckDesc" xml:space="preserve"><value>Enregistre le plugin personnalisé dans Stream Deck pour la configuration des macros.</value></data>
+  <data name="InstallStreamDeckBtn" xml:space="preserve"><value>Installer le plugin Stream Deck</value></data>
+  <data name="DiscordGroup" xml:space="preserve"><value>DISCORD RICH PRESENCE</value></data>
+  <data name="DiscordLabel" xml:space="preserve"><value>Activer Discord Rich Presence</value></data>
+  <data name="DiscordDesc" xml:space="preserve"><value>Affiche le statut et les activités d'enregistrement directement sur Discord.</value></data>
+  <data name="DiscordClientIdLabel" xml:space="preserve"><value>ID Client Application Discord</value></data>
+  <data name="DiscordClientIdDesc" xml:space="preserve"><value>Définit un ID d'application développeur personnalisé. Laisser vide pour utiliser le client par défaut.</value></data>
+
+  <!-- Settings Backup & Restore -->
+  <data name="BackupHeader" xml:space="preserve"><value>Sauvegarde &amp; Restauration</value></data>
+  <data name="BackupSubtitle" xml:space="preserve"><value>Sécurisez et gérez vos enregistrements, votre base de données et la configuration des paramètres.</value></data>
+  <data name="DataMgmtGroup" xml:space="preserve"><value>GESTION DES DONNÉES</value></data>
+  <data name="BackupLabel" xml:space="preserve"><value>Sauvegarder les données de l'application</value></data>
+  <data name="BackupDesc" xml:space="preserve"><value>Crée une sauvegarde (.PADBACK) de tous les enregistrements, de la configuration et des pads.</value></data>
+  <data name="BackupBtn" xml:space="preserve"><value>Sauvegarder maintenant</value></data>
+  <data name="RestoreLabel" xml:space="preserve"><value>Restaurer les données de l'application</value></data>
+  <data name="RestoreDesc" xml:space="preserve"><value>Restaure tous les enregistrements, la configuration et les pads depuis un fichier de sauvegarde.</value></data>
+  <data name="RestoreBtn" xml:space="preserve"><value>Restaurer la sauvegarde</value></data>
 
   <!-- Audio Editor -->
   <data name="AudioEditorTitle" xml:space="preserve"><value>PaDDY — Éditeur Audio</value></data>
@@ -141,7 +294,13 @@
   <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
   <data name="AboutCredits" xml:space="preserve"><value>Crédits &amp; Licences</value></data>
 
-  <!-- Dialogs -->
+  <!-- Dialogs & Buttons -->
+  <data name="ResetAll" xml:space="preserve"><value>Tout réinitialiser</value></data>
+  <data name="OpenLicensesFolder" xml:space="preserve"><value>Ouvrir le dossier des licences</value></data>
+  <data name="ShortcutSaveBuffer" xml:space="preserve"><value>Enregistrer le tampon sur un pad</value></data>
+  <data name="ShortcutEditPad" xml:space="preserve"><value>Modifier le pad sélectionné</value></data>
+  <data name="ShortcutRenamePad" xml:space="preserve"><value>Renommer le pad sélectionné</value></data>
+  <data name="ShortcutMonitorPad" xml:space="preserve"><value>Écouter le pad sélectionné</value></data>
   <data name="RenameDialogTitle" xml:space="preserve"><value>Renommer le pad</value></data>
   <data name="RenameDialogPrompt" xml:space="preserve"><value>Entrez un nouveau titre pour ce pad :</value></data>
   <data name="DeleteAllTitle" xml:space="preserve"><value>Supprimer tous les enregistrements</value></data>

@@ -40,7 +40,7 @@
             <Setter Property="FontWeight"      Value="Bold"/>
             <Setter Property="FontSize"        Value="13.5"/>
             <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Content"         Value="▶  Start Monitoring"/>
+            <Setter Property="Content"         Value="{p:Loc StartMonitoring}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -58,7 +58,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter Property="Background"  Value="{DynamicResource AccentRedBrush}"/>
-                                <Setter Property="Content"     Value="■  Stop Monitoring"/>
+                                <Setter Property="Content"     Value="{p:Loc StopMonitoring}"/>
                                 <Trigger.EnterActions>
                                     <BeginStoryboard x:Name="GlowPulse">
                                         <Storyboard>
@@ -455,7 +455,7 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource TopBarBtn}"
-                            Content="Settings"
+                            Content="{p:Loc NavSettings}"
                             Margin="0,0,6,0"
                             FontSize="14"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True"
@@ -507,11 +507,11 @@
                 <!-- ─── INPUT ─── -->
                 <Border Grid.Column="0" Style="{StaticResource GlassCard}" Margin="0,0,5,0">
                     <StackPanel>
-                        <TextBlock Text="INPUT" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc InputGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <!-- Source -->
                         <DockPanel Margin="0,0,0,5">
-                            <TextBlock DockPanel.Dock="Left" Text="Source"
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc SourceLabel}"
                                        Style="{StaticResource ConfigLabel}" Width="58"/>
                             <ComboBox x:Name="CaptureSourceCombo"
                                       SelectionChanged="CaptureSourceCombo_SelectionChanged"/>
@@ -520,7 +520,7 @@
                         <!-- Mic/Line device -->
                         <DockPanel>
                             <TextBlock x:Name="InputDeviceLabel" DockPanel.Dock="Left"
-                                       Text="Mic/Line" Style="{StaticResource ConfigLabel}"
+                                       Text="{p:Loc MicLineLabel}" Style="{StaticResource ConfigLabel}"
                                        Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <ComboBox x:Name="InputDeviceCombo"
                                       Margin="0,0,0,5"
@@ -531,7 +531,7 @@
                         <!-- Loopback device -->
                         <DockPanel>
                             <TextBlock x:Name="LoopbackDeviceLabel" DockPanel.Dock="Left"
-                                       Text="Loopback" Style="{StaticResource ConfigLabel}"
+                                       Text="{p:Loc LoopbackLabel}" Style="{StaticResource ConfigLabel}"
                                        Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <ComboBox x:Name="LoopbackDeviceCombo"
                                       Margin="0,0,0,5"
@@ -542,14 +542,14 @@
                         <!-- App loopback -->
                         <DockPanel>
                             <TextBlock x:Name="AppLoopbackLabel" DockPanel.Dock="Left"
-                                       Text="App" Style="{StaticResource ConfigLabel}"
+                                       Text="{p:Loc AppLoopbackLabel}" Style="{StaticResource ConfigLabel}"
                                        Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <Button x:Name="RefreshAppLoopbackBtn" DockPanel.Dock="Right"
-                                    Content="&#x21BA;" Width="30" FontSize="14" Padding="0"
-                                    Margin="4,0,0,5"
-                                    Visibility="Collapsed"
-                                    ToolTip="Refresh list of apps producing audio"
-                                    Click="RefreshAppLoopback_Click"/>
+                                     Content="&#x21BA;" Width="30" FontSize="14" Padding="0"
+                                     Margin="4,0,0,5"
+                                     Visibility="Collapsed"
+                                     ToolTip="Refresh list of apps producing audio"
+                                     Click="RefreshAppLoopback_Click"/>
                             <ComboBox x:Name="AppLoopbackCombo"
                                       Margin="0,0,0,5"
                                       Visibility="Collapsed"
@@ -563,7 +563,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Volume"
+                            <TextBlock Grid.Column="0" Text="{p:Loc VolumeLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="InputVolumeSlider"
                                     Grid.Column="1"
@@ -582,16 +582,16 @@
                 <!-- ─── PAD MONITOR ─── -->
                 <Border Grid.Column="1" Style="{StaticResource GlassCard}" Margin="5,0,5,0">
                     <StackPanel>
-                        <TextBlock Text="PAD MONITORING" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc PadMonitoringGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <CheckBox x:Name="ListenOutputEnabledCheck"
-                                  Content="Enable monitor"
+                                  Content="{p:Loc EnableMonitorCheck}"
                                   Margin="0,0,0,10"
                                   Checked="ListenOutputEnabledCheck_Changed"
                                   Unchecked="ListenOutputEnabledCheck_Changed"/>
 
                         <DockPanel Margin="0,0,0,10">
-                            <TextBlock DockPanel.Dock="Left" Text="Device"
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc DeviceLabel}"
                                        Style="{StaticResource ConfigLabel}" Width="52"/>
                             <ComboBox x:Name="ListenOutputDeviceCombo"
                                       ToolTip="Playback device used when clicking a recording pad"
@@ -604,7 +604,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Volume"
+                            <TextBlock Grid.Column="0" Text="{p:Loc VolumeLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="PadListenVolumeSlider"
                                     Grid.Column="1"
@@ -624,11 +624,11 @@
                 <!-- ─── DETECTION ─── -->
                 <Border Grid.Column="2" Style="{StaticResource GlassCard}" Margin="5,0,5,0">
                     <StackPanel>
-                        <TextBlock Text="DETECTION" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc DetectionGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <!-- Mode -->
                         <DockPanel Margin="0,0,0,8">
-                            <TextBlock DockPanel.Dock="Left" Text="Mode"
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc ModeLabel}"
                                        Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="RecordingModeCombo"
                                       SelectionChanged="RecordingModeCombo_SelectionChanged"
@@ -642,7 +642,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Sensitivity"
+                            <TextBlock Grid.Column="0" Text="{p:Loc SensitivityLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="SensitivitySlider"
                                     Grid.Column="1"
@@ -663,7 +663,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Silence"
+                            <TextBlock Grid.Column="0" Text="{p:Loc SilenceTimeoutLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="SilenceSlider"
                                     Grid.Column="1"
@@ -697,10 +697,10 @@
                 <!-- ─── OUTPUT ─── -->
                 <Border Grid.Column="3" Style="{StaticResource GlassCard}" Margin="5,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="OUTPUT" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc OutputGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <DockPanel Margin="0,0,0,10">
-                            <TextBlock DockPanel.Dock="Left" Text="Device"
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc DeviceLabel}"
                                        Style="{StaticResource ConfigLabel}" Width="52"/>
                             <ComboBox x:Name="OutputDeviceCombo"
                                       ToolTip="Primary output device for pad playback"
@@ -713,7 +713,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Volume"
+                            <TextBlock Grid.Column="0" Text="{p:Loc VolumeLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="OutputVolumeSlider"
                                     Grid.Column="1"
@@ -730,10 +730,10 @@
                         <StackPanel x:Name="OverlayConfigPanel" Visibility="Collapsed">
                             <Rectangle Height="1" Fill="#1AFFFFFF" Margin="0,9,0,8"/>
 
-                            <TextBlock Text="OVERLAY" Style="{StaticResource ConfigLabel}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{p:Loc OverlayGroup}" Style="{StaticResource ConfigLabel}" Margin="0,0,0,4"/>
 
                             <CheckBox x:Name="OverlayEnabledCheck"
-                                      Content="Enable in-game overlay"
+                                      Content="{p:Loc EnableOverlayCheck}"
                                       Margin="0,0,0,8"
                                       Checked="OverlayEnabledCheck_Changed"
                                       Unchecked="OverlayEnabledCheck_Changed"/>
@@ -744,7 +744,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Opacity"
+                                <TextBlock Grid.Column="0" Text="{p:Loc OpacityLabel}"
                                            Style="{StaticResource ConfigLabel}"/>
                                 <Slider x:Name="OverlayOpacitySlider"
                                         Grid.Column="1"
@@ -1183,7 +1183,7 @@
                                 </Ellipse.Effect>
                             </Ellipse>
                             <TextBlock x:Name="StatusLabel"
-                                       Text="Idle — press Start to begin"
+                                       Text="{p:Loc StatusIdle}"
                                        FontSize="11.5"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource PrimaryTextBrush}"
@@ -1366,7 +1366,7 @@
                         <Rectangle Width="3" Height="12" Fill="#FF4CAF50"
                                    VerticalAlignment="Center" RadiusX="1" RadiusY="1"
                                    Margin="0,0,7,0"/>
-                        <TextBlock Text="RECORDINGS"
+                        <TextBlock Text="{p:Loc NavRecordings}"
                                    Foreground="{DynamicResource AccentTitleBrush}"
                                    FontSize="10"
                                    FontWeight="SemiBold"
@@ -1382,7 +1382,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="🔍" FontSize="11" Foreground="#FF9090A0" Margin="8,0,4,0" VerticalAlignment="Center"/>
                                 <TextBox x:Name="SearchTextBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="11" VerticalAlignment="Center" TextChanged="SearchTextBox_TextChanged"/>
-                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="Search clips &amp; transcripts..." FontSize="11" Foreground="#FF707080" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="{p:Loc SearchPlaceholder}" FontSize="11" Foreground="#FF707080" IsHitTestVisible="False" VerticalAlignment="Center"/>
                                 <Button x:Name="ClearSearchBtn" Grid.Column="2" Content="✕" Width="16" Height="16" FontSize="10" Background="Transparent" Foreground="#FF9090A0" BorderThickness="0" Visibility="Collapsed" Click="ClearSearchBtn_Click" Margin="0,0,4,0"/>
                             </Grid>
                         </Border>
@@ -1390,30 +1390,30 @@
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Right">
                         <TextBlock x:Name="RecordingCountLabel"
-                                   Text="0 clips"
-                                   Foreground="#FF505070"
-                                   FontSize="10"
+                                   Text="0 items"
+                                   Foreground="#FF8080A8"
+                                   FontSize="11"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,14,0"/>
+                                   Margin="0,0,10,0"/>
                         <ComboBox x:Name="SortOrderCombo"
-                                  Width="115"
+                                  Width="120"
                                   Height="24"
                                   Margin="0,0,8,0"
                                   ToolTip="Sort order for recordings"
                                   SelectionChanged="SortOrderCombo_SelectionChanged"/>
-                        <Button Content="📁 Import Audio"
+                        <Button Content="{p:Loc ImportAudioBtn}"
                                 Height="24"
                                 Padding="10,2"
                                 Margin="0,0,6,0"
                                 ToolTip="Import external audio file(s) from Windows"
                                 Click="ImportAudioButton_Click"/>
-                        <Button Content="Clear Pads"
+                        <Button Content="{p:Loc ClearPadsBtn}"
                                 Height="24"
                                 Padding="10,2"
                                 Margin="0,0,6,0"
                                 ToolTip="Permanently delete all non-favorite recordings (favorites are kept)"
                                 Click="ClearPadsButton_Click"/>
-                        <Button Content="&#x1F5D1; Delete All Files"
+                        <Button Content="{p:Loc DeleteAllFilesBtn}"
                                 Height="24"
                                 Padding="10,2"
                                 ToolTip="Permanently delete recordings from disk"

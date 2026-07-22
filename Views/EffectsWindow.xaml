@@ -34,7 +34,7 @@
                 BorderThickness="0,0,0,1">
             <Grid>
                 <TextBlock x:Name="TitleText"
-                           Text="Effects"
+                           Text="{p:Loc EffectsTitle}"
                            Foreground="{DynamicResource SubtleTextBrush}"
                            FontSize="12"
                            VerticalAlignment="Center"
@@ -723,18 +723,18 @@
                 <!-- Footer buttons -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="ResetBtn"
-                            Content="Reset All"
+                            Content="{p:Loc ResetAll}"
                             Width="85"
                             Margin="0,0,8,0"
                             Click="ResetBtn_Click"/>
                     <Button x:Name="OkBtn"
-                            Content="OK"
+                            Content="{p:Loc OK}"
                             Width="75"
                             Margin="0,0,8,0"
                             Foreground="{DynamicResource AccentGreenBrush}"
                             IsDefault="True"
                             Click="OkBtn_Click"/>
-                    <Button Content="Cancel"
+                    <Button Content="{p:Loc Cancel}"
                             Width="75"
                             IsCancel="True"
                             Click="ChromeClose_Click"/>

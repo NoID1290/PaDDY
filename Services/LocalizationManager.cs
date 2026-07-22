@@ -19,12 +19,10 @@ namespace PaDDY.Services
             get => _currentCulture;
             private set
             {
-                if (_currentCulture != value)
-                {
-                    _currentCulture = value;
-                    OnPropertyChanged(nameof(CurrentCulture));
-                    OnPropertyChanged(string.Empty); // Refresh all indexer bindings
-                }
+                _currentCulture = value;
+                OnPropertyChanged(nameof(CurrentCulture));
+                OnPropertyChanged("Item[]");
+                OnPropertyChanged(string.Empty); // Refresh all indexer bindings
             }
         }
 

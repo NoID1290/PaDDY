@@ -1040,16 +1040,16 @@
                 <!-- Right: Cancel, Save as Copy, Save Trim -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Style="{StaticResource EditorBtn}"
-                            Content="Cancel"
+                            Content="{p:Loc Cancel}"
                             IsCancel="True"/>
                     <Button x:Name="SaveCopyBtn"
                             Style="{StaticResource EditorBtn}"
-                            Content="✂  Save as Copy"
+                            Content="{p:Loc Save}"
                             Margin="8,0,0,0"
                             Click="SaveCopyBtn_Click"/>
                     <Button x:Name="SaveBtn"
                             Style="{StaticResource PrimaryBtn}"
-                            Content="✂  Save Trim"
+                            Content="{p:Loc Apply}"
                             Margin="8,0,0,0"
                             Click="SaveBtn_Click"/>
                 </StackPanel>

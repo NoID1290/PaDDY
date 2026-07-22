@@ -34,7 +34,7 @@
                 BorderThickness="0,0,0,1"
                 CornerRadius="12,12,0,0">
             <Grid>
-                <TextBlock Text="Renaming..."
+                <TextBlock Text="{p:Loc RenameDialogTitle}"
                            VerticalAlignment="Center"
                            Margin="12,0,0,0"
                            FontSize="12"
@@ -65,13 +65,13 @@
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Right">
                     <Button x:Name="OkButton"
-                            Content="OK"
+                            Content="{p:Loc OK}"
                             Width="75"
                             Margin="0,0,8,0"
                             Foreground="{DynamicResource AccentGreenBrush}"
                             IsDefault="True"
                             Click="Ok_Click"/>
-                    <Button Content="Cancel"
+                    <Button Content="{p:Loc Cancel}"
                             Width="75"
                             IsCancel="True"
                             Click="Cancel_Click"/>

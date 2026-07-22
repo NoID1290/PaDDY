@@ -33,7 +33,7 @@
                         BorderThickness="0,0,0,1"
                         CornerRadius="12,12,0,0">
                     <Grid>
-                        <TextBlock Text="Credits and Licenses"
+                        <TextBlock Text="{p:Loc AboutCredits}"
                                    Foreground="{DynamicResource SubtleTextBrush}"
                                    FontSize="12"
                                    VerticalAlignment="Center"
@@ -63,11 +63,11 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="Pa" Foreground="#FF7070A8" FontSize="17" FontWeight="Bold"/>
                 <TextBlock Text="DDY" Foreground="#FF4CAF50" FontSize="17" FontWeight="Bold"/>
-                <TextBlock Text="  —  Third-Party Credits &amp; Licenses"
+                <TextBlock Text="  —  " Foreground="#FF9090B8" FontSize="13" VerticalAlignment="Center"/>
+                <TextBlock Text="{p:Loc AboutCredits}"
                            Foreground="#FF9090B8"
                            FontSize="13"
-                           VerticalAlignment="Center"
-                           Margin="4,0,0,0"/>
+                           VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
 
@@ -107,11 +107,11 @@
                 Padding="0,12,0,0"
                 Margin="0,10,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Open Licenses Folder"
+                <Button Content="{p:Loc OpenLicensesFolder}"
                         Width="185"
                         Margin="0,0,8,0"
                         Click="OpenLicensesFolder_Click"/>
-                <Button Content="Close"
+                <Button Content="{p:Loc Close}"
                         Width="90"
                         IsDefault="True"
                         IsCancel="True"

@@ -811,7 +811,7 @@ namespace PaDDY.Controls
 
             var cm = new System.Windows.Controls.ContextMenu();
 
-            var itemPlayMonitor = new System.Windows.Controls.MenuItem { Header = "🎧 Play on Monitor Only" };
+            var itemPlayMonitor = new System.Windows.Controls.MenuItem { Header = $"🎧 {LocalizationManager.Instance["ContextPlay"]}" };
             itemPlayMonitor.Click += (_, _) => StartPlaybackListenOnly();
             cm.Items.Add(itemPlayMonitor);
 
@@ -827,11 +827,11 @@ namespace PaDDY.Controls
 
             cm.Items.Add(new System.Windows.Controls.Separator());
 
-            var itemRename = new System.Windows.Controls.MenuItem { Header = "✏ Rename" };
+            var itemRename = new System.Windows.Controls.MenuItem { Header = $"✏ {LocalizationManager.Instance["ContextRename"]}" };
             itemRename.Click += (_, _) => OpenRename();
             cm.Items.Add(itemRename);
 
-            var itemDel = new System.Windows.Controls.MenuItem { Header = "✕ Delete" };
+            var itemDel = new System.Windows.Controls.MenuItem { Header = $"✕ {LocalizationManager.Instance["ContextDelete"]}" };
             itemDel.Click += (_, _) => MenuDelete_Click(this, new RoutedEventArgs());
             cm.Items.Add(itemDel);
 

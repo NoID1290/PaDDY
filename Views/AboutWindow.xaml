@@ -34,7 +34,7 @@
                         BorderThickness="0,0,0,1"
                         CornerRadius="12,12,0,0">
                     <Grid>
-                        <TextBlock Text="About PaDDY"
+                        <TextBlock Text="{p:Loc AboutTitle}"
                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                    FontSize="12"
                                    FontWeight="SemiBold"
@@ -116,7 +116,7 @@
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
                                        Margin="0,4,0,12">
-                                <Run>PaDDY is a lightweight audio pad recorder that continuously listens to your microphone or system audio and lets you capture the last few seconds on demand.</Run>
+                                <Run Text="{p:Loc AboutDescription}"/>
                             </TextBlock>
 
                             <Rectangle Grid.Row="1" Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,4,0,12"/>
@@ -125,7 +125,7 @@
                             <StackPanel Grid.Row="2" Margin="0,0,0,12">
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                     <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="13" Foreground="{DynamicResource AccentTitleBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBlock Text="KEYBOARD SHORTCUTS" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                    <TextBlock Text="{p:Loc HotkeysGroup}" Style="{StaticResource SectionTitle}" Margin="0"/>
                                 </StackPanel>
 
                                 <Border Background="#06FFFFFF" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" CornerRadius="6" Padding="12,10">
@@ -136,7 +136,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Save buffer to pad" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutSaveBuffer}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
                                             <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2">
                                                 <TextBlock Text="Ctrl + F9 (DEFAULT)" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold"/>
                                             </Border>
@@ -149,7 +149,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Edit selected pad" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutEditPad}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
                                             <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" MinWidth="24">
                                                 <TextBlock Text="E" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                             </Border>
@@ -162,7 +162,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Rename selected pad" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutRenamePad}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
                                             <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" MinWidth="24">
                                                 <TextBlock Text="R" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                             </Border>
@@ -175,7 +175,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Monitor selected pad" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutMonitorPad}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
                                             <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2">
                                                 <TextBlock Text="MOUSE RIGHT-CLICK" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold"/>
                                             </Border>
@@ -219,7 +219,7 @@
                                             ToolTip="View open-source credits and licenses">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="{DynamicResource AccentTitleBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Credits" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{p:Loc AboutCredits}" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
 
@@ -235,7 +235,7 @@
                                 </StackPanel>
 
                                 <Button x:Name="CloseButton"
-                                        Content="Close"
+                                        Content="{p:Loc Close}"
                                         Grid.Column="1"
                                         Width="85"
                                         Height="32"

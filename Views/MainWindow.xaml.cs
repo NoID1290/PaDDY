@@ -3221,20 +3221,21 @@ namespace PaDDY
 
         private void RefreshInputFormatInfo()
         {
+            string prefix = LocalizationManager.Instance["InputFormatPrefix"];
             if (MonitorToggle.IsChecked != true)
             {
-                SetInfoLabel(InputFormatInfoLabel, "Input format: ", "waiting for monitoring");
+                SetInfoLabel(InputFormatInfoLabel, prefix, LocalizationManager.Instance["InputFormatWaiting"]);
                 return;
             }
 
             var format = _captureService.CurrentCaptureFormat;
             if (format == null)
             {
-                SetInfoLabel(InputFormatInfoLabel, "Input format: ", "detecting...");
+                SetInfoLabel(InputFormatInfoLabel, prefix, LocalizationManager.Instance["InputFormatDetecting"]);
                 return;
             }
 
-            SetInfoLabel(InputFormatInfoLabel, "Input format: ", FormatPcmDetails(format.SampleRate, format.BitsPerSample, format.Channels));
+            SetInfoLabel(InputFormatInfoLabel, prefix, FormatPcmDetails(format.SampleRate, format.BitsPerSample, format.Channels));
         }
 
         private void RefreshOutputFormatInfo()
@@ -3248,7 +3249,7 @@ namespace PaDDY
                 ? $"{FormatPcmDetails(sampleRate, bitDepth, channels)}"
                 : $"{FormatSampleRate(sampleRate)} | {FormatChannels(channels)}";
 
-            SetInfoLabel(OutputFormatInfoLabel, "Recording format: ", $"{codec} | {suffix}");
+            SetInfoLabel(OutputFormatInfoLabel, LocalizationManager.Instance["RecordingFormatPrefix"], $"{codec} | {suffix}");
         }
 
         private async Task CompactAndRefreshAsync()
@@ -3266,39 +3267,39 @@ namespace PaDDY
                 (long dbBytes, int count) = await Task.Run(() =>
                     (_recordingStore.GetStoreSizeBytes(), _recordingStore.GetCount())
                 );
-                string value = $"{count} files | {FormatByteSize(dbBytes)}";
-                SetInfoLabel(StorageInfoLabel, "Storage data: ", value);
+                string value = string.Format(LocalizationManager.Instance["StorageDataFiles"], count, FormatByteSize(dbBytes));
+                SetInfoLabel(StorageInfoLabel, LocalizationManager.Instance["StorageDataPrefix"], value);
             }
             catch
             {
-                SetInfoLabel(StorageInfoLabel, "Storage data: ", "Unable to read storage data");
+                SetInfoLabel(StorageInfoLabel, LocalizationManager.Instance["StorageDataPrefix"], LocalizationManager.Instance["StorageDataError"]);
             }
         }
         private void WhisperARTTStatus()
         {
-            string nm = "AR-STT: ";
+            string nm = LocalizationManager.Instance["STTPrefix"];
             try
             {
                 bool? arttsvalue = _settings.AutoRenameWithSpeech;
                 if (arttsvalue == null)
                 {
-                    SetInfoLabel(WhisperStatusLabel, nm, "unavailable");
+                    SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTUnavailable"]);
                     return;
                 }
                 else if (arttsvalue == true)
                 {
                     string suffix = _settings.UseCudaForSpeech ? " (CUDA)" : "";
-                    SetInfoLabel(WhisperStatusLabel, nm, "enabled" + suffix);
+                    SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTEnabled"] + suffix);
                 }
                 else
                 {
-                    SetInfoLabel(WhisperStatusLabel, nm, "disabled");
+                    SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTDisabled"]);
                     return;
                 }
             }
             catch
             {
-                SetInfoLabel(WhisperStatusLabel, nm, "unavailable");
+                SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTUnavailable"]);
                 return;
             }
         }
