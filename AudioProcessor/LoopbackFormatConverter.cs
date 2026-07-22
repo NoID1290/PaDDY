@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using NAudio.Wave;
 
 namespace NoIDSoftwork.AudioProcessor
@@ -115,6 +116,60 @@ namespace NoIDSoftwork.AudioProcessor
             int bytesPerSample = _sourceFormat.BitsPerSample / 8;
             bool isFloat = _sourceFormat.Encoding == WaveFormatEncoding.IeeeFloat && _sourceFormat.BitsPerSample == 32;
 
+            if (isFloat && bytesPerSample == 4)
+            {
+                ReadOnlySpan<float> floatSrc = MemoryMarshal.Cast<byte, float>(buffer.AsSpan(0, byteCount));
+
+                if (_sourceChannels == 2)
+                {
+                    int sampleCount = Math.Min(frames * 2, Math.Min(floatSrc.Length, output.Length));
+                    for (int i = 0; i < sampleCount; i++)
+                    {
+                        output[i] = Math.Clamp(floatSrc[i], -1f, 1f);
+                    }
+                    return;
+                }
+
+                if (_sourceChannels == 1)
+                {
+                    int maxFrames = Math.Min(frames, floatSrc.Length);
+                    for (int f = 0; f < maxFrames; f++)
+                    {
+                        float s = Math.Clamp(floatSrc[f], -1f, 1f);
+                        output[f * 2] = s;
+                        output[f * 2 + 1] = s;
+                    }
+                    return;
+                }
+
+                // Fast Float Multi-channel downmix (5.1, 7.1, etc.)
+                const float normFactor = 1.0f / 2.5f;
+                int ch = _sourceChannels;
+
+                for (int f = 0; f < frames; f++)
+                {
+                    int frameOffset = f * ch;
+                    if (frameOffset + ch > floatSrc.Length) break;
+
+                    float fl = floatSrc[frameOffset];
+                    float fr = ch > 1 ? floatSrc[frameOffset + 1] : fl;
+                    float fc = ch > 2 ? floatSrc[frameOffset + 2] : 0f;
+                    float lfe = ch > 3 ? floatSrc[frameOffset + 3] : 0f;
+                    float bl = ch > 4 ? floatSrc[frameOffset + 4] : 0f;
+                    float br = ch > 5 ? floatSrc[frameOffset + 5] : 0f;
+                    float sl = ch > 6 ? floatSrc[frameOffset + 6] : 0f;
+                    float sr = ch > 7 ? floatSrc[frameOffset + 7] : 0f;
+
+                    // ITU-R BS.775 stereo downmix
+                    float left = (fl + CenterMix * fc + SurroundMix * bl + SurroundMix * sl + LfeMix * lfe) * normFactor;
+                    float right = (fr + CenterMix * fc + SurroundMix * br + SurroundMix * sr + LfeMix * lfe) * normFactor;
+
+                    output[f * 2] = Math.Clamp(left, -1f, 1f);
+                    output[f * 2 + 1] = Math.Clamp(right, -1f, 1f);
+                }
+                return;
+            }
+
             if (_sourceChannels == 2)
             {
                 for (int i = 0; i < frames * 2; i++)
@@ -138,8 +193,7 @@ namespace NoIDSoftwork.AudioProcessor
                 return;
             }
 
-            // Multi-channel downmix
-            // Standard channel order: FL, FR, FC, LFE, BL/SL, BR/SR, SL, SR
+            // Multi-channel downmix fallback for integer PCM
             for (int f = 0; f < frames; f++)
             {
                 int frameOffset = f * _sourceChannels * bytesPerSample;
@@ -158,8 +212,8 @@ namespace NoIDSoftwork.AudioProcessor
 
                 // Normalize to prevent clipping (peak coefficient sum ≈ 1 + 0.707 + 0.707 + 0.707 + 0.5 ≈ 3.62)
                 const float normFactor = 1.0f / 2.5f;
-                output[f * 2] = left * normFactor;
-                output[f * 2 + 1] = right * normFactor;
+                output[f * 2] = Math.Clamp(left * normFactor, -1f, 1f);
+                output[f * 2 + 1] = Math.Clamp(right * normFactor, -1f, 1f);
             }
         }
 

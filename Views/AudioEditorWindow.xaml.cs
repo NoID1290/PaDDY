@@ -486,41 +486,53 @@ namespace PaDDY
 
             var bmp = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
             int stride = width * 4;
-            byte[] pixels = new byte[stride * height];
-            int midY = height / 2;
+            int byteCount = stride * height;
+            byte[] pixels = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
 
-            // Draw centre line using a dimmed version of the accent color
-            for (int x = 0; x < width; x++)
-                SetPixel(pixels, stride, x, midY,
-                    (byte)(aR * 0.22f), (byte)(aG * 0.22f), (byte)(aB * 0.22f), 0xFF);
-
-            // Draw waveform with gain applied
-            int peakLen = _originalPeaks.Length;
-            for (int x = 0; x < width && x < peakLen; x++)
+            try
             {
-                float pMin = Math.Clamp(_originalPeaks[x].min * gainFactor, -1f, 1f);
-                float pMax = Math.Clamp(_originalPeaks[x].max * gainFactor, -1f, 1f);
+                Array.Clear(pixels, 0, byteCount);
+                int midY = height / 2;
 
-                int yTop = midY - (int)(pMax * midY);
-                int yBot = midY - (int)(pMin * midY);
+                // Draw centre line using a dimmed version of the accent color
+                byte centreR = (byte)(aR * 0.22f);
+                byte centreG = (byte)(aG * 0.22f);
+                byte centreB = (byte)(aB * 0.22f);
+                for (int x = 0; x < width; x++)
+                    SetPixel(pixels, stride, x, midY, centreR, centreG, centreB, 0xFF);
 
-                yTop = Math.Clamp(yTop, 0, height - 1);
-                yBot = Math.Clamp(yBot, 0, height - 1);
-
-                for (int y = yTop; y <= yBot; y++)
+                // Draw waveform with gain applied
+                int peakLen = _originalPeaks.Length;
+                for (int x = 0; x < width && x < peakLen; x++)
                 {
-                    // Bright near the centre, slightly dimmer at the amplitude peaks
-                    float dist = Math.Abs(y - midY) / (float)midY;
-                    float brightness = 0.92f - dist * 0.38f;
-                    byte r = (byte)Math.Clamp(aR * brightness, 0, 255);
-                    byte g = (byte)Math.Clamp(aG * brightness, 0, 255);
-                    byte b = (byte)Math.Clamp(aB * brightness, 0, 255);
-                    SetPixel(pixels, stride, x, y, r, g, b, 0xFF);
-                }
-            }
+                    float pMin = Math.Clamp(_originalPeaks[x].min * gainFactor, -1f, 1f);
+                    float pMax = Math.Clamp(_originalPeaks[x].max * gainFactor, -1f, 1f);
 
-            bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
-            WaveformImage.Source = bmp;
+                    int yTop = midY - (int)(pMax * midY);
+                    int yBot = midY - (int)(pMin * midY);
+
+                    yTop = Math.Clamp(yTop, 0, height - 1);
+                    yBot = Math.Clamp(yBot, 0, height - 1);
+
+                    for (int y = yTop; y <= yBot; y++)
+                    {
+                        // Bright near the centre, slightly dimmer at the amplitude peaks
+                        float dist = Math.Abs(y - midY) / (float)midY;
+                        float brightness = 0.92f - dist * 0.38f;
+                        byte r = (byte)Math.Clamp(aR * brightness, 0, 255);
+                        byte g = (byte)Math.Clamp(aG * brightness, 0, 255);
+                        byte b = (byte)Math.Clamp(aB * brightness, 0, 255);
+                        SetPixel(pixels, stride, x, y, r, g, b, 0xFF);
+                    }
+                }
+
+                bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+                WaveformImage.Source = bmp;
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<byte>.Shared.Return(pixels);
+            }
         }
 
         /// <summary>

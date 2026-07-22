@@ -699,7 +699,7 @@ namespace PaDDY.Controls
 
             _countdownTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(200)
+                Interval = Helpers.ThemeManager.PerformanceMode ? TimeSpan.FromMilliseconds(500) : TimeSpan.FromMilliseconds(200)
             };
             _countdownTimer.Tick += CountdownTimer_Tick;
             _countdownTimer.Start();
