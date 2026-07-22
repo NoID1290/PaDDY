@@ -52,6 +52,11 @@ namespace PaDDY
         public bool SelectedAutoInstallUpdates { get; private set; }
         public bool SelectedDownloadBetaUpdates { get; private set; }
 
+        // Global Effects
+        public bool SelectedGlobalFadeEnabled { get; private set; }
+        public double SelectedGlobalFadeInDurationMs { get; private set; } = 500.0;
+        public double SelectedGlobalFadeOutDurationMs { get; private set; } = 500.0;
+
         private static readonly (string Value, string Label)[] CodecOptions =
         {
             ("wav",  "WAV (LCPM FORMAT)"),
@@ -264,6 +269,15 @@ namespace PaDDY
             // Auto-update
             AutoInstallUpdatesCheck.IsChecked = _settings.AutoInstallUpdates;
             DownloadBetaUpdatesCheck.IsChecked = _settings.DownloadBetaUpdates;
+
+            // Global Effects
+            GlobalFadeCheck.IsChecked = _settings.GlobalFadeEnabled;
+            double fadeInMs = Math.Clamp(_settings.GlobalFadeInDurationMs, 0.0, 5000.0);
+            double fadeOutMs = Math.Clamp(_settings.GlobalFadeOutDurationMs, 0.0, 5000.0);
+            GlobalFadeInSlider.Value = fadeInMs;
+            GlobalFadeOutSlider.Value = fadeOutMs;
+            GlobalFadeInValueText.Text = $"{fadeInMs:0} ms";
+            GlobalFadeOutValueText.Text = $"{fadeOutMs:0} ms";
         }
 
         private void LanguageCombo_SelectionChanged(object sender,
@@ -450,6 +464,11 @@ namespace PaDDY
             _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
             _settings.TargetLoudnessLufs = Math.Round(TargetLufsSlider.Value, 1);
 
+            // Global Effects
+            SelectedGlobalFadeEnabled = GlobalFadeCheck.IsChecked == true;
+            SelectedGlobalFadeInDurationMs = Math.Round(GlobalFadeInSlider.Value, 0);
+            SelectedGlobalFadeOutDurationMs = Math.Round(GlobalFadeOutSlider.Value, 0);
+
             DialogResult = true;
             Close();
         }
@@ -469,6 +488,18 @@ namespace PaDDY
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        private void GlobalFadeInSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (GlobalFadeInValueText != null)
+                GlobalFadeInValueText.Text = $"{e.NewValue:0} ms";
+        }
+
+        private void GlobalFadeOutSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (GlobalFadeOutValueText != null)
+                GlobalFadeOutValueText.Text = $"{e.NewValue:0} ms";
         }
 
         private void InstallStreamDeckBtn_Click(object sender, RoutedEventArgs e)

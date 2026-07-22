@@ -49,6 +49,14 @@ namespace PaDDY.Controls
         public float OutputVolume { get; set; } = 1.0f;
         public float ListenVolume { get; set; } = 1.0f;
 
+        // ── Global Effects (injected from MainWindow per AppSettings) ─────────
+        /// <summary>Whether the global Auto Fade In/Out effect is enabled.</summary>
+        public bool GlobalFadeEnabled { get; set; } = false;
+        /// <summary>Global fade-in duration in milliseconds.</summary>
+        public double GlobalFadeInDurationMs { get; set; } = 500.0;
+        /// <summary>Global fade-out duration in milliseconds.</summary>
+        public double GlobalFadeOutDurationMs { get; set; } = 500.0;
+
         /// <summary>Fired with (left, right) normalised 0-100 values during playback on the main output.</summary>
         public event Action<double, double>? PlaybackRmsChanged;
         /// <summary>Fired with (left, right) normalised 0-100 values during playback on the monitor output.</summary>
@@ -410,6 +418,33 @@ namespace PaDDY.Controls
 
                 sp = new EffectSampleProvider(sp, effectChain);
             }
+
+            // ── Global Effects (non-destructive, applied to every pad playback) ─
+            if (GlobalFadeEnabled)
+            {
+                var globalFadeChain = new EffectChain();
+                var globalFade = new FadeEffect
+                {
+                    IsEnabled = true,
+                    FadeInDurationMs = GlobalFadeInDurationMs,
+                    FadeOutDurationMs = GlobalFadeOutDurationMs
+                };
+
+                // Prime TotalFrames so fade-out knows when to start
+                double durationSec = (Entry != null && Entry.IsNonDestructive)
+                    ? (Entry.TrimEndMs > Entry.TrimStartMs
+                        ? (Entry.TrimEndMs - Entry.TrimStartMs) / 1000.0
+                        : Entry.Duration.TotalSeconds)
+                    : Entry?.Duration.TotalSeconds ?? 0.0;
+
+                if (durationSec > 0)
+                    globalFade.TotalFrames = (long)(durationSec * sp.WaveFormat.SampleRate);
+
+                globalFadeChain.Add(globalFade);
+                globalFadeChain.Reset();
+                sp = new EffectSampleProvider(sp, globalFadeChain);
+            }
+
             return sp;
         }
 

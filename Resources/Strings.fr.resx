@@ -144,6 +144,7 @@
   <data name="SettingsTabHotkeys" xml:space="preserve"><value>Raccourcis</value></data>
   <data name="SettingsTabSpeech" xml:space="preserve"><value>Reconnaissance Vocale</value></data>
   <data name="SettingsTabUpdates" xml:space="preserve"><value>Mises à jour</value></data>
+  <data name="SettingsTabGlobalEffects" xml:space="preserve"><value>Effets Globaux</value></data>
 
   <!-- Settings General / Recording Configuration -->
   <data name="RecConfigHeader" xml:space="preserve"><value>Configuration de l'enregistrement</value></data>
@@ -253,6 +254,17 @@
   <data name="DiscordDesc" xml:space="preserve"><value>Affiche le statut et les activités d'enregistrement directement sur Discord.</value></data>
   <data name="DiscordClientIdLabel" xml:space="preserve"><value>ID Client Application Discord</value></data>
   <data name="DiscordClientIdDesc" xml:space="preserve"><value>Définit un ID d'application développeur personnalisé. Laisser vide pour utiliser le client par défaut.</value></data>
+
+  <!-- Settings Global Effects -->
+  <data name="GlobalEffectsHeader" xml:space="preserve"><value>Effets Globaux</value></data>
+  <data name="GlobalEffectsSubtitle" xml:space="preserve"><value>Effets non destructifs appliqués à toutes les lectures de pads audio en temps réel.</value></data>
+  <data name="GlobalAutoFadeGroup" xml:space="preserve"><value>FONDU ENTRANT / SORTANT AUTOMATIQUE</value></data>
+  <data name="GlobalFadeLabel" xml:space="preserve"><value>Fondu Entrant / Sortant Auto</value></data>
+  <data name="GlobalFadeDesc" xml:space="preserve"><value>Applique automatiquement un fondu entrant au début et un fondu sortant à la fin de chaque lecture de pad. Utilise le même algorithme que l'effet Fade par clip.</value></data>
+  <data name="GlobalFadeInLabel" xml:space="preserve"><value>Durée du fondu entrant (ms)</value></data>
+  <data name="GlobalFadeInDesc" xml:space="preserve"><value>Durée de la montée progressive appliquée au début de chaque clip (0 = désactivé).</value></data>
+  <data name="GlobalFadeOutLabel" xml:space="preserve"><value>Durée du fondu sortant (ms)</value></data>
+  <data name="GlobalFadeOutDesc" xml:space="preserve"><value>Durée de la descente progressive appliquée à la fin de chaque clip (0 = désactivé).</value></data>
 
   <!-- Settings Backup & Restore -->
   <data name="BackupHeader" xml:space="preserve"><value>Sauvegarde &amp; Restauration</value></data>

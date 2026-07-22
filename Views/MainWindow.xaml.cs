@@ -1531,6 +1531,9 @@ namespace PaDDY
                         pad.TrimEditorOutputDeviceIndex = _settings.TrimEditorOutputDeviceIndex;
                         pad.OutputVolume = _outputVolume;
                         pad.ListenVolume = _padListenVolume;
+                        pad.GlobalFadeEnabled = _settings.GlobalFadeEnabled;
+                        pad.GlobalFadeInDurationMs = _settings.GlobalFadeInDurationMs;
+                        pad.GlobalFadeOutDurationMs = _settings.GlobalFadeOutDurationMs;
                         pad.RefreshLiveVolumes();
                     }
                 }
@@ -2095,6 +2098,11 @@ namespace PaDDY
             _settings.DiscordClientId = win.SelectedDiscordClientId;
             _settings.AutoInstallUpdates = win.SelectedAutoInstallUpdates;
             _settings.DownloadBetaUpdates = win.SelectedDownloadBetaUpdates;
+
+            // Global Effects
+            _settings.GlobalFadeEnabled = win.SelectedGlobalFadeEnabled;
+            _settings.GlobalFadeInDurationMs = win.SelectedGlobalFadeInDurationMs;
+            _settings.GlobalFadeOutDurationMs = win.SelectedGlobalFadeOutDurationMs;
             _settings.Save();
 
             DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
@@ -2579,7 +2587,10 @@ namespace PaDDY
                 ListenDeviceIndex = GetCurrentListenDeviceIndex(),
                 TrimEditorOutputDeviceIndex = _settings.TrimEditorOutputDeviceIndex,
                 OutputVolume = _outputVolume,
-                ListenVolume = _padListenVolume
+                ListenVolume = _padListenVolume,
+                GlobalFadeEnabled = _settings.GlobalFadeEnabled,
+                GlobalFadeInDurationMs = _settings.GlobalFadeInDurationMs,
+                GlobalFadeOutDurationMs = _settings.GlobalFadeOutDurationMs
             };
             btn.SetEntry(entry);
             btn.IsFavorite = entry.IsFavorite;

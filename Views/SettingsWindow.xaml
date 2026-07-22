@@ -892,6 +892,104 @@
                             </StackPanel>
                         </TabItem>
 
+                        <!-- ══ GLOBAL EFFECTS TAB ════════════════════════════════ -->
+                        <TabItem>
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                                    <TextBlock Text="&#xE9E9;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{p:Loc SettingsTabGlobalEffects}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
+
+                            <StackPanel>
+                                <!-- Header -->
+                                <TextBlock Text="{p:Loc GlobalEffectsHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{p:Loc GlobalEffectsSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+
+                                <!-- Auto Fade In/Out Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="{p:Loc GlobalAutoFadeGroup}" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
+
+                                        <!-- Enable Toggle Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc GlobalFadeLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="GlobalFadeCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Fade-In Duration Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="180"/>
+                                                <ColumnDefinition Width="60"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc GlobalFadeInLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeInDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Slider x:Name="GlobalFadeInSlider"
+                                                    Grid.Column="1"
+                                                    Minimum="0" Maximum="5000" TickFrequency="50"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    ValueChanged="GlobalFadeInSlider_ValueChanged"/>
+                                            <TextBlock x:Name="GlobalFadeInValueText"
+                                                       Grid.Column="2"
+                                                       Width="55"
+                                                       TextAlignment="Right"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                                       FontSize="11"
+                                                       Margin="8,0,0,0"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Fade-Out Duration Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="180"/>
+                                                <ColumnDefinition Width="60"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc GlobalFadeOutLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeOutDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Slider x:Name="GlobalFadeOutSlider"
+                                                    Grid.Column="1"
+                                                    Minimum="0" Maximum="5000" TickFrequency="50"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    ValueChanged="GlobalFadeOutSlider_ValueChanged"/>
+                                            <TextBlock x:Name="GlobalFadeOutValueText"
+                                                       Grid.Column="2"
+                                                       Width="55"
+                                                       TextAlignment="Right"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                                       FontSize="11"
+                                                       Margin="8,0,0,0"/>
+                                        </Grid>
+
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </TabItem>
+
                         <!-- ══ BACKUP & RESTORE TAB ═════════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>

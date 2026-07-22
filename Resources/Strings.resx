@@ -144,6 +144,7 @@
   <data name="SettingsTabHotkeys" xml:space="preserve"><value>Hotkeys</value></data>
   <data name="SettingsTabSpeech" xml:space="preserve"><value>Speech Recognition</value></data>
   <data name="SettingsTabUpdates" xml:space="preserve"><value>Updates</value></data>
+  <data name="SettingsTabGlobalEffects" xml:space="preserve"><value>Global Effects</value></data>
 
   <!-- Settings General / Recording Configuration -->
   <data name="RecConfigHeader" xml:space="preserve"><value>Recording Configuration</value></data>
@@ -253,6 +254,17 @@
   <data name="DiscordDesc" xml:space="preserve"><value>Display status updates and current recording activities directly on Discord.</value></data>
   <data name="DiscordClientIdLabel" xml:space="preserve"><value>Discord Application Client ID</value></data>
   <data name="DiscordClientIdDesc" xml:space="preserve"><value>Set custom developer application ID. Leave blank to use default test client.</value></data>
+
+  <!-- Settings Global Effects -->
+  <data name="GlobalEffectsHeader" xml:space="preserve"><value>Global Effects</value></data>
+  <data name="GlobalEffectsSubtitle" xml:space="preserve"><value>Non-destructive effects applied to all audio pad playback in real-time.</value></data>
+  <data name="GlobalAutoFadeGroup" xml:space="preserve"><value>AUTO FADE IN / OUT</value></data>
+  <data name="GlobalFadeLabel" xml:space="preserve"><value>Auto Fade In / Out</value></data>
+  <data name="GlobalFadeDesc" xml:space="preserve"><value>Automatically apply a smooth fade-in at the start and fade-out at the end of every sound pad playback. Uses the same algorithm as the per-clip Fade Effect.</value></data>
+  <data name="GlobalFadeInLabel" xml:space="preserve"><value>Fade-In Duration (ms)</value></data>
+  <data name="GlobalFadeInDesc" xml:space="preserve"><value>Duration of the fade-in ramp applied at the start of each clip (0 = disabled).</value></data>
+  <data name="GlobalFadeOutLabel" xml:space="preserve"><value>Fade-Out Duration (ms)</value></data>
+  <data name="GlobalFadeOutDesc" xml:space="preserve"><value>Duration of the fade-out ramp applied at the end of each clip (0 = disabled).</value></data>
 
   <!-- Settings Backup & Restore -->
   <data name="BackupHeader" xml:space="preserve"><value>Backup &amp; Restore</value></data>

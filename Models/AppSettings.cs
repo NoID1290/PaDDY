@@ -111,6 +111,14 @@ namespace PaDDY
         public bool AutoNormalizeOnCapture { get; set; } = false;
         public double TargetLoudnessLufs { get; set; } = -14.0;
 
+        // ---- Global Effects (non-destructive, applied to ALL audio playback) ----
+        /// <summary>Enable the Auto Fade In/Out global effect for all pad playback.</summary>
+        public bool GlobalFadeEnabled { get; set; } = false;
+        /// <summary>Global fade-in duration in milliseconds (applied at start of each clip).</summary>
+        public double GlobalFadeInDurationMs { get; set; } = 500.0;
+        /// <summary>Global fade-out duration in milliseconds (applied at end of each clip).</summary>
+        public double GlobalFadeOutDurationMs { get; set; } = 500.0;
+
         // ---- Live Mic Modulator & Dual-Bus Routing ----
         public bool LiveMicEnabled { get; set; } = false;
         public int LiveMicDeviceIndex { get; set; } = 0;
