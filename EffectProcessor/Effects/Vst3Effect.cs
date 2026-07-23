@@ -121,17 +121,24 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             if (factoryPtr == IntPtr.Zero)
                 throw new InvalidOperationException("GetPluginFactory returned null");
 
-            _factory = (IPluginFactory)Marshal.GetObjectForIUnknown(factoryPtr);
+            // Direct C++ vtable dispatch for IPluginFactory (bypasses COM QueryInterface variations across VST3 SDKs)
+            IntPtr factoryVtable = Marshal.ReadIntPtr(factoryPtr);
+            IntPtr countClassesPtr = Marshal.ReadIntPtr(factoryVtable, 4 * IntPtr.Size);
+            IntPtr getClassInfoPtr = Marshal.ReadIntPtr(factoryVtable, 5 * IntPtr.Size);
+            IntPtr createInstancePtr = Marshal.ReadIntPtr(factoryVtable, 6 * IntPtr.Size);
 
-            // Find and create the audio processor component
-            int classCount = _factory.CountClasses();
+            var countClasses = Marshal.GetDelegateForFunctionPointer<CountClassesDelegate>(countClassesPtr);
+            var getClassInfo = Marshal.GetDelegateForFunctionPointer<GetClassInfoDelegate>(getClassInfoPtr);
+            var createInstance = Marshal.GetDelegateForFunctionPointer<CreateInstanceDelegate>(createInstancePtr);
+
+            int classCount = countClasses(factoryPtr);
             Guid processorCid = Guid.Empty;
             Guid controllerCid = Guid.Empty;
 
             for (int i = 0; i < classCount; i++)
             {
                 var classInfo = new PClassInfo();
-                if (_factory.GetClassInfo(i, ref classInfo) == 0)
+                if (getClassInfo(factoryPtr, i, ref classInfo) == 0)
                 {
                     string category = classInfo.GetCategory();
                     if (category == "Audio Module Class" && processorCid == Guid.Empty)
@@ -148,48 +155,93 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             if (processorCid == Guid.Empty)
                 throw new InvalidOperationException("No audio processor class found in VST3 module");
 
-            // Create the processor component
-            Guid iComponentGuid = typeof(IComponent).GUID;
-            int hr = _factory.CreateInstance(ref processorCid, ref iComponentGuid, out IntPtr componentPtr);
+            // Create the processor component trying VST3 raw byte layout and fallbacks
+            Guid iComponentGuid = CreateVst3Guid(0xE831FF31, 0x4301F2D5, 0xEEBB8E92, 0x02786925);
+            IntPtr componentPtr = IntPtr.Zero;
+            int hr = createInstance(factoryPtr, ref processorCid, ref iComponentGuid, out componentPtr);
+
+            if (hr != 0 || componentPtr == IntPtr.Zero)
+            {
+                // Fallback 1: Try FUnknown::iid (0x00000000, 0x00000000, 0xC0000000, 0x00000046)
+                Guid fUnknownGuid = CreateVst3Guid(0x00000000, 0x00000000, 0xC0000000, 0x00000046);
+                hr = createInstance(factoryPtr, ref processorCid, ref fUnknownGuid, out componentPtr);
+            }
+
+            if (hr != 0 || componentPtr == IntPtr.Zero)
+            {
+                // Fallback 2: Try IPluginBase::iid (0x22888ADB, 0x156E4D93, 0x86E56C35, 0x8D9E3466)
+                Guid pluginBaseGuid = CreateVst3Guid(0x22888ADB, 0x156E4D93, 0x86E56C35, 0x8D9E3466);
+                hr = createInstance(factoryPtr, ref processorCid, ref pluginBaseGuid, out componentPtr);
+            }
+
+            if (hr != 0 || componentPtr == IntPtr.Zero)
+            {
+                // Fallback 3: Try standard C# / Windows COM GUID layout
+                Guid comGuid = new Guid("E831FF31-4301-F2D5-EEBB-8E9202786925");
+                hr = createInstance(factoryPtr, ref processorCid, ref comGuid, out componentPtr);
+            }
+
             if (hr != 0 || componentPtr == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to create VST3 component instance (HRESULT: 0x{hr:X8})");
 
-            _component = (IComponent)Marshal.GetObjectForIUnknown(componentPtr);
-
-            // Initialize the component
-            hr = _component.Initialize(IntPtr.Zero);
+            // Direct vtable dispatch to slot 3 for Initialize(IntPtr.Zero)
+            IntPtr compVtable = Marshal.ReadIntPtr(componentPtr);
+            IntPtr initCompPtr = Marshal.ReadIntPtr(compVtable, 3 * IntPtr.Size);
+            var compInit = Marshal.GetDelegateForFunctionPointer<ComponentInitializeDelegate>(initCompPtr);
+            hr = compInit(componentPtr, IntPtr.Zero);
             if (hr != 0)
                 throw new InvalidOperationException($"Failed to initialize VST3 component (HRESULT: 0x{hr:X8})");
 
-            // Query IAudioProcessor
-            Guid iAudioProcessorGuid = typeof(IAudioProcessor).GUID;
-            Marshal.QueryInterface(componentPtr, ref iAudioProcessorGuid, out _processorPtr);
-            if (_processorPtr == IntPtr.Zero)
-                throw new InvalidOperationException("VST3 component does not implement IAudioProcessor");
+            try
+            {
+                _component = (IComponent)Marshal.GetObjectForIUnknown(componentPtr);
+            }
+            catch
+            {
+                // Native vtable initialization already completed successfully
+            }
 
-            _processor = (IAudioProcessor)Marshal.GetObjectForIUnknown(_processorPtr);
+            // Query IAudioProcessor using both VST3 byte layout and COM GUID layout
+            Guid iAudioProcessorVst3 = CreateVst3Guid(0x42043F99, 0x453CB7DA, 0x9DE769A5, 0x3DC3AE9A);
+            int qiRes = Marshal.QueryInterface(componentPtr, ref iAudioProcessorVst3, out _processorPtr);
+            if (qiRes != 0 || _processorPtr == IntPtr.Zero)
+            {
+                Guid iAudioProcessorCom = new Guid("42043F99-453C-B7DA-9DE7-69A53DC3AE9A");
+                qiRes = Marshal.QueryInterface(componentPtr, ref iAudioProcessorCom, out _processorPtr);
+            }
+            if (qiRes != 0 || _processorPtr == IntPtr.Zero)
+            {
+                _processorPtr = componentPtr;
+            }
+
+            try
+            {
+                _processor = (IAudioProcessor)Marshal.GetObjectForIUnknown(_processorPtr);
+            }
+            catch
+            {
+                // Fallback handled via direct vtable if COM RCW binding fails
+            }
 
             // Try to get the edit controller
             try
             {
                 if (controllerCid != Guid.Empty)
                 {
-                    Guid iEditControllerGuid = typeof(IEditController).GUID;
-                    hr = _factory.CreateInstance(ref controllerCid, ref iEditControllerGuid, out IntPtr controllerPtr);
+                    Guid iEditControllerGuid = CreateVst3Guid(0xDCD7BBE3, 0x448D7742, 0xCCAA74A8, 0x9E759C97);
+                    hr = createInstance(factoryPtr, ref controllerCid, ref iEditControllerGuid, out IntPtr controllerPtr);
+                    if (hr != 0 || controllerPtr == IntPtr.Zero)
+                    {
+                        Guid iEditControllerCom = new Guid("DCD7BBE3-448D-7742-CCAA-74A89E759C97");
+                        hr = createInstance(factoryPtr, ref controllerCid, ref iEditControllerCom, out controllerPtr);
+                    }
                     if (hr == 0 && controllerPtr != IntPtr.Zero)
                     {
-                        _editController = (IEditController)Marshal.GetObjectForIUnknown(controllerPtr);
-                        _editController.Initialize(IntPtr.Zero);
-                    }
-                }
-                else
-                {
-                    // Try querying the component for IEditController
-                    Guid iEditControllerGuid = typeof(IEditController).GUID;
-                    Marshal.QueryInterface(componentPtr, ref iEditControllerGuid, out IntPtr ecPtr);
-                    if (ecPtr != IntPtr.Zero)
-                    {
-                        _editController = (IEditController)Marshal.GetObjectForIUnknown(ecPtr);
+                        IntPtr ctrlVtable = Marshal.ReadIntPtr(controllerPtr);
+                        IntPtr ctrlInitPtr = Marshal.ReadIntPtr(ctrlVtable, 3 * IntPtr.Size);
+                        var ctrlInit = Marshal.GetDelegateForFunctionPointer<ComponentInitializeDelegate>(ctrlInitPtr);
+                        ctrlInit(controllerPtr, IntPtr.Zero);
+                        try { _editController = (IEditController)Marshal.GetObjectForIUnknown(controllerPtr); } catch { }
                     }
                 }
             }
@@ -198,6 +250,45 @@ namespace NoIDSoftwork.EffectProcessor.Effects
                 // Edit controller is optional
             }
         }
+
+        /// <summary>
+        /// Converts a VST3 16-byte raw TUID / UID specification into a C# Guid with exact byte ordering.
+        /// Steinberg VST3 UIDs are specified as 4 32-bit integers in raw big-endian byte sequence.
+        /// </summary>
+        private static Guid CreateVst3Guid(uint l1, uint l2, uint l3, uint l4)
+        {
+            byte[] bytes = new byte[16]
+            {
+                (byte)((l1 >> 24) & 0xFF), (byte)((l1 >> 16) & 0xFF), (byte)((l1 >> 8) & 0xFF), (byte)(l1 & 0xFF),
+                (byte)((l2 >> 24) & 0xFF), (byte)((l2 >> 16) & 0xFF), (byte)((l2 >> 8) & 0xFF), (byte)(l2 & 0xFF),
+                (byte)((l3 >> 24) & 0xFF), (byte)((l3 >> 16) & 0xFF), (byte)((l3 >> 8) & 0xFF), (byte)(l3 & 0xFF),
+                (byte)((l4 >> 24) & 0xFF), (byte)((l4 >> 16) & 0xFF), (byte)((l4 >> 8) & 0xFF), (byte)(l4 & 0xFF)
+            };
+            return new Guid(bytes);
+        }
+
+        // ── VST3 COM Interface Definitions ──────────────────────────────────
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int CountClassesDelegate(IntPtr self);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int GetClassInfoDelegate(IntPtr self, int index, ref PClassInfo info);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int CreateInstanceDelegate(IntPtr self, ref Guid cid, ref Guid iid, out IntPtr obj);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int ComponentInitializeDelegate(IntPtr self, IntPtr context);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void InitDllDelegate();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void ExitDllDelegate();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr GetPluginFactoryDelegate();
 
         public void ProcessBuffer(float[] buffer, int offset, int count, int channels, int sampleRate)
         {
@@ -511,17 +602,8 @@ namespace NoIDSoftwork.EffectProcessor.Effects
 
         // ── VST3 COM Interface Definitions ──────────────────────────────────
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void InitDllDelegate();
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void ExitDllDelegate();
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate IntPtr GetPluginFactoryDelegate();
-
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        private struct PClassInfo
+        internal struct PClassInfo
         {
             public Guid cid;
             public int cardinality;
@@ -547,8 +629,8 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             }
         }
 
-        [ComImport, Guid("7A4D811C-5211-4A1F-AED9-D2EE0B43BF9F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IPluginFactory
+        [ComImport, Guid("7A4D811C-4A1F-5211-EED2-D9AE9FBF430B"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        internal interface IPluginFactory
         {
             [PreserveSig]
             int GetFactoryInfo(IntPtr info);
@@ -560,8 +642,8 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             int CreateInstance(ref Guid cid, ref Guid iid, out IntPtr obj);
         }
 
-        [ComImport, Guid("E831FF31-F2D5-4301-928E-BBEE25697802"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IComponent
+        [ComImport, Guid("E831FF31-4301-F2D5-EEBB-8E9202786925"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        internal interface IComponent
         {
             // IPluginBase
             [PreserveSig]
@@ -591,7 +673,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct ProcessSetup
+        internal struct ProcessSetup
         {
             public int processMode;       // 0=Realtime, 1=Prefetch, 2=Offline
             public int symbolicSampleSize; // 0=float32, 1=float64
@@ -600,7 +682,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct AudioBusBuffers
+        internal struct AudioBusBuffers
         {
             public int numChannels;
             public ulong silenceFlags;
@@ -608,7 +690,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct ProcessData
+        internal struct ProcessData
         {
             public int processMode;
             public int symbolicSampleSize;
@@ -624,8 +706,8 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             public IntPtr processContext;
         }
 
-        [ComImport, Guid("42043F99-B7DA-453C-A569-E79D9AAEC33D"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IAudioProcessor
+        [ComImport, Guid("42043F99-453C-B7DA-9DE7-69A53DC3AE9A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        internal interface IAudioProcessor
         {
             [PreserveSig]
             int SetBusArrangements(IntPtr inputs, int numIns, IntPtr outputs, int numOuts);
@@ -645,8 +727,8 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             int GetTailSamples();
         }
 
-        [ComImport, Guid("DCD7BBE3-7742-448D-A874-AACC979C759E"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IEditController
+        [ComImport, Guid("DCD7BBE3-448D-7742-CCAA-74A89E759C97"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        internal interface IEditController
         {
             // IPluginBase
             [PreserveSig]

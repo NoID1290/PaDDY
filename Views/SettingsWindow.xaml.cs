@@ -92,6 +92,7 @@ namespace PaDDY
             InitializeComponent();
 
             VstSettingsPanel.Visibility = Visibility.Visible;
+            Vst3PluginRow.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
             App.DebugModeChanged += OnDebugModeChanged;
             
             Loaded += OnLoaded;
@@ -100,7 +101,8 @@ namespace PaDDY
 
         private void OnDebugModeChanged()
         {
-            VstSettingsPanel.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            VstSettingsPanel.Visibility = Visibility.Visible;
+            Vst3PluginRow.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

@@ -7,6 +7,12 @@ namespace NoIDSoftwork.EffectProcessor.Effects
     public static class VstPluginManager
     {
         /// <summary>
+        /// Controls whether VST3 plugins are enabled/loaded.
+        /// VST3 support is experimental and only accessible in Dev Mode (Ctrl+Alt+D).
+        /// </summary>
+        public static bool IsVst3Enabled { get; set; } = false;
+
+        /// <summary>
         /// Load a single VST plugin from a file path (.dll for VST2, .vst3 for VST3).
         /// </summary>
         public static IAudioEffect LoadPlugin(string pluginPath)
@@ -27,6 +33,8 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             }
             else if (extension == ".vst3")
             {
+                if (!IsVst3Enabled)
+                    throw new InvalidOperationException("VST3 plugins are experimental and only accessible in Developer Mode (Ctrl+Alt+D).");
                 return new Vst3Effect(pluginPath);
             }
             
@@ -63,35 +71,38 @@ namespace NoIDSoftwork.EffectProcessor.Effects
                 }
             }
 
-            // Load VST3 plugins from Plugins/VST3/
-            string vst3Dir = Path.Combine(baseDir, "Plugins", "VST3");
-            if (Directory.Exists(vst3Dir))
+            // Load VST3 plugins from Plugins/VST3/ (Dev Mode only)
+            if (IsVst3Enabled)
             {
-                // VST3 bundles are directories ending in .vst3
-                foreach (string bundleDir in Directory.GetDirectories(vst3Dir, "*.vst3"))
+                string vst3Dir = Path.Combine(baseDir, "Plugins", "VST3");
+                if (Directory.Exists(vst3Dir))
                 {
-                    try
+                    // VST3 bundles are directories ending in .vst3
+                    foreach (string bundleDir in Directory.GetDirectories(vst3Dir, "*.vst3"))
                     {
-                        var effect = new Vst3Effect(bundleDir);
-                        plugins.Add(effect);
+                        try
+                        {
+                            var effect = new Vst3Effect(bundleDir);
+                            plugins.Add(effect);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to load VST3 plugin '{Path.GetFileName(bundleDir)}': {ex.Message}");
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to load VST3 plugin '{Path.GetFileName(bundleDir)}': {ex.Message}");
-                    }
-                }
 
-                // Also check for standalone .vst3 files (some plugins ship as single files)
-                foreach (string vst3File in Directory.GetFiles(vst3Dir, "*.vst3"))
-                {
-                    try
+                    // Also check for standalone .vst3 files (some plugins ship as single files)
+                    foreach (string vst3File in Directory.GetFiles(vst3Dir, "*.vst3"))
                     {
-                        var effect = new Vst3Effect(vst3File);
-                        plugins.Add(effect);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to load VST3 file '{Path.GetFileName(vst3File)}': {ex.Message}");
+                        try
+                        {
+                            var effect = new Vst3Effect(vst3File);
+                            plugins.Add(effect);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to load VST3 file '{Path.GetFileName(vst3File)}': {ex.Message}");
+                        }
                     }
                 }
             }
@@ -118,7 +129,11 @@ namespace NoIDSoftwork.EffectProcessor.Effects
                 if (extension == ".dll")
                     return new Vst2Effect(pluginPath);
                 else if (extension == ".vst3")
+                {
+                    if (!IsVst3Enabled)
+                        return null;
                     return new Vst3Effect(pluginPath);
+                }
             }
             catch (Exception ex)
             {

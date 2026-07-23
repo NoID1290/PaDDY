@@ -32,6 +32,7 @@ public partial class App : WpfApplication
     public static void ToggleDebugMode()
     {
         IsDebugMode = !IsDebugMode;
+        NoIDSoftwork.EffectProcessor.Effects.VstPluginManager.IsVst3Enabled = IsDebugMode;
         if (IsDebugMode)
         {
             Helpers.ConsoleHelper.ShowConsole();
