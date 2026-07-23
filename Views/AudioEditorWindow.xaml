@@ -56,62 +56,6 @@
                 </Path>
             </Grid>
         </ControlTemplate>
-
-        <!-- Illuminated Studio Rack Power Switch -->
-        <Style x:Key="RackPowerSwitch" TargetType="CheckBox">
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-            <Setter Property="FontSize" Value="10.5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="CheckBox">
-                        <Border x:Name="PowerBd"
-                                Background="{DynamicResource InputBgBrush}"
-                                BorderBrush="{DynamicResource CardBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                Padding="8,3">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- Glowing Status LED -->
-                                <Border x:Name="LedDot"
-                                        Width="8" Height="8"
-                                        CornerRadius="4"
-                                        Background="#3A3A4D"
-                                        Margin="0,0,6,0"
-                                        VerticalAlignment="Center"/>
-                                <ContentPresenter VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="PowerBd" Property="Background" Value="{DynamicResource CardBgBrush}"/>
-                                <Setter TargetName="PowerBd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
-                                <Setter TargetName="LedDot" Property="Background" Value="{DynamicResource AccentGreenBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="PowerBd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Hardware Rack Module Card -->
-        <Style x:Key="RackModuleCard" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect ShadowDepth="2" BlurRadius="10" Color="#000000" Opacity="0.35"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
 
     <Grid Margin="10">

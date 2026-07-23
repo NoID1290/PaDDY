@@ -91,7 +91,7 @@ namespace PaDDY
             _settings = settings;
             InitializeComponent();
 
-            VstSettingsPanel.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            VstSettingsPanel.Visibility = Visibility.Visible;
             App.DebugModeChanged += OnDebugModeChanged;
             
             Loaded += OnLoaded;

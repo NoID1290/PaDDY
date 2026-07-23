@@ -236,24 +236,115 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             }
         }
 
+        public bool HasEditor => (_effect.flags & 1) == 1;
+
         public void OpenEditor(IntPtr hWnd)
         {
-            if ((_effect.flags & 1) == 1) // effFlagsHasEditor
+            if (HasEditor && _effectPtr != IntPtr.Zero)
             {
                 Dispatch(Vst2Opcodes.effEditOpen, 0, 0, hWnd, 0.0f);
-            }
-            else
-            {
-                // Fallback or generic message handled by caller
             }
         }
 
         public void CloseEditor()
         {
-            if ((_effect.flags & 1) == 1)
+            if (HasEditor && _effectPtr != IntPtr.Zero)
             {
                 Dispatch(Vst2Opcodes.effEditClose, 0, 0, IntPtr.Zero, 0.0f);
             }
+        }
+
+        public bool GetEditorSize(out int width, out int height)
+        {
+            width = 0;
+            height = 0;
+            if (!HasEditor || _effectPtr == IntPtr.Zero) return false;
+
+            IntPtr rectPtr = Marshal.AllocHGlobal(IntPtr.Size);
+            Marshal.WriteIntPtr(rectPtr, IntPtr.Zero);
+            try
+            {
+                Dispatch(Vst2Opcodes.effEditGetRect, 0, 0, rectPtr, 0.0f);
+                IntPtr eRectAddr = Marshal.ReadIntPtr(rectPtr);
+                if (eRectAddr != IntPtr.Zero)
+                {
+                    var rect = Marshal.PtrToStructure<ERect>(eRectAddr);
+                    width = rect.right - rect.left;
+                    height = rect.bottom - rect.top;
+                    return width > 0 && height > 0;
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(rectPtr);
+            }
+            return false;
+        }
+
+        public int GetParameterCount()
+        {
+            if (_effectPtr == IntPtr.Zero) return 0;
+            return _effect.numParams;
+        }
+
+        public VstParameterInfo GetParameterInfo(int index)
+        {
+            var info = new VstParameterInfo { Index = index, Name = $"Param {index}", Display = "", Label = "", Value = 0f };
+            if (_effectPtr == IntPtr.Zero || index < 0 || index >= _effect.numParams) return info;
+
+            try
+            {
+                if (_effect.getParameter != IntPtr.Zero)
+                {
+                    var getParam = Marshal.GetDelegateForFunctionPointer<AEffectGetParameterProc>(_effect.getParameter);
+                    info.Value = getParam(_effectPtr, index);
+                }
+
+                byte[] nameBuf = new byte[32];
+                GCHandle hName = GCHandle.Alloc(nameBuf, GCHandleType.Pinned);
+                try
+                {
+                    Dispatch(Vst2Opcodes.effGetParamName, index, 0, hName.AddrOfPinnedObject(), 0.0f);
+                    info.Name = System.Text.Encoding.ASCII.GetString(nameBuf).TrimEnd('\0', ' ').Trim();
+                    if (string.IsNullOrEmpty(info.Name)) info.Name = $"Param {index}";
+                }
+                finally { hName.Free(); }
+
+                byte[] dispBuf = new byte[32];
+                GCHandle hDisp = GCHandle.Alloc(dispBuf, GCHandleType.Pinned);
+                try
+                {
+                    Dispatch(Vst2Opcodes.effGetParamDisplay, index, 0, hDisp.AddrOfPinnedObject(), 0.0f);
+                    info.Display = System.Text.Encoding.ASCII.GetString(dispBuf).TrimEnd('\0', ' ').Trim();
+                }
+                finally { hDisp.Free(); }
+
+                byte[] lblBuf = new byte[32];
+                GCHandle hLbl = GCHandle.Alloc(lblBuf, GCHandleType.Pinned);
+                try
+                {
+                    Dispatch(Vst2Opcodes.effGetParamLabel, index, 0, hLbl.AddrOfPinnedObject(), 0.0f);
+                    info.Label = System.Text.Encoding.ASCII.GetString(lblBuf).TrimEnd('\0', ' ').Trim();
+                }
+                finally { hLbl.Free(); }
+            }
+            catch { }
+
+            return info;
+        }
+
+        public void SetParameterValue(int index, float value)
+        {
+            if (_effectPtr == IntPtr.Zero || _effect.setParameter == IntPtr.Zero || index < 0 || index >= _effect.numParams) return;
+            try
+            {
+                var setParam = Marshal.GetDelegateForFunctionPointer<AEffectSetParameterProc>(_effect.setParameter);
+                setParam(_effectPtr, index, value);
+            }
+            catch { }
         }
 
         private void FreeBufferPins()
@@ -341,15 +432,34 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void AEffectProcessProc(IntPtr effect, IntPtr inputs, IntPtr outputs, int sampleFrames);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void AEffectSetParameterProc(IntPtr effect, int index, float parameterValue);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate float AEffectGetParameterProc(IntPtr effect, int index);
+
+        [StructLayout(LayoutKind.Sequential, Pack = 2)]
+        private struct ERect
+        {
+            public short top;
+            public short left;
+            public short bottom;
+            public short right;
+        }
+
         private static class Vst2Opcodes
         {
             public const int effOpen = 0;
             public const int effClose = 1;
             public const int effSetProgram = 2;
             public const int effGetProgram = 3;
+            public const int effGetParamDisplay = 7;
+            public const int effGetParamName = 8;
+            public const int effGetParamLabel = 9;
             public const int effSetSampleRate = 10;
             public const int effSetBlockSize = 11;
             public const int effMainsChanged = 12;
+            public const int effEditGetRect = 13;
             public const int effEditOpen = 14;
             public const int effEditClose = 15;
             public const int effEditIdle = 19;

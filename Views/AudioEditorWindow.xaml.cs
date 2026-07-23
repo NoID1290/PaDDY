@@ -96,7 +96,7 @@ namespace PaDDY
         {
             InitializeComponent();
             
-            VstSection.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            VstSection.Visibility = Visibility.Visible;
             App.DebugModeChanged += OnDebugModeChanged;
 
             _filePath = filePath;
@@ -2008,26 +2008,8 @@ namespace PaDDY
         {
             if (_vstEffects.Count == 0) return;
 
-            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-            if (_vstEffects.Count == 1)
-            {
-                _vstEffects[0].OpenEditor(hwnd);
-            }
-            else
-            {
-                // Show a selection dialog for multiple plugins
-                var names = new List<string>();
-                foreach (var vst in _vstEffects)
-                    names.Add(vst.Name);
-
-                var msg = "Loaded VST Plugins:\n";
-                for (int i = 0; i < names.Count; i++)
-                    msg += $"\n  {i + 1}. {names[i]}";
-                msg += "\n\nOpening editor for the first plugin.";
-
-                System.Windows.MessageBox.Show(msg, "VST Plugins", MessageBoxButton.OK, MessageBoxImage.Information);
-                _vstEffects[0].OpenEditor(hwnd);
-            }
+            var win = new VstPluginWindow(_vstEffects) { Owner = this };
+            win.ShowDialog();
         }
 
         private bool IsPluginAlreadyLoaded(string name)

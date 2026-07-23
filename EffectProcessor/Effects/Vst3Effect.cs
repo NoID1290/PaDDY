@@ -396,16 +396,35 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             }
         }
 
+        public bool HasEditor => false;
+
         public void OpenEditor(IntPtr hWnd)
         {
-            // VST3 editor opening requires IPlugView which is more complex.
-            // TODO: Implement IPlugView-based editor window.
-            // For now, this is a no-op — the calling UI layer can show feedback.
         }
 
         public void CloseEditor()
         {
-            // No-op until IPlugView is implemented
+        }
+
+        public bool GetEditorSize(out int width, out int height)
+        {
+            width = 0;
+            height = 0;
+            return false;
+        }
+
+        public int GetParameterCount()
+        {
+            return 0;
+        }
+
+        public VstParameterInfo GetParameterInfo(int index)
+        {
+            return new VstParameterInfo { Index = index, Name = $"Param {index}", Display = "", Label = "", Value = 0f };
+        }
+
+        public void SetParameterValue(int index, float value)
+        {
         }
 
         private void FreeBufferPins()

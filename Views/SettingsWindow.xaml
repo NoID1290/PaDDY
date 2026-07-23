@@ -203,7 +203,7 @@
                                             <CheckBox x:Name="NewRecordingsNonDestructiveCheck" Grid.Column="1" VerticalAlignment="Center" Checked="NewRecordingsNonDestructiveCheck_Checked" Unchecked="NewRecordingsNonDestructiveCheck_Unchecked"/>
                                         </Grid>
 
-                                        <StackPanel x:Name="VstSettingsPanel" Visibility="Collapsed">
+                                        <StackPanel x:Name="VstSettingsPanel" Visibility="Visible">
                                             <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
                                             <!-- VST2 Plugin Path -->
