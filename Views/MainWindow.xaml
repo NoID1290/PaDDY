@@ -170,6 +170,80 @@
             <Setter Property="Padding" Value="0"/>
         </Style>
 
+        <!-- Top-bar toggle action button (Live Mic) -->
+        <Style x:Key="TopBarToggleBtn" TargetType="ToggleButton">
+            <Setter Property="Padding"    Value="14,0"/>
+            <Setter Property="Height"     Value="34"/>
+            <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ControlTextBrush}"/>
+            <Setter Property="FontSize"   Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="17"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="Glow" ShadowDepth="0" BlurRadius="10" Color="#FFC62828" Opacity="0"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentRedBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFEC407A"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard x:Name="LiveMicGlowPulse">
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Glow"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             From="0.4" To="0.85" Duration="0:0:1.0"
+                                                             AutoReverse="True" RepeatBehavior="Forever"/>
+                                            <DoubleAnimation Storyboard.TargetName="Glow"
+                                                             Storyboard.TargetProperty="BlurRadius"
+                                                             From="8" To="18" Duration="0:0:1.0"
+                                                             AutoReverse="True" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="LiveMicGlowPulse"/>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentRedBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bd" Property="Background" Value="#FFD32F2F"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
         <Style x:Key="LogoAboutBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -433,13 +507,12 @@
                 <!-- Action buttons + custom caption buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <ToggleButton x:Name="LiveMicBtn"
+                                  Style="{StaticResource TopBarToggleBtn}"
                                   Content="🎙️ Live Mic"
-                                  Height="32"
-                                  Padding="12,0"
-                                  Margin="0,0,8,0"
+                                  Margin="0,0,6,0"
                                   ToolTip="Toggle Real-time Live Microphone Modulator &amp; Dual-Bus Routing"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                                  Visibility="Collapsed"
+                                  Visibility="Visible"
                                   Checked="LiveMicBtn_CheckedChanged"
                                   Unchecked="LiveMicBtn_CheckedChanged"/>
                     <Button x:Name="ConfigToggleBtn"

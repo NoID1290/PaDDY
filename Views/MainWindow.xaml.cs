@@ -250,14 +250,7 @@ namespace PaDDY
             }
 
             InitializeComponent();
-            App.DebugModeChanged += () =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    LiveMicBtn.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
-                });
-            };
-            LiveMicBtn.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            LiveMicBtn.Visibility = Visibility.Visible;
             UpdateLoadingOverlayTheme();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
