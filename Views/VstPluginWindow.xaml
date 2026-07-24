@@ -95,7 +95,7 @@
                     <!-- Main Host / Parameter Area -->
                     <Border Grid.Row="1"
                             x:Name="EditorHostBorder"
-                            Background="#FF10121A"
+                            Background="{DynamicResource InputBgBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="8"
