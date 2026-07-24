@@ -1049,6 +1049,139 @@
                                                 </StackPanel>
                                             </Border>
 
+                                            <!-- Remaster Rack Module -->
+                                            <Border Style="{StaticResource RackModuleCard}">
+                                                <StackPanel>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button x:Name="RemasterHeaderButton" Grid.Column="0"
+                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                                Click="RemasterHeaderButton_Click">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="22"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                                <TextBlock Grid.Column="1" Text="Track Remaster" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                                <TextBlock Grid.Column="2" x:Name="RemasterChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                            </Grid>
+                                                        </Button>
+                                                        <CheckBox Grid.Column="1" x:Name="RemasterEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </Grid>
+                                                    
+                                                    <StackPanel x:Name="RemasterContent" Visibility="Visible" Margin="0,4,0,0">
+                                                        <!-- Preset Dropdown -->
+                                                        <Grid Margin="0,0,0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Preset" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <ComboBox Grid.Column="1" x:Name="RemasterPresetCombo"
+                                                                      SelectionChanged="RemasterPresetCombo_SelectionChanged"
+                                                                      FontSize="10.5">
+                                                                <ComboBoxItem Content="Clean &amp; Transparent"/>
+                                                                <ComboBoxItem Content="Warm Analog"/>
+                                                                <ComboBoxItem Content="Punchy Club / EDM"/>
+                                                                <ComboBoxItem Content="Vocal &amp; Acoustic"/>
+                                                                <ComboBoxItem Content="Loud Maximizer"/>
+                                                                <ComboBoxItem Content="Custom"/>
+                                                            </ComboBox>
+                                                        </Grid>
+                                                        
+                                                        <Grid Margin="0,0,0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="50"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Warmth (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <Slider Grid.Column="1" x:Name="RemasterWarmthSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
+                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                                <TextBlock x:Name="RemasterWarmthLabel" Text="+1.5 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <Grid Margin="0,0,0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="50"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Punch (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <Slider Grid.Column="1" x:Name="RemasterPunchSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
+                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                                <TextBlock x:Name="RemasterPunchLabel" Text="+1.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <Grid Margin="0,0,0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="50"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Brilliance (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <Slider Grid.Column="1" x:Name="RemasterBrillianceSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
+                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                                <TextBlock x:Name="RemasterBrillianceLabel" Text="+2.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <Grid Margin="0,0,0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="50"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Stereo Width" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <Slider Grid.Column="1" x:Name="RemasterWidthSlider" Minimum="0" Maximum="2" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
+                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                                <TextBlock x:Name="RemasterWidthLabel" Text="1.20x" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <Grid Margin="0,0,0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="50"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Saturation" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <Slider Grid.Column="1" x:Name="RemasterDriveSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
+                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                                <TextBlock x:Name="RemasterDriveLabel" Text="0.15" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <Grid Margin="0,0,0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="50"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Glue Ratio" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <Slider Grid.Column="1" x:Name="RemasterRatioSlider" Minimum="1" Maximum="8" TickFrequency="0.1" ValueChanged="EffectSlider_Changed"/>
+                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                                <TextBlock x:Name="RemasterRatioLabel" Text="2.5:1" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                        </Grid>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="50"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="Peak Ceiling" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
+                                                            <Slider Grid.Column="1" x:Name="RemasterCeilingSlider" Minimum="-6" Maximum="0" TickFrequency="0.1" ValueChanged="EffectSlider_Changed"/>
+                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                                <TextBlock x:Name="RemasterCeilingLabel" Text="-0.3 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+
                                             <!-- VST Plugins Rack Module -->
                                             <Border x:Name="VstSection" Style="{StaticResource RackModuleCard}" Visibility="Collapsed">
                                                 <StackPanel>

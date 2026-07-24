@@ -61,6 +61,7 @@ namespace PaDDY
         private CompressorEffect? _compressor;
         private DistortionEffect? _distortion;
         private ReverbEffect? _reverb;
+        private RemasterEffect? _remaster;
         private readonly List<IVstEffect> _vstEffects = new();
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
@@ -284,6 +285,7 @@ namespace PaDDY
                     case CompressorEffect c: _compressor = c; break;
                     case DistortionEffect d: _distortion = d; break;
                     case ReverbEffect r: _reverb = r; break;
+                    case RemasterEffect rm: _remaster = rm; break;
                 }
             }
             LoadEffectValues();
@@ -739,6 +741,26 @@ namespace PaDDY
                     PitchShiftGrainSizeSlider.Value = _pitchShift.GrainSizeMs;
                     PitchShiftMixSlider.Value = _pitchShift.Mix;
                 }
+                if (_remaster != null)
+                {
+                    RemasterEnabledCheck.IsChecked = _remaster.IsEnabled;
+                    RemasterPresetCombo.SelectedIndex = _remaster.Preset switch
+                    {
+                        RemasterPreset.CleanAndTransparent => 0,
+                        RemasterPreset.WarmAnalog => 1,
+                        RemasterPreset.PunchyClub => 2,
+                        RemasterPreset.VocalAcoustic => 3,
+                        RemasterPreset.LoudMaximizer => 4,
+                        _ => 5
+                    };
+                    RemasterWarmthSlider.Value = _remaster.WarmthDb;
+                    RemasterPunchSlider.Value = _remaster.PunchDb;
+                    RemasterBrillianceSlider.Value = _remaster.BrillianceDb;
+                    RemasterWidthSlider.Value = _remaster.StereoWidth;
+                    RemasterDriveSlider.Value = _remaster.Drive;
+                    RemasterRatioSlider.Value = _remaster.Ratio;
+                    RemasterCeilingSlider.Value = _remaster.LimiterCeilingDb;
+                }
                 UpdateEffectLabels();
             }
             finally
@@ -779,6 +801,20 @@ namespace PaDDY
                 PitchShiftGrainSizeLabel.Text = $"{(int)PitchShiftGrainSizeSlider.Value}";
             if (PitchShiftMixSlider != null)
                 PitchShiftMixLabel.Text = $"{PitchShiftMixSlider.Value:F2}";
+            if (RemasterWarmthSlider != null)
+                RemasterWarmthLabel.Text = $"{(RemasterWarmthSlider.Value >= 0 ? "+" : "")}{RemasterWarmthSlider.Value:F1} dB";
+            if (RemasterPunchSlider != null)
+                RemasterPunchLabel.Text = $"{(RemasterPunchSlider.Value >= 0 ? "+" : "")}{RemasterPunchSlider.Value:F1} dB";
+            if (RemasterBrillianceSlider != null)
+                RemasterBrillianceLabel.Text = $"{(RemasterBrillianceSlider.Value >= 0 ? "+" : "")}{RemasterBrillianceSlider.Value:F1} dB";
+            if (RemasterWidthSlider != null)
+                RemasterWidthLabel.Text = $"{RemasterWidthSlider.Value:F2}x";
+            if (RemasterDriveSlider != null)
+                RemasterDriveLabel.Text = $"{RemasterDriveSlider.Value:F2}";
+            if (RemasterRatioSlider != null)
+                RemasterRatioLabel.Text = $"{RemasterRatioSlider.Value:F1}:1";
+            if (RemasterCeilingSlider != null)
+                RemasterCeilingLabel.Text = $"{RemasterCeilingSlider.Value:F1} dB";
 
             UpdateEffectVisualGraphs();
         }
@@ -1057,7 +1093,65 @@ namespace PaDDY
                 _pitchShift.GrainSizeMs = PitchShiftGrainSizeSlider.Value;
                 _pitchShift.Mix = PitchShiftMixSlider.Value;
             }
+            if (_remaster != null)
+            {
+                _remaster.IsEnabled = RemasterEnabledCheck.IsChecked == true;
+                _remaster.Preset = RemasterPresetCombo.SelectedIndex switch
+                {
+                    0 => RemasterPreset.CleanAndTransparent,
+                    1 => RemasterPreset.WarmAnalog,
+                    2 => RemasterPreset.PunchyClub,
+                    3 => RemasterPreset.VocalAcoustic,
+                    4 => RemasterPreset.LoudMaximizer,
+                    _ => RemasterPreset.Custom
+                };
+                _remaster.WarmthDb = RemasterWarmthSlider.Value;
+                _remaster.PunchDb = RemasterPunchSlider.Value;
+                _remaster.BrillianceDb = RemasterBrillianceSlider.Value;
+                _remaster.StereoWidth = RemasterWidthSlider.Value;
+                _remaster.Drive = RemasterDriveSlider.Value;
+                _remaster.Ratio = RemasterRatioSlider.Value;
+                _remaster.LimiterCeilingDb = RemasterCeilingSlider.Value;
+            }
             SaveEffectSettings();
+        }
+
+        private void RemasterPresetCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_effectsLoading) return;
+            var preset = RemasterPresetCombo.SelectedIndex switch
+            {
+                0 => RemasterPreset.CleanAndTransparent,
+                1 => RemasterPreset.WarmAnalog,
+                2 => RemasterPreset.PunchyClub,
+                3 => RemasterPreset.VocalAcoustic,
+                4 => RemasterPreset.LoudMaximizer,
+                _ => RemasterPreset.Custom
+            };
+
+            if (preset != RemasterPreset.Custom)
+            {
+                var temp = new RemasterEffect();
+                temp.ApplyPreset(preset);
+
+                _effectsLoading = true;
+                try
+                {
+                    RemasterWarmthSlider.Value = temp.WarmthDb;
+                    RemasterPunchSlider.Value = temp.PunchDb;
+                    RemasterBrillianceSlider.Value = temp.BrillianceDb;
+                    RemasterWidthSlider.Value = temp.StereoWidth;
+                    RemasterDriveSlider.Value = temp.Drive;
+                    RemasterRatioSlider.Value = temp.Ratio;
+                    RemasterCeilingSlider.Value = temp.LimiterCeilingDb;
+                }
+                finally
+                {
+                    _effectsLoading = false;
+                }
+            }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
         }
 
         private void SaveEffectSettings()
@@ -1071,6 +1165,10 @@ namespace PaDDY
         private void EffectSlider_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (_effectsLoading) return;
+            if (sender is Slider slider && slider.Name.StartsWith("Remaster") && RemasterPresetCombo != null && RemasterPresetCombo.SelectedIndex != 5)
+            {
+                RemasterPresetCombo.SelectedIndex = 5;
+            }
             UpdateEffectLabels();
             CommitEffectsToChain();
         }
@@ -1144,6 +1242,13 @@ namespace PaDDY
             PitchShiftChevron.Text = expand ? "▼" : "►";
         }
 
+        private void RemasterHeaderButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool expand = RemasterContent.Visibility == Visibility.Collapsed;
+            RemasterContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            RemasterChevron.Text = expand ? "▼" : "►";
+        }
+
         private void ResetEffects_Click(object sender, RoutedEventArgs e)
         {
             _effectsLoading = true;
@@ -1184,6 +1289,17 @@ namespace PaDDY
                 PitchShiftSemitonesSlider.Value = 0;
                 PitchShiftGrainSizeSlider.Value = 50;
                 PitchShiftMixSlider.Value = 1.0;
+                RemasterEnabledCheck.IsChecked = false;
+                RemasterPresetCombo.SelectedIndex = 1;
+                var defRem = new RemasterEffect();
+                defRem.ApplyPreset(RemasterPreset.WarmAnalog);
+                RemasterWarmthSlider.Value = defRem.WarmthDb;
+                RemasterPunchSlider.Value = defRem.PunchDb;
+                RemasterBrillianceSlider.Value = defRem.BrillianceDb;
+                RemasterWidthSlider.Value = defRem.StereoWidth;
+                RemasterDriveSlider.Value = defRem.Drive;
+                RemasterRatioSlider.Value = defRem.Ratio;
+                RemasterCeilingSlider.Value = defRem.LimiterCeilingDb;
             }
             finally { _effectsLoading = false; }
             UpdateEffectLabels();

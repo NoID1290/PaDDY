@@ -22,11 +22,12 @@ public static class EffectChainFactory
         chain.Add(new EchoEffect());
         chain.Add(new ReverbEffect());
         chain.Add(new EqualizerEffect());
+        chain.Add(new RemasterEffect());
         return chain;
     }
 
     /// <summary>
-    /// Creates a per-clip effect chain: Fade → Noise Gate → Compressor → Distortion → Echo → Reverb → Equalizer.
+    /// Creates a per-clip effect chain: Fade → Noise Gate → Pitch Shift → Compressor → Distortion → Echo → Reverb → Equalizer → Remaster.
     /// All effects are disabled by default.
     /// </summary>
     public static IEffectChain CreatePerClip()
@@ -40,6 +41,7 @@ public static class EffectChainFactory
         chain.Add(new EchoEffect());
         chain.Add(new ReverbEffect());
         chain.Add(new EqualizerEffect());
+        chain.Add(new RemasterEffect());
         return chain;
     }
 }
