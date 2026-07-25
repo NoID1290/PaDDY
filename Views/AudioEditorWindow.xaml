@@ -326,99 +326,77 @@
                     </Border>
 
                     <!-- Row 4 — Studio Effects Processor Rack (Positioned Below Waveform) -->
-                    <Grid Grid.Row="4" Margin="0,0,0,8">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                    <Border x:Name="EffectsPanelContent" Grid.Row="4"
+                            Background="{DynamicResource WindowBgBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Padding="10" Margin="0,0,0,8"
+                            VerticalAlignment="Stretch">
+                        <Border.Effect>
+                            <StaticResource ResourceKey="PanelShadow"/>
+                        </Border.Effect>
+                        <DockPanel>
 
-                        <!-- Rack Strip Collapse / Expand Toggle Bar -->
-                        <Border Grid.Row="0"
-                                Background="{DynamicResource CardBgBrush}"
-                                BorderBrush="{DynamicResource CardBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="12,5"
-                                Margin="0,0,0,6"
-                                Cursor="Hand"
-                                MouseLeftButtonUp="EffectsPanelChevron_Click">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,8,0">
-                                        <Border.Effect>
-                                            <DropShadowEffect BlurRadius="6" Color="#4CAF50" Opacity="0.9"/>
-                                        </Border.Effect>
-                                    </Border>
-                                    <TextBlock Text="STUDIO EFFECTS PROCESSOR RACK"
-                                               Foreground="{DynamicResource AccentTitleBrush}"
-                                               FontSize="11" FontWeight="Bold"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock x:Name="EffectsPanelChevron" Text="▼ HIDE PROCESSOR RACK"
-                                               FontSize="10" Foreground="{DynamicResource AccentGreenBrush}"
-                                               FontWeight="Bold"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                            <!-- Single Unified Studio Effects Rack Header Bar -->
+                            <Border DockPanel.Dock="Top"
+                                    Background="{DynamicResource CardBgBrush}"
+                                    BorderBrush="{DynamicResource CardBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="12,6"
+                                    Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                        <!-- Hardware Studio Rack Chassis Frame -->
-                        <Border x:Name="EffectsPanelContent" Grid.Row="1"
-                                Background="{DynamicResource WindowBgBrush}"
-                                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                                CornerRadius="8" Padding="10"
-                                VerticalAlignment="Stretch">
-                            <Border.Effect>
-                                <StaticResource ResourceKey="PanelShadow"/>
-                            </Border.Effect>
-                            <DockPanel>
+                                    <!-- Title & Status -->
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,8,0">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="6" Color="#4CAF50" Opacity="0.9"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <TextBlock Text="STUDIO EFFECTS PROCESSOR RACK"
+                                                   Foreground="{DynamicResource AccentTitleBrush}"
+                                                   FontSize="11.5" FontWeight="Bold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
 
-                                <!-- Rack Console Master Header Bar -->
-                                <Border DockPanel.Dock="Top"
-                                        Background="{DynamicResource CardBgBrush}"
-                                        BorderBrush="{DynamicResource CardBorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="6"
-                                        Padding="12,6"
-                                        Margin="0,0,0,8">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
+                                    <!-- Master Gain Console -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="MASTER GAIN" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <Slider x:Name="GainSlider" Width="180"
+                                                Minimum="-24" Maximum="24" Value="0"
+                                                TickFrequency="1" IsSnapToTickEnabled="True"
+                                                VerticalAlignment="Center"
+                                                ValueChanged="GainSlider_ValueChanged"/>
+                                        <Border Style="{StaticResource ValueBadge}" Margin="10,0,0,0">
+                                            <TextBlock x:Name="GainLabel" Text="0 dB"
+                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5"
+                                                       FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        </Border>
+                                    </StackPanel>
 
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="{p:Loc EffectsProcessorHeader}" Foreground="{DynamicResource AccentTitleBrush}" FontSize="11.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                                            <Border Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
-                                                <TextBlock Text="HARDWARE ENGINE" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource AccentGreenBrush}"/>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <!-- Rack Master Gain Console -->
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="MASTER GAIN" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                            <Slider x:Name="GainSlider" Width="180"
-                                                    Minimum="-24" Maximum="24" Value="0"
-                                                    TickFrequency="1" IsSnapToTickEnabled="True"
-                                                    VerticalAlignment="Center"
-                                                    ValueChanged="GainSlider_ValueChanged"/>
-                                            <Border Style="{StaticResource ValueBadge}" Margin="10,0,0,0">
-                                                <TextBlock x:Name="GainLabel" Text="0 dB"
-                                                           Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5"
-                                                           FontWeight="Bold" HorizontalAlignment="Center"/>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <Button Grid.Column="2" Content="{p:Loc ResetAll}" HorizontalAlignment="Right"
-                                                Style="{StaticResource EditorBtn}" Height="24" Padding="12,0"
+                                    <!-- Actions: Reset All & Single Hide Button -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <Button Content="{p:Loc ResetAll}" HorizontalAlignment="Right"
+                                                Style="{StaticResource EditorBtn}" Height="24" Padding="12,0" Margin="0,0,12,0"
                                                 Click="ResetEffects_Click"/>
-                                    </Grid>
-                                </Border>
+                                        <Button Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Click="EffectsPanelChevron_Click">
+                                            <TextBlock x:Name="EffectsPanelChevron" Text="▼ HIDE PROCESSOR RACK"
+                                                       FontSize="10" Foreground="{DynamicResource AccentGreenBrush}"
+                                                       FontWeight="Bold" VerticalAlignment="Center"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
 
-                                <!-- Multi-Column Studio Hardware Rack Modules Stack -->
-                                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                              HorizontalScrollBarVisibility="Disabled">
+                            <!-- Multi-Column Studio Hardware Rack Modules Stack -->
+                            <ScrollViewer x:Name="EffectsRackScrollViewer"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled">
                                     <Grid Margin="0,2,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -457,13 +435,6 @@
                                                     </Grid>
                                                     
                                                     <StackPanel x:Name="FadeContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Visual Graph -->
-                                                        <Border Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="15,4">
-                                                                <Path x:Name="FadeVisualPath" Data="M 0,35 C 20,35 25,5 30,5 L 70,5 C 75,5 80,35 100,35"
-                                                                      Stroke="{DynamicResource AccentGreenBrush}" StrokeThickness="2" Fill="{x:Null}"/>
-                                                            </Viewbox>
-                                                        </Border>
                                                         <Grid Margin="0,0,0,6">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="90"/>
@@ -518,13 +489,6 @@
                                                     </Grid>
                                                     
                                                     <StackPanel x:Name="GateContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Visual Graph -->
-                                                        <Border Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="25,4">
-                                                                <Path x:Name="GateVisualPath" Data="M 0,35 L 40,35 L 75,5 L 100,5"
-                                                                      Stroke="{DynamicResource AccentGreenBrush}" StrokeThickness="2" Fill="{x:Null}"/>
-                                                            </Viewbox>
-                                                        </Border>
                                                         <Grid Margin="0,0,0,6">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="90"/>
@@ -591,13 +555,6 @@
                                                     </Grid>
                                                     
                                                     <StackPanel x:Name="CompressorContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Visual Graph -->
-                                                        <Border Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="25,4">
-                                                                <Path x:Name="CompVisualPath" Data="M 0,35 L 50,20 Q 75,10 100,5"
-                                                                      Stroke="{DynamicResource AccentGreenBrush}" StrokeThickness="2" Fill="{x:Null}"/>
-                                                            </Viewbox>
-                                                        </Border>
                                                         <Grid Margin="0,0,0,6">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="90"/>
@@ -708,14 +665,6 @@
                                                             <RowDefinition Height="Auto"/>
                                                         </Grid.RowDefinitions>
                                                         
-                                                        <!-- Visual Graph visual curve on top of the EQ grid, spanning all columns -->
-                                                        <Border Grid.Row="0" Grid.ColumnSpan="5" Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="15,4">
-                                                                <Path x:Name="EqVisualPath" Data="M 0,20 Q 15,10 25,20 T 50,20 Q 65,5 75,20 T 100,20"
-                                                                      Stroke="{DynamicResource AccentGreenBrush}" StrokeThickness="2" Fill="{x:Null}"/>
-                                                            </Viewbox>
-                                                        </Border>
-
                                                         <!-- Band labels -->
                                                         <TextBlock Grid.Column="0" Grid.Row="1" Text="80Hz" Style="{StaticResource SettingsLabel}" FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                                                         <TextBlock Grid.Column="1" Grid.Row="1" Text="250Hz" Style="{StaticResource SettingsLabel}" FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,2"/>
@@ -776,13 +725,6 @@
                                                     </Grid>
                                                     
                                                     <StackPanel x:Name="PitchShiftContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Visual Graph -->
-                                                        <Border Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="25,6">
-                                                                <Path x:Name="PitchShiftVisualPath" Data="M 0,20 Q 12.5,5 25,20 T 50,20 T 67.5,20 T 80,20 T 90,20 T 97.5,20 T 100,20"
-                                                                      Stroke="{DynamicResource AccentGreenBrush}" StrokeThickness="2" Fill="{x:Null}"/>
-                                                            </Viewbox>
-                                                        </Border>
                                                         <Grid Margin="0,0,0,6">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="90"/>
@@ -849,13 +791,6 @@
                                                     </Grid>
                                                     
                                                     <StackPanel x:Name="DistortionContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Visual Graph -->
-                                                        <Border Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="25,4">
-                                                                <Path x:Name="DistVisualPath" Data="M 0,35 C 30,35 40,20 50,20 C 60,20 70,5 100,5"
-                                                                      Stroke="{DynamicResource AccentGreenBrush}" StrokeThickness="2" Fill="{x:Null}"/>
-                                                            </Viewbox>
-                                                        </Border>
                                                         <Grid Margin="0,0,0,6">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="90"/>
@@ -927,15 +862,6 @@
                                                     </Grid>
                                                     
                                                     <StackPanel x:Name="EchoContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Visual Graph -->
-                                                        <Border Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="25,6">
-                                                                <Grid Width="100" Height="40">
-                                                                    <Path x:Name="EchoVisualPath" Data="M 10,35 L 10,5 L 12,5 L 12,35 M 35,35 L 35,15 L 37,15 L 37,35 M 60,35 L 60,23 L 62,23 L 62,35 M 85,35 L 85,30 L 87,30 L 87,35"
-                                                                          Fill="{DynamicResource AccentGreenBrush}"/>
-                                                                </Grid>
-                                                            </Viewbox>
-                                                        </Border>
                                                         <Grid Margin="0,0,0,6">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="90"/>
@@ -1002,13 +928,6 @@
                                                     </Grid>
                                                     
                                                     <StackPanel x:Name="ReverbContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Visual Graph -->
-                                                        <Border Height="40" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
-                                                            <Viewbox Stretch="Fill" Margin="25,6">
-                                                                <Path x:Name="ReverbVisualPath" Data="M 5,35 L 5,5 M 10,35 L 10,20 M 15,35 L 15,10 M 22,35 L 22,25 M 30,35 L 30,15 M 40,35 L 40,30 M 50,35 L 50,18 M 60,35 L 60,25 M 70,35 L 70,32 M 80,35 L 80,28 M 90,35 L 90,33 M 95,35 L 95,34"
-                                                                      Stroke="{DynamicResource AccentGreenBrush}" StrokeThickness="1.5"/>
-                                                            </Viewbox>
-                                                        </Border>
                                                         <Grid Margin="0,0,0,6">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="90"/>
@@ -1215,7 +1134,6 @@
                                 </ScrollViewer>
                             </DockPanel>
                         </Border>
-                    </Grid>
 
                     <!-- Row 5 — Action buttons -->
                     <Border Grid.Row="5"

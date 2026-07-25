@@ -831,204 +831,14 @@ namespace PaDDY
             UpdateReverbVisualGraph();
         }
 
-        private void UpdateFadeVisualGraph()
-        {
-            if (FadeVisualPath == null || FadeInSlider == null || FadeOutSlider == null) return;
-            double fadeInMs = FadeInSlider.Value;
-            double fadeOutMs = FadeOutSlider.Value;
-
-            double inW = (fadeInMs / 5000.0) * 45.0;
-            double outW = (fadeOutMs / 5000.0) * 45.0;
-
-            string pathData;
-            if (inW < 0.5 && outW < 0.5)
-            {
-                pathData = "M 0,5 L 100,5";
-            }
-            else if (inW < 0.5)
-            {
-                double outStart = 100.0 - outW;
-                pathData = FormattableString.Invariant($"M 0,5 L {outStart:F1},5 C {outStart + outW * 0.4:F1},5 {outStart + outW * 0.6:F1},35 100,35");
-            }
-            else if (outW < 0.5)
-            {
-                pathData = FormattableString.Invariant($"M 0,35 C {inW * 0.4:F1},35 {inW * 0.6:F1},5 {inW:F1},5 L 100,5");
-            }
-            else
-            {
-                double outStart = 100.0 - outW;
-                pathData = FormattableString.Invariant($"M 0,35 C {inW * 0.4:F1},35 {inW * 0.6:F1},5 {inW:F1},5 L {outStart:F1},5 C {outStart + outW * 0.4:F1},5 {outStart + outW * 0.6:F1},35 100,35");
-            }
-
-            try { FadeVisualPath.Data = Geometry.Parse(pathData); } catch { }
-        }
-
-        private void UpdateGateVisualGraph()
-        {
-            if (GateVisualPath == null || GateThresholdSlider == null) return;
-            double threshDb = GateThresholdSlider.Value; // -80 .. 0
-            double xThresh = Math.Clamp(((threshDb - (-80.0)) / 80.0) * 100.0, 0.0, 95.0);
-
-            string pathData = FormattableString.Invariant($"M 0,35 L {xThresh:F1},35 L 100,5");
-            try { GateVisualPath.Data = Geometry.Parse(pathData); } catch { }
-        }
-
-        private void UpdateCompVisualGraph()
-        {
-            if (CompVisualPath == null || CompThresholdSlider == null || CompRatioSlider == null || CompMakeupSlider == null) return;
-            double threshDb = CompThresholdSlider.Value; // -60 .. 0
-            double ratio = Math.Max(1.0, CompRatioSlider.Value); // 1 .. 20
-            double makeupDb = CompMakeupSlider.Value; // 0 .. 24
-
-            double xThresh = Math.Clamp(((threshDb - (-60.0)) / 60.0) * 100.0, 0.0, 95.0);
-            double yThresh = 35.0 - (xThresh / 100.0) * 30.0;
-
-            double uncompressedDy = yThresh - 5.0;
-            double compressedDy = uncompressedDy / ratio;
-
-            double makeupShift = (makeupDb / 24.0) * 10.0;
-            double y0 = Math.Clamp(35.0 - makeupShift, 5.0, 35.0);
-            double yKnee = Math.Clamp(yThresh - makeupShift, 5.0, 35.0);
-            double yTarget = Math.Clamp(yKnee - compressedDy, 5.0, 35.0);
-
-            string pathData = FormattableString.Invariant($"M 0,{y0:F1} L {xThresh:F1},{yKnee:F1} L 100,{yTarget:F1}");
-            try { CompVisualPath.Data = Geometry.Parse(pathData); } catch { }
-        }
-
-        private void UpdateEqVisualGraph()
-        {
-            if (EqVisualPath == null || EqSubBassSlider == null || EqBassSlider == null || EqMidSlider == null || EqPresenceSlider == null || EqTrebleSlider == null) return;
-
-            double g0 = EqSubBassSlider.Value;
-            double g1 = EqBassSlider.Value;
-            double g2 = EqMidSlider.Value;
-            double g3 = EqPresenceSlider.Value;
-            double g4 = EqTrebleSlider.Value;
-
-            double y0 = 20.0 - (g0 / 12.0) * 15.0;
-            double y1 = 20.0 - (g1 / 12.0) * 15.0;
-            double y2 = 20.0 - (g2 / 12.0) * 15.0;
-            double y3 = 20.0 - (g3 / 12.0) * 15.0;
-            double y4 = 20.0 - (g4 / 12.0) * 15.0;
-
-            string pathData = FormattableString.Invariant($"M 0,{y0:F1} C 5,{y0:F1} 20,{y1:F1} 30,{y1:F1} C 40,{y1:F1} 40,{y2:F1} 50,{y2:F1} C 60,{y2:F1} 60,{y3:F1} 70,{y3:F1} C 80,{y3:F1} 85,{y4:F1} 90,{y4:F1} L 100,{y4:F1}");
-            try { EqVisualPath.Data = Geometry.Parse(pathData); } catch { }
-        }
-
-        private void UpdatePitchShiftVisualGraph()
-        {
-            if (PitchShiftVisualPath == null || PitchShiftSemitonesSlider == null || PitchShiftMixSlider == null) return;
-
-            double semitones = PitchShiftSemitonesSlider.Value; // -24 .. +24
-            double mix = PitchShiftMixSlider.Value; // 0 .. 1
-
-            double freqScale = Math.Pow(2.0, semitones / 12.0);
-            double cycles = Math.Clamp(3.0 * freqScale, 0.5, 12.0);
-            double amp = 14.0 * Math.Max(0.2, mix);
-
-            var sb = new System.Text.StringBuilder();
-            int samples = 50;
-            for (int i = 0; i <= samples; i++)
-            {
-                double x = (double)i / samples * 100.0;
-                double y = 20.0 - amp * Math.Sin(2.0 * Math.PI * cycles * (x / 100.0));
-                if (i == 0)
-                    sb.Append(FormattableString.Invariant($"M {x:F1},{y:F1}"));
-                else
-                    sb.Append(FormattableString.Invariant($" L {x:F1},{y:F1}"));
-            }
-
-            try { PitchShiftVisualPath.Data = Geometry.Parse(sb.ToString()); } catch { }
-        }
-
-        private void UpdateDistVisualGraph()
-        {
-            if (DistVisualPath == null || DistDriveSlider == null || DistMixSlider == null || DistOutputSlider == null) return;
-
-            double drive = DistDriveSlider.Value; // 1 .. 50
-            double mix = DistMixSlider.Value; // 0 .. 1
-            double output = DistOutputSlider.Value; // 0 .. 1
-
-            double amp = 14.0 * Math.Max(0.2, output);
-
-            var sb = new System.Text.StringBuilder();
-            int samples = 40;
-            for (int i = 0; i <= samples; i++)
-            {
-                double normX = (double)i / samples * 2.0 - 1.0; // -1 .. +1
-                double satX = Math.Tanh((drive / 5.0) * normX);
-                double blendX = mix * satX + (1.0 - mix) * normX;
-
-                double x = (double)i / samples * 100.0;
-                double y = 20.0 - amp * blendX;
-
-                if (i == 0)
-                    sb.Append(FormattableString.Invariant($"M {x:F1},{y:F1}"));
-                else
-                    sb.Append(FormattableString.Invariant($" L {x:F1},{y:F1}"));
-            }
-
-            try { DistVisualPath.Data = Geometry.Parse(sb.ToString()); } catch { }
-        }
-
-        private void UpdateEchoVisualGraph()
-        {
-            if (EchoVisualPath == null || EchoDelaySlider == null || EchoFeedbackSlider == null || EchoMixSlider == null) return;
-
-            double delayMs = EchoDelaySlider.Value; // 50 .. 2000
-            double feedback = EchoFeedbackSlider.Value; // 0 .. 0.95
-            double mix = EchoMixSlider.Value; // 0 .. 1
-
-            double spacing = (delayMs / 2000.0) * 70.0 + 10.0;
-            var sb = new System.Text.StringBuilder();
-
-            int maxTaps = (int)((95.0 - 5.0) / spacing) + 1;
-            maxTaps = Math.Clamp(maxTaps, 1, 8);
-
-            for (int i = 0; i < maxTaps; i++)
-            {
-                double x = 5.0 + i * spacing;
-                double amp = (i == 0) ? 1.0 : mix * Math.Pow(feedback, i);
-                double h = Math.Clamp(amp * 30.0, 3.0, 30.0);
-                double yTop = 35.0 - h;
-
-                sb.Append(FormattableString.Invariant($"M {x:F1},35 L {x:F1},{yTop:F1} L {x + 2.5:F1},{yTop:F1} L {x + 2.5:F1},35 Z "));
-            }
-
-            try { EchoVisualPath.Data = Geometry.Parse(sb.ToString()); } catch { }
-        }
-
-        private void UpdateReverbVisualGraph()
-        {
-            if (ReverbVisualPath == null || ReverbRoomSlider == null || ReverbDampingSlider == null || ReverbMixSlider == null) return;
-
-            double roomSize = ReverbRoomSlider.Value; // 0 .. 1
-            double damping = ReverbDampingSlider.Value; // 0 .. 1
-            double mix = ReverbMixSlider.Value; // 0 .. 1
-
-            double tailLength = 20.0 + roomSize * 75.0; // 20 .. 95
-            double decayRate = 1.0 + (1.0 - roomSize) * 3.0 + damping * 2.0;
-
-            var sb = new System.Text.StringBuilder();
-            double[] factors = new double[] { 1.0, 0.6, 0.85, 0.45, 0.75, 0.35, 0.65, 0.5, 0.4, 0.3, 0.45, 0.25, 0.35, 0.2, 0.3, 0.15, 0.2, 0.1, 0.15, 0.05 };
-
-            int numSpikes = factors.Length;
-            for (int i = 0; i < numSpikes; i++)
-            {
-                double frac = (double)i / (numSpikes - 1);
-                double x = 5.0 + frac * tailLength;
-                if (x > 98.0) break;
-
-                double envelope = Math.Exp(-decayRate * frac);
-                double amp = mix * envelope * factors[i];
-                double h = Math.Clamp(amp * 30.0, 1.5, 30.0);
-                double yTop = 35.0 - h;
-
-                sb.Append(FormattableString.Invariant($"M {x:F1},35 L {x:F1},{yTop:F1} "));
-            }
-
-            try { ReverbVisualPath.Data = Geometry.Parse(sb.ToString()); } catch { }
-        }
+        private void UpdateFadeVisualGraph() { }
+        private void UpdateGateVisualGraph() { }
+        private void UpdateCompVisualGraph() { }
+        private void UpdateEqVisualGraph() { }
+        private void UpdatePitchShiftVisualGraph() { }
+        private void UpdateDistVisualGraph() { }
+        private void UpdateEchoVisualGraph() { }
+        private void UpdateReverbVisualGraph() { }
 
 
 
@@ -1179,10 +989,10 @@ namespace PaDDY
             CommitEffectsToChain();
         }
 
-        private void EffectsPanelChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void EffectsPanelChevron_Click(object sender, RoutedEventArgs e)
         {
-            bool expand = EffectsPanelContent.Visibility == Visibility.Collapsed;
-            EffectsPanelContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            bool expand = EffectsRackScrollViewer.Visibility == Visibility.Collapsed;
+            EffectsRackScrollViewer.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
             EffectsPanelChevron.Text = expand ? "▼ HIDE PROCESSOR RACK" : "▲ SHOW PROCESSOR RACK";
         }
 
