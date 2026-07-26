@@ -1,7 +1,11 @@
 using System;
 using System.Drawing;
+using System.Drawing.Text;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
+using PaDDY.Models;
 
 namespace PaDDY.Services
 {
@@ -13,14 +17,37 @@ namespace PaDDY.Services
     [SupportedOSPlatform("windows")]
     public sealed class TrayIconService : IDisposable
     {
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr AddFontMemResourceEx(IntPtr pbFont, uint cbFont, IntPtr pdv, ref uint pcFonts);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool RemoveFontMemResourceEx(IntPtr handle);
+
         private readonly NotifyIcon _icon;
         private bool _disposed;
+
+        private PrivateFontCollection? _fontCollection;
+        private IntPtr _fontBuffer = IntPtr.Zero;
+        private IntPtr _gdiFontHandle = IntPtr.Zero;
+        private Font? _menuFont;
 
         /// <summary>Raised when the user asks to show/restore the main window.</summary>
         public event Action? ShowRequested;
 
         /// <summary>Raised when the user picks "Settings" from the tray menu.</summary>
         public event Action? SettingsRequested;
+
+        /// <summary>Raised when the user asks to toggle audio monitoring from the tray menu.</summary>
+        public event Action? ToggleMonitoringRequested;
+
+        /// <summary>Raised when the user asks to toggle pad monitoring from the tray menu.</summary>
+        public event Action? TogglePadMonitoringRequested;
+
+        /// <summary>Callback to query if monitoring is currently active.</summary>
+        public Func<bool>? IsMonitoringActiveFunc { get; set; }
+
+        /// <summary>Callback to query if pad monitoring is currently enabled.</summary>
+        public Func<bool>? IsPadMonitoringActiveFunc { get; set; }
 
         /// <summary>Raised when the user picks "Exit" from the tray menu.</summary>
         public event Action? ExitRequested;
@@ -44,22 +71,44 @@ namespace PaDDY.Services
 
             var showItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayOpen"], null, (_, _) => ShowRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
             var settingsItem = new ToolStripMenuItem(LocalizationManager.Instance["TraySettings"], null, (_, _) => SettingsRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
+
+            var toggleMonitoringItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayStartMonitoring"], null, (_, _) => ToggleMonitoringRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
+            var togglePadMonitorItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayPadMonitorOn"], null, (_, _) => TogglePadMonitoringRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
+
             var exitItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayExit"], null, (_, _) => ExitRequested?.Invoke()) { Padding = new Padding(12, 6, 12, 6) };
 
-            LocalizationManager.Instance.PropertyChanged += (_, _) =>
+            void RefreshMenuItems()
             {
                 showItem.Text = LocalizationManager.Instance["TrayOpen"];
                 settingsItem.Text = LocalizationManager.Instance["TraySettings"];
                 exitItem.Text = LocalizationManager.Instance["TrayExit"];
-            };
+
+                bool isMonitoring = IsMonitoringActiveFunc?.Invoke() ?? false;
+                toggleMonitoringItem.Text = isMonitoring
+                    ? (LocalizationManager.Instance["TrayStopMonitoring"] ?? "Stop Monitoring")
+                    : (LocalizationManager.Instance["TrayStartMonitoring"] ?? "Start Monitoring");
+
+                bool isPadMonitoring = IsPadMonitoringActiveFunc?.Invoke() ?? false;
+                togglePadMonitorItem.Text = isPadMonitoring
+                    ? (LocalizationManager.Instance["TrayPadMonitorOn"] ?? "Pad Monitor: On")
+                    : (LocalizationManager.Instance["TrayPadMonitorOff"] ?? "Pad Monitor: Off");
+            }
+
+            LocalizationManager.Instance.PropertyChanged += (_, _) => RefreshMenuItems();
+            menu.Opening += (_, _) => RefreshMenuItems();
 
             menu.Items.Add(showItem);
             menu.Items.Add(settingsItem);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(toggleMonitoringItem);
+            menu.Items.Add(togglePadMonitorItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(exitItem);
 
             _icon.ContextMenuStrip = menu;
             _icon.DoubleClick += (_, _) => ShowRequested?.Invoke();
+
+            UpdateMenuFont();
         }
 
         // Removed the Visible property — callers can no longer hide the icon.
@@ -73,6 +122,81 @@ namespace PaDDY.Services
             _icon.BalloonTipTitle = title;
             _icon.BalloonTipText = message;
             _icon.ShowBalloonTip(timeoutMs);
+        }
+
+        /// <summary>Loads and applies the integrated font selected in the AppSettings to the context menu.</summary>
+        public void UpdateMenuFont()
+        {
+            try
+            {
+                var settings = AppSettings.Load();
+                var variantKey = settings.AppFontVariant;
+
+                var entry = App.FontVariants.FirstOrDefault(v => v.Key == variantKey);
+                if (entry == default) entry = App.FontVariants.First(v => v.Key == "condensed-display");
+
+                var uri = new Uri($"pack://application:,,,/Themes/Fonts/{entry.FileName}");
+                var streamResource = System.Windows.Application.GetResourceStream(uri);
+                if (streamResource != null)
+                {
+                    using (var stream = streamResource.Stream)
+                    {
+                        byte[] fontData = new byte[stream.Length];
+                        stream.ReadExactly(fontData, 0, fontData.Length);
+
+                        IntPtr oldBuffer = _fontBuffer;
+                        PrivateFontCollection? oldCollection = _fontCollection;
+                        Font? oldFont = _menuFont;
+                        IntPtr oldGdiHandle = _gdiFontHandle;
+
+                        _fontBuffer = Marshal.AllocCoTaskMem(fontData.Length);
+                        Marshal.Copy(fontData, 0, _fontBuffer, fontData.Length);
+
+                        uint pcFonts = 0;
+                        _gdiFontHandle = AddFontMemResourceEx(_fontBuffer, (uint)fontData.Length, IntPtr.Zero, ref pcFonts);
+
+                        _fontCollection = new PrivateFontCollection();
+                        _fontCollection.AddMemoryFont(_fontBuffer, fontData.Length);
+
+                        if (_fontCollection.Families.Length > 0)
+                        {
+                            var family = _fontCollection.Families[0];
+                            // Match the general aesthetic font size of the application context menus
+                            _menuFont = new Font(family, 10f, FontStyle.Regular);
+
+                            if (_icon.ContextMenuStrip != null)
+                            {
+                                _icon.ContextMenuStrip.Font = _menuFont;
+                                foreach (ToolStripItem item in _icon.ContextMenuStrip.Items)
+                                {
+                                    item.Font = _menuFont;
+                                }
+                            }
+                        }
+
+                        if (oldFont != null)
+                        {
+                            oldFont.Dispose();
+                        }
+                        if (oldCollection != null)
+                        {
+                            oldCollection.Dispose();
+                        }
+                        if (oldGdiHandle != IntPtr.Zero)
+                        {
+                            RemoveFontMemResourceEx(oldGdiHandle);
+                        }
+                        if (oldBuffer != IntPtr.Zero)
+                        {
+                            Marshal.FreeCoTaskMem(oldBuffer);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to update tray menu font: {ex.Message}");
+            }
         }
 
         private static Icon LoadAppIcon()
@@ -94,6 +218,28 @@ namespace PaDDY.Services
         {
             if (_disposed) return;
             _disposed = true;
+
+            if (_menuFont != null)
+            {
+                _menuFont.Dispose();
+                _menuFont = null;
+            }
+            if (_fontCollection != null)
+            {
+                _fontCollection.Dispose();
+                _fontCollection = null;
+            }
+            if (_gdiFontHandle != IntPtr.Zero)
+            {
+                RemoveFontMemResourceEx(_gdiFontHandle);
+                _gdiFontHandle = IntPtr.Zero;
+            }
+            if (_fontBuffer != IntPtr.Zero)
+            {
+                Marshal.FreeCoTaskMem(_fontBuffer);
+                _fontBuffer = IntPtr.Zero;
+            }
+
             // Hide only at true shutdown so Windows cleans up the tray slot.
             // This runs when the app is actually exiting, not when the window closes.
             _icon.Visible = false;

@@ -356,6 +356,10 @@
   <!-- System Tray -->
   <data name="TrayOpen" xml:space="preserve"><value>Open PaDDY</value></data>
   <data name="TraySettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="TrayStartMonitoring" xml:space="preserve"><value>Start Monitoring</value></data>
+  <data name="TrayStopMonitoring" xml:space="preserve"><value>Stop Monitoring</value></data>
+  <data name="TrayPadMonitorOn" xml:space="preserve"><value>Pad Monitor: On</value></data>
+  <data name="TrayPadMonitorOff" xml:space="preserve"><value>Pad Monitor: Off</value></data>
   <data name="TrayExit" xml:space="preserve"><value>Exit</value></data>
   <data name="TrayStatus" xml:space="preserve"><value>PaDDY is running in background</value></data>
 </root>

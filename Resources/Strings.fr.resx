@@ -356,6 +356,10 @@
   <!-- System Tray -->
   <data name="TrayOpen" xml:space="preserve"><value>Ouvrir PaDDY</value></data>
   <data name="TraySettings" xml:space="preserve"><value>Paramètres</value></data>
+  <data name="TrayStartMonitoring" xml:space="preserve"><value>Démarrer l'écoute</value></data>
+  <data name="TrayStopMonitoring" xml:space="preserve"><value>Arrêter l'écoute</value></data>
+  <data name="TrayPadMonitorOn" xml:space="preserve"><value>Écoute pad : Activée</value></data>
+  <data name="TrayPadMonitorOff" xml:space="preserve"><value>Écoute pad : Désactivée</value></data>
   <data name="TrayExit" xml:space="preserve"><value>Quitter</value></data>
   <data name="TrayStatus" xml:space="preserve"><value>PaDDY s'exécute en arrière-plan</value></data>
 </root>

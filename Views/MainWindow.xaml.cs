@@ -787,6 +787,23 @@ namespace PaDDY
                 RestoreFromTray();
                 SettingsButton_Click(this, new RoutedEventArgs());
             };
+            _trayIcon.ToggleMonitoringRequested += () =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    MonitorToggle.IsChecked = !(MonitorToggle.IsChecked == true);
+                });
+            };
+            _trayIcon.TogglePadMonitoringRequested += () =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ListenOutputEnabledCheck.IsChecked = !(ListenOutputEnabledCheck.IsChecked == true);
+                });
+            };
+            _trayIcon.IsMonitoringActiveFunc = () => MonitorToggle.IsChecked == true;
+            _trayIcon.IsPadMonitoringActiveFunc = () => ListenOutputEnabledCheck.IsChecked == true;
+
             _trayIcon.ExitRequested += () =>
             {
                 _forceExit = true;
@@ -2930,6 +2947,7 @@ namespace PaDDY
             ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
             App.ApplyFont(_settings.AppFontVariant);
+            _trayIcon?.UpdateMenuFont();
             _suppressSelectionEvents = false;
 
             InitializePadPages();
