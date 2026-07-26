@@ -91,7 +91,7 @@ namespace PaDDY.Views
                 if (palette != null && palette.TryGetValue("WindowBgBrush", out var winBgHex))
                 {
                     var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(winBgHex);
-                    byte alpha = 0x60; // 96/255 opacity for nice glass effect
+                    byte alpha = color.A < 255 ? color.A : (byte)0x60; // respect custom translucent theme alpha
                     if (settings.Theme == "light" || settings.Theme == "sepia")
                     {
                         alpha = 0x90; // slightly higher opacity for light themes so text remains readable

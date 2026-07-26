@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -46,8 +47,9 @@ namespace PaDDY.Helpers
             ("cyberpunk",  "Cyberpunk"),
             ("nordic-frost","Nordic Frost"),
             ("sunset",     "Sunset Glow"),
-            ("deep-teal",  "Deep Teal"),
             ("dracula",    "Obsidian Purple"),
+            ("vista-aero", "Windows Vista Aero"),
+            ("windows-xp", "Windows XP"),
         ];
 
         /// <summary>Display name list for the meter skin selector (key, label).</summary>
@@ -403,6 +405,62 @@ namespace PaDDY.Helpers
                 ["ChromeButtonFgBrush"] = "#FFCABEEA",
                 ["ScrollThumbBrush"] = "#FFBD7AF5",
             },
+            ["vista-aero"] = new()
+            {
+                ["WindowBgBrush"] = "#8010263A",
+                ["CardBgBrush"] = "#90183850",
+                ["CardBorderBrush"] = "#7088CEFA",
+                ["SubtleTextBrush"] = "#FF84C4EE",
+                ["PrimaryTextBrush"] = "#FFFFFFFF",
+                ["SecondaryTextBrush"] = "#FFD0EEFF",
+                ["AccentGreenBrush"] = "#FF32B814",
+                ["AccentRedBrush"] = "#FFE81123",
+                ["AccentAmberBrush"] = "#FFFF9900",
+                ["InputBgBrush"] = "#680B1A28",
+                ["InputBorderBrush"] = "#6078C8F0",
+                ["WindowEdgeBrush"] = "#809CE0FF",
+                ["WindowGlowBrush"] = "#75163C5D",
+                ["ControlTextBrush"] = "#FFEBF6FF",
+                ["ButtonBgBrush"] = "#851C3F5A",
+                ["ButtonHoverBgBrush"] = "#BB2C6A94",
+                ["ButtonPressedBgBrush"] = "#D50E263B",
+                ["MenuBgBrush"] = "#E6122B40",
+                ["MenuHighlightBrush"] = "#FF1E6FBA",
+                ["MenuSelectedBrush"] = "#FF1058A2",
+                ["DividerBrush"] = "#4080D0FF",
+                ["BadgeBgBrush"] = "#800B1A28",
+                ["AccentTitleBrush"] = "#FF46C8FF",
+                ["ChromeButtonFgBrush"] = "#FFD4EEFF",
+                ["ScrollThumbBrush"] = "#994AA5E0",
+            },
+            ["windows-xp"] = new()
+            {
+                ["WindowBgBrush"] = "#FFEBF3FC",
+                ["CardBgBrush"] = "#FFFFFFFF",
+                ["CardBorderBrush"] = "#FF0055EA",
+                ["SubtleTextBrush"] = "#FF3A5A8C",
+                ["PrimaryTextBrush"] = "#FF0F1D38",
+                ["SecondaryTextBrush"] = "#FF284878",
+                ["AccentGreenBrush"] = "#FF3CA028",
+                ["AccentRedBrush"] = "#FFE81123",
+                ["AccentAmberBrush"] = "#FFFF9900",
+                ["InputBgBrush"] = "#FFFFFFFF",
+                ["InputBorderBrush"] = "#FF7B9EBD",
+                ["WindowEdgeBrush"] = "#FF0055EA",
+                ["WindowGlowBrush"] = "#FFC5DBF7",
+                ["ControlTextBrush"] = "#FF0F1D38",
+                ["ButtonBgBrush"] = "#FFF4F8FF",
+                ["ButtonHoverBgBrush"] = "#FFD0E5FE",
+                ["ButtonPressedBgBrush"] = "#FFB9D1F3",
+                ["MenuBgBrush"] = "#FFFFFFFF",
+                ["MenuHighlightBrush"] = "#FF316AC5",
+                ["MenuSelectedBrush"] = "#FF0055EA",
+                ["DividerBrush"] = "#FFB5C7DE",
+                ["BadgeBgBrush"] = "#FFE1ECF8",
+                ["AccentTitleBrush"] = "#FF0055EA",
+                ["ChromeButtonFgBrush"] = "#FFFFFFFF",
+                ["ScrollThumbBrush"] = "#FF4B87ED",
+            },
         };
 
         /// <summary>Returns the color palette dictionary for a given theme key, resolving 'system' automatically.</summary>
@@ -451,8 +509,40 @@ namespace PaDDY.Helpers
 
             // Retheme the gradient chrome brushes in place so secondary windows
             // (Settings/Effects) and the title bar follow the active theme too.
-            // Derived from the palette's window/card colours.
-            if (palette.TryGetValue("CardBgBrush", out var cardHex) &&
+            if (targetTheme == "windows-xp")
+            {
+                SetGradientStops(res, "TitleBarGradient",
+                    ParseColor("#FF0058E6"),
+                    ParseColor("#FF2575F0"),
+                    ParseColor("#FF0043C0"));
+
+                SetGradientStops(res, "SecondaryWindowBackgroundBrush",
+                    ParseColor("#FFEBF3FC"),
+                    ParseColor("#FFE1EDFA"),
+                    ParseColor("#FFD8E7F8"));
+
+                SetGradientStops(res, "SecondaryFooterBackgroundBrush",
+                    ParseColor("#FFD8E7F8"),
+                    ParseColor("#FFCCDDF5"));
+            }
+            else if (targetTheme == "vista-aero")
+            {
+                SetGradientStops(res, "TitleBarGradient",
+                    ParseColor("#9052ACEC"),
+                    ParseColor("#7520547D"),
+                    ParseColor("#75123450"),
+                    ParseColor("#850C243A"));
+
+                SetGradientStops(res, "SecondaryWindowBackgroundBrush",
+                    ParseColor("#901E4260"),
+                    ParseColor("#80143249"),
+                    ParseColor("#900C2235"));
+
+                SetGradientStops(res, "SecondaryFooterBackgroundBrush",
+                    ParseColor("#881A3A54"),
+                    ParseColor("#8810263A"));
+            }
+            else if (palette.TryGetValue("CardBgBrush", out var cardHex) &&
                 palette.TryGetValue("WindowBgBrush", out var winHex))
             {
                 var card = ParseColor(cardHex);
@@ -462,6 +552,15 @@ namespace PaDDY.Helpers
                 SetGradientStops(res, "TitleBarGradient", card, win);
                 SetGradientStops(res, "SecondaryWindowBackgroundBrush", card, mid, win);
                 SetGradientStops(res, "SecondaryFooterBackgroundBrush", card, win);
+            }
+
+            // Update DWM glass blur for active application windows
+            if (Application.Current != null)
+            {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    ApplyWindowGlass(win, targetTheme);
+                }
             }
 
             ThemeChanged?.Invoke();
@@ -491,7 +590,22 @@ namespace PaDDY.Helpers
         private static void SetGradientStops(ResourceDictionary res, string key, params Color[] colors)
         {
             if (res[key] is not LinearGradientBrush brush) return;
-            if (brush.GradientStops.Count != colors.Length) return;
+
+            if (brush.GradientStops.Count != colors.Length)
+            {
+                var clone = new LinearGradientBrush
+                {
+                    StartPoint = brush.StartPoint,
+                    EndPoint = brush.EndPoint
+                };
+                for (int i = 0; i < colors.Length; i++)
+                {
+                    double offset = colors.Length == 1 ? 0 : (double)i / (colors.Length - 1);
+                    clone.GradientStops.Add(new GradientStop(colors[i], offset));
+                }
+                res[key] = clone;
+                return;
+            }
 
             if (brush.IsFrozen)
             {
@@ -505,6 +619,95 @@ namespace PaDDY.Helpers
 
             for (int i = 0; i < colors.Length; i++)
                 brush.GradientStops[i].Color = colors[i];
+        }
+
+        // ── P/Invoke Definitions for Aero Glass / Acrylic Backdrop ─────────
+        [DllImport("user32.dll")]
+        private static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct AccentPolicy
+        {
+            public AccentState AccentState;
+            public int AccentFlags;
+            public int GradientColor;
+            public int AnimationId;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WindowCompositionAttributeData
+        {
+            public WindowCompositionAttribute Attribute;
+            public IntPtr Data;
+            public int SizeOfData;
+        }
+
+        private enum AccentState
+        {
+            ACCENT_DISABLED = 0,
+            ACCENT_ENABLE_GRADIENT = 1,
+            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
+            ACCENT_ENABLE_BLURBEHIND = 3,
+            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
+            ACCENT_INVALID_STATE = 5
+        }
+
+        private enum WindowCompositionAttribute
+        {
+            WCA_ACCENT_POLICY = 19
+        }
+
+        /// <summary>
+        /// Applies native Windows DWM acrylic / glass blur backdrop to a WPF window.
+        /// </summary>
+        public static void ApplyWindowGlass(Window window, string? themeKey = null)
+        {
+            if (window == null) return;
+            try
+            {
+                var windowHelper = new WindowInteropHelper(window);
+                IntPtr hwnd = windowHelper.Handle;
+                if (hwnd == IntPtr.Zero) return;
+
+                var palette = GetPalette(themeKey ?? AppSettings.Load().Theme);
+                int tintColor = 0x600D0D14;
+                if (palette != null && palette.TryGetValue("WindowBgBrush", out var winBgHex))
+                {
+                    var color = ParseColor(winBgHex);
+                    byte alpha = color.A < 255 ? color.A : (byte)0x60;
+                    if (themeKey == "light" || themeKey == "sepia")
+                    {
+                        alpha = 0x90;
+                    }
+                    tintColor = (alpha << 24) | (color.B << 16) | (color.G << 8) | color.R;
+                }
+
+                var activeKey = themeKey ?? AppSettings.Load().Theme;
+                var accent = new AccentPolicy
+                {
+                    AccentState = activeKey == "windows-xp" ? AccentState.ACCENT_DISABLED : AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
+                    GradientColor = tintColor,
+                    AccentFlags = 2
+                };
+
+                int accentStructSize = Marshal.SizeOf(accent);
+                IntPtr accentPtr = Marshal.AllocHGlobal(accentStructSize);
+                Marshal.StructureToPtr(accent, accentPtr, false);
+
+                var data = new WindowCompositionAttributeData
+                {
+                    Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+                    SizeOfData = accentStructSize,
+                    Data = accentPtr
+                };
+
+                SetWindowCompositionAttribute(hwnd, ref data);
+                Marshal.FreeHGlobal(accentPtr);
+            }
+            catch
+            {
+                // Fallback gracefully on non-Windows platforms or environments where DWM composition fails
+            }
         }
 
         private static Color Blend(Color a, Color b, double t)
