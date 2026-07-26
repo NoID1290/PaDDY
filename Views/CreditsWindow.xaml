@@ -31,7 +31,7 @@
                         Background="{DynamicResource TitleBarGradient}"
                         BorderBrush="{DynamicResource DividerBrush}"
                         BorderThickness="0,0,0,1"
-                        CornerRadius="12,12,0,0">
+                        CornerRadius="{DynamicResource TopWindowCornerRadius}">
                     <Grid>
                         <TextBlock Text="{p:Loc AboutCredits}"
                                    Foreground="{DynamicResource SubtleTextBrush}"

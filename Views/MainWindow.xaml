@@ -48,7 +48,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="19"
+                                CornerRadius="{DynamicResource PillCornerRadius}"
                                 Padding="{TemplateBinding Padding}">
                             <Border.Effect>
                                 <DropShadowEffect x:Name="Glow" ShadowDepth="0" BlurRadius="8" Color="{Binding Path=Background.Color, ElementName=Bd}" Opacity="0"/>
@@ -123,7 +123,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="17"
+                                CornerRadius="{DynamicResource PillCornerRadius}"
                                 Padding="{TemplateBinding Padding}">
                             <Border.Effect>
                                 <DropShadowEffect x:Name="Glow" ShadowDepth="0" BlurRadius="8" Color="{Binding Path=BorderBrush.Color, ElementName=Bd}" Opacity="0"/>

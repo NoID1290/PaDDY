@@ -78,7 +78,7 @@
              BorderBrush="{DynamicResource CardBorderBrush}"
              Background="{DynamicResource CardBgBrush}"
              BorderThickness="0.8"
-             CornerRadius="6"
+             CornerRadius="{DynamicResource ControlCornerRadius}"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True">
 

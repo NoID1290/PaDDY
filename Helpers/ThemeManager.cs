@@ -50,6 +50,7 @@ namespace PaDDY.Helpers
             ("dracula",    "Obsidian Purple"),
             ("vista-aero", "Windows Vista Aero"),
             ("windows-xp", "Windows XP"),
+            ("windows-98", "Windows 98"),
         ];
 
         /// <summary>Display name list for the meter skin selector (key, label).</summary>
@@ -461,6 +462,34 @@ namespace PaDDY.Helpers
                 ["ChromeButtonFgBrush"] = "#FFFFFFFF",
                 ["ScrollThumbBrush"] = "#FF4B87ED",
             },
+            ["windows-98"] = new()
+            {
+                ["WindowBgBrush"] = "#FFC0C0C0",
+                ["CardBgBrush"] = "#FFC0C0C0",
+                ["CardBorderBrush"] = "#FF808080",
+                ["SubtleTextBrush"] = "#FF555555",
+                ["PrimaryTextBrush"] = "#FF000000",
+                ["SecondaryTextBrush"] = "#FF333333",
+                ["AccentGreenBrush"] = "#FF008000",
+                ["AccentRedBrush"] = "#FFC62828",
+                ["AccentAmberBrush"] = "#FFC08000",
+                ["InputBgBrush"] = "#FFFFFFFF",
+                ["InputBorderBrush"] = "#FF808080",
+                ["WindowEdgeBrush"] = "#FF808080",
+                ["WindowGlowBrush"] = "#FFD4D4D4",
+                ["ControlTextBrush"] = "#FF000000",
+                ["ButtonBgBrush"] = "#FFC0C0C0",
+                ["ButtonHoverBgBrush"] = "#FFD4D4D4",
+                ["ButtonPressedBgBrush"] = "#FFA8A8A8",
+                ["MenuBgBrush"] = "#FFC0C0C0",
+                ["MenuHighlightBrush"] = "#FF000080",
+                ["MenuSelectedBrush"] = "#FF000080",
+                ["DividerBrush"] = "#FF808080",
+                ["BadgeBgBrush"] = "#FFD4D4D4",
+                ["AccentTitleBrush"] = "#FF000080",
+                ["ChromeButtonFgBrush"] = "#FF000000",
+                ["ScrollThumbBrush"] = "#FFC0C0C0",
+            },
         };
 
         /// <summary>Returns the color palette dictionary for a given theme key, resolving 'system' automatically.</summary>
@@ -507,9 +536,49 @@ namespace PaDDY.Helpers
                     res[kvp.Key] = new SolidColorBrush(color); // frozen/missing: shadow at app level
             }
 
+            // Update CornerRadius resources based on active theme
+            if (targetTheme == "windows-98")
+            {
+                res["CardCornerRadius"] = new CornerRadius(0);
+                res["SecondaryWindowCornerRadius"] = new CornerRadius(0);
+                res["TopWindowCornerRadius"] = new CornerRadius(0);
+                res["ButtonCornerRadius"] = new CornerRadius(0);
+                res["ControlCornerRadius"] = new CornerRadius(0);
+                res["SmallCornerRadius"] = new CornerRadius(0);
+                res["BadgeCornerRadius"] = new CornerRadius(0);
+                res["PillCornerRadius"] = new CornerRadius(0);
+                res["ThumbCornerRadius"] = new CornerRadius(0);
+            }
+            else
+            {
+                res["CardCornerRadius"] = new CornerRadius(9);
+                res["SecondaryWindowCornerRadius"] = new CornerRadius(12);
+                res["TopWindowCornerRadius"] = new CornerRadius(12, 12, 0, 0);
+                res["ButtonCornerRadius"] = new CornerRadius(6);
+                res["ControlCornerRadius"] = new CornerRadius(6);
+                res["SmallCornerRadius"] = new CornerRadius(4);
+                res["BadgeCornerRadius"] = new CornerRadius(5);
+                res["PillCornerRadius"] = new CornerRadius(17);
+                res["ThumbCornerRadius"] = new CornerRadius(3);
+            }
+
             // Retheme the gradient chrome brushes in place so secondary windows
             // (Settings/Effects) and the title bar follow the active theme too.
-            if (targetTheme == "windows-xp")
+            if (targetTheme == "windows-98")
+            {
+                SetGradientStops(res, "TitleBarGradient",
+                    ParseColor("#FF000080"),
+                    ParseColor("#FF1084D0"));
+
+                SetGradientStops(res, "SecondaryWindowBackgroundBrush",
+                    ParseColor("#FFC0C0C0"),
+                    ParseColor("#FFC0C0C0"));
+
+                SetGradientStops(res, "SecondaryFooterBackgroundBrush",
+                    ParseColor("#FFC0C0C0"),
+                    ParseColor("#FFC0C0C0"));
+            }
+            else if (targetTheme == "windows-xp")
             {
                 SetGradientStops(res, "TitleBarGradient",
                     ParseColor("#FF0058E6"),
@@ -685,7 +754,7 @@ namespace PaDDY.Helpers
                 var activeKey = themeKey ?? AppSettings.Load().Theme;
                 var accent = new AccentPolicy
                 {
-                    AccentState = activeKey == "windows-xp" ? AccentState.ACCENT_DISABLED : AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
+                    AccentState = (activeKey == "windows-xp" || activeKey == "windows-98") ? AccentState.ACCENT_DISABLED : AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
                     GradientColor = tintColor,
                     AccentFlags = 2
                 };

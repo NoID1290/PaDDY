@@ -71,7 +71,7 @@
                         Background="{DynamicResource TitleBarGradient}"
                         BorderBrush="{DynamicResource DividerBrush}"
                         BorderThickness="0,0,0,1"
-                        CornerRadius="12,12,0,0">
+                        CornerRadius="{DynamicResource TopWindowCornerRadius}">
                     <Grid>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
                             <!-- Title Bar Icon Graphic -->
@@ -145,7 +145,7 @@
                                 Background="{DynamicResource WindowBgBrush}"
                                 BorderBrush="{DynamicResource CardBorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="8"
+                                CornerRadius="{DynamicResource CardCornerRadius}"
                                 ClipToBounds="True">
                             <Border.Effect>
                                 <StaticResource ResourceKey="PanelShadow"/>
