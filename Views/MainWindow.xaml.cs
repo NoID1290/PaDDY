@@ -1388,9 +1388,12 @@ namespace PaDDY
             }
 
             ListenOutputEnabledCheck.IsChecked = _settings.ListenOutputEnabled;
+            AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
 
             SensitivitySlider.Value = _settings.Sensitivity;
             SilenceSlider.Value = _settings.SilenceTimeoutMs;
+            BufferDurationSlider.Value = _settings.PastBufferDurationMs / 1000.0;
+            BufferDurationValueLabel.Text = $"{_settings.PastBufferDurationMs / 1000}s";
 
             // Recording mode combo
             int modeIdx = ModeToComboIndex(_settings.RecordingMode, _settings.DetectionAlgorithm);
@@ -1821,9 +1824,16 @@ namespace PaDDY
         // Sensitivity and Silence only apply to AutoVAD/Adaptive VAD detection.
         private void UpdateVadSettingsVisibility(int modeIdx)
         {
-            var vadVisibility = modeIdx == ModeComboKeyBufferIndex ? Visibility.Collapsed : Visibility.Visible;
+            var isKeyBuffer = modeIdx == ModeComboKeyBufferIndex;
+            var vadVisibility = isKeyBuffer ? Visibility.Collapsed : Visibility.Visible;
+            var bufferVisibility = isKeyBuffer ? Visibility.Visible : Visibility.Collapsed;
+            
             SensitivityRow.Visibility = vadVisibility;
             SilenceRow.Visibility = vadVisibility;
+            if (BufferDurationRow != null)
+            {
+                BufferDurationRow.Visibility = bufferVisibility;
+            }
         }
 
         // ── Monitoring toggle ──────────────────────────────────────────────────
@@ -1968,6 +1978,27 @@ namespace PaDDY
             SilenceValueLabel.Text = $"{v / 1000:0.00}s";
             _captureService.SilenceTimeoutMs = v;
             _settings.SilenceTimeoutMs = v;
+            _settings.Save();
+        }
+
+        private void BufferDurationSlider_ValueChanged(object sender,
+            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (BufferDurationValueLabel == null) return;
+            double v = Math.Round(e.NewValue);
+            BufferDurationValueLabel.Text = $"{v:0}s";
+            _settings.PastBufferDurationMs = (int)(v * 1000);
+            if (_captureService != null)
+            {
+                _captureService.PastBufferDurationMs = _settings.PastBufferDurationMs;
+            }
+            _settings.Save();
+        }
+
+        private void AutoNormalizeCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+            _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
             _settings.Save();
         }
 
@@ -2135,6 +2166,19 @@ namespace PaDDY
             RefreshPadOutputRouting();
             WhisperARTTStatus();
             Forget(RefreshStorageInfoAsync());
+
+            // Sync quick-config panel UI with updated settings
+            _suppressSelectionEvents = true;
+            try
+            {
+                AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
+                BufferDurationSlider.Value = _settings.PastBufferDurationMs / 1000.0;
+                BufferDurationValueLabel.Text = $"{_settings.PastBufferDurationMs / 1000}s";
+            }
+            finally
+            {
+                _suppressSelectionEvents = false;
+            }
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)

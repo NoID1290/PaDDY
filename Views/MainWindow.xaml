@@ -585,7 +585,7 @@
                         <!-- Source -->
                         <DockPanel Margin="0,0,0,5">
                             <TextBlock DockPanel.Dock="Left" Text="{p:Loc SourceLabel}"
-                                       Style="{StaticResource ConfigLabel}" Width="58"/>
+                                       Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="CaptureSourceCombo"
                                       SelectionChanged="CaptureSourceCombo_SelectionChanged"/>
                         </DockPanel>
@@ -594,7 +594,7 @@
                         <DockPanel>
                             <TextBlock x:Name="InputDeviceLabel" DockPanel.Dock="Left"
                                        Text="{p:Loc MicLineLabel}" Style="{StaticResource ConfigLabel}"
-                                       Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
+                                       Width="72" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <ComboBox x:Name="InputDeviceCombo"
                                       Margin="0,0,0,5"
                                       Visibility="Collapsed"
@@ -605,7 +605,7 @@
                         <DockPanel>
                             <TextBlock x:Name="LoopbackDeviceLabel" DockPanel.Dock="Left"
                                        Text="{p:Loc LoopbackLabel}" Style="{StaticResource ConfigLabel}"
-                                       Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
+                                       Width="72" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <ComboBox x:Name="LoopbackDeviceCombo"
                                       Margin="0,0,0,5"
                                       Visibility="Collapsed"
@@ -616,7 +616,7 @@
                         <DockPanel>
                             <TextBlock x:Name="AppLoopbackLabel" DockPanel.Dock="Left"
                                        Text="{p:Loc AppLoopbackLabel}" Style="{StaticResource ConfigLabel}"
-                                       Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
+                                       Width="72" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <Button x:Name="RefreshAppLoopbackBtn" DockPanel.Dock="Right"
                                      Content="&#x21BA;" Width="30" FontSize="14" Padding="0"
                                      Margin="4,0,0,5"
@@ -630,9 +630,9 @@
                         </DockPanel>
 
                         <!-- Input Volume -->
-                        <Grid>
+                        <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58"/>
+                                <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
@@ -649,6 +649,14 @@
                                            Text="80" FontSize="10" Width="26" TextAlignment="Center"/>
                             </Border>
                         </Grid>
+
+                        <!-- Auto-Normalize CheckBox -->
+                        <CheckBox x:Name="AutoNormalizeCheck"
+                                  Content="Auto-Normalize"
+                                  ToolTip="Automatically normalize recorded audio to target LUFS level on capture"
+                                  Margin="0,2,0,0"
+                                  Checked="AutoNormalizeCheck_Changed"
+                                  Unchecked="AutoNormalizeCheck_Changed"/>
                     </StackPanel>
                 </Border>
 
@@ -665,7 +673,7 @@
 
                         <DockPanel Margin="0,0,0,10">
                             <TextBlock DockPanel.Dock="Left" Text="{p:Loc DeviceLabel}"
-                                       Style="{StaticResource ConfigLabel}" Width="52"/>
+                                       Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="ListenOutputDeviceCombo"
                                       ToolTip="Playback device used when clicking a recording pad"
                                       SelectionChanged="ListenOutputDeviceCombo_SelectionChanged"/>
@@ -673,7 +681,7 @@
 
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
@@ -750,12 +758,34 @@
                             </Border>
                         </Grid>
 
+                        <!-- Buffer Duration -->
+                        <Grid x:Name="BufferDurationRow" Margin="0,0,0,7" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="72"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Buffer Dur."
+                                       ToolTip="Key Buffer pre-recording duration"
+                                       Style="{StaticResource ConfigLabel}"/>
+                            <Slider x:Name="BufferDurationSlider"
+                                    Grid.Column="1"
+                                    Minimum="1" Maximum="30" Value="10"
+                                    TickFrequency="1"
+                                    HorizontalAlignment="Stretch"
+                                    ValueChanged="BufferDurationSlider_ValueChanged"/>
+                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                <TextBlock x:Name="BufferDurationValueLabel"
+                                           Text="10s" FontSize="10" Width="26" TextAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
                         <!-- Hotkey hint (Key Buffer mode) -->
                         <StackPanel x:Name="KeyBufferHint"
                                     Orientation="Horizontal"
                                     Visibility="Collapsed">
-                            <TextBlock Text="Hotkey" Style="{StaticResource ConfigLabel}"/>
-                            <Border Style="{StaticResource ValueBadge}" Margin="2,0,0,0">
+                            <TextBlock Text="Hotkey" Style="{StaticResource ConfigLabel}" Width="72"/>
+                            <Border Style="{StaticResource ValueBadge}" Margin="0,0,0,0">
                                 <TextBlock x:Name="HotkeyLabel"
                                            Text="Ctrl+F9"
                                            Foreground="#FFFFC107"
@@ -774,7 +804,7 @@
 
                         <DockPanel Margin="0,0,0,10">
                             <TextBlock DockPanel.Dock="Left" Text="{p:Loc DeviceLabel}"
-                                       Style="{StaticResource ConfigLabel}" Width="52"/>
+                                       Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="OutputDeviceCombo"
                                       ToolTip="Primary output device for pad playback"
                                       SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
@@ -782,7 +812,7 @@
 
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
@@ -813,7 +843,7 @@
 
                             <Grid Margin="0,0,0,7">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="72"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
@@ -833,7 +863,7 @@
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="72"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
