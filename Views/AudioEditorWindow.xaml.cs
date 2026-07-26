@@ -1947,5 +1947,84 @@ namespace PaDDY
             }
             return false;
         }
+
+        // ── Workspace View Modes & Category Filtering ─────────────────────
+
+        private void ViewMode_Split_Click(object sender, RoutedEventArgs e)
+        {
+            SetViewMode(0);
+        }
+
+        private void ViewMode_Waveform_Click(object sender, RoutedEventArgs e)
+        {
+            SetViewMode(1);
+        }
+
+        private void ViewMode_Effects_Click(object sender, RoutedEventArgs e)
+        {
+            SetViewMode(2);
+        }
+
+        private void SetViewMode(int mode)
+        {
+            if (WaveformRowGrid == null || EffectsRowBorder == null) return;
+
+            if (mode == 0) // Split View
+            {
+                WaveformRowGrid.Visibility = Visibility.Visible;
+                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Visible;
+                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
+                EffectsRowBorder.Visibility = Visibility.Visible;
+                WaveformRowGrid.Height = 230;
+            }
+            else if (mode == 1) // Waveform Focus
+            {
+                WaveformRowGrid.Visibility = Visibility.Visible;
+                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Visible;
+                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
+                EffectsRowBorder.Visibility = Visibility.Collapsed;
+                WaveformRowGrid.Height = double.NaN;
+            }
+            else if (mode == 2) // Effects Focus
+            {
+                WaveformRowGrid.Visibility = Visibility.Collapsed;
+                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Collapsed;
+                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
+                EffectsRowBorder.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void RackCategory_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.RadioButton rb && rb.Tag is string category)
+            {
+                FilterRackCategory(category);
+            }
+        }
+
+        private void FilterRackCategory(string category)
+        {
+            SetModuleVisibility(FadeModuleCard, category == "All" || category == "Dynamics");
+            SetModuleVisibility(GateModuleCard, category == "All" || category == "Dynamics");
+            SetModuleVisibility(CompModuleCard, category == "All" || category == "Dynamics");
+
+            SetModuleVisibility(EqModuleCard, category == "All" || category == "Tone");
+            SetModuleVisibility(PitchShiftModuleCard, category == "All" || category == "Tone");
+            SetModuleVisibility(DistModuleCard, category == "All" || category == "Tone");
+
+            SetModuleVisibility(EchoModuleCard, category == "All" || category == "Spatial");
+            SetModuleVisibility(ReverbModuleCard, category == "All" || category == "Spatial");
+            SetModuleVisibility(RemasterModuleCard, category == "All" || category == "Spatial");
+
+            SetModuleVisibility(VstSection, category == "All" || category == "Vst");
+        }
+
+        private static void SetModuleVisibility(FrameworkElement? element, bool visible)
+        {
+            if (element != null)
+            {
+                element.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
     }
 }

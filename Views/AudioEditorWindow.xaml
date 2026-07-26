@@ -6,8 +6,8 @@
         xmlns:p="clr-namespace:PaDDY.Helpers"
         Title="{p:Loc AudioEditorTitle}"
         Icon="/PaDDY.ico"
-        Width="1340" Height="880"
-        MinWidth="1180" MinHeight="750"
+        Width="1420" Height="920"
+        MinWidth="1200" MinHeight="780"
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"
         UseLayoutRounding="True"
@@ -35,6 +35,78 @@
         <Style x:Key="PrimaryBtn" TargetType="Button" BasedOn="{StaticResource EditorBtn}">
             <Setter Property="Foreground" Value="{DynamicResource AccentGreenBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- View Switcher Segmented RadioButton Style -->
+        <Style x:Key="ViewSwitcherBtnStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource BadgeBgBrush}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentGreenBrush}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#22FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Rack Category Selector Tab Style -->
+        <Style x:Key="CategoryTabStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource BadgeBgBrush}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentGreenBrush}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#1AFFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- DAW Handles Control Template -->
@@ -95,23 +167,30 @@
                 <!-- Main Editor Area -->
                 <Grid Grid.Row="1" Margin="14,10,14,14">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/> <!-- Row 0: Track Header -->
-                        <RowDefinition Height="210" MinHeight="140"/> <!-- Row 1: Full-Width Waveform Stage -->
+                        <RowDefinition Height="Auto"/> <!-- Row 0: Track Header & View Switcher -->
+                        <RowDefinition Height="230" MinHeight="140"/> <!-- Row 1: Full-Width Waveform Stage -->
                         <RowDefinition Height="Auto"/> <!-- Row 2: Timeline Ruler / Time Labels -->
                         <RowDefinition Height="Auto"/> <!-- Row 3: Transport & Zoom Console -->
-                        <RowDefinition Height="*"/>    <!-- Row 4: Studio Effects Processor Rack Chassis (Below Waveform) -->
+                        <RowDefinition Height="*"/>    <!-- Row 4: Studio Effects Processor Rack Chassis -->
                         <RowDefinition Height="Auto"/> <!-- Row 5: Action Footer -->
                     </Grid.RowDefinitions>
 
-                    <!-- Row 0 — Header -->
+                    <!-- Row 0 — Track Header & Workspace View Switcher -->
                     <Border Grid.Row="0"
                             Style="{StaticResource SecondaryWindowHeaderCard}"
                             BorderBrush="#18FFFFFF"
-                            Padding="16,10"
+                            Padding="16,8"
                             Margin="0,0,0,8"
                             CornerRadius="8">
-                        <DockPanel>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left: Track File Name -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,10,0">
                                     <TextBlock Text="AUDIO TRACK" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource AccentGreenBrush}"/>
                                 </Border>
@@ -122,19 +201,28 @@
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
+
+                            <!-- Center: Workspace View Switcher -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <RadioButton x:Name="ViewModeSplitRadio" Content="🎛 SPLIT VIEW" IsChecked="True" Style="{StaticResource ViewSwitcherBtnStyle}" Click="ViewMode_Split_Click" ToolTip="Show Waveform &amp; Effects Rack together"/>
+                                <RadioButton x:Name="ViewModeWaveformRadio" Content="🌊 WAVEFORM FOCUS" Style="{StaticResource ViewSwitcherBtnStyle}" Click="ViewMode_Waveform_Click" ToolTip="Expand Waveform view for high-precision trimming"/>
+                                <RadioButton x:Name="ViewModeEffectsRadio" Content="🎚 EFFECTS FOCUS" Style="{StaticResource ViewSwitcherBtnStyle}" Click="ViewMode_Effects_Click" ToolTip="Expand Effects Rack for maximum effect parameter controls"/>
+                            </StackPanel>
+
+                            <!-- Right: Total Track Duration -->
                             <TextBlock x:Name="TotalDurationLabel"
-                                       DockPanel.Dock="Right"
+                                       Grid.Column="2"
                                        Text="0.0s"
                                        Foreground="{DynamicResource SubtleTextBrush}"
                                        FontSize="11.5"
                                        FontWeight="SemiBold"
                                        HorizontalAlignment="Right"
                                        VerticalAlignment="Center"/>
-                        </DockPanel>
+                        </Grid>
                     </Border>
 
                     <!-- Row 1 — Waveform area + vertical meter (Spans Full Window Width) -->
-                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                    <Grid x:Name="WaveformRowGrid" Grid.Row="1" Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="58"/>
@@ -253,7 +341,7 @@
                     </Grid>
 
                     <!-- Row 2 — Time labels / Timeline Ruler -->
-                    <Border Grid.Row="2"
+                    <Border x:Name="TimelineRowBorder" Grid.Row="2"
                             Background="{DynamicResource InputBgBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="1"
@@ -283,7 +371,7 @@
                     </Border>
 
                     <!-- Row 3 — Transport & Playback controls -->
-                    <Border Grid.Row="3"
+                    <Border x:Name="TransportRowBorder" Grid.Row="3"
                             Background="{DynamicResource CardBgBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="1"
@@ -325,8 +413,8 @@
                         </Grid>
                     </Border>
 
-                    <!-- Row 4 — Studio Effects Processor Rack (Positioned Below Waveform) -->
-                    <Border x:Name="EffectsPanelContent" Grid.Row="4"
+                    <!-- Row 4 — Studio Effects Processor Rack Chassis -->
+                    <Border x:Name="EffectsRowBorder" Grid.Row="4"
                             Background="{DynamicResource WindowBgBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                             CornerRadius="8" Padding="10" Margin="0,0,0,8"
@@ -334,7 +422,7 @@
                         <Border.Effect>
                             <StaticResource ResourceKey="PanelShadow"/>
                         </Border.Effect>
-                        <DockPanel>
+                        <DockPanel x:Name="EffectsPanelContent">
 
                             <!-- Single Unified Studio Effects Rack Header Bar -->
                             <Border DockPanel.Dock="Top"
@@ -343,7 +431,7 @@
                                     BorderThickness="1"
                                     CornerRadius="6"
                                     Padding="12,6"
-                                    Margin="0,0,0,8">
+                                    Margin="0,0,0,6">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -367,14 +455,14 @@
                                     <!-- Master Gain Console -->
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="MASTER GAIN" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <Slider x:Name="GainSlider" Width="180"
+                                        <Slider x:Name="GainSlider" Width="200" Height="26"
                                                 Minimum="-24" Maximum="24" Value="0"
                                                 TickFrequency="1" IsSnapToTickEnabled="True"
                                                 VerticalAlignment="Center"
                                                 ValueChanged="GainSlider_ValueChanged"/>
-                                        <Border Style="{StaticResource ValueBadge}" Margin="10,0,0,0">
+                                        <Border Style="{StaticResource ValueBadge}" Margin="10,0,0,0" Width="58">
                                             <TextBlock x:Name="GainLabel" Text="0 dB"
-                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5"
+                                                       Foreground="{DynamicResource AccentGreenBrush}" FontSize="11"
                                                        FontWeight="Bold" HorizontalAlignment="Center"/>
                                         </Border>
                                     </StackPanel>
@@ -382,10 +470,10 @@
                                     <!-- Actions: Reset All & Single Hide Button -->
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <Button Content="{p:Loc ResetAll}" HorizontalAlignment="Right"
-                                                Style="{StaticResource EditorBtn}" Height="24" Padding="12,0" Margin="0,0,12,0"
+                                                Style="{StaticResource EditorBtn}" Height="26" Padding="12,0" Margin="0,0,12,0"
                                                 Click="ResetEffects_Click"/>
                                         <Button Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Click="EffectsPanelChevron_Click">
-                                            <TextBlock x:Name="EffectsPanelChevron" Text="▼ HIDE PROCESSOR RACK"
+                                            <TextBlock x:Name="EffectsPanelChevron" Text="▼ HIDE RACK"
                                                        FontSize="10" Foreground="{DynamicResource AccentGreenBrush}"
                                                        FontWeight="Bold" VerticalAlignment="Center"/>
                                         </Button>
@@ -393,747 +481,757 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Multi-Column Studio Hardware Rack Modules Stack -->
+                            <!-- Rack Category Filter Bar -->
+                            <Border DockPanel.Dock="Top"
+                                    Background="{DynamicResource InputBgBrush}"
+                                    BorderBrush="{DynamicResource CardBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="6,4"
+                                    Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <RadioButton x:Name="CatAllRadio" Content="⚡ ALL MODULES" IsChecked="True" Style="{StaticResource CategoryTabStyle}" Tag="All" Click="RackCategory_Click"/>
+                                    <RadioButton x:Name="CatDynamicsRadio" Content="🎛 DYNAMICS" Style="{StaticResource CategoryTabStyle}" Tag="Dynamics" Click="RackCategory_Click"/>
+                                    <RadioButton x:Name="CatToneRadio" Content="🎚 TONE &amp; PITCH" Style="{StaticResource CategoryTabStyle}" Tag="Tone" Click="RackCategory_Click"/>
+                                    <RadioButton x:Name="CatSpatialRadio" Content="🌌 SPATIAL &amp; REMASTER" Style="{StaticResource CategoryTabStyle}" Tag="Spatial" Click="RackCategory_Click"/>
+                                    <RadioButton x:Name="CatVstRadio" Content="🔌 VST PLUGINS" Style="{StaticResource CategoryTabStyle}" Tag="Vst" Click="RackCategory_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Multi-Column Studio Hardware Rack Modules Stack (Spacious 2-Column Grid) -->
                             <ScrollViewer x:Name="EffectsRackScrollViewer"
                                           VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled">
-                                    <Grid Margin="0,2,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="10"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="10"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                <Grid Margin="0,2,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                        <!-- COLUMN 1: Dynamics & Envelopes -->
-                                        <StackPanel Grid.Column="0">
+                                    <!-- COLUMN 1: Dynamics, Envelopes & Tone -->
+                                    <StackPanel Grid.Column="0">
 
-                                            <!-- Fade In / Fade Out Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="FadeHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="FadeHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxFade}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="FadeChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="FadeEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="FadeContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxFadeInMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="FadeInSlider" Minimum="0" Maximum="5000" TickFrequency="100" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="FadeInLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
+                                        <!-- Fade In / Fade Out Rack Module -->
+                                        <Border x:Name="FadeModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="FadeHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="FadeHeaderButton_Click">
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
+                                                                <ColumnDefinition Width="Auto"/>
                                                                 <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
+                                                                <ColumnDefinition Width="22"/>
                                                             </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxFadeOutMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="FadeOutSlider" Minimum="0" Maximum="5000" TickFrequency="100" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="FadeOutLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxFade}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="FadeChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                                         </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <!-- Noise Gate Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="FadeEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="FadeContent" Visibility="Visible" Margin="0,6,0,0">
                                                     <Grid Margin="0,0,0,6">
                                                         <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
                                                             <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="58"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <Button x:Name="GateHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="GateHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxNoiseGate}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="GateChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="GateEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="GateContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxThresholdDb}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="GateThresholdSlider" Minimum="-80" Maximum="0" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="GateThresholdLabel" Text="-40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxAttackMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="GateAttackSlider" Minimum="1" Maximum="200" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="GateAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxReleaseMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="GateReleaseSlider" Minimum="10" Maximum="2000" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="GateReleaseLabel" Text="100" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <!-- Compressor Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="CompressorHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="CompressorHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxCompressor}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="CompressorChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="CompressorEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="CompressorContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxThresholdDb}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="CompThresholdSlider" Minimum="-60" Maximum="0" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="CompThresholdLabel" Text="-18" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxRatio}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="CompRatioSlider" Minimum="1" Maximum="20" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="CompRatioLabel" Text="4.0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxAttackMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="CompAttackSlider" Minimum="1" Maximum="200" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="CompAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxReleaseMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="CompReleaseSlider" Minimum="10" Maximum="2000" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="CompReleaseLabel" Text="120" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMakeupDb}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="CompMakeupSlider" Minimum="0" Maximum="24" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="CompMakeupLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                        </StackPanel>
-
-                                        <!-- COLUMN 2: Tone & Pitch (EQ, Pitch Shift, Distortion) -->
-                                        <StackPanel Grid.Column="2">
-
-                                            <!-- Equalizer Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="EqHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="EqHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxEqualizer}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="EqChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="EqEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <!-- Horizontal 5-band EQ -->
-                                                    <Grid x:Name="EqContent" Visibility="Visible" Margin="0,8,0,0">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="85"/>
-                                                            <RowDefinition Height="Auto"/>
-                                                        </Grid.RowDefinitions>
-                                                        
-                                                        <!-- Band labels -->
-                                                        <TextBlock Grid.Column="0" Grid.Row="1" Text="80Hz" Style="{StaticResource SettingsLabel}" FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                        <TextBlock Grid.Column="1" Grid.Row="1" Text="250Hz" Style="{StaticResource SettingsLabel}" FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                        <TextBlock Grid.Column="2" Grid.Row="1" Text="1kHz" Style="{StaticResource SettingsLabel}" FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                        <TextBlock Grid.Column="3" Grid.Row="1" Text="4kHz" Style="{StaticResource SettingsLabel}" FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                        <TextBlock Grid.Column="4" Grid.Row="1" Text="12kHz" Style="{StaticResource SettingsLabel}" FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                        
-                                                        <!-- Vertical sliders -->
-                                                        <Slider Grid.Column="0" Grid.Row="2" x:Name="EqSubBassSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
-                                                        <Slider Grid.Column="1" Grid.Row="2" x:Name="EqBassSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
-                                                        <Slider Grid.Column="2" Grid.Row="2" x:Name="EqMidSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
-                                                        <Slider Grid.Column="3" Grid.Row="2" x:Name="EqPresenceSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
-                                                        <Slider Grid.Column="4" Grid.Row="2" x:Name="EqTrebleSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
-                                                        
-                                                        <!-- Value badges -->
-                                                        <Border Grid.Column="0" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
-                                                            <TextBlock x:Name="EqSubBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9" HorizontalAlignment="Center"/>
-                                                        </Border>
-                                                        <Border Grid.Column="1" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
-                                                            <TextBlock x:Name="EqBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9" HorizontalAlignment="Center"/>
-                                                        </Border>
-                                                        <Border Grid.Column="2" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
-                                                            <TextBlock x:Name="EqMidLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9" HorizontalAlignment="Center"/>
-                                                        </Border>
-                                                        <Border Grid.Column="3" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
-                                                            <TextBlock x:Name="EqPresenceLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9" HorizontalAlignment="Center"/>
-                                                        </Border>
-                                                        <Border Grid.Column="4" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="2,4,2,0">
-                                                            <TextBlock x:Name="EqTrebleLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9" HorizontalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxFadeInMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="FadeInSlider" Minimum="0" Maximum="5000" TickFrequency="100" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="FadeInLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
                                                         </Border>
                                                     </Grid>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <!-- Pitch Shift Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="PitchShiftHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="PitchShiftHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxPitchShift}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="PitchShiftChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="PitchShiftEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="PitchShiftContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxPitchSemitones}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="PitchShiftSemitonesSlider" Minimum="-24" Maximum="24" TickFrequency="1" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="PitchShiftSemitonesLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxGrainSizeMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="PitchShiftGrainSizeSlider" Minimum="10" Maximum="500" TickFrequency="1" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="PitchShiftGrainSizeLabel" Text="50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="PitchShiftMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="PitchShiftMixLabel" Text="1.00" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <!-- Distortion Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="DistortionHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="DistortionHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxDistortion}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="DistortionChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="DistortionEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="DistortionContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxDrive}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="DistDriveSlider" Minimum="1" Maximum="50" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="DistDriveLabel" Text="8" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="DistMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="DistMixLabel" Text="0.60" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxOutput}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="DistOutputSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="DistOutputLabel" Text="0.80" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                        </StackPanel>
-
-                                        <!-- COLUMN 3: Spatial Effects & VST Plugins (Echo, Reverb, VST Plugins) -->
-                                        <StackPanel Grid.Column="4">
-
-                                            <!-- Echo Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="EchoHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="EchoHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxEcho}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="EchoChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="EchoEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="EchoContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxDelayMs}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="EchoDelaySlider" Minimum="50" Maximum="2000" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="EchoDelayLabel" Text="200" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxFeedback}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="EchoFeedbackSlider" Minimum="0" Maximum="0.95" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="EchoFeedbackLabel" Text="0.30" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="EchoMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="EchoMixLabel" Text="0.40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <!-- Reverb Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="ReverbHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="ReverbHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="{p:Loc FxReverb}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="ReverbChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="ReverbEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="ReverbContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxRoomSize}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="ReverbRoomSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="ReverbRoomLabel" Text="0.50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxDamping}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="ReverbDampingSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="ReverbDampingLabel" Text="0.50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="ReverbMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="ReverbMixLabel" Text="0.30" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <!-- Remaster Rack Module -->
-                                            <Border Style="{StaticResource RackModuleCard}">
-                                                <StackPanel>
-                                                    <Grid Margin="0,0,0,6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="RemasterHeaderButton" Grid.Column="0"
-                                                                Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
-                                                                Click="RemasterHeaderButton_Click">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="22"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                                <TextBlock Grid.Column="1" Text="Track Remaster" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                                <TextBlock Grid.Column="2" x:Name="RemasterChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                                            </Grid>
-                                                        </Button>
-                                                        <CheckBox Grid.Column="1" x:Name="RemasterEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
-                                                    </Grid>
-                                                    
-                                                    <StackPanel x:Name="RemasterContent" Visibility="Visible" Margin="0,4,0,0">
-                                                        <!-- Preset Dropdown -->
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Preset" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <ComboBox Grid.Column="1" x:Name="RemasterPresetCombo"
-                                                                      SelectionChanged="RemasterPresetCombo_SelectionChanged"
-                                                                      FontSize="10.5">
-                                                                <ComboBoxItem Content="Clean &amp; Transparent"/>
-                                                                <ComboBoxItem Content="Warm Analog"/>
-                                                                <ComboBoxItem Content="Punchy Club / EDM"/>
-                                                                <ComboBoxItem Content="Vocal &amp; Acoustic"/>
-                                                                <ComboBoxItem Content="Loud Maximizer"/>
-                                                                <ComboBoxItem Content="Custom"/>
-                                                            </ComboBox>
-                                                        </Grid>
-                                                        
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Warmth (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="RemasterWarmthSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="RemasterWarmthLabel" Text="+1.5 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Punch (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="RemasterPunchSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="RemasterPunchLabel" Text="+1.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Brilliance (dB)" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="RemasterBrillianceSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="RemasterBrillianceLabel" Text="+2.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Stereo Width" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="RemasterWidthSlider" Minimum="0" Maximum="2" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="RemasterWidthLabel" Text="1.20x" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Saturation" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="RemasterDriveSlider" Minimum="0" Maximum="1" TickFrequency="0.05" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="RemasterDriveLabel" Text="0.15" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Glue Ratio" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="RemasterRatioSlider" Minimum="1" Maximum="8" TickFrequency="0.1" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="RemasterRatioLabel" Text="2.5:1" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="90"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="50"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Peak Ceiling" Style="{StaticResource SettingsLabel}" VerticalAlignment="Center"/>
-                                                            <Slider Grid.Column="1" x:Name="RemasterCeilingSlider" Minimum="-6" Maximum="0" TickFrequency="0.1" ValueChanged="EffectSlider_Changed"/>
-                                                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
-                                                                <TextBlock x:Name="RemasterCeilingLabel" Text="-0.3 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" HorizontalAlignment="Center"/>
-                                                            </Border>
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-
-                                            <!-- VST Plugins Rack Module -->
-                                            <Border x:Name="VstSection" Style="{StaticResource RackModuleCard}" Visibility="Collapsed">
-                                                <StackPanel>
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="120"/>
                                                             <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="22"/>
+                                                            <ColumnDefinition Width="58"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
-                                                        <TextBlock Grid.Column="1" Text="VST PLUGINS" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
-                                                        <TextBlock Grid.Column="2" x:Name="VstChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="VstChevron_Click"/>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxFadeOutMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="FadeOutSlider" Minimum="0" Maximum="5000" TickFrequency="100" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="FadeOutLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
                                                     </Grid>
-                                                    <StackPanel x:Name="VstContent" Visibility="Visible" Margin="0,8,0,0">
-                                                        <Grid Margin="0,0,0,6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="60"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="Plugins" Style="{StaticResource SettingsLabel}" VerticalAlignment="Top"/>
-                                                            <TextBlock Grid.Column="1" x:Name="VstNameLabel" Text="None loaded (Configure in Settings)" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                                                        </Grid>
-                                                        <Button x:Name="ShowVstEditorButton" Content="Show Plugin Editor" Style="{StaticResource EditorBtn}" Height="24" Padding="8,0" Margin="0,4,0,0" IsEnabled="False" Click="ShowVstEditor_Click"/>
-                                                    </StackPanel>
                                                 </StackPanel>
-                                            </Border>
+                                            </StackPanel>
+                                        </Border>
 
-                                        </StackPanel>
+                                        <!-- Noise Gate Rack Module -->
+                                        <Border x:Name="GateModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="GateHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="GateHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxNoiseGate}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="GateChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="GateEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="GateContent" Visibility="Visible" Margin="0,6,0,0">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxThresholdDb}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="GateThresholdSlider" Minimum="-80" Maximum="0" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="GateThresholdLabel" Text="-40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxAttackMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="GateAttackSlider" Minimum="1" Maximum="200" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="GateAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxReleaseMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="GateReleaseSlider" Minimum="10" Maximum="2000" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="GateReleaseLabel" Text="100" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
 
-                                    </Grid>
-                                </ScrollViewer>
-                            </DockPanel>
-                        </Border>
+                                        <!-- Compressor Rack Module -->
+                                        <Border x:Name="CompModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="CompressorHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="CompressorHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxCompressor}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="CompressorChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="CompressorEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="CompressorContent" Visibility="Visible" Margin="0,6,0,0">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxThresholdDb}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="CompThresholdSlider" Minimum="-60" Maximum="0" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="CompThresholdLabel" Text="-18" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxRatio}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="CompRatioSlider" Minimum="1" Maximum="20" TickFrequency="0.5" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="CompRatioLabel" Text="4.0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxAttackMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="CompAttackSlider" Minimum="1" Maximum="200" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="CompAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxReleaseMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="CompReleaseSlider" Minimum="10" Maximum="2000" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="CompReleaseLabel" Text="120" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxMakeupDb}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="CompMakeupSlider" Minimum="0" Maximum="24" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="CompMakeupLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Equalizer Rack Module (Spacious 5-Band Vertical Controls) -->
+                                        <Border x:Name="EqModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="EqHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="EqHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxEqualizer}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="EqChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="EqEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <!-- Horizontal 5-band EQ -->
+                                                <Grid x:Name="EqContent" Visibility="Visible" Margin="0,8,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="135"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+                                                    
+                                                    <!-- Band labels -->
+                                                    <TextBlock Grid.Column="0" Grid.Row="1" Text="80Hz" Style="{StaticResource SettingsLabel}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                                    <TextBlock Grid.Column="1" Grid.Row="1" Text="250Hz" Style="{StaticResource SettingsLabel}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                                    <TextBlock Grid.Column="2" Grid.Row="1" Text="1kHz" Style="{StaticResource SettingsLabel}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                                    <TextBlock Grid.Column="3" Grid.Row="1" Text="4kHz" Style="{StaticResource SettingsLabel}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                                    <TextBlock Grid.Column="4" Grid.Row="1" Text="12kHz" Style="{StaticResource SettingsLabel}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                                    
+                                                    <!-- Vertical sliders -->
+                                                    <Slider Grid.Column="0" Grid.Row="2" x:Name="EqSubBassSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" Grid.Row="2" x:Name="EqBassSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="2" Grid.Row="2" x:Name="EqMidSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="3" Grid.Row="2" x:Name="EqPresenceSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="4" Grid.Row="2" x:Name="EqTrebleSlider" Orientation="Vertical" Minimum="-12" Maximum="12" TickFrequency="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" ValueChanged="EffectSlider_Changed"/>
+                                                    
+                                                    <!-- Value badges -->
+                                                    <Border Grid.Column="0" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="4,6,4,0">
+                                                        <TextBlock x:Name="EqSubBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                    </Border>
+                                                    <Border Grid.Column="1" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="4,6,4,0">
+                                                        <TextBlock x:Name="EqBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                    </Border>
+                                                    <Border Grid.Column="2" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="4,6,4,0">
+                                                        <TextBlock x:Name="EqMidLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                    </Border>
+                                                    <Border Grid.Column="3" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="4,6,4,0">
+                                                        <TextBlock x:Name="EqPresenceLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                    </Border>
+                                                    <Border Grid.Column="4" Grid.Row="3" Style="{StaticResource ValueBadge}" Margin="4,6,4,0">
+                                                        <TextBlock x:Name="EqTrebleLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                    </Border>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Pitch Shift Rack Module -->
+                                        <Border x:Name="PitchShiftModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="PitchShiftHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="PitchShiftHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxPitchShift}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="PitchShiftChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="PitchShiftEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="PitchShiftContent" Visibility="Visible" Margin="0,6,0,0">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxPitchSemitones}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="PitchShiftSemitonesSlider" Minimum="-24" Maximum="24" TickFrequency="1" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="PitchShiftSemitonesLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxGrainSizeMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="PitchShiftGrainSizeSlider" Minimum="10" Maximum="500" TickFrequency="1" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="PitchShiftGrainSizeLabel" Text="50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="PitchShiftMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="PitchShiftMixLabel" Text="1.00" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                    </StackPanel>
+
+                                    <!-- COLUMN 2: Spatial, Saturation & Remaster -->
+                                    <StackPanel Grid.Column="2">
+
+                                        <!-- Distortion Rack Module -->
+                                        <Border x:Name="DistModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="DistortionHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="DistortionHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxDistortion}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="DistortionChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="DistortionEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="DistortionContent" Visibility="Visible" Margin="0,6,0,0">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxDrive}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="DistDriveSlider" Minimum="1" Maximum="50" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="DistDriveLabel" Text="8" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="DistMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="DistMixLabel" Text="0.60" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxOutput}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="DistOutputSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="DistOutputLabel" Text="0.80" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Echo Rack Module -->
+                                        <Border x:Name="EchoModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="EchoHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="EchoHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxEcho}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="EchoChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="EchoEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="EchoContent" Visibility="Visible" Margin="0,6,0,0">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxDelayMs}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="EchoDelaySlider" Minimum="50" Maximum="2000" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="EchoDelayLabel" Text="200" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxFeedback}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="EchoFeedbackSlider" Minimum="0" Maximum="0.95" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="EchoFeedbackLabel" Text="0.30" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="EchoMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="EchoMixLabel" Text="0.40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Reverb Rack Module -->
+                                        <Border x:Name="ReverbModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="ReverbHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="ReverbHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="{p:Loc FxReverb}" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="ReverbChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="ReverbEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="ReverbContent" Visibility="Visible" Margin="0,6,0,0">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxRoomSize}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="ReverbRoomSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="ReverbRoomLabel" Text="0.50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxDamping}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="ReverbDampingSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="ReverbDampingLabel" Text="0.50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{p:Loc FxMixWet}" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="ReverbMixSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="ReverbMixLabel" Text="0.30" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Remaster Rack Module -->
+                                        <Border x:Name="RemasterModuleCard" Style="{StaticResource RackModuleCard}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="RemasterHeaderButton" Grid.Column="0"
+                                                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                                                            Click="RemasterHeaderButton_Click">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="22"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                            <TextBlock Grid.Column="1" Text="Track Remaster" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                            <TextBlock Grid.Column="2" x:Name="RemasterChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <CheckBox Grid.Column="1" x:Name="RemasterEnabledCheck" Content="{p:Loc Enable}" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </Grid>
+                                                
+                                                <StackPanel x:Name="RemasterContent" Visibility="Visible" Margin="0,6,0,0">
+                                                    <!-- Preset Dropdown -->
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Preset" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <ComboBox Grid.Column="1" x:Name="RemasterPresetCombo"
+                                                                  SelectionChanged="RemasterPresetCombo_SelectionChanged"
+                                                                  FontSize="11" Height="26">
+                                                            <ComboBoxItem Content="Clean &amp; Transparent"/>
+                                                            <ComboBoxItem Content="Warm Analog"/>
+                                                            <ComboBoxItem Content="Punchy Club / EDM"/>
+                                                            <ComboBoxItem Content="Vocal &amp; Acoustic"/>
+                                                            <ComboBoxItem Content="Loud Maximizer"/>
+                                                            <ComboBoxItem Content="Custom"/>
+                                                        </ComboBox>
+                                                    </Grid>
+                                                    
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Warmth (dB)" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="RemasterWarmthSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="RemasterWarmthLabel" Text="+1.5 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Punch (dB)" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="RemasterPunchSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="RemasterPunchLabel" Text="+1.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Brilliance (dB)" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="RemasterBrillianceSlider" Minimum="-6" Maximum="6" TickFrequency="0.5" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="RemasterBrillianceLabel" Text="+2.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Stereo Width" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="RemasterWidthSlider" Minimum="0" Maximum="2" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="RemasterWidthLabel" Text="1.20x" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Saturation" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="RemasterDriveSlider" Minimum="0" Maximum="1" TickFrequency="0.05" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="RemasterDriveLabel" Text="0.15" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Glue Ratio" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="RemasterRatioSlider" Minimum="1" Maximum="8" TickFrequency="0.1" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="RemasterRatioLabel" Text="2.5:1" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="58"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Peak Ceiling" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Center"/>
+                                                        <Slider Grid.Column="1" x:Name="RemasterCeilingSlider" Minimum="-6" Maximum="0" TickFrequency="0.1" Height="26" Margin="6,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                                            <TextBlock x:Name="RemasterCeilingLabel" Text="-0.3 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- VST Plugins Rack Module -->
+                                        <Border x:Name="VstSection" Style="{StaticResource RackModuleCard}" Visibility="Collapsed">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="22"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Rectangle Grid.Column="0" Style="{StaticResource HeaderAccentBar}"/>
+                                                    <TextBlock Grid.Column="1" Text="VST PLUGINS" Style="{StaticResource SectionTitle}" Margin="8,0,0,0" FontWeight="Bold"/>
+                                                    <TextBlock Grid.Column="2" x:Name="VstChevron" Text="▼" FontSize="9" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="VstChevron_Click"/>
+                                                </Grid>
+                                                <StackPanel x:Name="VstContent" Visibility="Visible" Margin="0,8,0,0">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="70"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="Plugins" Style="{StaticResource SettingsLabel}" FontSize="11.5" VerticalAlignment="Top"/>
+                                                        <TextBlock Grid.Column="1" x:Name="VstNameLabel" Text="None loaded (Configure in Settings)" Foreground="{DynamicResource SubtleTextBrush}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                    </Grid>
+                                                    <Button x:Name="ShowVstEditorButton" Content="Show Plugin Editor" Style="{StaticResource EditorBtn}" Height="26" Padding="12,0" Margin="0,4,0,0" IsEnabled="False" Click="ShowVstEditor_Click"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                    </StackPanel>
+
+                                </Grid>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
 
                     <!-- Row 5 — Action buttons -->
                     <Border Grid.Row="5"

@@ -633,4 +633,37 @@ public partial class EffectsWindow : Window
         RemasterContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         RemasterChevron.Text = expand ? "\u25BC" : "\u25BA";
     }
+
+    // ── Category Tab Filtering ───────────────────────────────────────────────
+
+    private void CategoryTab_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.RadioButton rb && rb.Tag is string category)
+        {
+            FilterCategory(category);
+        }
+    }
+
+    private void FilterCategory(string category)
+    {
+        SetSectionVisibility(FadeSection, _isPerClip && (category == "All" || category == "Dynamics"));
+        SetSectionVisibility(GateSection, category == "All" || category == "Dynamics");
+        SetSectionVisibility(CompSection, category == "All" || category == "Dynamics");
+
+        SetSectionVisibility(EqSection, category == "All" || category == "Tone");
+        SetSectionVisibility(PitchShiftSection, category == "All" || category == "Tone");
+        SetSectionVisibility(DistSection, category == "All" || category == "Tone");
+
+        SetSectionVisibility(EchoSection, category == "All" || category == "Spatial");
+        SetSectionVisibility(ReverbSection, category == "All" || category == "Spatial");
+        SetSectionVisibility(RemasterSection, category == "All" || category == "Spatial");
+    }
+
+    private static void SetSectionVisibility(UIElement? element, bool visible)
+    {
+        if (element != null)
+        {
+            element.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
 }
