@@ -9,9 +9,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>1.8.4.0715</Version>
-    <AssemblyVersion>1.8.4.0715</AssemblyVersion>
-    <FileVersion>1.8.4.0715</FileVersion>
+    <Version>2.0.0.0728</Version>
+    <AssemblyVersion>2.0.0.0728</AssemblyVersion>
+    <FileVersion>2.0.0.0728</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
@@ -23,7 +23,7 @@
     <UseAppHost>true</UseAppHost>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <InformationalVersion>1.8.4.0715</InformationalVersion>
+    <InformationalVersion>2.0.0.0728</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
@@ -39,7 +39,6 @@
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" />
     <PackageReference Include="System.Management" Version="10.0.0-preview.4.25258.110" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.6.2" />
-
   </ItemGroup>
   <Target Name="ExcludeAppDllsFromSingleFile" BeforeTargets="_ComputeFilesToBundle" Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>
@@ -110,5 +109,4 @@
   <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish">
     <RemoveDir Directories="$(PublishDir)runtimes\win-arm64;$(PublishDir)runtimes\win-x86" Condition="Exists('$(PublishDir)runtimes')" />
   </Target>
-
 </Project>

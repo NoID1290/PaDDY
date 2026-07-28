@@ -4,6 +4,25 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0728-Pre-release_1] - 2026-07-28
+
+- Added import/drag-and-drop support for audio files outside of PaDDY
+- Added EBU R128 / ITU-R BS.1770-4 loudness computation (LUFS) and peak gain scaling
+- Added VST2 and VST3 plugin support
+- Added Remaster Rack and Dynamic Pitch Shift audio effects
+- Added Live Mic Return/Output
+- Added New Themes
+- Added RESX localization system
+- Added French translation
+- Added countdown timers on pads during playback
+- Added pad color customization
+- Added fullscreen mode for the main window
+- Audio editor UI & layout upgrades (added zoom, timecode, and loading screen)
+- Settings UI & layout upgrades (added new settings categories and improved navigation)
+- Updated System Tray UI with Quick Actions context menu
+- Fix font type not being applied in real-time
+- Resource usage optimizations
+
 ## [1.8.4.0715-Pre-release_1] - 2026-07-15
 
 - Updated web

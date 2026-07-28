@@ -10,17 +10,16 @@
     <Product>NoIDSoftwork.EffectProcessor</Product>
     <Company>NoID Softwork</Company>
     <Copyright>Copyright (c) NoID Softwork 2020-2026. All rights reserved.</Copyright>
-    <Version>1.8.4.0715</Version>
-    <AssemblyVersion>1.8.4.0715</AssemblyVersion>
-    <FileVersion>1.8.4.0715</FileVersion>
-    <InformationalVersion>1.8.4.0715-Pre-release_1</InformationalVersion>
+    <Version>2.0.0.0728</Version>
+    <AssemblyVersion>2.0.0.0728</AssemblyVersion>
+    <FileVersion>2.0.0.0728</FileVersion>
+    <InformationalVersion>2.0.0.0728-Pre-release_1</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
     <Platform>x64</Platform>
   </PropertyGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="Plugins\VST2\mdaDe-ess.dll">
       <LogicalName>Plugins.VST2.mdaDe-ess.dll</LogicalName>
