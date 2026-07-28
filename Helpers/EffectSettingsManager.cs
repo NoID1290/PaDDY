@@ -125,6 +125,17 @@ internal static class EffectSettingsManager
                 cfg.Parameters["GrainSizeMs"] = pitch.GrainSizeMs;
                 cfg.Parameters["Mix"] = pitch.Mix;
                 break;
+            case RemasterEffect remaster:
+                cfg.Parameters["Preset"] = (double)remaster.Preset;
+                cfg.Parameters["WarmthDb"] = remaster.WarmthDb;
+                cfg.Parameters["PunchDb"] = remaster.PunchDb;
+                cfg.Parameters["BrillianceDb"] = remaster.BrillianceDb;
+                cfg.Parameters["StereoWidth"] = remaster.StereoWidth;
+                cfg.Parameters["Drive"] = remaster.Drive;
+                cfg.Parameters["ThresholdDb"] = remaster.ThresholdDb;
+                cfg.Parameters["Ratio"] = remaster.Ratio;
+                cfg.Parameters["LimiterCeilingDb"] = remaster.LimiterCeilingDb;
+                break;
         }
 
         return cfg;
@@ -179,6 +190,17 @@ internal static class EffectSettingsManager
                 if (p.TryGetValue("PitchSemitones", out var psem)) pitch.PitchSemitones = psem;
                 if (p.TryGetValue("GrainSizeMs", out var pgs)) pitch.GrainSizeMs = pgs;
                 if (p.TryGetValue("Mix", out var pmix)) pitch.Mix = pmix;
+                break;
+            case RemasterEffect remaster:
+                if (p.TryGetValue("WarmthDb", out var rw)) remaster.WarmthDb = rw;
+                if (p.TryGetValue("PunchDb", out var rp)) remaster.PunchDb = rp;
+                if (p.TryGetValue("BrillianceDb", out var rb)) remaster.BrillianceDb = rb;
+                if (p.TryGetValue("StereoWidth", out var rsw)) remaster.StereoWidth = rsw;
+                if (p.TryGetValue("Drive", out var rd)) remaster.Drive = rd;
+                if (p.TryGetValue("ThresholdDb", out var rt)) remaster.ThresholdDb = rt;
+                if (p.TryGetValue("Ratio", out var rra)) remaster.Ratio = rra;
+                if (p.TryGetValue("LimiterCeilingDb", out var rlc)) remaster.LimiterCeilingDb = rlc;
+                if (p.TryGetValue("Preset", out var rpr)) remaster.Preset = (RemasterPreset)(int)rpr;
                 break;
         }
     }

@@ -1,4 +1,4 @@
-﻿/****************************************************************************
+/****************************************************************************
  * NVorbis                                                                  *
  * Copyright (C) 2014, Andrew Ward <afward@gmail.com>                       *
  *                                                                          *
@@ -344,7 +344,6 @@ namespace Concentus.Oggfile
                     }
                     else if (b == -1)
                     {
-                        Debug.WriteLine("End of stream reached while looking for next page");
                         return null;
                     }
                     _wasteBits += 8;

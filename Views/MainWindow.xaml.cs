@@ -49,9 +49,18 @@ namespace PaDDY
         private bool _forceExit;
         private PadPage? _activePadPage;
         private Services.SpeechRecognitionService? _speechService;
-        private bool _overlayDevUnlocked = false;
+        private readonly LiveMicModulatorService _liveMicModulator = new();
+
         private TcpIpcServer? _ipcServer;
         private bool _isRecording;
+
+        // ── Fullscreen state ───────────────────────────────────────────────────
+        private bool _isFullscreen;
+        private WindowState _preFullscreenWindowState;
+        private WindowStyle _preFullscreenWindowStyle;
+        private ResizeMode _preFullscreenResizeMode;
+        private Rect _preFullscreenBounds;
+        private double _preFullscreenChromeHeight;
 
         private SplashWindow? _splashWindow;
 
@@ -91,7 +100,32 @@ namespace PaDDY
                 }
             });
         }
+
+        private void UpdateLoadingOverlayTheme()
+        {
+            try
+            {
+                var palette = Helpers.ThemeManager.GetPalette(_settings.Theme);
+                if (palette != null)
+                {
+                    var accent = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["AccentGreenBrush"]);
+                    var secondary = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["SubtleTextBrush"]);
+                    var text = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["PrimaryTextBrush"]);
+                    var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
+
+                    MainLoadingOverlay.ApplyThemeColors(accent, secondary, text);
+                    
+                    // For MainLoadingOverlay (the solid one in MainWindow), we use a semi-transparent version of the theme background
+                    MainLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
+                }
+            }
+            catch
+            {
+                // Fallback gracefully on any conversion/loading error
+            }
+        }
         private bool _performanceMode;
+        private bool _pauseAnimationsWhenUnfocused;
         private DateTime _lastInputMeterTick;
         private DateTime _lastOutputMeterTick;
         private DateTime _lastMonitorMeterTick;
@@ -144,6 +178,14 @@ namespace PaDDY
         // Peak hold state (monitor)
         private DateTime _monitorPeakHoldTimeL = DateTime.MinValue;
         private DateTime _monitorPeakHoldTimeR = DateTime.MinValue;
+
+        // Last known meter levels (linear)
+        private double _lastRmsL;
+        private double _lastRmsR;
+        private double _lastOutputRmsL;
+        private double _lastOutputRmsR;
+        private double _lastMonitorRmsL;
+        private double _lastMonitorRmsR;
 
         // Meter decay animation (input)
         private System.Windows.Threading.DispatcherTimer? _meterDecayTimer;
@@ -208,18 +250,29 @@ namespace PaDDY
             }
 
             InitializeComponent();
+            LiveMicBtn.Visibility = Visibility.Visible;
+            UpdateLoadingOverlayTheme();
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             StateChanged += MainWindow_StateChanged;
+            Activated += OnWindowActivated;
+            Deactivated += OnWindowDeactivated;
             ThresholdCanvas.SizeChanged += (_, _) =>
             {
                 UpdateThresholdMarker();
                 Helpers.ThemeManager.UpdateMeterSkinSize(ThresholdCanvas.ActualWidth);
+                UpdateInputMeterOverlaysLayout();
+                UpdateOutputMeterOverlaysLayout();
             };
             ThresholdCanvasR.SizeChanged += (_, _) => UpdateThresholdMarker();
             this.PreviewKeyDown += OnPadHotKey;
-            PadMonitorMeterHostL.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
-            PadMonitorMeterHostR.SizeChanged += (_, _) => UpdatePadMonitorMeter(0, 0);
+            PadMonitorMeterHostL.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
+            PadMonitorMeterHostR.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
+            
+            App.DebugModeChanged += () =>
+            {
+                OverlayConfigPanel.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            };
         }
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
@@ -231,19 +284,111 @@ namespace PaDDY
             if (WindowState == WindowState.Maximized)
             {
                 SystemCommands.RestoreWindow(this);
-                ChromeMaxIcon.Text = "\u2610"; // □
+                ChromeMaxIcon.Text = "\uE922"; // Maximize (Segoe MDL2 Assets)
                 ChromeMaxRestoreBtn.ToolTip = "Maximize";
             }
             else
             {
                 SystemCommands.MaximizeWindow(this);
-                ChromeMaxIcon.Text = "\u2750"; // ❐ (restore icon)
+                ChromeMaxIcon.Text = "\uE923"; // Restore (Segoe MDL2 Assets)
                 ChromeMaxRestoreBtn.ToolTip = "Restore";
             }
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e)
             => SystemCommands.CloseWindow(this);
+
+        // ── Fullscreen (F11) ──────────────────────────────────────────────────
+        private void ChromeFullscreen_Click(object sender, RoutedEventArgs e)
+            => ToggleFullscreen();
+
+        private void ToggleFullscreen()
+        {
+            if (_isFullscreen)
+                ExitFullscreen();
+            else
+                EnterFullscreen();
+        }
+
+        private void EnterFullscreen()
+        {
+            if (_isFullscreen) return;
+
+            // Save current state for restoration
+            _preFullscreenWindowState = WindowState;
+            _preFullscreenWindowStyle = WindowStyle;
+            _preFullscreenResizeMode = ResizeMode;
+            _preFullscreenBounds = new Rect(Left, Top, Width, Height);
+
+            var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
+            _preFullscreenChromeHeight = chrome?.CaptionHeight ?? 60;
+
+            // Must restore first if maximized, then set style, then maximize again.
+            // This avoids the WPF bug where WindowStyle change doesn't take effect
+            // while already maximized.
+            if (WindowState == WindowState.Maximized)
+                WindowState = WindowState.Normal;
+
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+
+            // Remove chrome caption so the title bar area becomes content space
+            if (chrome != null)
+                chrome.CaptionHeight = 0;
+
+            WindowState = WindowState.Maximized;
+            _isFullscreen = true;
+
+            // Update maximize button icon to reflect state
+            ChromeMaxIcon.Text = "\uE923"; // Restore icon
+            ChromeMaxRestoreBtn.ToolTip = "Restore";
+
+            // Update fullscreen button
+            ChromeFullscreenIcon.Text = "\uE73F"; // Exit fullscreen icon
+            ChromeFullscreenBtn.ToolTip = "Exit Fullscreen (F11)";
+        }
+
+        private void ExitFullscreen()
+        {
+            if (!_isFullscreen) return;
+
+            _isFullscreen = false;
+
+            // Restore window chrome
+            var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
+            if (chrome != null)
+                chrome.CaptionHeight = _preFullscreenChromeHeight;
+
+            // Restore window style
+            WindowState = WindowState.Normal;
+            WindowStyle = _preFullscreenWindowStyle;
+            ResizeMode = _preFullscreenResizeMode;
+
+            // Restore position and size
+            Left = _preFullscreenBounds.Left;
+            Top = _preFullscreenBounds.Top;
+            Width = _preFullscreenBounds.Width;
+            Height = _preFullscreenBounds.Height;
+
+            // Restore previous window state (e.g. if was maximized before)
+            WindowState = _preFullscreenWindowState;
+
+            // Update maximize button icon
+            if (WindowState == WindowState.Maximized)
+            {
+                ChromeMaxIcon.Text = "\uE923"; // Restore icon
+                ChromeMaxRestoreBtn.ToolTip = "Restore";
+            }
+            else
+            {
+                ChromeMaxIcon.Text = "\uE922"; // Maximize icon
+                ChromeMaxRestoreBtn.ToolTip = "Maximize";
+            }
+
+            // Update fullscreen button
+            ChromeFullscreenIcon.Text = "\uE740"; // Enter fullscreen icon
+            ChromeFullscreenBtn.ToolTip = "Fullscreen (F11)";
+        }
 
         private void ToggleConfigPanel_Click(object sender, RoutedEventArgs e)
         {
@@ -261,12 +406,27 @@ namespace PaDDY
 
         private void OnPadHotKey(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            // ── F11: toggle fullscreen ──────────────────────────────────────
+            if (e.Key == Key.F11)
+            {
+                e.Handled = true;
+                ToggleFullscreen();
+                return;
+            }
+
+            // ── Escape: exit fullscreen ─────────────────────────────────────
+            if (e.Key == Key.Escape && _isFullscreen)
+            {
+                e.Handled = true;
+                ExitFullscreen();
+                return;
+            }
+
             var isD = e.Key == Key.D || (e.Key == Key.System && e.SystemKey == Key.D);
             if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isD)
             {
                 e.Handled = true;
-                _overlayDevUnlocked = !_overlayDevUnlocked;
-                OverlayConfigPanel.Visibility = _overlayDevUnlocked ? Visibility.Visible : Visibility.Collapsed;
+                App.ToggleDebugMode();
                 return;
             }
 
@@ -363,6 +523,22 @@ namespace PaDDY
             await Task.Delay(400);
             _globalCaptureChain?.Reset();
 
+            ShowLoadingOverlay("VST plugins startup");
+            await Task.Delay(600);
+            var currentSettings = AppSettings.Load();
+            bool vstSettingsChanged = false;
+            if (!string.IsNullOrEmpty(currentSettings.VstPluginPath) && !File.Exists(currentSettings.VstPluginPath))
+            {
+                currentSettings.VstPluginPath = string.Empty;
+                vstSettingsChanged = true;
+            }
+            if (!string.IsNullOrEmpty(currentSettings.Vst3PluginPath) && !File.Exists(currentSettings.Vst3PluginPath) && !Directory.Exists(currentSettings.Vst3PluginPath))
+            {
+                currentSettings.Vst3PluginPath = string.Empty;
+                vstSettingsChanged = true;
+            }
+            if (vstSettingsChanged) currentSettings.Save();
+
             _captureService.RmsLevelChanged += OnRmsChanged;
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
@@ -372,11 +548,14 @@ namespace PaDDY
 
             ShowLoadingOverlay("Features starting");
             await Task.Delay(50);
-            _overlayEngine.Initialize(BuildOverlayOptions());
-            if (_settings.OverlayEnabled && _settings.AppLoopbackProcessId != 0)
+            if (_settings.OverlayEnabled)
             {
-                _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
-                _overlayEngine.Show();
+                _overlayEngine.Initialize(BuildOverlayOptions());
+                if (_settings.AppLoopbackProcessId != 0)
+                {
+                    _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
+                    _overlayEngine.Show();
+                }
             }
 
             RefreshOutputFormatInfo();
@@ -608,6 +787,23 @@ namespace PaDDY
                 RestoreFromTray();
                 SettingsButton_Click(this, new RoutedEventArgs());
             };
+            _trayIcon.ToggleMonitoringRequested += () =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    MonitorToggle.IsChecked = !(MonitorToggle.IsChecked == true);
+                });
+            };
+            _trayIcon.TogglePadMonitoringRequested += () =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ListenOutputEnabledCheck.IsChecked = !(ListenOutputEnabledCheck.IsChecked == true);
+                });
+            };
+            _trayIcon.IsMonitoringActiveFunc = () => MonitorToggle.IsChecked == true;
+            _trayIcon.IsPadMonitoringActiveFunc = () => ListenOutputEnabledCheck.IsChecked == true;
+
             _trayIcon.ExitRequested += () =>
             {
                 _forceExit = true;
@@ -641,6 +837,107 @@ namespace PaDDY
                 {
                     Hide();
                 }
+            }
+        }
+
+        // ── Focus-based animation suspension ──────────────────────────────────
+
+        private void OnWindowActivated(object? sender, EventArgs e)
+        {
+            if (_pauseAnimationsWhenUnfocused)
+                SetAnimationsPaused(false);
+        }
+
+        private void OnWindowDeactivated(object? sender, EventArgs e)
+        {
+            if (_pauseAnimationsWhenUnfocused)
+                SetAnimationsPaused(true);
+        }
+
+        /// <summary>
+        /// Pauses or resumes all decorative animation rendering:
+        /// meter decay DispatcherTimers and any running XAML Storyboards.
+        /// Audio capture and recording are unaffected.
+        /// </summary>
+        private void SetAnimationsPaused(bool paused)
+        {
+            // ── Meter decay timers ──────────────────────────────────────────
+            if (paused)
+            {
+                _meterDecayTimer?.Stop();
+                _outputMeterDecayTimer?.Stop();
+                _inputMeterResetTimer?.Stop();
+            }
+            else
+            {
+                // Only restart timers that were actually running (i.e. metering is active)
+                if (_inputMeterUpdatesEnabled)
+                {
+                    if (_meterDecayTimer != null) _meterDecayTimer.Start();
+                    if (_outputMeterDecayTimer != null) _outputMeterDecayTimer.Start();
+                }
+            }
+
+            // ── XAML Storyboards (glow pulses, hover effects, etc.) ─────────
+            // Walk the visual tree to find and pause/resume all ClockGroups
+            // driven by Storyboards attached to UI elements.
+            var oldTraceLevel = System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level;
+            try
+            {
+                System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level = System.Diagnostics.SourceLevels.Error;
+                PauseResumeStoryboards(this, paused);
+            }
+            finally
+            {
+                System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level = oldTraceLevel;
+            }
+        }
+
+        /// <summary>
+        /// Recursively walks the visual tree from <paramref name="root"/> and
+        /// pauses or resumes every active <see cref="System.Windows.Media.Animation.Storyboard"/>
+        /// clock found on each element.
+        /// </summary>
+        private static void PauseResumeStoryboards(System.Windows.DependencyObject root, bool pause)
+        {
+            // Pause/resume Storyboards stored in the element's trigger collection.
+            // Note: GetCurrentState(), Pause(), and Resume() all throw InvalidOperationException
+            // when the storyboard has never been interactively applied to the element (e.g. a
+            // hover animation on an element the user never hovered). A try/catch per-call is the
+            // only safe guard — there is no pre-flight query that avoids the exception.
+            if (root is System.Windows.FrameworkElement fe)
+            {
+                foreach (System.Windows.TriggerBase trigger in fe.Triggers)
+                {
+                    if (trigger is System.Windows.EventTrigger et)
+                    {
+                        foreach (System.Windows.TriggerAction action in et.Actions)
+                        {
+                            if (action is System.Windows.Media.Animation.BeginStoryboard bsb &&
+                                bsb.Storyboard != null)
+                            {
+                                try
+                                {
+                                    if (pause) bsb.Storyboard.Pause(fe);
+                                    else       bsb.Storyboard.Resume(fe);
+                                }
+                                catch (InvalidOperationException) { /* storyboard not yet started on this element */ }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Recurse into children
+            int childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < childCount; i++)
+            {
+                try
+                {
+                    var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+                    PauseResumeStoryboards(child, pause);
+                }
+                catch { /* child may be in a disconnected or unusual state */ }
             }
         }
 
@@ -846,6 +1143,12 @@ namespace PaDDY
         /// </summary>
         private void HandlePanelDragOver(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
         {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                Window_DragOver(sender: panel, e);
+                return;
+            }
+
             var pad = GetDraggedPad(e);
             e.Effects = pad != null ? System.Windows.DragDropEffects.Move : System.Windows.DragDropEffects.None;
             e.Handled = true;
@@ -864,12 +1167,22 @@ namespace PaDDY
 
         private void FavoritesPanel_Drop(object sender, System.Windows.DragEventArgs e)
         {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                Window_Drop(sender, e);
+                return;
+            }
             // The pad has already been live-moved into place; commit happens in FinalizePadDrop.
             e.Handled = true;
         }
 
         private void PadPanel_Drop(object sender, System.Windows.DragEventArgs e)
         {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                Window_Drop(sender, e);
+                return;
+            }
             e.Handled = true;
         }
 
@@ -1092,9 +1405,12 @@ namespace PaDDY
             }
 
             ListenOutputEnabledCheck.IsChecked = _settings.ListenOutputEnabled;
+            AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
 
             SensitivitySlider.Value = _settings.Sensitivity;
             SilenceSlider.Value = _settings.SilenceTimeoutMs;
+            BufferDurationSlider.Value = _settings.PastBufferDurationMs / 1000.0;
+            BufferDurationValueLabel.Text = $"{_settings.PastBufferDurationMs / 1000}s";
 
             // Recording mode combo
             int modeIdx = ModeToComboIndex(_settings.RecordingMode, _settings.DetectionAlgorithm);
@@ -1118,6 +1434,7 @@ namespace PaDDY
             _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
 
             _performanceMode = _settings.PerformanceMode;
+            _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
 
             // Apply saved global effect config to the live chain and assign to capture service
             EffectSettingsManager.ApplyConfig(_globalCaptureChain, _effectSettings.GlobalChain);
@@ -1169,6 +1486,11 @@ namespace PaDDY
 
         private void ApplyOverlayOptionsFromSettings()
         {
+            if (_settings.OverlayEnabled && _overlayEngine.State == OverlayEngineState.Created)
+            {
+                _overlayEngine.Initialize(BuildOverlayOptions());
+            }
+
             if (_overlayEngine.State == OverlayEngineState.Created || _overlayEngine.State == OverlayEngineState.Disposed)
             {
                 return;
@@ -1222,6 +1544,9 @@ namespace PaDDY
                         pad.TrimEditorOutputDeviceIndex = _settings.TrimEditorOutputDeviceIndex;
                         pad.OutputVolume = _outputVolume;
                         pad.ListenVolume = _padListenVolume;
+                        pad.GlobalFadeEnabled = _settings.GlobalFadeEnabled;
+                        pad.GlobalFadeInDurationMs = _settings.GlobalFadeInDurationMs;
+                        pad.GlobalFadeOutDurationMs = _settings.GlobalFadeOutDurationMs;
                         pad.RefreshLiveVolumes();
                     }
                 }
@@ -1360,16 +1685,27 @@ namespace PaDDY
         {
             if (!_settings.OverlayEnabled)
             {
-                _overlayEngine.Hide();
-                _overlayEngine.Detach();
+                if (_overlayEngine.State != OverlayEngineState.Created && _overlayEngine.State != OverlayEngineState.Disposed)
+                {
+                    _overlayEngine.Hide();
+                    _overlayEngine.Detach();
+                }
                 return;
             }
 
             if (processId == 0)
             {
-                _overlayEngine.Hide();
-                _overlayEngine.Detach();
+                if (_overlayEngine.State != OverlayEngineState.Created && _overlayEngine.State != OverlayEngineState.Disposed)
+                {
+                    _overlayEngine.Hide();
+                    _overlayEngine.Detach();
+                }
                 return;
+            }
+
+            if (_overlayEngine.State == OverlayEngineState.Created)
+            {
+                _overlayEngine.Initialize(BuildOverlayOptions());
             }
 
             if (_overlayEngine.AttachToProcess(processId))
@@ -1505,9 +1841,16 @@ namespace PaDDY
         // Sensitivity and Silence only apply to AutoVAD/Adaptive VAD detection.
         private void UpdateVadSettingsVisibility(int modeIdx)
         {
-            var vadVisibility = modeIdx == ModeComboKeyBufferIndex ? Visibility.Collapsed : Visibility.Visible;
+            var isKeyBuffer = modeIdx == ModeComboKeyBufferIndex;
+            var vadVisibility = isKeyBuffer ? Visibility.Collapsed : Visibility.Visible;
+            var bufferVisibility = isKeyBuffer ? Visibility.Visible : Visibility.Collapsed;
+            
             SensitivityRow.Visibility = vadVisibility;
             SilenceRow.Visibility = vadVisibility;
+            if (BufferDurationRow != null)
+            {
+                BufferDurationRow.Visibility = bufferVisibility;
+            }
         }
 
         // ── Monitoring toggle ──────────────────────────────────────────────────
@@ -1655,6 +1998,27 @@ namespace PaDDY
             _settings.Save();
         }
 
+        private void BufferDurationSlider_ValueChanged(object sender,
+            System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (BufferDurationValueLabel == null) return;
+            double v = Math.Round(e.NewValue);
+            BufferDurationValueLabel.Text = $"{v:0}s";
+            _settings.PastBufferDurationMs = (int)(v * 1000);
+            if (_captureService != null)
+            {
+                _captureService.PastBufferDurationMs = _settings.PastBufferDurationMs;
+            }
+            _settings.Save();
+        }
+
+        private void AutoNormalizeCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_suppressSelectionEvents) return;
+            _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
+            _settings.Save();
+        }
+
         private void InputVolumeSlider_ValueChanged(object sender,
             System.Windows.RoutedPropertyChangedEventArgs<double> e)
         {
@@ -1757,6 +2121,7 @@ namespace PaDDY
             _settings.Theme = win.SelectedTheme;
             _settings.MeterSkin = win.SelectedMeterSkin;
             _settings.PerformanceMode = win.SelectedPerformanceMode;
+            _settings.PauseAnimationsWhenUnfocused = win.SelectedPauseAnimationsWhenUnfocused;
 
             // System tray / startup
             _settings.MinimizeToTray = win.SelectedMinimizeToTray;
@@ -1774,12 +2139,18 @@ namespace PaDDY
             _settings.DiscordClientId = win.SelectedDiscordClientId;
             _settings.AutoInstallUpdates = win.SelectedAutoInstallUpdates;
             _settings.DownloadBetaUpdates = win.SelectedDownloadBetaUpdates;
+
+            // Global Effects
+            _settings.GlobalFadeEnabled = win.SelectedGlobalFadeEnabled;
+            _settings.GlobalFadeInDurationMs = win.SelectedGlobalFadeInDurationMs;
+            _settings.GlobalFadeOutDurationMs = win.SelectedGlobalFadeOutDurationMs;
             _settings.Save();
 
             DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
 
             App.ApplyFont(win.SelectedFontVariant);
             Helpers.ThemeManager.ApplyTheme(_settings.Theme);
+            UpdateLoadingOverlayTheme();
             Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
             bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
@@ -1796,6 +2167,7 @@ namespace PaDDY
             }
             _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
             _performanceMode = _settings.PerformanceMode;
+            _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
 
             _captureService.RecordCodec = win.SelectedCodec;
             _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
@@ -1811,6 +2183,19 @@ namespace PaDDY
             RefreshPadOutputRouting();
             WhisperARTTStatus();
             Forget(RefreshStorageInfoAsync());
+
+            // Sync quick-config panel UI with updated settings
+            _suppressSelectionEvents = true;
+            try
+            {
+                AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
+                BufferDurationSlider.Value = _settings.PastBufferDurationMs / 1000.0;
+                BufferDurationValueLabel.Text = $"{_settings.PastBufferDurationMs / 1000}s";
+            }
+            finally
+            {
+                _suppressSelectionEvents = false;
+            }
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
@@ -1844,6 +2229,9 @@ namespace PaDDY
 
         private void OnRmsChanged(double left, double right)
         {
+            _lastRmsL = left;
+            _lastRmsR = right;
+
             // Throttle OUTSIDE the Dispatcher call to avoid flooding the UI message queue
             var now = DateTime.UtcNow;
             if ((now - _lastInputMeterTick).TotalMilliseconds < 30)
@@ -1887,8 +2275,46 @@ namespace PaDDY
             }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
+        private void UpdateInputMeterOverlaysLayout()
+        {
+            double meterWidth = ThresholdCanvas.ActualWidth;
+            if (meterWidth <= 0) return;
+
+            if (_meterDecayTimer != null && _meterDecayTimer.IsEnabled)
+            {
+                _decayTargetL = meterWidth;
+                _decayTargetR = meterWidth;
+                return;
+            }
+
+            if (_lastRmsL <= 0 || MonitorToggle.IsChecked != true || !_inputMeterUpdatesEnabled)
+            {
+                MeterOverlayL.Width = 10000;
+            }
+            else
+            {
+                double dbL = LinearToDb(_lastRmsL);
+                double filledL = DbToMeterFraction(dbL) * meterWidth;
+                MeterOverlayL.Width = Math.Max(0, meterWidth - filledL);
+            }
+
+            if (_lastRmsR <= 0 || MonitorToggle.IsChecked != true || !_inputMeterUpdatesEnabled)
+            {
+                MeterOverlayR.Width = 10000;
+            }
+            else
+            {
+                double dbR = LinearToDb(_lastRmsR);
+                double filledR = DbToMeterFraction(dbR) * meterWidth;
+                MeterOverlayR.Width = Math.Max(0, meterWidth - filledR);
+            }
+        }
+
         private void UpdateOutputMeter(double left, double right)
         {
+            _lastOutputRmsL = left;
+            _lastOutputRmsR = right;
+
             var now = DateTime.UtcNow;
             if ((now - _lastOutputMeterTick).TotalMilliseconds < 30)
                 return;
@@ -1927,8 +2353,46 @@ namespace PaDDY
             }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
+        private void UpdateOutputMeterOverlaysLayout()
+        {
+            double meterWidth = ThresholdCanvas.ActualWidth;
+            if (meterWidth <= 0) return;
+
+            if (_outputMeterDecayTimer != null && _outputMeterDecayTimer.IsEnabled)
+            {
+                _outputDecayTargetL = meterWidth;
+                _outputDecayTargetR = meterWidth;
+                return;
+            }
+
+            if (_lastOutputRmsL <= 0)
+            {
+                OutputMeterOverlayL.Width = 10000;
+            }
+            else
+            {
+                double dbL = LinearToDb(_lastOutputRmsL);
+                double filledL = DbToMeterFraction(dbL) * meterWidth;
+                OutputMeterOverlayL.Width = Math.Max(0, meterWidth - filledL);
+            }
+
+            if (_lastOutputRmsR <= 0)
+            {
+                OutputMeterOverlayR.Width = 10000;
+            }
+            else
+            {
+                double dbR = LinearToDb(_lastOutputRmsR);
+                double filledR = DbToMeterFraction(dbR) * meterWidth;
+                OutputMeterOverlayR.Width = Math.Max(0, meterWidth - filledR);
+            }
+        }
+
         private void UpdatePadMonitorMeter(double left, double right)
         {
+            _lastMonitorRmsL = left;
+            _lastMonitorRmsR = right;
+
             var now = DateTime.UtcNow;
             if ((now - _lastMonitorMeterTick).TotalMilliseconds < 30)
                 return;
@@ -1966,6 +2430,45 @@ namespace PaDDY
                 MonitorPeakIndicatorL.Background = (now - _monitorPeakHoldTimeL).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
                 MonitorPeakIndicatorR.Background = (now - _monitorPeakHoldTimeR).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
             }), System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+        private void UpdateMonitorMeterOverlaysLayout()
+        {
+            if (!_settings.ListenOutputEnabled)
+            {
+                ResetPadMonitorMeter();
+                return;
+            }
+
+            double meterWidthL = PadMonitorMeterHostL.ActualWidth;
+            if (meterWidthL > 0)
+            {
+                if (_lastMonitorRmsL <= 0)
+                {
+                    PadMonitorMeterOverlayL.Width = 10000;
+                }
+                else
+                {
+                    double dbL = LinearToDb(_lastMonitorRmsL);
+                    double filledL = DbToMeterFraction(dbL) * meterWidthL;
+                    PadMonitorMeterOverlayL.Width = Math.Max(0, meterWidthL - filledL);
+                }
+            }
+
+            double meterWidthR = PadMonitorMeterHostR.ActualWidth;
+            if (meterWidthR > 0)
+            {
+                if (_lastMonitorRmsR <= 0)
+                {
+                    PadMonitorMeterOverlayR.Width = 10000;
+                }
+                else
+                {
+                    double dbR = LinearToDb(_lastMonitorRmsR);
+                    double filledR = DbToMeterFraction(dbR) * meterWidthR;
+                    PadMonitorMeterOverlayR.Width = Math.Max(0, meterWidthR - filledR);
+                }
+            }
         }
 
         private void StartOutputMeterDecay()
@@ -2138,7 +2641,10 @@ namespace PaDDY
                 ListenDeviceIndex = GetCurrentListenDeviceIndex(),
                 TrimEditorOutputDeviceIndex = _settings.TrimEditorOutputDeviceIndex,
                 OutputVolume = _outputVolume,
-                ListenVolume = _padListenVolume
+                ListenVolume = _padListenVolume,
+                GlobalFadeEnabled = _settings.GlobalFadeEnabled,
+                GlobalFadeInDurationMs = _settings.GlobalFadeInDurationMs,
+                GlobalFadeOutDurationMs = _settings.GlobalFadeOutDurationMs
             };
             btn.SetEntry(entry);
             btn.IsFavorite = entry.IsFavorite;
@@ -2167,6 +2673,12 @@ namespace PaDDY
                 if (string.IsNullOrEmpty(entry.RecordingId)) return;
                 _recordingStore.SetDisplayName(entry.RecordingId, newDisplayName);
                 Forget(RefreshStorageInfoAsync());
+            };
+
+            btn.PadColorChanged += (entry, newHexColor) =>
+            {
+                if (string.IsNullOrEmpty(entry.RecordingId)) return;
+                _recordingStore.SetPadColor(entry.RecordingId, newHexColor);
             };
 
             btn.FavoriteToggled += (s, _) =>
@@ -2431,9 +2943,11 @@ namespace PaDDY
             _suppressSelectionEvents = true;
             ApplySettings();
             ThemeManager.ApplyTheme(_settings.Theme);
+            UpdateLoadingOverlayTheme();
             ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
             ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
             App.ApplyFont(_settings.AppFontVariant);
+            _trayIcon?.UpdateMenuFont();
             _suppressSelectionEvents = false;
 
             InitializePadPages();
@@ -2547,7 +3061,8 @@ namespace PaDDY
                         IsNonDestructive = rec.IsNonDestructive,
                         TrimStartMs = rec.TrimStartMs,
                         TrimEndMs = rec.TrimEndMs,
-                        GainDb = rec.GainDb
+                        GainDb = rec.GainDb,
+                        PadColor = rec.PadColor
                     };
                     var btn = CreatePadButton(entry);
                     _padCache[rec.Id] = btn;
@@ -2772,20 +3287,21 @@ namespace PaDDY
 
         private void RefreshInputFormatInfo()
         {
+            string prefix = LocalizationManager.Instance["InputFormatPrefix"];
             if (MonitorToggle.IsChecked != true)
             {
-                SetInfoLabel(InputFormatInfoLabel, "Input format: ", "waiting for monitoring");
+                SetInfoLabel(InputFormatInfoLabel, prefix, LocalizationManager.Instance["InputFormatWaiting"]);
                 return;
             }
 
             var format = _captureService.CurrentCaptureFormat;
             if (format == null)
             {
-                SetInfoLabel(InputFormatInfoLabel, "Input format: ", "detecting...");
+                SetInfoLabel(InputFormatInfoLabel, prefix, LocalizationManager.Instance["InputFormatDetecting"]);
                 return;
             }
 
-            SetInfoLabel(InputFormatInfoLabel, "Input format: ", FormatPcmDetails(format.SampleRate, format.BitsPerSample, format.Channels));
+            SetInfoLabel(InputFormatInfoLabel, prefix, FormatPcmDetails(format.SampleRate, format.BitsPerSample, format.Channels));
         }
 
         private void RefreshOutputFormatInfo()
@@ -2799,7 +3315,7 @@ namespace PaDDY
                 ? $"{FormatPcmDetails(sampleRate, bitDepth, channels)}"
                 : $"{FormatSampleRate(sampleRate)} | {FormatChannels(channels)}";
 
-            SetInfoLabel(OutputFormatInfoLabel, "Recording format: ", $"{codec} | {suffix}");
+            SetInfoLabel(OutputFormatInfoLabel, LocalizationManager.Instance["RecordingFormatPrefix"], $"{codec} | {suffix}");
         }
 
         private async Task CompactAndRefreshAsync()
@@ -2814,50 +3330,42 @@ namespace PaDDY
         {
             try
             {
-                long dbBytes = await Task.Run(() => _recordingStore.GetStoreSizeBytes());
-                string root = Path.GetPathRoot(RecordingStore.StorePath) ?? string.Empty;
-                string value;
-                if (!string.IsNullOrWhiteSpace(root))
-                {
-                    var drive = new DriveInfo(root);
-                    value = $"{FormatByteSize(dbBytes)} | {FormatByteSize(drive.AvailableFreeSpace)} free";
-                }
-                else
-                {
-                    value = $"{FormatByteSize(dbBytes)}";
-                }
-                SetInfoLabel(StorageInfoLabel, "Storage data: ", value);
+                (long dbBytes, int count) = await Task.Run(() =>
+                    (_recordingStore.GetStoreSizeBytes(), _recordingStore.GetCount())
+                );
+                string value = string.Format(LocalizationManager.Instance["StorageDataFiles"], count, FormatByteSize(dbBytes));
+                SetInfoLabel(StorageInfoLabel, LocalizationManager.Instance["StorageDataPrefix"], value);
             }
             catch
             {
-                SetInfoLabel(StorageInfoLabel, "Storage data: ", "Unable to read storage data");
+                SetInfoLabel(StorageInfoLabel, LocalizationManager.Instance["StorageDataPrefix"], LocalizationManager.Instance["StorageDataError"]);
             }
         }
         private void WhisperARTTStatus()
         {
-            string nm = "AR-STT: ";
+            string nm = LocalizationManager.Instance["STTPrefix"];
             try
             {
                 bool? arttsvalue = _settings.AutoRenameWithSpeech;
                 if (arttsvalue == null)
                 {
-                    SetInfoLabel(WhisperStatusLabel, nm, "unavailable");
+                    SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTUnavailable"]);
                     return;
                 }
                 else if (arttsvalue == true)
                 {
                     string suffix = _settings.UseCudaForSpeech ? " (CUDA)" : "";
-                    SetInfoLabel(WhisperStatusLabel, nm, "enabled" + suffix);
+                    SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTEnabled"] + suffix);
                 }
                 else
                 {
-                    SetInfoLabel(WhisperStatusLabel, nm, "disabled");
+                    SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTDisabled"]);
                     return;
                 }
             }
             catch
             {
-                SetInfoLabel(WhisperStatusLabel, nm, "unavailable");
+                SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTUnavailable"]);
                 return;
             }
         }
@@ -3121,6 +3629,201 @@ namespace PaDDY
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();
             DiscordService.Instance.Dispose();
+        }
+
+        // ── Audio Import & Drag/Drop ───────────────────────────────────────────
+        private async void ImportAudioButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Import Audio File(s)",
+                Filter = "Supported Audio Files (*.wav;*.mp3;*.ogg;*.flac;*.aiff;*.aif;*.wma;*.m4a;*.aac)|*.wav;*.mp3;*.ogg;*.flac;*.aiff;*.aif;*.wma;*.m4a;*.aac|All Files (*.*)|*.*",
+                Multiselect = true
+            };
+
+            if (dlg.ShowDialog(this) == true && dlg.FileNames.Length > 0)
+            {
+                await ProcessAudioImportsAsync(dlg.FileNames);
+            }
+        }
+
+        private void Window_DragOver(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files)
+                {
+                    if (files.Any(f => AudioImportService.IsSupportedExtension(f)))
+                    {
+                        e.Effects = System.Windows.DragDropEffects.Copy;
+                        e.Handled = true;
+                        return;
+                    }
+                }
+            }
+        }
+
+        private async void Window_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files && files.Length > 0)
+                {
+                    var supportedFiles = files.Where(f => AudioImportService.IsSupportedExtension(f)).ToArray();
+                    if (supportedFiles.Length > 0)
+                    {
+                        e.Handled = true;
+                        await ProcessAudioImportsAsync(supportedFiles);
+                    }
+                }
+            }
+        }
+
+        private async Task ProcessAudioImportsAsync(IEnumerable<string> filePaths)
+        {
+            var filesList = filePaths.ToList();
+            if (filesList.Count == 0) return;
+
+            ShowLoadingOverlay($"Importing {filesList.Count} audio file(s)...");
+            await Task.Delay(50); // Yield UI thread to ensure LoadingOverlay renders
+
+            int importedCount = 0;
+            int failedCount = 0;
+
+            foreach (var file in filesList)
+            {
+                ShowLoadingOverlay($"Verifying & converting: {System.IO.Path.GetFileName(file)}");
+                var result = await AudioImportService.ImportFileAsync(file);
+
+                if (result.Success && result.AudioData.Length > 0)
+                {
+                    try
+                    {
+                        var entry = new RecordingEntry
+                        {
+                            DisplayName = result.DisplayName,
+                            Duration = result.Duration,
+                            CreatedAt = DateTime.Now,
+                            IsFavorite = false
+                        };
+
+                        string id = _recordingStore.Add(result.DisplayName, result.Codec, entry.Duration, entry.CreatedAt, result.AudioData);
+                        entry.RecordingId = id;
+                        entry.FilePath = _recordingStore.MaterializeToTemp(id, result.Codec);
+
+                        if (_settings.AutoNormalizeOnCapture && File.Exists(entry.FilePath))
+                        {
+                            LoudnessNormalizer.NormalizeWavFile(entry.FilePath, entry.FilePath, _settings.TargetLoudnessLufs);
+                            double newLufs = LoudnessNormalizer.MeasureIntegratedLoudness(entry.FilePath);
+                            entry.LufsValue = newLufs;
+                            _recordingStore.UpdateLufs(id, newLufs);
+                        }
+
+                        AddPadButton(entry, toFavorites: false);
+                        importedCount++;
+
+                        if (_settings.AutoSpeechIndexingEnabled && File.Exists(entry.FilePath))
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    using var speech = new SpeechRecognitionService();
+                                    string text = await speech.TranscribeAsync(entry.FilePath, _settings.SpeechModel, _settings.SpeechLanguage, _settings.UseCudaForSpeech);
+                                    if (!string.IsNullOrWhiteSpace(text))
+                                    {
+                                        string tags = SpeechRecognitionService.ExtractTags(text);
+                                        entry.Transcription = text;
+                                        entry.Tags = tags;
+                                        _recordingStore.UpdateTranscription(id, text, tags);
+                                    }
+                                }
+                                catch { }
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        failedCount++;
+                        System.Diagnostics.Debug.WriteLine($"Failed to save imported file: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    failedCount++;
+                    System.Diagnostics.Debug.WriteLine($"Audio import error: {result.ErrorMessage}");
+                }
+            }
+
+            Forget(RefreshStorageInfoAsync());
+            HideLoadingOverlay();
+
+            if (importedCount > 0)
+            {
+                SetStatus($"Successfully imported {importedCount} audio clip(s)", "#FF4CAF50");
+            }
+            if (failedCount > 0)
+            {
+                System.Windows.MessageBox.Show(this, 
+                    $"{failedCount} file(s) could not be imported due to unsupported audio encoding.", 
+                    "Import Warning", 
+                    System.Windows.MessageBoxButton.OK, 
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void LiveMicBtn_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (LiveMicBtn.IsChecked == true)
+            {
+                _liveMicModulator.Start(_settings.InputDeviceIndex, _settings.OutputDeviceIndex, _settings.SecondaryOutputDeviceIndex, _settings.DualOutputEnabled);
+                _liveMicModulator.IsFxEnabled = _settings.LiveMicFxEnabled;
+                LiveMicBtn.Content = "🎙️ Live Mic ON";
+                SetStatus("Live Mic Modulator active", "#FF4CAF50");
+            }
+            else
+            {
+                _liveMicModulator.Stop();
+                LiveMicBtn.Content = "🎙️ Live Mic";
+                SetStatus("Live Mic Modulator stopped", "#FF9090A0");
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = SearchTextBox.Text?.Trim() ?? string.Empty;
+            SearchPlaceholder.Visibility = string.IsNullOrEmpty(query) ? Visibility.Visible : Visibility.Collapsed;
+            ClearSearchBtn.Visibility = string.IsNullOrEmpty(query) ? Visibility.Collapsed : Visibility.Visible;
+            FilterPads(query);
+        }
+
+        private void ClearSearchBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SearchTextBox.Text = string.Empty;
+        }
+
+        private void FilterPads(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                foreach (var pad in _padCache.Values)
+                {
+                    pad.Visibility = Visibility.Visible;
+                }
+                return;
+            }
+
+            string q = query.ToLowerInvariant();
+            foreach (var pad in _padCache.Values)
+            {
+                if (pad.Entry == null) continue;
+                bool match = (pad.Entry.FileName != null && pad.Entry.FileName.ToLowerInvariant().Contains(q)) ||
+                             (pad.Entry.DisplayName != null && pad.Entry.DisplayName.ToLowerInvariant().Contains(q)) ||
+                             (pad.Entry.Tags != null && pad.Entry.Tags.ToLowerInvariant().Contains(q)) ||
+                             (pad.Entry.Transcription != null && pad.Entry.Transcription.ToLowerInvariant().Contains(q));
+
+                pad.Visibility = match ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
     }
 }

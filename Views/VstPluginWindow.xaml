@@ -1,0 +1,129 @@
+<Window x:Class="PaDDY.VstPluginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:p="clr-namespace:PaDDY.Helpers"
+        Title="VST Plugin Editor"
+        Icon="/PaDDY.ico"
+        Width="680" Height="520"
+        MinWidth="480" MinHeight="360"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        Background="{DynamicResource WindowGlowBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
+        FontFamily="{DynamicResource AppFont}">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="36"
+                            GlassFrameThickness="5"
+                            ResizeBorderThickness="10"
+                            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid Margin="10">
+        <Border Style="{StaticResource SecondaryWindowFrame}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="36"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title Bar -->
+                <Border Grid.Row="0"
+                        Background="{DynamicResource TitleBarGradient}"
+                        BorderBrush="{DynamicResource DividerBrush}"
+                        BorderThickness="0,0,0,1"
+                        CornerRadius="{DynamicResource TopWindowCornerRadius}">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                            <TextBlock Text="🎛️" FontSize="13" Foreground="{DynamicResource AccentGreenBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="VST Plugin Editor"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <Button Style="{StaticResource ChromeCloseBtn}"
+                                HorizontalAlignment="Right"
+                                ToolTip="Close"
+                                Click="ChromeClose_Click">
+                            <TextBlock Text="&#xE8BB;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Content Area -->
+                <Grid Grid.Row="1" Margin="14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header Plugin Selector Card -->
+                    <Border Grid.Row="0"
+                            Style="{StaticResource SecondaryWindowHeaderCard}"
+                            Padding="12,10"
+                            Margin="0,0,0,10"
+                            CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Select Plugin:"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                            <ComboBox Grid.Column="1" x:Name="PluginComboBox"
+                                      Height="28" VerticalContentAlignment="Center"
+                                      SelectionChanged="PluginComboBox_SelectionChanged"/>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                                <CheckBox x:Name="EnablePluginCheckBox" Content="Enable"
+                                          Style="{StaticResource RackPowerSwitch}"
+                                          Click="EnablePlugin_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Main Host / Parameter Area -->
+                    <Border Grid.Row="1"
+                            x:Name="EditorHostBorder"
+                            Background="{DynamicResource InputBgBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            ClipToBounds="True">
+                        <Grid x:Name="HostGrid">
+                            <!-- Native VST HWND Host Container -->
+                            <ContentControl x:Name="NativeGuiHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+                            <!-- Fallback / Slider Parameter View -->
+                            <ScrollViewer x:Name="ParametersScrollViewer"
+                                          Visibility="Collapsed"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Padding="16">
+                                <StackPanel x:Name="ParametersStackPanel"/>
+                            </ScrollViewer>
+
+                            <!-- Placeholder when no plugin loaded -->
+                            <TextBlock x:Name="NoPluginText"
+                                       Text="No active plugin selected"
+                                       Foreground="{DynamicResource SubtleTextBrush}"
+                                       FontSize="13"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Visibility="Collapsed"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

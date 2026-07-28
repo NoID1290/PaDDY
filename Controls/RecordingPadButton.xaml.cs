@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using WpfControl = System.Windows.Controls.UserControl;
 using WpfButton = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
@@ -48,6 +49,14 @@ namespace PaDDY.Controls
         public float OutputVolume { get; set; } = 1.0f;
         public float ListenVolume { get; set; } = 1.0f;
 
+        // ── Global Effects (injected from MainWindow per AppSettings) ─────────
+        /// <summary>Whether the global Auto Fade In/Out effect is enabled.</summary>
+        public bool GlobalFadeEnabled { get; set; } = false;
+        /// <summary>Global fade-in duration in milliseconds.</summary>
+        public double GlobalFadeInDurationMs { get; set; } = 500.0;
+        /// <summary>Global fade-out duration in milliseconds.</summary>
+        public double GlobalFadeOutDurationMs { get; set; } = 500.0;
+
         /// <summary>Fired with (left, right) normalised 0-100 values during playback on the main output.</summary>
         public event Action<double, double>? PlaybackRmsChanged;
         /// <summary>Fired with (left, right) normalised 0-100 values during playback on the monitor output.</summary>
@@ -86,6 +95,8 @@ namespace PaDDY.Controls
         private VolumeSampleProvider? _listenVolumeProvider;
         private PlaybackMeterProvider? _listenMeterProvider;
         private bool _isPlaying;
+        private DispatcherTimer? _countdownTimer;
+        private TimeSpan _playbackTotalDuration;
 
         /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
         public event EventHandler? DeleteRequested;
@@ -98,9 +109,20 @@ namespace PaDDY.Controls
         public event Action<RecordingEntry>? RecordingEdited;
         /// <summary>Fired when "Save as Copy" produces a new file; args are (newFilePath, addToFavorite).</summary>
         public event Action<string, bool>? RecordingCopied;
+        /// <summary>Fired when the user changes the pad color; args are (entry, newHexColor).</summary>
+        public event Action<RecordingEntry, string>? PadColorChanged;
         public RecordingPadButton()
         {
             InitializeComponent();
+
+            // Re-apply custom colors if the global theme is modified/re-evaluated.
+            ThemeManager.ThemeChanged += () =>
+            {
+                if (Entry != null)
+                {
+                    ApplyPadColor(Entry.PadColor);
+                }
+            };
 
             // Play entrance animation when loaded — skip during bulk loads (startup / page switch)
             Loaded += (_, _) =>
@@ -196,9 +218,18 @@ namespace PaDDY.Controls
             Entry = entry;
             NameLabel.Text = entry.FileName;
             DurationLabel.Text = entry.DurationLabel;
-            ToolTip = entry.FileName;
+            if (!string.IsNullOrWhiteSpace(entry.Transcription))
+            {
+                ToolTip = $"{entry.FileName}\n\n🤖 Transcription: \"{entry.Transcription}\"\n🏷️ Tags: {entry.Tags}";
+            }
+            else
+            {
+                ToolTip = entry.FileName;
+            }
             if (NdIndicator != null)
                 NdIndicator.Visibility = entry.IsNonDestructive ? Visibility.Visible : Visibility.Collapsed;
+
+            ApplyPadColor(entry.PadColor);
         }
 
         // â”€â”€ Overlay button handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -220,6 +251,28 @@ namespace PaDDY.Controls
         {
             e.Handled = true;
             OpenRename();
+        }
+
+        private void ColorBtn_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            OpenColorPicker();
+        }
+
+        public void OpenColorPicker()
+        {
+            if (Entry == null) return;
+            var dialog = new Views.PadColorPickerDialog(Entry.PadColor, Entry.FileName)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                string newColor = dialog.SelectedHexColor;
+                Entry.PadColor = newColor;
+                ApplyPadColor(newColor);
+                PadColorChanged?.Invoke(Entry, newColor);
+            }
         }
 
         private void TrimBtn_Click(object sender, RoutedEventArgs e)
@@ -365,6 +418,33 @@ namespace PaDDY.Controls
 
                 sp = new EffectSampleProvider(sp, effectChain);
             }
+
+            // ── Global Effects (non-destructive, applied to every pad playback) ─
+            if (GlobalFadeEnabled)
+            {
+                var globalFadeChain = new EffectChain();
+                var globalFade = new FadeEffect
+                {
+                    IsEnabled = true,
+                    FadeInDurationMs = GlobalFadeInDurationMs,
+                    FadeOutDurationMs = GlobalFadeOutDurationMs
+                };
+
+                // Prime TotalFrames so fade-out knows when to start
+                double durationSec = (Entry != null && Entry.IsNonDestructive)
+                    ? (Entry.TrimEndMs > Entry.TrimStartMs
+                        ? (Entry.TrimEndMs - Entry.TrimStartMs) / 1000.0
+                        : Entry.Duration.TotalSeconds)
+                    : Entry?.Duration.TotalSeconds ?? 0.0;
+
+                if (durationSec > 0)
+                    globalFade.TotalFrames = (long)(durationSec * sp.WaveFormat.SampleRate);
+
+                globalFadeChain.Add(globalFade);
+                globalFadeChain.Reset();
+                sp = new EffectSampleProvider(sp, globalFadeChain);
+            }
+
             return sp;
         }
 
@@ -389,6 +469,9 @@ namespace PaDDY.Controls
                 _player.Volume = 1.0f;
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _player.Play();
+
+                // Start the countdown timer using the main reader
+                StartCountdownTimer(_reader);
 
                 if (ListenDeviceIndex >= -1)
                 {
@@ -440,6 +523,9 @@ namespace PaDDY.Controls
                 _listenPlayer.Volume = 1.0f;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
                 _listenPlayer.Play();
+
+                // Start the countdown timer using the listen reader
+                StartCountdownTimer(_listenReader);
                 SetPlayingVisual(true);
             }
             catch (Exception ex)
@@ -452,6 +538,7 @@ namespace PaDDY.Controls
 
         public void StopPlayback()
         {
+            StopCountdownTimer();
             _player?.Stop();
             _player?.Dispose();
             _player = null;
@@ -500,7 +587,176 @@ namespace PaDDY.Controls
                 if (_isFavorite)
                     TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
                 else
-                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                {
+                    if (Entry != null && !string.IsNullOrWhiteSpace(Entry.PadColor))
+                    {
+                        try
+                        {
+                            var c = (Color)System.Windows.Media.ColorConverter.ConvertFromString(Entry.PadColor);
+                            TileBorder.BorderBrush = new SolidColorBrush(c);
+                        }
+                        catch
+                        {
+                            TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                        }
+                    }
+                    else
+                    {
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                    }
+                }
+            }
+        }
+
+        public void ApplyPadColor(string? hexColor)
+        {
+            if (string.IsNullOrWhiteSpace(hexColor))
+            {
+                TileBorder.SetResourceReference(System.Windows.Controls.Border.BackgroundProperty, "CardBgBrush");
+                if (!_isPlaying)
+                {
+                    if (_isFavorite)
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                    else
+                        TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardBorderBrush");
+                }
+
+                // Restore default theme-based text and icon brushes
+                NameLabel.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryTextBrush");
+                DurationLabel.SetResourceReference(TextBlock.ForegroundProperty, "SecondaryTextBrush");
+                IconText.SetResourceReference(TextBlock.ForegroundProperty, "ControlTextBrush");
+
+                FavBtn.SetResourceReference(WpfButton.ForegroundProperty, _isFavorite ? "AccentAmberBrush" : "SubtleTextBrush");
+                ColorBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                DelBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                ExportBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                RenameBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+                TrimBtn.SetResourceReference(WpfButton.ForegroundProperty, "SubtleTextBrush");
+            }
+            else
+            {
+                try
+                {
+                    var baseColor = (Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor);
+
+                    // Darken background slightly for rich tone & high text readability
+                    var bg = Color.FromArgb(0xEE, (byte)(baseColor.R * 0.45), (byte)(baseColor.G * 0.45), (byte)(baseColor.B * 0.45));
+                    TileBorder.Background = new SolidColorBrush(bg);
+
+                    if (!_isPlaying)
+                    {
+                        if (_isFavorite)
+                            TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
+                        else
+                            TileBorder.BorderBrush = new SolidColorBrush(baseColor);
+                    }
+
+                    // Calculate perceived brightness of the resulting background color (YIQ formula)
+                    double brightness = (bg.R * 299 + bg.G * 587 + bg.B * 114) / 1000.0;
+
+                    // If background is dark, force light text colors for perfect readability
+                    System.Windows.Media.Brush textBrush = brightness < 128 ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Black;
+                    System.Windows.Media.Brush subtleBrush = brightness < 128 
+                        ? new SolidColorBrush(Color.FromRgb(0xBB, 0xCC, 0xEE)) 
+                        : new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x55));
+
+                    NameLabel.Foreground = textBrush;
+                    DurationLabel.Foreground = subtleBrush;
+                    IconText.Foreground = textBrush;
+
+                    if (!_isFavorite)
+                        FavBtn.Foreground = subtleBrush;
+                    else
+                        FavBtn.SetResourceReference(WpfButton.ForegroundProperty, "AccentAmberBrush");
+
+                    ColorBtn.Foreground = subtleBrush;
+                    DelBtn.Foreground = subtleBrush;
+                    ExportBtn.Foreground = subtleBrush;
+                    RenameBtn.Foreground = subtleBrush;
+                    TrimBtn.Foreground = subtleBrush;
+                }
+                catch
+                {
+                    TileBorder.SetResourceReference(System.Windows.Controls.Border.BackgroundProperty, "CardBgBrush");
+                }
+            }
+        }
+
+        // ── Countdown timer ────────────────────────────────────────────────
+        private void StartCountdownTimer(IUnifiedAudioReader? reader)
+        {
+            if (reader == null || Entry == null) return;
+
+            // Calculate the effective playback duration
+            if (Entry.IsNonDestructive && Entry.TrimEndMs > Entry.TrimStartMs)
+            {
+                _playbackTotalDuration = TimeSpan.FromMilliseconds(Entry.TrimEndMs - Entry.TrimStartMs);
+            }
+            else
+            {
+                _playbackTotalDuration = Entry.Duration;
+            }
+
+            _countdownTimer = new DispatcherTimer
+            {
+                Interval = Helpers.ThemeManager.PerformanceMode ? TimeSpan.FromMilliseconds(500) : TimeSpan.FromMilliseconds(200)
+            };
+            _countdownTimer.Tick += CountdownTimer_Tick;
+            _countdownTimer.Start();
+        }
+
+        private void StopCountdownTimer()
+        {
+            if (_countdownTimer != null)
+            {
+                _countdownTimer.Stop();
+                _countdownTimer.Tick -= CountdownTimer_Tick;
+                _countdownTimer = null;
+            }
+
+            // Restore the static duration label
+            if (Entry != null)
+                DurationLabel.Text = Entry.DurationLabel;
+        }
+
+        private void CountdownTimer_Tick(object? sender, EventArgs e)
+        {
+            // Use whichever reader is active
+            var reader = _reader ?? _listenReader;
+            if (reader == null || Entry == null)
+            {
+                StopCountdownTimer();
+                return;
+            }
+
+            try
+            {
+                TimeSpan currentPos = reader.CurrentTime;
+
+                // For non-destructive clips, offset current position relative to trim start
+                TimeSpan elapsed;
+                if (Entry.IsNonDestructive && Entry.TrimStartMs > 0)
+                {
+                    elapsed = currentPos - TimeSpan.FromMilliseconds(Entry.TrimStartMs);
+                    if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
+                }
+                else
+                {
+                    elapsed = currentPos;
+                }
+
+                TimeSpan remaining = _playbackTotalDuration - elapsed;
+                if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+
+                // Format the remaining time the same way as DurationLabel
+                DurationLabel.Text = remaining.TotalSeconds < 60
+                    ? $"{remaining.TotalSeconds:0.0}s"
+                    : $"{(int)remaining.TotalMinutes}m {remaining.Seconds:00}s";
+            }
+            catch
+            {
+                // Reader may have been disposed on another thread — just stop
+                StopCountdownTimer();
             }
         }
 
@@ -582,6 +838,88 @@ namespace PaDDY.Controls
 
             if (dlg.ShowDialog() != true) return;
             File.Copy(Entry.FilePath, dlg.FileName, overwrite: true);
+        }
+
+        private void OnPadMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (Entry == null) return;
+
+            var cm = new System.Windows.Controls.ContextMenu();
+
+            var itemPlayMonitor = new System.Windows.Controls.MenuItem { Header = $"🎧 {LocalizationManager.Instance["ContextPlay"]}" };
+            itemPlayMonitor.Click += (_, _) => StartPlaybackListenOnly();
+            cm.Items.Add(itemPlayMonitor);
+
+            cm.Items.Add(new System.Windows.Controls.Separator());
+
+            var itemNorm = new System.Windows.Controls.MenuItem { Header = "🔊 Normalize Loudness (LUFS)" };
+            itemNorm.Click += (_, _) => NormalizeLoudness();
+            cm.Items.Add(itemNorm);
+
+            var itemTranscribe = new System.Windows.Controls.MenuItem { Header = "🤖 Transcribe & Auto-Tag" };
+            itemTranscribe.Click += (_, _) => TranscribePad();
+            cm.Items.Add(itemTranscribe);
+
+            cm.Items.Add(new System.Windows.Controls.Separator());
+
+            var itemRename = new System.Windows.Controls.MenuItem { Header = $"✏ {LocalizationManager.Instance["ContextRename"]}" };
+            itemRename.Click += (_, _) => OpenRename();
+            cm.Items.Add(itemRename);
+
+            var itemDel = new System.Windows.Controls.MenuItem { Header = $"✕ {LocalizationManager.Instance["ContextDelete"]}" };
+            itemDel.Click += (_, _) => MenuDelete_Click(this, new RoutedEventArgs());
+            cm.Items.Add(itemDel);
+
+            cm.IsOpen = true;
+            e.Handled = true;
+        }
+
+        public void NormalizeLoudness()
+        {
+            if (Entry == null || !File.Exists(Entry.FilePath)) return;
+
+            try
+            {
+                double measuredLufs = LoudnessNormalizer.MeasureIntegratedLoudness(Entry.FilePath);
+                bool success = LoudnessNormalizer.NormalizeWavFile(Entry.FilePath, Entry.FilePath, -14.0);
+                if (success)
+                {
+                    double newLufs = LoudnessNormalizer.MeasureIntegratedLoudness(Entry.FilePath);
+                    Entry.LufsValue = newLufs;
+                    System.Windows.MessageBox.Show($"Pad normalized successfully!\nOriginal Loudness: {measuredLufs:F1} LUFS\nNormalized Loudness: {newLufs:F1} LUFS", "LUFS Loudness Normalization", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to normalize pad: {ex.Message}", "Normalization Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        public async void TranscribePad()
+        {
+            if (Entry == null || !File.Exists(Entry.FilePath)) return;
+
+            try
+            {
+                using var service = new SpeechRecognitionService();
+                string text = await service.TranscribeAsync(Entry.FilePath, "tiny", "Auto");
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    string tags = SpeechRecognitionService.ExtractTags(text);
+                    Entry.Transcription = text;
+                    Entry.Tags = tags;
+                    ToolTip = $"{Entry.FileName}\n\n🤖 Transcription: \"{text}\"\n🏷️ Tags: {tags}";
+                    System.Windows.MessageBox.Show($"Transcription: \"{text}\"\nGenerated Tags: {tags}", "Speech Transcription", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("No speech was recognized in this pad.", "Speech Transcription", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Transcription error: {ex.Message}", "Speech Recognition", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
         }
     }
 }

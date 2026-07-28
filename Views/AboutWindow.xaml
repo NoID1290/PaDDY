@@ -2,7 +2,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        Title="About PaDDY"
+    xmlns:p="clr-namespace:PaDDY.Helpers"
+    Title="{p:Loc AboutTitle}"
         Icon="/PaDDY.ico"
         Width="480" Height="650"
         ResizeMode="NoResize"
@@ -29,23 +30,21 @@
                 <!-- Custom title bar -->
                 <Border Grid.Row="0"
                         Background="{DynamicResource TitleBarGradient}"
-                        BorderBrush="#16FFFFFF"
+                        BorderBrush="{DynamicResource DividerBrush}"
                         BorderThickness="0,0,0,1"
-                        CornerRadius="12,12,0,0">
+                        CornerRadius="{DynamicResource TopWindowCornerRadius}">
                     <Grid>
-                        <TextBlock Text="About PaDDY"
-                                   Foreground="#FF8080A8"
+                        <TextBlock Text="{p:Loc AboutTitle}"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    FontSize="12"
+                                   FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    Margin="16,0,0,0"/>
                         <Button Style="{StaticResource ChromeCloseBtn}"
                                 HorizontalAlignment="Right"
                                 ToolTip="Close"
                                 Click="ChromeClose_Click">
-                                <Button.Effect>
-                                    <DropShadowEffect Color="#FFFF5555" BlurRadius="8" ShadowDepth="0"/>
-                                </Button.Effect>
-                            <TextBlock Text="&#x2715;" FontSize="14" FontFamily="Segoe UI"/>
+                            <TextBlock Text="&#xE8BB;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
                         </Button>
                     </Grid>
                 </Border>
@@ -54,28 +53,42 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Row 0 — Logo / header -->
-                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,8,0,20">
-                        <StackPanel.Effect>
-                            <DropShadowEffect ShadowDepth="0" BlurRadius="16" Color="#FF4CAF50" Opacity="0.35"/>
-                        </StackPanel.Effect>
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,8,0,16">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="Pa" Foreground="#FF7070A8" FontSize="30" FontWeight="Bold"/>
-                            <TextBlock Text="DDY" Foreground="#FF4CAF50" FontSize="30" FontWeight="Bold"/>
+                            <!-- Logo Icon -->
+                            <Grid Width="28" Height="28" Margin="0,0,14,0" VerticalAlignment="Center">
+                                <UniformGrid Rows="2" Columns="2">
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.5"/>
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.8"/>
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.8"/>
+                                    <Border CornerRadius="3.5" Margin="1.5" Background="{DynamicResource AccentGreenBrush}"/>
+                                </UniformGrid>
+                            </Grid>
+                            <TextBlock Text="Pa"
+                                       FontSize="36"
+                                       FontWeight="ExtraBold"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="DDY"
+                                       FontSize="36"
+                                       FontWeight="ExtraBold"
+                                       Foreground="{DynamicResource AccentGreenBrush}"
+                                       VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock x:Name="VersionLabel"
                                    Text="v0.0.0"
-                                   Foreground="#FF505080"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    FontSize="12"
+                                   FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
-                                   Margin="0,2,0,0"/>
+                                   Margin="0,4,0,0"/>
                         <TextBlock x:Name="AuthorLabel"
                                    Text="© 2020-2026 NoID Softwork. All Rights Reserved."
-                                   Foreground="#FF505080"
-                                   FontSize="9"
+                                   Foreground="{DynamicResource SubtleTextBrush}"
+                                   FontSize="10"
                                    Margin="0,2,0,0"                                
                                    HorizontalAlignment="Center"/>           
                     </StackPanel>
@@ -83,117 +96,154 @@
                     <!-- Row 1 — Content card -->
                     <Border Grid.Row="1"
                             Style="{StaticResource GlassCard}"
-                            Padding="18,16">
-                        <StackPanel>
+                            Padding="20,18">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/> <!-- Description -->
+                                <RowDefinition Height="Auto"/> <!-- Separator -->
+                                <RowDefinition Height="Auto"/> <!-- Keyboard Shortcuts -->
+                                <RowDefinition Height="Auto"/> <!-- Separator -->
+                                <RowDefinition Height="*"/>    <!-- Dev Visualizer -->
+                                <RowDefinition Height="Auto"/> <!-- Buttons Footer -->
+                            </Grid.RowDefinitions>
 
                             <!-- Description -->
-                            <TextBlock TextWrapping="Wrap"
-                                       Foreground="#FFBBBBD8"
-                                       FontSize="12"
+                            <TextBlock Grid.Row="0"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       FontSize="12.5"
                                        LineHeight="20"
                                        HorizontalAlignment="Center"
-                                       TextAlignment="Center">
-                              
-                                <Run>PaDDY is a lightweight audio pad recorder that continuously listens to your microphone or system audio and lets you capture the last few seconds on demand.</Run>
+                                       TextAlignment="Center"
+                                       Margin="0,4,0,12">
+                                <Run Text="{p:Loc AboutDescription}"/>
                             </TextBlock>
 
-                            <Rectangle Height="1" Fill="#14FFFFFF" Margin="0,14,0,14"/>
+                            <Rectangle Grid.Row="1" Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,4,0,12"/>
 
-                            <!-- Keyboard shortcuts heading -->
-                            <TextBlock Text="KEYBOARD SHORTCUTS"
-                                       Style="{StaticResource SectionTitle}"
-                                       Margin="0,0,0,10"/>
+                            <!-- Keyboard shortcuts heading and items -->
+                            <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="13" Foreground="{DynamicResource AccentTitleBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{p:Loc HotkeysGroup}" Style="{StaticResource SectionTitle}" Margin="0"/>
+                                </StackPanel>
 
-                            <!-- Shortcut rows -->
-                            <Grid Margin="0,0,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Save buffer to pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
-                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="Ctrl + F9 (DEFAULT)" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
+                                <Border Background="#06FFFFFF" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                    <StackPanel>
+                                        <!-- Save buffer to pad -->
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutSaveBuffer}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2">
+                                                <TextBlock Text="Ctrl + F9 (DEFAULT)" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </Grid>
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,4"/>
+
+                                        <!-- Edit selected pad -->
+                                        <Grid Margin="0,4,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutEditPad}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" MinWidth="24">
+                                                <TextBlock Text="E" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,4"/>
+
+                                        <!-- Rename selected pad -->
+                                        <Grid Margin="0,4,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutRenamePad}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" MinWidth="24">
+                                                <TextBlock Text="R" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,4"/>
+
+                                        <!-- Monitor selected pad -->
+                                        <Grid Margin="0,4,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{p:Loc ShortcutMonitorPad}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" FontSize="11.5"/>
+                                            <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2">
+                                                <TextBlock Text="MOUSE RIGHT-CLICK" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="10.5" FontFamily="Consolas" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
                                 </Border>
-                            </Grid>
-                            
-                            <Grid Margin="0,0,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Edit selected pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
-                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="E" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
-                                </Border>
-                            </Grid>
+                            </StackPanel>
 
-                            <Grid Margin="0,0,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Rename selected pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
-                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="R" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
-                                </Border>
-                            </Grid>
+                            <Rectangle Grid.Row="3" Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,12"/>
 
-                            <Grid Margin="0,0,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Monitor selected pad" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" FontSize="11"/>
-                                <Border Grid.Column="1" Background="{DynamicResource BadgeBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="MOUSE RIGHT-CLICK" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" FontFamily="Consolas"/>
-                                </Border>
-                            </Grid>    
-
-                            <Rectangle Height="1" Fill="#14FFFFFF" Margin="0,14,0,14"/>
-
-                            <!-- Credits link and button -->
-                            <Button x:Name="CreditsButton"
-                                    Content="View open-source credits..."
-                                    HorizontalAlignment="Left"
-                                    Click="CreditsButton_Click"/>
-                            
-                            <Button Content="Visit GitHub Repository"
-                                    HorizontalAlignment="Left"
-                                    Margin="0,6,0,0"
-                                    Click="GitHubButton_Click"/>
-                            
-                            <Button x:Name="BackupButton"
-                                    Content="Backup"
-                                    HorizontalContentAlignment="Center"
-                                    Width="100"
-                                    HorizontalAlignment="Left"
-                                    Margin="0,6,0,0"
-                                    IsEnabled="True"
-                                    Click="ExportData_Click"/>
-
-                            <Button x:Name="RestoreButton"
-                                    Content="Restore"
-                                    HorizontalContentAlignment="Center"
-                                    Width="100"
-                                    HorizontalAlignment="Left"
-                                    Margin="0,6,0,0"
-                                    IsEnabled="True"
-                                    Click="ImportData_Click"/>        
-                            
-                            <Border x:Name="DevVisualizerBorder" Visibility="Collapsed" BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="6" Height="60" Margin="0,10,0,10" Background="#11FFFFFF" ClipToBounds="True">
+                            <!-- Dev Visualizer -->
+                            <Border x:Name="DevVisualizerBorder"
+                                    Grid.Row="4"
+                                    Visibility="Collapsed"
+                                    BorderBrush="{DynamicResource DividerBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Height="60"
+                                    Margin="0,0,0,12"
+                                    Background="{DynamicResource BadgeBgBrush}"
+                                    ClipToBounds="True">
                                 <Grid>
                                     <Image x:Name="VisualizerImage" Stretch="Fill" />
-                                    <TextBlock Text="DirectX 11 Interop Active" Foreground="#44FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" IsHitTestVisible="False"/>
+                                    <TextBlock Text="DirectX 11 Interop Active" Foreground="{DynamicResource SubtleTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10.5" IsHitTestVisible="False"/>
                                 </Grid>
                             </Border>
 
-                            <Button x:Name="CloseButton"
-                                    Content="Close"
-                                    Width="100"
-                                    HorizontalAlignment="Right"
-                                    IsCancel="True"
-                                    Click="CloseButton_Click"/>
-                        </StackPanel>
+                            <!-- Footer actions -->
+                            <Grid Grid.Row="5" VerticalAlignment="Bottom">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="CreditsButton"
+                                            Click="CreditsButton_Click"
+                                            Height="32"
+                                            Padding="12,0"
+                                            Margin="0,0,8,0"
+                                            ToolTip="View open-source credits and licenses">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="{DynamicResource AccentTitleBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{p:Loc AboutCredits}" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Click="GitHubButton_Click"
+                                            Height="32"
+                                            Padding="12,0"
+                                            ToolTip="Visit GitHub repository">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE71B;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="{DynamicResource AccentTitleBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="GitHub" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                                <Button x:Name="CloseButton"
+                                        Content="{p:Loc Close}"
+                                        Grid.Column="1"
+                                        Width="85"
+                                        Height="32"
+                                        IsCancel="True"
+                                        IsDefault="True"
+                                        Click="CloseButton_Click"/>
+                            </Grid>
+                        </Grid>
                     </Border>
                 </Grid>
             </Grid>

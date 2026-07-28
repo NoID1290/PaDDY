@@ -26,6 +26,24 @@ public partial class App : WpfApplication
     /// </summary>
     internal static bool PendingUpdateRestore { get; private set; }
 
+    public static bool IsDebugMode { get; private set; }
+    public static event System.Action? DebugModeChanged;
+
+    public static void ToggleDebugMode()
+    {
+        IsDebugMode = !IsDebugMode;
+        NoIDSoftwork.EffectProcessor.Effects.VstPluginManager.IsVst3Enabled = IsDebugMode;
+        if (IsDebugMode)
+        {
+            Helpers.ConsoleHelper.ShowConsole();
+        }
+        else
+        {
+            Helpers.ConsoleHelper.HideConsole();
+        }
+        DebugModeChanged?.Invoke();
+    }
+
     /// <summary>Maps variant key → (embedded file name, display name).</summary>
     internal static readonly IReadOnlyList<(string Key, string FileName, string DisplayName)> FontVariants =
     [
@@ -98,17 +116,36 @@ public partial class App : WpfApplication
             PendingUpdateRestore = true;
 
         var settings = AppSettings.Load();
+        Services.LocalizationManager.Instance.SetCulture(settings.Language);
         ApplyFont(settings.AppFontVariant);
         Helpers.ThemeManager.ApplyTheme(settings.Theme);
         Helpers.ThemeManager.ApplyMeterSkin(settings.MeterSkin, settings.MeterDigitalDots);
         Helpers.ThemeManager.ApplyPerformanceMode(settings.PerformanceMode);
 
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+
         MainWindow = new MainWindow();
         MainWindow.Show();
     }
 
+    private void SystemEvents_UserPreferenceChanged(object sender, Microsoft.Win32.UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category == Microsoft.Win32.UserPreferenceCategory.General)
+        {
+            var currentSettings = AppSettings.Load();
+            if (currentSettings.Theme == "system")
+            {
+                Dispatcher?.Invoke(() =>
+                {
+                    Helpers.ThemeManager.ApplyTheme("system");
+                });
+            }
+        }
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
         _instanceMutex?.ReleaseMutex();
         _instanceMutex?.Dispose();
         base.OnExit(e);

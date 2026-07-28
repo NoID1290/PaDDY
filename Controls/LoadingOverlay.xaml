@@ -108,7 +108,7 @@
                                               Opacity="0.5"/>
                         </Border.Effect>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock Text="Pa"
+                            <TextBlock x:Name="LogoTextPa" Text="Pa"
                                        FontSize="18"
                                        FontWeight="ExtraBold"
                                        VerticalAlignment="Center">
@@ -119,7 +119,7 @@
                                     </LinearGradientBrush>
                                 </TextBlock.Foreground>
                             </TextBlock>
-                            <TextBlock Text="DDY"
+                            <TextBlock x:Name="LogoTextDdy" Text="DDY"
                                        FontSize="18"
                                        FontWeight="ExtraBold"
                                        VerticalAlignment="Center">

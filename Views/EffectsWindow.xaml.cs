@@ -1,5 +1,7 @@
 using System.Runtime.Versioning;
 using System.Windows;
+using System.Windows.Interop;
+using Microsoft.Win32;
 using NoIDSoftwork.EffectProcessor;
 using NoIDSoftwork.EffectProcessor.Effects;
 
@@ -24,6 +26,7 @@ public partial class EffectsWindow : Window
     private DistortionEffect? _dist;
     private ReverbEffect? _reverb;
     private PitchShiftEffect? _pitchShift;
+    private RemasterEffect? _remaster;
 
     // Suppresses slider-changed callbacks while loading initial values
     private bool _loading;
@@ -49,6 +52,7 @@ public partial class EffectsWindow : Window
                 case DistortionEffect d: _dist = d; break;
                 case ReverbEffect r: _reverb = r; break;
                 case PitchShiftEffect p: _pitchShift = p; break;
+                case RemasterEffect m: _remaster = m; break;
             }
         }
 
@@ -146,33 +150,40 @@ public partial class EffectsWindow : Window
             // EQ
             if (_eq != null)
             {
-                try
-                {
+                EqEnabledCheck.IsChecked = _eq.IsEnabled;
+                EqSubBassSlider.Value = _eq.SubBassDb;
+                EqBassSlider.Value = _eq.BassDb;
+                EqMidSlider.Value = _eq.MidDb;
+                EqPresenceSlider.Value = _eq.PresenceDb;
+                EqTrebleSlider.Value = _eq.TrebleDb;
 
-                    EqEnabledCheck.IsChecked = _eq.IsEnabled;
-                    EqSubBassSlider.Value = _eq.SubBassDb;
-                    EqBassSlider.Value = _eq.BassDb;
-                    EqMidSlider.Value = _eq.MidDb;
-                    EqPresenceSlider.Value = _eq.PresenceDb;
-                    EqTrebleSlider.Value = _eq.TrebleDb;
-
-                    UpdateEqLabels();
-                }
-                catch
-                {
-                    throw;
-                }
+                UpdateEqLabels();
             }
-            else
-            {
 
+            // Remaster
+            if (_remaster != null)
+            {
+                RemasterEnabledCheck.IsChecked = _remaster.IsEnabled;
+                RemasterPresetCombo.SelectedIndex = _remaster.Preset switch
+                {
+                    RemasterPreset.CleanAndTransparent => 0,
+                    RemasterPreset.WarmAnalog => 1,
+                    RemasterPreset.PunchyClub => 2,
+                    RemasterPreset.VocalAcoustic => 3,
+                    RemasterPreset.LoudMaximizer => 4,
+                    _ => 5
+                };
+                RemasterWarmthSlider.Value = _remaster.WarmthDb;
+                RemasterPunchSlider.Value = _remaster.PunchDb;
+                RemasterBrillianceSlider.Value = _remaster.BrillianceDb;
+                RemasterWidthSlider.Value = _remaster.StereoWidth;
+                RemasterDriveSlider.Value = _remaster.Drive;
+                RemasterRatioSlider.Value = _remaster.Ratio;
+                RemasterCeilingSlider.Value = _remaster.LimiterCeilingDb;
+                UpdateRemasterLabels();
             }
         }
         finally
-        {
-            _loading = false;
-
-        }
         {
             _loading = false;
         }
@@ -246,6 +257,27 @@ public partial class EffectsWindow : Window
             _eq.PresenceDb = EqPresenceSlider.Value;
             _eq.TrebleDb = EqTrebleSlider.Value;
         }
+
+        if (_remaster != null)
+        {
+            _remaster.IsEnabled = RemasterEnabledCheck.IsChecked == true;
+            _remaster.Preset = RemasterPresetCombo.SelectedIndex switch
+            {
+                0 => RemasterPreset.CleanAndTransparent,
+                1 => RemasterPreset.WarmAnalog,
+                2 => RemasterPreset.PunchyClub,
+                3 => RemasterPreset.VocalAcoustic,
+                4 => RemasterPreset.LoudMaximizer,
+                _ => RemasterPreset.Custom
+            };
+            _remaster.WarmthDb = RemasterWarmthSlider.Value;
+            _remaster.PunchDb = RemasterPunchSlider.Value;
+            _remaster.BrillianceDb = RemasterBrillianceSlider.Value;
+            _remaster.StereoWidth = RemasterWidthSlider.Value;
+            _remaster.Drive = RemasterDriveSlider.Value;
+            _remaster.Ratio = RemasterRatioSlider.Value;
+            _remaster.LimiterCeilingDb = RemasterCeilingSlider.Value;
+        }
     }
 
     // ── Label updaters ────────────────────────────────────────────────────────
@@ -307,6 +339,17 @@ public partial class EffectsWindow : Window
         PitchShiftSemitonesLabel.Text = $"{PitchShiftSemitonesSlider.Value:F1}";
         PitchShiftGrainSizeLabel.Text = $"{(int)PitchShiftGrainSizeSlider.Value}";
         PitchShiftMixLabel.Text = $"{PitchShiftMixSlider.Value:F2}";
+    }
+
+    private void UpdateRemasterLabels()
+    {
+        RemasterWarmthLabel.Text = $"{(RemasterWarmthSlider.Value >= 0 ? "+" : "")}{RemasterWarmthSlider.Value:F1} dB";
+        RemasterPunchLabel.Text = $"{(RemasterPunchSlider.Value >= 0 ? "+" : "")}{RemasterPunchSlider.Value:F1} dB";
+        RemasterBrillianceLabel.Text = $"{(RemasterBrillianceSlider.Value >= 0 ? "+" : "")}{RemasterBrillianceSlider.Value:F1} dB";
+        RemasterWidthLabel.Text = $"{RemasterWidthSlider.Value:F2}x";
+        RemasterDriveLabel.Text = $"{RemasterDriveSlider.Value:F2}";
+        RemasterRatioLabel.Text = $"{RemasterRatioSlider.Value:F1}:1";
+        RemasterCeilingLabel.Text = $"{RemasterCeilingSlider.Value:F1} dB";
     }
 
     // ── Slider event handlers ─────────────────────────────────────────────────
@@ -389,6 +432,54 @@ public partial class EffectsWindow : Window
         UpdatePitchShiftLabels();
     }
 
+    private void RemasterSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_loading) return;
+        // If slider is moved manually, switch preset selection to Custom
+        if (RemasterPresetCombo != null && RemasterPresetCombo.SelectedIndex != 5)
+        {
+            RemasterPresetCombo.SelectedIndex = 5;
+        }
+        UpdateRemasterLabels();
+    }
+
+    private void RemasterPresetCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        var preset = RemasterPresetCombo.SelectedIndex switch
+        {
+            0 => RemasterPreset.CleanAndTransparent,
+            1 => RemasterPreset.WarmAnalog,
+            2 => RemasterPreset.PunchyClub,
+            3 => RemasterPreset.VocalAcoustic,
+            4 => RemasterPreset.LoudMaximizer,
+            _ => RemasterPreset.Custom
+        };
+
+        if (preset != RemasterPreset.Custom)
+        {
+            var temp = new RemasterEffect();
+            temp.ApplyPreset(preset);
+
+            _loading = true;
+            try
+            {
+                RemasterWarmthSlider.Value = temp.WarmthDb;
+                RemasterPunchSlider.Value = temp.PunchDb;
+                RemasterBrillianceSlider.Value = temp.BrillianceDb;
+                RemasterWidthSlider.Value = temp.StereoWidth;
+                RemasterDriveSlider.Value = temp.Drive;
+                RemasterRatioSlider.Value = temp.Ratio;
+                RemasterCeilingSlider.Value = temp.LimiterCeilingDb;
+            }
+            finally
+            {
+                _loading = false;
+            }
+            UpdateRemasterLabels();
+        }
+    }
+
     // ── Buttons ───────────────────────────────────────────────────────────────
 
 
@@ -439,6 +530,18 @@ public partial class EffectsWindow : Window
             EqMidSlider.Value = 0;
             EqPresenceSlider.Value = 0;
             EqTrebleSlider.Value = 0;
+
+            RemasterEnabledCheck.IsChecked = false;
+            RemasterPresetCombo.SelectedIndex = 1; // Warm Analog default
+            var defaultRemaster = new RemasterEffect();
+            defaultRemaster.ApplyPreset(RemasterPreset.WarmAnalog);
+            RemasterWarmthSlider.Value = defaultRemaster.WarmthDb;
+            RemasterPunchSlider.Value = defaultRemaster.PunchDb;
+            RemasterBrillianceSlider.Value = defaultRemaster.BrillianceDb;
+            RemasterWidthSlider.Value = defaultRemaster.StereoWidth;
+            RemasterDriveSlider.Value = defaultRemaster.Drive;
+            RemasterRatioSlider.Value = defaultRemaster.Ratio;
+            RemasterCeilingSlider.Value = defaultRemaster.LimiterCeilingDb;
         }
         finally
         {
@@ -453,6 +556,7 @@ public partial class EffectsWindow : Window
         UpdateReverbLabels();
         UpdatePitchShiftLabels();
         UpdateEqLabels();
+        UpdateRemasterLabels();
     }
 
     private void OkBtn_Click(object sender, RoutedEventArgs e)
@@ -521,5 +625,45 @@ public partial class EffectsWindow : Window
         bool expand = PitchShiftContent.Visibility == Visibility.Collapsed;
         PitchShiftContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
         PitchShiftChevron.Text = expand ? "\u25BC" : "\u25BA";
+    }
+
+    private void RemasterChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        bool expand = RemasterContent.Visibility == Visibility.Collapsed;
+        RemasterContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+        RemasterChevron.Text = expand ? "\u25BC" : "\u25BA";
+    }
+
+    // ── Category Tab Filtering ───────────────────────────────────────────────
+
+    private void CategoryTab_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.RadioButton rb && rb.Tag is string category)
+        {
+            FilterCategory(category);
+        }
+    }
+
+    private void FilterCategory(string category)
+    {
+        SetSectionVisibility(FadeSection, _isPerClip && (category == "All" || category == "Dynamics"));
+        SetSectionVisibility(GateSection, category == "All" || category == "Dynamics");
+        SetSectionVisibility(CompSection, category == "All" || category == "Dynamics");
+
+        SetSectionVisibility(EqSection, category == "All" || category == "Tone");
+        SetSectionVisibility(PitchShiftSection, category == "All" || category == "Tone");
+        SetSectionVisibility(DistSection, category == "All" || category == "Tone");
+
+        SetSectionVisibility(EchoSection, category == "All" || category == "Spatial");
+        SetSectionVisibility(ReverbSection, category == "All" || category == "Spatial");
+        SetSectionVisibility(RemasterSection, category == "All" || category == "Spatial");
+    }
+
+    private static void SetSectionVisibility(UIElement? element, bool visible)
+    {
+        if (element != null)
+        {
+            element.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

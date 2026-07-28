@@ -33,6 +33,17 @@
     <SolidColorBrush x:Key="ChromeButtonFgBrush" Color="#FFB0B8D0"/>
     <SolidColorBrush x:Key="ScrollThumbBrush"    Color="#FFE9EDF9"/>
 
+    <!-- Dynamic CornerRadius resources (mutated at runtime by ThemeManager.ApplyTheme) -->
+    <CornerRadius x:Key="CardCornerRadius">9</CornerRadius>
+    <CornerRadius x:Key="SecondaryWindowCornerRadius">12</CornerRadius>
+    <CornerRadius x:Key="TopWindowCornerRadius">12,12,0,0</CornerRadius>
+    <CornerRadius x:Key="ButtonCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="ControlCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="SmallCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="BadgeCornerRadius">5</CornerRadius>
+    <CornerRadius x:Key="PillCornerRadius">17</CornerRadius>
+    <CornerRadius x:Key="ThumbCornerRadius">3</CornerRadius>
+
     <LinearGradientBrush x:Key="TitleBarGradient" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#FF18182A" Offset="0"/>
         <GradientStop Color="#FF10101C" Offset="1"/>
@@ -122,7 +133,7 @@
                             Background="{DynamicResource ScrollThumbBrush}"
                             BorderBrush="#66FFFFFF"
                             BorderThickness="1"
-                            CornerRadius="3"
+                            CornerRadius="{DynamicResource ThumbCornerRadius}"
                             SnapsToDevicePixels="True">
                         <Border.Effect>
                             <DropShadowEffect ShadowDepth="0" BlurRadius="8" Color="#FF000000" Opacity="0.35"/>
@@ -279,7 +290,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="3"
+                            CornerRadius="{DynamicResource ThumbCornerRadius}"
                             SnapsToDevicePixels="True"/>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -391,7 +402,7 @@
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="5"
+                            CornerRadius="{DynamicResource SmallCornerRadius}"
                             SnapsToDevicePixels="True">
                         <ContentPresenter Margin="{TemplateBinding Padding}"
                                           TextElement.Foreground="{TemplateBinding Foreground}"/>
@@ -429,7 +440,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -517,7 +528,7 @@
                                                         Background="{DynamicResource InputBgBrush}"
                                                         BorderBrush="{DynamicResource InputBorderBrush}"
                                                         BorderThickness="1"
-                                                        CornerRadius="6">
+                                                        CornerRadius="{DynamicResource ControlCornerRadius}">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition/>
@@ -564,7 +575,7 @@
                             <Border Background="{DynamicResource MenuBgBrush}"
                                     BorderBrush="#38FFFFFF"
                                     BorderThickness="1"
-                                    CornerRadius="6"
+                                    CornerRadius="{DynamicResource ControlCornerRadius}"
                                     MinWidth="{TemplateBinding ActualWidth}"
                                     MaxHeight="300"
                                     SnapsToDevicePixels="True">
@@ -592,7 +603,7 @@
         <Setter Property="Background"      Value="{DynamicResource CardBgBrush}"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius"    Value="9"/>
+        <Setter Property="CornerRadius"    Value="{DynamicResource CardCornerRadius}"/>
         <Setter Property="Padding"         Value="14,10"/>
         <Setter Property="Effect">
             <Setter.Value>
@@ -606,7 +617,7 @@
         <Setter Property="Background"      Value="{DynamicResource SecondaryWindowBackgroundBrush}"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource WindowEdgeBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="CornerRadius"    Value="12"/>
+        <Setter Property="CornerRadius"    Value="{DynamicResource SecondaryWindowCornerRadius}"/>
         <Setter Property="Effect"          Value="{StaticResource SecondaryWindowShadow}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
@@ -664,7 +675,7 @@
         <Setter Property="Background"      Value="{DynamicResource BadgeBgBrush}"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius"    Value="5"/>
+        <Setter Property="CornerRadius"    Value="{DynamicResource BadgeCornerRadius}"/>
         <Setter Property="Padding"         Value="5,1"/>
         <Setter Property="Margin"          Value="6,0,0,0"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
@@ -689,7 +700,7 @@
         <Setter Property="Background"      Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Foreground"      Value="{DynamicResource ChromeButtonFgBrush}"/>
-        <Setter Property="FontSize"        Value="11"/>
+        <Setter Property="FontSize"        Value="10"/>
         <Setter Property="Cursor"          Value="Arrow"/>
         <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/> 
         <Setter Property="Template">
@@ -697,15 +708,18 @@
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
-                            BorderThickness="0">
+                            CornerRadius="{DynamicResource SmallCornerRadius}"
+                            SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#20FFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#10FFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -714,75 +728,89 @@
     </Style>
 
     <!-- Minimize button -->
-    <Style x:Key="ChromeMinBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}">
-        <Setter Property="Foreground" Value="#FFD0D4E0"/>
+    <Style x:Key="ChromeMinBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}"/>
+
+    <!-- Maximize / Restore button -->
+    <Style x:Key="ChromeMaxBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}"/>    
+
+    <!-- Close button — red hover -->
+    <Style x:Key="ChromeCloseBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
-                            BorderThickness="5">
+                            CornerRadius="{DynamicResource SmallCornerRadius}"
+                            SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#20FFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#FFE81123"/>
+                            <Setter Property="Foreground"                 Value="White"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#10FFFFFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#FFF1707A"/>
+                            <Setter Property="Foreground"                 Value="White"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
-                </ControlTemplate>                
+                </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
-    <!-- Maximize / Restore button -->
-    <Style x:Key="ChromeMaxBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}">
-        <Setter Property="Foreground" Value="#FFD0D4E0"/>
+    <!-- Illuminated Studio Rack Power Switch -->
+    <Style x:Key="RackPowerSwitch" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd"
-                            Background="{TemplateBinding Background}"
-                            BorderThickness="5">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <ControlTemplate TargetType="CheckBox">
+                    <Border x:Name="PowerBd"
+                            Background="{DynamicResource InputBgBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{DynamicResource SmallCornerRadius}"
+                            Padding="8,3">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Glowing Status LED -->
+                            <Border x:Name="LedDot"
+                                    Width="8" Height="8"
+                                    CornerRadius="4"
+                                    Background="#3A3A4D"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center"/>
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </StackPanel>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="PowerBd" Property="Background" Value="{DynamicResource CardBgBrush}"/>
+                            <Setter TargetName="PowerBd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                            <Setter TargetName="LedDot" Property="Background" Value="{DynamicResource AccentGreenBrush}"/>
+                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#20FFFFFF"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#10FFFFFF"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>                
-            </Setter.Value>
-        </Setter>
-    </Style>    
-
-    <!-- Close button — red hover -->
-    <Style x:Key="ChromeCloseBtn" TargetType="Button" BasedOn="{StaticResource ChromeCaptionBtn}">
-        <Setter Property="Foreground" Value="#FFD0D4E0"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd"
-                            Background="{TemplateBinding Background}"
-                            BorderThickness="5">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#FFC62828"/>
-                            <Setter Property="Foreground"                 Value="#FFFFFFFF"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#FF8E1515"/>
-                            <Setter Property="Foreground"                 Value="#FFFFFFFF"/>
+                            <Setter TargetName="PowerBd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Hardware Rack Module Card -->
+    <Style x:Key="RackModuleCard" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Margin" Value="0,0,0,10"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect ShadowDepth="2" BlurRadius="10" Color="#000000" Opacity="0.35"/>
             </Setter.Value>
         </Setter>
     </Style>

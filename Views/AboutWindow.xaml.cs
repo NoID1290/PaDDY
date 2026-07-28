@@ -24,18 +24,17 @@ namespace PaDDY
                 var infoVersion = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
                 string displayVersion;
-                if (ver != null)
+                if (!string.IsNullOrEmpty(infoVersion))
                 {
-                    displayVersion = $"Version {ver.Major}.{ver.Minor}.{ver.Build}";
-                    // Append pre-release suffix if present in the informational version
-                    if (infoVersion != null)
-                    {
-                        var plusIdx = infoVersion.IndexOf('+'); // strip build metadata if any
-                        var infoBase = plusIdx >= 0 ? infoVersion[..plusIdx] : infoVersion;
-                        var dashIdx = infoBase.IndexOf('-');
-                        if (dashIdx >= 0)
-                            displayVersion += " " + infoBase[dashIdx..];
-                    }
+                    var plusIdx = infoVersion.IndexOf('+'); // strip build metadata if any
+                    var infoBase = plusIdx >= 0 ? infoVersion[..plusIdx] : infoVersion;
+                    displayVersion = $"Version {infoBase}";
+                }
+                else if (ver != null)
+                {
+                    displayVersion = ver.Revision > 0
+                        ? $"Version {ver.Major}.{ver.Minor}.{ver.Build}.{ver.Revision}"
+                        : $"Version {ver.Major}.{ver.Minor}.{ver.Build}";
                 }
                 else
                 {
@@ -73,7 +72,18 @@ namespace PaDDY
             {
                 System.Windows.Media.CompositionTarget.Rendering -= OnCompositionRendering;
                 _dx11Image?.Dispose();
+                App.DebugModeChanged -= OnDebugModeChanged;
             };
+
+            App.DebugModeChanged += OnDebugModeChanged;
+        }
+
+        private void OnDebugModeChanged()
+        {
+            if (App.IsDebugMode && DevVisualizerBorder.Visibility != Visibility.Visible)
+                ToggleDevVisualizer();
+            else if (!App.IsDebugMode && DevVisualizerBorder.Visibility == Visibility.Visible)
+                ToggleDevVisualizer();
         }
 
         private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -82,7 +92,7 @@ namespace PaDDY
             if ((System.Windows.Input.Keyboard.Modifiers & (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Alt)) == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Alt) && isD)
             {
                 e.Handled = true;
-                ToggleDevVisualizer();
+                App.ToggleDebugMode();
             }
         }
 
@@ -141,77 +151,5 @@ namespace PaDDY
             });
         }
 
-        private void ExportData_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK",
-                FileName = $"PaDDY_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.PADBACK"
-            };
-
-            if (dlg.ShowDialog() == true)
-            {
-                var backupService = new BackupService();
-                if (backupService.CreateBackup(dlg.FileName))
-                {
-                    MessagingToolkit.Show(this, "Backup created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    MessagingToolkit.Show(this, "Failed to create backup. Please ensure your data files are intact.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        private async void ImportData_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK"
-            };
-
-            if (dlg.ShowDialog() == true)
-            {
-                var backupService = new BackupService();
-                var mainWindow = Owner as MainWindow;
-                if (mainWindow != null)
-                {
-                    mainWindow.ShowLoadingOverlay("Restoring backup...");
-                    await Task.Delay(50); // Let the overlay render
-                }
-
-                try
-                {
-                    if (mainWindow != null)
-                    {
-                        mainWindow.PrepareRecordingDataRestore();
-                    }
-
-                    if (backupService.RestoreBackup(dlg.FileName))
-                    {
-                        if (mainWindow != null)
-                        {
-                            await mainWindow.ReloadRecordingDataFromDiskAsync();
-                            MessagingToolkit.Show(this, "Backup restored successfully and recordings have been reloaded.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                        else
-                        {
-                            MessagingToolkit.Show(this, "Backup restored successfully. Please restart the application to apply changes.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                    }
-                    else
-                    {
-                        MessagingToolkit.Show(this, "Failed to restore backup. Please ensure the file is a valid PaDDY backup.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-                finally
-                {
-                    if (mainWindow != null)
-                    {
-                        mainWindow.HideLoadingOverlay();
-                    }
-                }
-            }
-        }
     }
 }

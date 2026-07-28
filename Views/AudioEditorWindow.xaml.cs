@@ -34,6 +34,7 @@ namespace PaDDY
 
         private IWavePlayer? _player;
         private IUnifiedAudioReader? _reader;
+        private System.Windows.Threading.DispatcherTimer? _timecodeTimer;
         private bool _isPreviewing;
         private bool _isStoppingPreview;
 
@@ -60,11 +61,14 @@ namespace PaDDY
         private CompressorEffect? _compressor;
         private DistortionEffect? _distortion;
         private ReverbEffect? _reverb;
+        private RemasterEffect? _remaster;
+        private readonly List<IVstEffect> _vstEffects = new();
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
         // Stored waveform peaks for gain-responsive re-render
         private (float min, float max)[]? _originalPeaks;
+        private List<(float min, float max)>? _rawBlockPeaks;
 
         // Vertical meter state
         private MeteringSampleProvider? _meterProvider;
@@ -92,6 +96,10 @@ namespace PaDDY
             bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
         {
             InitializeComponent();
+            
+            VstSection.Visibility = Visibility.Visible;
+            App.DebugModeChanged += OnDebugModeChanged;
+
             _filePath = filePath;
             _recordingId = recordingId;
             _outputDeviceIndex = outputDeviceIndex;
@@ -105,49 +113,153 @@ namespace PaDDY
 
             Loaded += OnLoaded;
             WaveformGrid.SizeChanged += WaveformGrid_SizeChanged;
-            Closed += (_, _) => StopPreview();
+            Closed += (_, _) => 
+            {
+                StopPreview();
+                App.DebugModeChanged -= OnDebugModeChanged;
+            };
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnDebugModeChanged()
         {
+            VstSection.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            // Show loading overlay
+            AudioEditorLoadingOverlay.Show("Loading audio...");
+
+            // Apply theme colors to the loading overlay
             try
             {
-                using var reader = AudioReaderFactory.Open(_filePath);
-                _totalDuration = reader.TotalTime;
-                _totalDurationSeconds = Math.Max(_totalDuration.TotalSeconds, 0.001);
-                TotalDurationLabel.Text = FormatTime(_totalDuration);
-
-                // Load initial settings
-                if (_initialIsNonDestructive)
+                var activeSettings = AppSettings.Load();
+                var palette = ThemeManager.GetPalette(activeSettings.Theme);
+                if (palette != null)
                 {
-                    _trimStartFraction = Math.Clamp((double)_initialTrimStartMs / 1000.0 / _totalDurationSeconds, 0.0, 1.0);
-                    if (_initialTrimEndMs > 0)
-                        _trimEndFraction = Math.Clamp((double)_initialTrimEndMs / 1000.0 / _totalDurationSeconds, _trimStartFraction, 1.0);
-                    else
-                        _trimEndFraction = 1.0;
-
-                    _gainDb = _initialGainDb;
+                    var accent = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["AccentGreenBrush"]);
+                    var secondary = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["SubtleTextBrush"]);
+                    var text = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["PrimaryTextBrush"]);
+                    var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
+                    AudioEditorLoadingOverlay.ApplyThemeColors(accent, secondary, text);
+                    // Semi-transparent overlay matching theme
+                    AudioEditorLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
                 }
-                else
+            }
+            catch
+            {
+                // Fallback gracefully on any theme loading failure
+            }
+
+            string filePath = _filePath;
+            double totalDurationSeconds = 0;
+            TimeSpan totalDuration = TimeSpan.Zero;
+
+            int width = (int)WaveformGrid.ActualWidth;
+            int height = (int)WaveformGrid.ActualHeight;
+            if (width < 10 || height < 10) { width = 680; height = 180; }
+
+            bool success = false;
+            string? errorMessage = null;
+
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() =>
                 {
-                    _trimStartFraction = 0.0;
-                    _trimEndFraction = 1.0;
-                    _gainDb = 0.0;
-                }
+                    using var reader = AudioReaderFactory.Open(filePath);
+                    totalDuration = reader.TotalTime;
+                    totalDurationSeconds = Math.Max(totalDuration.TotalSeconds, 0.001);
 
-                RenderWaveform(reader.AsSampleProvider(), reader.WaveFormat);
+                    var sampleProvider = reader.AsSampleProvider();
+                    var waveFormat = reader.WaveFormat;
+                    int channels = waveFormat.Channels;
+
+                    // Pass 1: Decode all samples and accumulate min/max into a flat list.
+                    // We don't know the exact sample count up-front (TotalTime estimate from
+                    // different decoders can differ), so we use a dynamic list keyed by
+                    // time-fraction bucket and resize at the end.
+                    float[] buffer = new float[waveFormat.SampleRate * channels]; // 1-sec chunks
+                    var dynamicPeaks = new List<(float min, float max)>();
+                    long samplesRead = 0;
+                    int read;
+
+                    // First decode pass — accumulate peaks into a per-sample list
+                    // (temporarily one entry per mono sample; we merge into width buckets below)
+                    // To avoid huge allocations we track min/max per 64-sample block
+                    const int blockSize = 64;
+                    float blockMin = 0f, blockMax = 0f;
+                    int blockCount = 0;
+
+                    while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        int monoRead = read / channels;
+                        for (int i = 0; i < monoRead; i++)
+                        {
+                            float sample = 0f;
+                            for (int ch = 0; ch < channels; ch++)
+                                sample += buffer[i * channels + ch];
+                            sample /= channels;
+
+                            if (sample < blockMin) blockMin = sample;
+                            if (sample > blockMax) blockMax = sample;
+                            blockCount++;
+
+                            if (blockCount >= blockSize)
+                            {
+                                dynamicPeaks.Add((blockMin, blockMax));
+                                blockMin = 0f; blockMax = 0f; blockCount = 0;
+                            }
+                        }
+                        samplesRead += monoRead;
+                    }
+                    if (blockCount > 0)
+                        dynamicPeaks.Add((blockMin, blockMax));
+
+                    _rawBlockPeaks = dynamicPeaks;
+                });
+                success = true;
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Could not read audio file:\n{ex.Message}", "PaDDY",
+                errorMessage = ex.Message;
+            }
+
+            if (!success)
+            {
+                System.Windows.MessageBox.Show($"Could not read audio file:\n{errorMessage}", "PaDDY",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 Close();
                 return;
             }
 
+            _totalDuration = totalDuration;
+            _totalDurationSeconds = totalDurationSeconds;
+            TotalDurationLabel.Text = FormatTime(_totalDuration);
+
+            // Load initial settings
+            if (_initialIsNonDestructive)
+            {
+                _trimStartFraction = Math.Clamp((double)_initialTrimStartMs / 1000.0 / _totalDurationSeconds, 0.0, 1.0);
+                if (_initialTrimEndMs > 0)
+                    _trimEndFraction = Math.Clamp((double)_initialTrimEndMs / 1000.0 / _totalDurationSeconds, _trimStartFraction, 1.0);
+                else
+                    _trimEndFraction = 1.0;
+
+                _gainDb = _initialGainDb;
+            }
+            else
+            {
+                _trimStartFraction = 0.0;
+                _trimEndFraction = 1.0;
+                _gainDb = 0.0;
+            }
+
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
+            UpdatePeaksForWidth((int)_waveformWidth);
+            RenderWaveformFromPeaks();
             UpdateHandlePositions();
             UpdateTimeLabels();
+            UpdatePlaybackTimecode(0.0);
             EnsureVertMeterChannels(2);
             ResetVertMeter();
 
@@ -173,14 +285,61 @@ namespace PaDDY
                     case CompressorEffect c: _compressor = c; break;
                     case DistortionEffect d: _distortion = d; break;
                     case ReverbEffect r: _reverb = r; break;
+                    case RemasterEffect rm: _remaster = rm; break;
                 }
             }
             LoadEffectValues();
+
+            // Load all default vendored VST plugins (VST2 + VST3)
+            var defaultPlugins = VstPluginManager.LoadDefaultPlugins();
+            foreach (var plugin in defaultPlugins)
+            {
+                _vstEffects.Add(plugin);
+                _perClipChain.Add(plugin);
+            }
+
+            // Load user-configured plugins (if different from defaults)
+            var settings = AppSettings.Load();
+            var userVst2 = VstPluginManager.TryLoadUserPlugin(settings.VstPluginPath);
+            if (userVst2 != null && !IsPluginAlreadyLoaded(userVst2.Name))
+            {
+                _vstEffects.Add(userVst2);
+                _perClipChain.Add(userVst2);
+            }
+            else
+            {
+                (userVst2 as IDisposable)?.Dispose();
+            }
+
+            var userVst3 = VstPluginManager.TryLoadUserPlugin(settings.Vst3PluginPath);
+            if (userVst3 != null && !IsPluginAlreadyLoaded(userVst3.Name))
+            {
+                _vstEffects.Add(userVst3);
+                _perClipChain.Add(userVst3);
+            }
+            else
+            {
+                (userVst3 as IDisposable)?.Dispose();
+            }
+
+            // Update UI
+            if (_vstEffects.Count > 0)
+            {
+                var names = new List<string>();
+                foreach (var vst in _vstEffects)
+                    names.Add(vst.Name);
+                VstNameLabel.Text = string.Join(", ", names);
+                ShowVstEditorButton.IsEnabled = true;
+            }
+
+            AudioEditorLoadingOverlay.Hide(instantly: true);
         }
 
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
+            UpdatePeaksForWidth((int)_waveformWidth);
+            RenderWaveformFromPeaks();
             UpdateHandlePositions();
 
             if (_isPreviewing && _reader != null)
@@ -193,6 +352,61 @@ namespace PaDDY
                     StartPlaybackAnimation(currentSec, _playbackEndSec, TimeSpan.FromSeconds(remaining));
                 else
                     UpdatePlaybackLinePosition(currentSec);
+            }
+        }
+
+        private void UpdatePeaksForWidth(int width)
+        {
+            if (_rawBlockPeaks == null || width <= 0) return;
+            var peaks = new (float min, float max)[width];
+            for (int i = 0; i < width; i++) peaks[i] = (0f, 0f);
+
+            int dynCount = _rawBlockPeaks.Count;
+            if (dynCount > 0)
+            {
+                for (int bi = 0; bi < dynCount; bi++)
+                {
+                    int bucket = (int)((long)bi * width / dynCount);
+                    if (bucket >= width) bucket = width - 1;
+                    var (dMin, dMax) = _rawBlockPeaks[bi];
+                    if (dMin < peaks[bucket].min) peaks[bucket] = (dMin, peaks[bucket].max);
+                    if (dMax > peaks[bucket].max) peaks[bucket] = (peaks[bucket].min, dMax);
+                }
+            }
+            _originalPeaks = peaks;
+        }
+
+        private void ZoomSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (ZoomLabel != null)
+            {
+                ZoomLabel.Text = $"{e.NewValue:0.0}x";
+            }
+            UpdateWaveformZoom();
+        }
+
+        private void WaveformScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateWaveformZoom();
+        }
+
+        private void UpdateWaveformZoom()
+        {
+            if (WaveformScrollViewer == null || WaveformGrid == null || ZoomSlider == null) return;
+            double zoom = ZoomSlider.Value;
+            if (zoom <= 1.0)
+            {
+                WaveformGrid.Width = double.NaN; // Auto-size to viewport
+                WaveformScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            }
+            else
+            {
+                double viewportWidth = WaveformScrollViewer.ActualWidth;
+                if (viewportWidth > 0)
+                {
+                    WaveformGrid.Width = viewportWidth * zoom;
+                    WaveformScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                }
             }
         }
 
@@ -274,41 +488,53 @@ namespace PaDDY
 
             var bmp = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
             int stride = width * 4;
-            byte[] pixels = new byte[stride * height];
-            int midY = height / 2;
+            int byteCount = stride * height;
+            byte[] pixels = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
 
-            // Draw centre line using a dimmed version of the accent color
-            for (int x = 0; x < width; x++)
-                SetPixel(pixels, stride, x, midY,
-                    (byte)(aR * 0.22f), (byte)(aG * 0.22f), (byte)(aB * 0.22f), 0xFF);
-
-            // Draw waveform with gain applied
-            int peakLen = _originalPeaks.Length;
-            for (int x = 0; x < width && x < peakLen; x++)
+            try
             {
-                float pMin = Math.Clamp(_originalPeaks[x].min * gainFactor, -1f, 1f);
-                float pMax = Math.Clamp(_originalPeaks[x].max * gainFactor, -1f, 1f);
+                Array.Clear(pixels, 0, byteCount);
+                int midY = height / 2;
 
-                int yTop = midY - (int)(pMax * midY);
-                int yBot = midY - (int)(pMin * midY);
+                // Draw centre line using a dimmed version of the accent color
+                byte centreR = (byte)(aR * 0.22f);
+                byte centreG = (byte)(aG * 0.22f);
+                byte centreB = (byte)(aB * 0.22f);
+                for (int x = 0; x < width; x++)
+                    SetPixel(pixels, stride, x, midY, centreR, centreG, centreB, 0xFF);
 
-                yTop = Math.Clamp(yTop, 0, height - 1);
-                yBot = Math.Clamp(yBot, 0, height - 1);
-
-                for (int y = yTop; y <= yBot; y++)
+                // Draw waveform with gain applied
+                int peakLen = _originalPeaks.Length;
+                for (int x = 0; x < width && x < peakLen; x++)
                 {
-                    // Bright near the centre, slightly dimmer at the amplitude peaks
-                    float dist = Math.Abs(y - midY) / (float)midY;
-                    float brightness = 0.92f - dist * 0.38f;
-                    byte r = (byte)Math.Clamp(aR * brightness, 0, 255);
-                    byte g = (byte)Math.Clamp(aG * brightness, 0, 255);
-                    byte b = (byte)Math.Clamp(aB * brightness, 0, 255);
-                    SetPixel(pixels, stride, x, y, r, g, b, 0xFF);
-                }
-            }
+                    float pMin = Math.Clamp(_originalPeaks[x].min * gainFactor, -1f, 1f);
+                    float pMax = Math.Clamp(_originalPeaks[x].max * gainFactor, -1f, 1f);
 
-            bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
-            WaveformImage.Source = bmp;
+                    int yTop = midY - (int)(pMax * midY);
+                    int yBot = midY - (int)(pMin * midY);
+
+                    yTop = Math.Clamp(yTop, 0, height - 1);
+                    yBot = Math.Clamp(yBot, 0, height - 1);
+
+                    for (int y = yTop; y <= yBot; y++)
+                    {
+                        // Bright near the centre, slightly dimmer at the amplitude peaks
+                        float dist = Math.Abs(y - midY) / (float)midY;
+                        float brightness = 0.92f - dist * 0.38f;
+                        byte r = (byte)Math.Clamp(aR * brightness, 0, 255);
+                        byte g = (byte)Math.Clamp(aG * brightness, 0, 255);
+                        byte b = (byte)Math.Clamp(aB * brightness, 0, 255);
+                        SetPixel(pixels, stride, x, y, r, g, b, 0xFF);
+                    }
+                }
+
+                bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+                WaveformImage.Source = bmp;
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<byte>.Shared.Return(pixels);
+            }
         }
 
         /// <summary>
@@ -390,9 +616,59 @@ namespace PaDDY
 
             StartTimeLabel.Text = $"{startSec:0.00}s";
             EndTimeLabel.Text = $"{endSec:0.00}s";
-            TrimmedDurationLabel.Text = $"Trimmed: {FormatTime(TimeSpan.FromSeconds(trimmed))}";
+            TrimmedDurationLabel.Text = string.Format(LocalizationManager.Instance["TrimmedLabel"], FormatTime(TimeSpan.FromSeconds(trimmed)));
 
             SaveBtn.IsEnabled = trimmed >= MinTrimSeconds;
+        }
+
+        private void UpdatePlaybackTimecode(double currentSec)
+        {
+            if (PlaybackTimecodeLabel != null)
+            {
+                PlaybackTimecodeLabel.Text = $"{FormatDetailedTimecode(TimeSpan.FromSeconds(currentSec))} / {FormatDetailedTimecode(_totalDuration)}";
+            }
+        }
+
+        private static string FormatDetailedTimecode(TimeSpan ts)
+        {
+            if (ts.TotalHours >= 1)
+            {
+                return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}.{ts.Milliseconds:D3}";
+            }
+            return $"{ts.Minutes:D2}:{ts.Seconds:D2}.{ts.Milliseconds:D3}";
+        }
+
+        private void StartTimecodeTimer()
+        {
+            StopTimecodeTimer();
+            _timecodeTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(30)
+            };
+            _timecodeTimer.Tick += TimecodeTimer_Tick;
+            _timecodeTimer.Start();
+        }
+
+        private void StopTimecodeTimer()
+        {
+            if (_timecodeTimer != null)
+            {
+                _timecodeTimer.Stop();
+                _timecodeTimer.Tick -= TimecodeTimer_Tick;
+                _timecodeTimer = null;
+            }
+        }
+
+        private void TimecodeTimer_Tick(object? sender, EventArgs e)
+        {
+            if (!_isPreviewing)
+            {
+                StopTimecodeTimer();
+                return;
+            }
+            double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
+            double currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
+            UpdatePlaybackTimecode(currentSec);
         }
 
         // ── Playback preview ────────────────────────────────────────────────
@@ -465,6 +741,26 @@ namespace PaDDY
                     PitchShiftGrainSizeSlider.Value = _pitchShift.GrainSizeMs;
                     PitchShiftMixSlider.Value = _pitchShift.Mix;
                 }
+                if (_remaster != null)
+                {
+                    RemasterEnabledCheck.IsChecked = _remaster.IsEnabled;
+                    RemasterPresetCombo.SelectedIndex = _remaster.Preset switch
+                    {
+                        RemasterPreset.CleanAndTransparent => 0,
+                        RemasterPreset.WarmAnalog => 1,
+                        RemasterPreset.PunchyClub => 2,
+                        RemasterPreset.VocalAcoustic => 3,
+                        RemasterPreset.LoudMaximizer => 4,
+                        _ => 5
+                    };
+                    RemasterWarmthSlider.Value = _remaster.WarmthDb;
+                    RemasterPunchSlider.Value = _remaster.PunchDb;
+                    RemasterBrillianceSlider.Value = _remaster.BrillianceDb;
+                    RemasterWidthSlider.Value = _remaster.StereoWidth;
+                    RemasterDriveSlider.Value = _remaster.Drive;
+                    RemasterRatioSlider.Value = _remaster.Ratio;
+                    RemasterCeilingSlider.Value = _remaster.LimiterCeilingDb;
+                }
                 UpdateEffectLabels();
             }
             finally
@@ -505,7 +801,46 @@ namespace PaDDY
                 PitchShiftGrainSizeLabel.Text = $"{(int)PitchShiftGrainSizeSlider.Value}";
             if (PitchShiftMixSlider != null)
                 PitchShiftMixLabel.Text = $"{PitchShiftMixSlider.Value:F2}";
+            if (RemasterWarmthSlider != null)
+                RemasterWarmthLabel.Text = $"{(RemasterWarmthSlider.Value >= 0 ? "+" : "")}{RemasterWarmthSlider.Value:F1} dB";
+            if (RemasterPunchSlider != null)
+                RemasterPunchLabel.Text = $"{(RemasterPunchSlider.Value >= 0 ? "+" : "")}{RemasterPunchSlider.Value:F1} dB";
+            if (RemasterBrillianceSlider != null)
+                RemasterBrillianceLabel.Text = $"{(RemasterBrillianceSlider.Value >= 0 ? "+" : "")}{RemasterBrillianceSlider.Value:F1} dB";
+            if (RemasterWidthSlider != null)
+                RemasterWidthLabel.Text = $"{RemasterWidthSlider.Value:F2}x";
+            if (RemasterDriveSlider != null)
+                RemasterDriveLabel.Text = $"{RemasterDriveSlider.Value:F2}";
+            if (RemasterRatioSlider != null)
+                RemasterRatioLabel.Text = $"{RemasterRatioSlider.Value:F1}:1";
+            if (RemasterCeilingSlider != null)
+                RemasterCeilingLabel.Text = $"{RemasterCeilingSlider.Value:F1} dB";
+
+            UpdateEffectVisualGraphs();
         }
+
+        private void UpdateEffectVisualGraphs()
+        {
+            UpdateFadeVisualGraph();
+            UpdateGateVisualGraph();
+            UpdateCompVisualGraph();
+            UpdateEqVisualGraph();
+            UpdatePitchShiftVisualGraph();
+            UpdateDistVisualGraph();
+            UpdateEchoVisualGraph();
+            UpdateReverbVisualGraph();
+        }
+
+        private void UpdateFadeVisualGraph() { }
+        private void UpdateGateVisualGraph() { }
+        private void UpdateCompVisualGraph() { }
+        private void UpdateEqVisualGraph() { }
+        private void UpdatePitchShiftVisualGraph() { }
+        private void UpdateDistVisualGraph() { }
+        private void UpdateEchoVisualGraph() { }
+        private void UpdateReverbVisualGraph() { }
+
+
 
         private void CommitEffectsToChain()
         {
@@ -568,7 +903,65 @@ namespace PaDDY
                 _pitchShift.GrainSizeMs = PitchShiftGrainSizeSlider.Value;
                 _pitchShift.Mix = PitchShiftMixSlider.Value;
             }
+            if (_remaster != null)
+            {
+                _remaster.IsEnabled = RemasterEnabledCheck.IsChecked == true;
+                _remaster.Preset = RemasterPresetCombo.SelectedIndex switch
+                {
+                    0 => RemasterPreset.CleanAndTransparent,
+                    1 => RemasterPreset.WarmAnalog,
+                    2 => RemasterPreset.PunchyClub,
+                    3 => RemasterPreset.VocalAcoustic,
+                    4 => RemasterPreset.LoudMaximizer,
+                    _ => RemasterPreset.Custom
+                };
+                _remaster.WarmthDb = RemasterWarmthSlider.Value;
+                _remaster.PunchDb = RemasterPunchSlider.Value;
+                _remaster.BrillianceDb = RemasterBrillianceSlider.Value;
+                _remaster.StereoWidth = RemasterWidthSlider.Value;
+                _remaster.Drive = RemasterDriveSlider.Value;
+                _remaster.Ratio = RemasterRatioSlider.Value;
+                _remaster.LimiterCeilingDb = RemasterCeilingSlider.Value;
+            }
             SaveEffectSettings();
+        }
+
+        private void RemasterPresetCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_effectsLoading) return;
+            var preset = RemasterPresetCombo.SelectedIndex switch
+            {
+                0 => RemasterPreset.CleanAndTransparent,
+                1 => RemasterPreset.WarmAnalog,
+                2 => RemasterPreset.PunchyClub,
+                3 => RemasterPreset.VocalAcoustic,
+                4 => RemasterPreset.LoudMaximizer,
+                _ => RemasterPreset.Custom
+            };
+
+            if (preset != RemasterPreset.Custom)
+            {
+                var temp = new RemasterEffect();
+                temp.ApplyPreset(preset);
+
+                _effectsLoading = true;
+                try
+                {
+                    RemasterWarmthSlider.Value = temp.WarmthDb;
+                    RemasterPunchSlider.Value = temp.PunchDb;
+                    RemasterBrillianceSlider.Value = temp.BrillianceDb;
+                    RemasterWidthSlider.Value = temp.StereoWidth;
+                    RemasterDriveSlider.Value = temp.Drive;
+                    RemasterRatioSlider.Value = temp.Ratio;
+                    RemasterCeilingSlider.Value = temp.LimiterCeilingDb;
+                }
+                finally
+                {
+                    _effectsLoading = false;
+                }
+            }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
         }
 
         private void SaveEffectSettings()
@@ -582,6 +975,10 @@ namespace PaDDY
         private void EffectSlider_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (_effectsLoading) return;
+            if (sender is Slider slider && slider.Name.StartsWith("Remaster") && RemasterPresetCombo != null && RemasterPresetCombo.SelectedIndex != 5)
+            {
+                RemasterPresetCombo.SelectedIndex = 5;
+            }
             UpdateEffectLabels();
             CommitEffectsToChain();
         }
@@ -592,11 +989,11 @@ namespace PaDDY
             CommitEffectsToChain();
         }
 
-        private void EffectsPanelChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void EffectsPanelChevron_Click(object sender, RoutedEventArgs e)
         {
-            bool expand = EffectsPanelContent.Visibility == Visibility.Collapsed;
-            EffectsPanelContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            EffectsPanelChevron.Text = expand ? "\u25C4" : "\u25BA";
+            bool expand = EffectsRackScrollViewer.Visibility == Visibility.Collapsed;
+            EffectsRackScrollViewer.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            EffectsPanelChevron.Text = expand ? "▼ HIDE PROCESSOR RACK" : "▲ SHOW PROCESSOR RACK";
         }
 
         private void FadeHeaderButton_Click(object sender, RoutedEventArgs e)
@@ -655,6 +1052,13 @@ namespace PaDDY
             PitchShiftChevron.Text = expand ? "▼" : "►";
         }
 
+        private void RemasterHeaderButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool expand = RemasterContent.Visibility == Visibility.Collapsed;
+            RemasterContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            RemasterChevron.Text = expand ? "▼" : "►";
+        }
+
         private void ResetEffects_Click(object sender, RoutedEventArgs e)
         {
             _effectsLoading = true;
@@ -695,6 +1099,17 @@ namespace PaDDY
                 PitchShiftSemitonesSlider.Value = 0;
                 PitchShiftGrainSizeSlider.Value = 50;
                 PitchShiftMixSlider.Value = 1.0;
+                RemasterEnabledCheck.IsChecked = false;
+                RemasterPresetCombo.SelectedIndex = 1;
+                var defRem = new RemasterEffect();
+                defRem.ApplyPreset(RemasterPreset.WarmAnalog);
+                RemasterWarmthSlider.Value = defRem.WarmthDb;
+                RemasterPunchSlider.Value = defRem.PunchDb;
+                RemasterBrillianceSlider.Value = defRem.BrillianceDb;
+                RemasterWidthSlider.Value = defRem.StereoWidth;
+                RemasterDriveSlider.Value = defRem.Drive;
+                RemasterRatioSlider.Value = defRem.Ratio;
+                RemasterCeilingSlider.Value = defRem.LimiterCeilingDb;
             }
             finally { _effectsLoading = false; }
             UpdateEffectLabels();
@@ -774,6 +1189,7 @@ namespace PaDDY
                 _playbackEndSec = endSec;
                 _playbackStartedAt = DateTime.UtcNow;
                 StartPlaybackAnimation(startSec, endSec, TimeSpan.FromSeconds(endSec - startSec));
+                StartTimecodeTimer();
             }
             catch (Exception ex)
             {
@@ -841,6 +1257,8 @@ namespace PaDDY
 
             try
             {
+                StopTimecodeTimer();
+                UpdatePlaybackTimecode(0.0);
                 if (_meterProvider != null)
                 {
                     _meterProvider.StreamVolume -= OnMeterStreamVolume;
@@ -1091,38 +1509,28 @@ namespace PaDDY
                 {
                     var format = reader.WaveFormat;
 
-                    // Advance to the trim start point.
-                    // For Opus files, OpusOggReadStream.SeekTo does not clear its internal
-                    // _nextDataPacket after seeking, so the first decoded frame is stale audio
-                    // from before the seek.  SeekTo(0) also corrupts stream state entirely.
-                    // For FLAC, FlacReader.Position silently fails to seek when the target sample
-                    // falls within the final block (no frame has SampleOffset >= target), leaving
-                    // the reader at position 0 and causing the wrong region to be encoded.
-                    // Use decode-and-discard for both Opus and FLAC to guarantee exact seek accuracy.
+                    // Seek to trim start.
+                    // For Opus: SeekTo can surface stale packets, so use decode-and-discard.
+                    // For FLAC: FlacReaderAdapter.CurrentTime now seeks via FlakeReader.Position,
+                    //   which is sample-frame accurate and does not silently fail.
+                    // For all other formats: CurrentTime seek is reliable.
                     string fileExt = Path.GetExtension(_filePath).TrimStart('.').ToLowerInvariant();
                     if (startSec > 0.001)
                     {
-                        if (fileExt == "opus" || fileExt == "flac")
+                        if (fileExt == "opus")
                         {
-                            if (fileExt == "flac")
+                            // Opus still needs decode-and-discard because SeekTo can surface stale packets.
+                            int blockAlignSkip = format.BlockAlign;
+                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                            skipBytes = skipBytes / blockAlignSkip * blockAlignSkip;
+                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                            long skipped = 0;
+                            while (skipped < skipBytes)
                             {
-                                reader.CurrentTime = TimeSpan.FromSeconds(startSec);
-                            }
-                            else
-                            {
-                                // Opus still needs decode-and-discard because SeekTo can surface stale packets.
-                                int blockAlignSkip = format.BlockAlign;
-                                long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
-                                skipBytes = skipBytes / blockAlignSkip * blockAlignSkip;
-                                byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
-                                long skipped = 0;
-                                while (skipped < skipBytes)
-                                {
-                                    int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
-                                    int readSkip = reader.Read(skipBuf, 0, toSkip);
-                                    if (readSkip == 0) break;
-                                    skipped += readSkip;
-                                }
+                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                if (readSkip == 0) break;
+                                skipped += readSkip;
                             }
                         }
                         else
@@ -1131,12 +1539,14 @@ namespace PaDDY
                         }
                     }
 
-                    // Duration of the trimmed region in bytes
+                    // Duration of the trimmed region.
+                    // Use frame count to avoid AverageBytesPerSecond estimation errors
+                    // (especially relevant for FLAC where the PCM layout from FlakeReader
+                    //  is now exact integer PCM and sampleRate * blockAlign is the real rate).
                     double trimDuration = endSec - startSec;
-                    long bytesToWrite = (long)(trimDuration * format.AverageBytesPerSecond);
                     int blockAlign = format.BlockAlign;
-                    bytesToWrite = bytesToWrite / blockAlign * blockAlign;
-                    if (bytesToWrite <= 0) return;
+                    long framesToWrite = (long)(trimDuration * format.SampleRate);
+                    if (framesToWrite <= 0) return;
 
                     float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
 
@@ -1148,10 +1558,11 @@ namespace PaDDY
                     recorder.BeginRecording(tempPath, format);
 
                     byte[] buffer = new byte[format.SampleRate * blockAlign];
-                    long written = 0;
-                    while (written < bytesToWrite)
+                    long framesWritten = 0;
+                    while (framesWritten < framesToWrite)
                     {
-                        int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
+                        long framesRemaining = framesToWrite - framesWritten;
+                        int toRead = (int)Math.Min(buffer.Length, framesRemaining * blockAlign);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
                         int alignedRead = AlignRecordedByteCount(read, format);
@@ -1160,7 +1571,7 @@ namespace PaDDY
                             ApplyGainToBuffer(buffer, alignedRead, format, gainFactor);
                         ApplyEffectsToBuffer(buffer, alignedRead, format, effectChain);
                         recorder.AppendSamples(buffer, 0, alignedRead);
-                        written += alignedRead;
+                        framesWritten += alignedRead / blockAlign;
                     }
                     recorder.Finish();
                 }
@@ -1225,25 +1636,18 @@ namespace PaDDY
                     string fileExt = ext.TrimStart('.').ToLowerInvariant();
                     if (startSec > 0.001)
                     {
-                        if (fileExt == "opus" || fileExt == "flac")
+                        if (fileExt == "opus")
                         {
-                            if (fileExt == "flac")
+                            long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
+                            skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
+                            byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
+                            long skipped = 0;
+                            while (skipped < skipBytes)
                             {
-                                reader.CurrentTime = TimeSpan.FromSeconds(startSec);
-                            }
-                            else
-                            {
-                                long skipBytes = (long)(startSec * format.AverageBytesPerSecond);
-                                skipBytes = skipBytes / format.BlockAlign * format.BlockAlign;
-                                byte[] skipBuf = new byte[Math.Min(65536, (int)Math.Min(skipBytes, 65536L))];
-                                long skipped = 0;
-                                while (skipped < skipBytes)
-                                {
-                                    int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
-                                    int readSkip = reader.Read(skipBuf, 0, toSkip);
-                                    if (readSkip == 0) break;
-                                    skipped += readSkip;
-                                }
+                                int toSkip = (int)Math.Min(skipBuf.Length, skipBytes - skipped);
+                                int readSkip = reader.Read(skipBuf, 0, toSkip);
+                                if (readSkip == 0) break;
+                                skipped += readSkip;
                             }
                         }
                         else
@@ -1253,10 +1657,9 @@ namespace PaDDY
                     }
 
                     double trimDuration = endSec - startSec;
-                    long bytesToWrite = (long)(trimDuration * format.AverageBytesPerSecond);
                     int blockAlign = format.BlockAlign;
-                    bytesToWrite = bytesToWrite / blockAlign * blockAlign;
-                    if (bytesToWrite <= 0) return;
+                    long framesToWrite = (long)(trimDuration * format.SampleRate);
+                    if (framesToWrite <= 0) return;
 
                     float gainFactor = noGain ? 1f : (float)Math.Pow(10.0, _gainDb / 20.0);
 
@@ -1268,10 +1671,11 @@ namespace PaDDY
                     recorder.BeginRecording(tempPath, format);
 
                     byte[] buffer = new byte[format.SampleRate * blockAlign];
-                    long written = 0;
-                    while (written < bytesToWrite)
+                    long framesWritten = 0;
+                    while (framesWritten < framesToWrite)
                     {
-                        int toRead = (int)Math.Min(buffer.Length, bytesToWrite - written);
+                        long framesRemaining = framesToWrite - framesWritten;
+                        int toRead = (int)Math.Min(buffer.Length, framesRemaining * blockAlign);
                         int read = reader.Read(buffer, 0, toRead);
                         if (read == 0) break;
                         int alignedRead = AlignRecordedByteCount(read, format);
@@ -1280,7 +1684,7 @@ namespace PaDDY
                             ApplyGainToBuffer(buffer, alignedRead, format, gainFactor);
                         ApplyEffectsToBuffer(buffer, alignedRead, format, effectChain);
                         recorder.AppendSamples(buffer, 0, alignedRead);
-                        written += alignedRead;
+                        framesWritten += alignedRead / blockAlign;
                     }
                     recorder.Finish();
                 }
@@ -1517,6 +1921,109 @@ namespace PaDDY
                 int read = _reader.Read(buffer, offset, toRead);
                 _bytesRemaining -= read;
                 return read;
+            }
+        }
+        private void VstChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            bool expand = VstContent.Visibility == Visibility.Collapsed;
+            VstContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
+            VstChevron.Text = expand ? "\u25BC" : "\u25BA";
+        }
+
+        private void ShowVstEditor_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vstEffects.Count == 0) return;
+
+            var win = new VstPluginWindow(_vstEffects) { Owner = this };
+            win.ShowDialog();
+        }
+
+        private bool IsPluginAlreadyLoaded(string name)
+        {
+            foreach (var vst in _vstEffects)
+            {
+                if (string.Equals(vst.Name, name, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        // ── Workspace View Modes & Category Filtering ─────────────────────
+
+        private void ViewMode_Split_Click(object sender, RoutedEventArgs e)
+        {
+            SetViewMode(0);
+        }
+
+        private void ViewMode_Waveform_Click(object sender, RoutedEventArgs e)
+        {
+            SetViewMode(1);
+        }
+
+        private void ViewMode_Effects_Click(object sender, RoutedEventArgs e)
+        {
+            SetViewMode(2);
+        }
+
+        private void SetViewMode(int mode)
+        {
+            if (WaveformRowGrid == null || EffectsRowBorder == null) return;
+
+            if (mode == 0) // Split View
+            {
+                WaveformRowGrid.Visibility = Visibility.Visible;
+                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Visible;
+                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
+                EffectsRowBorder.Visibility = Visibility.Visible;
+                WaveformRowGrid.Height = 230;
+            }
+            else if (mode == 1) // Waveform Focus
+            {
+                WaveformRowGrid.Visibility = Visibility.Visible;
+                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Visible;
+                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
+                EffectsRowBorder.Visibility = Visibility.Collapsed;
+                WaveformRowGrid.Height = double.NaN;
+            }
+            else if (mode == 2) // Effects Focus
+            {
+                WaveformRowGrid.Visibility = Visibility.Collapsed;
+                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Collapsed;
+                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
+                EffectsRowBorder.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void RackCategory_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.RadioButton rb && rb.Tag is string category)
+            {
+                FilterRackCategory(category);
+            }
+        }
+
+        private void FilterRackCategory(string category)
+        {
+            SetModuleVisibility(FadeModuleCard, category == "All" || category == "Dynamics");
+            SetModuleVisibility(GateModuleCard, category == "All" || category == "Dynamics");
+            SetModuleVisibility(CompModuleCard, category == "All" || category == "Dynamics");
+
+            SetModuleVisibility(EqModuleCard, category == "All" || category == "Tone");
+            SetModuleVisibility(PitchShiftModuleCard, category == "All" || category == "Tone");
+            SetModuleVisibility(DistModuleCard, category == "All" || category == "Tone");
+
+            SetModuleVisibility(EchoModuleCard, category == "All" || category == "Spatial");
+            SetModuleVisibility(ReverbModuleCard, category == "All" || category == "Spatial");
+            SetModuleVisibility(RemasterModuleCard, category == "All" || category == "Spatial");
+
+            SetModuleVisibility(VstSection, category == "All" || category == "Vst");
+        }
+
+        private static void SetModuleVisibility(FrameworkElement? element, bool visible)
+        {
+            if (element != null)
+            {
+                element.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
             }
         }
     }

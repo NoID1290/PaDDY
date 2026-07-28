@@ -206,6 +206,37 @@ namespace PaDDY.Services
             }
         }
 
+        /// <summary>
+        /// Extracts key search tags from a speech transcript.
+        /// </summary>
+        public static string ExtractTags(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            var stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with",
+                "of", "by", "from", "up", "about", "into", "over", "after", "is", "are", "was",
+                "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "i",
+                "you", "he", "she", "it", "we", "they", "this", "that", "these", "those"
+            };
+
+            var words = text.Split(new[] { ' ', ',', '.', '!', '?', ';', ':', '-', '_', '"', '\'', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var tags = new List<string>();
+
+            foreach (var w in words)
+            {
+                string clean = w.Trim().ToLowerInvariant();
+                if (clean.Length >= 2 && !stopWords.Contains(clean) && !tags.Contains(clean))
+                {
+                    tags.Add(clean);
+                }
+            }
+
+            return string.Join(", ", tags);
+        }
+
         public async Task PreloadModelAsync(string? model, bool useCuda, CancellationToken ct = default)
         {
             await GetFactoryAsync(model, useCuda, ct).ConfigureAwait(false);

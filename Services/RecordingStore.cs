@@ -18,12 +18,17 @@ namespace PaDDY.Services
         public long TrimStartMs { get; set; }
         public long TrimEndMs { get; set; }
         public double GainDb { get; set; }
+        public string PadColor { get; set; } = string.Empty;
 
         /// <summary>Id of the pad page this recording is pinned to (empty = unassigned).</summary>
         public string PadPage { get; set; } = string.Empty;
 
         /// <summary>Manual sort position within its panel/page (lower = earlier).</summary>
         public long SortOrder { get; set; }
+
+        public double? LufsValue { get; set; }
+        public string Transcription { get; set; } = string.Empty;
+        public string Tags { get; set; } = string.Empty;
     }
     /// <summary>
     /// Persistent recording storage backed by a SQLite database (recordings.dat).
@@ -117,6 +122,8 @@ namespace PaDDY.Services
             EnsurePadPageColumn();
             EnsureSortOrderColumn();
             EnsureNonDestructiveColumns();
+            EnsurePadColorColumn();
+            EnsureLufsAndSpeechColumns();
         }
 
         /// <summary>Adds the pad_page column to older databases that predate pad pages.</summary>
@@ -208,6 +215,82 @@ namespace PaDDY.Services
             }
         }
 
+        private void EnsurePadColorColumn()
+        {
+            bool exists = false;
+            using (var info = _db.CreateCommand())
+            {
+                info.CommandText = "PRAGMA table_info(recordings)";
+                using var reader = info.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (string.Equals(reader.GetString(1), "pad_color", StringComparison.OrdinalIgnoreCase))
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (exists) return;
+
+            using var alter = _db.CreateCommand();
+            alter.CommandText = "ALTER TABLE recordings ADD COLUMN pad_color TEXT NOT NULL DEFAULT ''";
+            alter.ExecuteNonQuery();
+        }
+
+        private void EnsureLufsAndSpeechColumns()
+        {
+            var cols = new List<string>();
+            using (var info = _db.CreateCommand())
+            {
+                info.CommandText = "PRAGMA table_info(recordings)";
+                using var reader = info.ExecuteReader();
+                while (reader.Read())
+                {
+                    cols.Add(reader.GetString(1).ToLowerInvariant());
+                }
+            }
+
+            if (!cols.Contains("lufs_value"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN lufs_value REAL NULL";
+                alter.ExecuteNonQuery();
+            }
+            if (!cols.Contains("transcription"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN transcription TEXT NOT NULL DEFAULT ''";
+                alter.ExecuteNonQuery();
+            }
+            if (!cols.Contains("tags"))
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = "ALTER TABLE recordings ADD COLUMN tags TEXT NOT NULL DEFAULT ''";
+                alter.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdateLufs(string id, double lufs)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET lufs_value=@lufs WHERE id=@id";
+            cmd.Parameters.AddWithValue("@lufs", lufs);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void UpdateTranscription(string id, string transcription, string tags)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET transcription=@tr, tags=@tg WHERE id=@id";
+            cmd.Parameters.AddWithValue("@tr", transcription ?? string.Empty);
+            cmd.Parameters.AddWithValue("@tg", tags ?? string.Empty);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
         // ── Write operations ───────────────────────────────────────────────────
 
         public string Add(string displayName, string codec, TimeSpan duration, DateTime createdAt, byte[] audioData, bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
@@ -272,6 +355,15 @@ namespace PaDDY.Services
             using var cmd = _db.CreateCommand();
             cmd.CommandText = "UPDATE recordings SET is_favorite=@fav WHERE id=@id";
             cmd.Parameters.AddWithValue("@fav", isFavorite ? 1L : 0L);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void SetPadColor(string id, string hexColor)
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "UPDATE recordings SET pad_color=@pc WHERE id=@id";
+            cmd.Parameters.AddWithValue("@pc", hexColor ?? string.Empty);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
@@ -342,13 +434,15 @@ namespace PaDDY.Services
         public void DeleteAll(IEnumerable<string> ids)
         {
             using var tx = _db.BeginTransaction();
+            using var cmd = _db.CreateCommand();
+            cmd.Transaction = tx;
+            cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
+            var param = cmd.Parameters.Add("@id", SqliteType.Text);
+
             foreach (var id in ids)
             {
                 CleanupTempFile(id);
-                using var cmd = _db.CreateCommand();
-                cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Transaction = tx;
+                param.Value = id;
                 cmd.ExecuteNonQuery();
             }
             tx.Commit();
@@ -361,7 +455,7 @@ namespace PaDDY.Services
             var list = new List<RecordingRecord>();
             using var cmd = _db.CreateCommand();
             cmd.CommandText = """
-                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db
+                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db, pad_color, lufs_value, transcription, tags
                 FROM recordings
                 ORDER BY created_at DESC
                 """;
@@ -381,7 +475,11 @@ namespace PaDDY.Services
                     IsNonDestructive = reader.IsDBNull(8) ? false : (reader.GetInt64(8) != 0),
                     TrimStartMs = reader.IsDBNull(9) ? 0 : reader.GetInt64(9),
                     TrimEndMs = reader.IsDBNull(10) ? 0 : reader.GetInt64(10),
-                    GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11)
+                    GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11),
+                    PadColor = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+                    LufsValue = reader.IsDBNull(13) ? null : reader.GetDouble(13),
+                    Transcription = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+                    Tags = reader.IsDBNull(15) ? string.Empty : reader.GetString(15)
                 });
             }
             return list;
@@ -447,6 +545,13 @@ namespace PaDDY.Services
         {
             if (!File.Exists(StorePath)) return 0L;
             return new FileInfo(StorePath).Length;
+        }
+
+        public int GetCount()
+        {
+            using var cmd = _db.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM recordings";
+            return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
         /// <summary>

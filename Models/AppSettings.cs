@@ -40,8 +40,11 @@ namespace PaDDY
         // Max recordings before auto-cleanup (0 = unlimited). Favorites are exempt.
         public int MaxRecords { get; set; } = 0;
 
-        // Output codec for new recordings: "wav", "mp3", "opus", "ogg"
         public string RecordCodec { get; set; } = "wav";
+
+        // VST Plugin Integration
+        public string VstPluginPath { get; set; } = string.Empty;
+        public string Vst3PluginPath { get; set; } = string.Empty;
 
         // Sort order for the recordings pad panel
         // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest
@@ -73,13 +76,17 @@ namespace PaDDY
         public double OverlayOpacity { get; set; } = 0.9;
 
         // ---- Appearance ----
-        // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula"
+        // Language code: "en", "fr"
+        public string Language { get; set; } = "en";
+        // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula", "vista-aero", "windows-xp", "windows-98"
         public string Theme { get; set; } = "dark";
         // Audio meter skin: "default", "8bit", "70s", "neon", "grayscale", "inferno", "aurora", "cyber-sunset", "forest", "toxic"
         public string MeterSkin { get; set; } = "default";
         public bool MeterDigitalDots { get; set; } = false;
         // Performance mode: CPU-only rendering, limited animations
         public bool PerformanceMode { get; set; } = false;
+        // Pause all decorative animation rendering when PaDDY is not the active window
+        public bool PauseAnimationsWhenUnfocused { get; set; } = false;
 
         // ---- System tray / startup ----
         public bool RunOnWindowsStartup { get; set; } = false;
@@ -99,6 +106,29 @@ namespace PaDDY
         public string SpeechLanguage { get; set; } = "Auto";
         // Use CUDA GPU acceleration for Whisper (requires NVIDIA GPU)
         public bool UseCudaForSpeech { get; set; } = false;
+
+        // ---- LUFS Normalization ----
+        public bool AutoNormalizeOnCapture { get; set; } = false;
+        public double TargetLoudnessLufs { get; set; } = -14.0;
+
+        // ---- Global Effects (non-destructive, applied to ALL audio playback) ----
+        /// <summary>Enable the Auto Fade In/Out global effect for all pad playback.</summary>
+        public bool GlobalFadeEnabled { get; set; } = false;
+        /// <summary>Global fade-in duration in milliseconds (applied at start of each clip).</summary>
+        public double GlobalFadeInDurationMs { get; set; } = 500.0;
+        /// <summary>Global fade-out duration in milliseconds (applied at end of each clip).</summary>
+        public double GlobalFadeOutDurationMs { get; set; } = 500.0;
+
+        // ---- Live Mic Modulator & Dual-Bus Routing ----
+        public bool LiveMicEnabled { get; set; } = false;
+        public int LiveMicDeviceIndex { get; set; } = 0;
+        public bool LiveMicFxEnabled { get; set; } = false;
+        public double LiveMicGain { get; set; } = 100.0;
+        public bool DualOutputEnabled { get; set; } = false;
+        public int SecondaryOutputDeviceIndex { get; set; } = 0;
+
+        // ---- AI Speech Auto Indexing ----
+        public bool AutoSpeechIndexingEnabled { get; set; } = true;
 
         // ---- Custom pad pages ----
         // Ordered list of user pad pages. The first page is the default ("Favorites" semantics).

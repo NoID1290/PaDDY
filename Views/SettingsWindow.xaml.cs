@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
 using PaDDY.Helpers;
+using PaDDY.Services;
 
 namespace PaDDY
 {
@@ -31,9 +35,11 @@ namespace PaDDY
         public bool SelectedNewRecordingsNonDestructive { get; private set; }
 
         // Appearance / system
+        public string SelectedLanguage { get; private set; } = "en";
         public string SelectedTheme { get; private set; } = "dark";
         public string SelectedMeterSkin { get; private set; } = "default";
         public bool SelectedPerformanceMode { get; private set; }
+        public bool SelectedPauseAnimationsWhenUnfocused { get; private set; }
         public bool SelectedMinimizeToTray { get; private set; }
         public bool SelectedCloseToTray { get; private set; }
         public bool SelectedStartMinimizedInTray { get; private set; }
@@ -47,6 +53,11 @@ namespace PaDDY
         public long SelectedDiscordClientId { get; private set; }
         public bool SelectedAutoInstallUpdates { get; private set; }
         public bool SelectedDownloadBetaUpdates { get; private set; }
+
+        // Global Effects
+        public bool SelectedGlobalFadeEnabled { get; private set; }
+        public double SelectedGlobalFadeInDurationMs { get; private set; } = 500.0;
+        public double SelectedGlobalFadeOutDurationMs { get; private set; } = 500.0;
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -81,11 +92,25 @@ namespace PaDDY
         {
             _settings = settings;
             InitializeComponent();
+
+            VstSettingsPanel.Visibility = Visibility.Visible;
+            Vst3PluginRow.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            App.DebugModeChanged += OnDebugModeChanged;
+            
             Loaded += OnLoaded;
+            Closed += (_, _) => App.DebugModeChanged -= OnDebugModeChanged;
+        }
+
+        private void OnDebugModeChanged()
+        {
+            VstSettingsPanel.Visibility = Visibility.Visible;
+            Vst3PluginRow.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            PopulateVersionAndDependenciesInfo();
+
             // Stream Deck Plugin check
             string pluginPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
             if (System.IO.Directory.Exists(pluginPath))
@@ -113,6 +138,17 @@ namespace PaDDY
             NewRecordingsNonDestructiveCheck.Checked += NewRecordingsNonDestructiveCheck_Checked;
             NewRecordingsNonDestructiveCheck.Unchecked += NewRecordingsNonDestructiveCheck_Unchecked;
 
+            // VST Plugin path
+            VstPluginPathTextBox.Text = _settings.VstPluginPath;
+            Vst3PluginPathTextBox.Text = _settings.Vst3PluginPath;
+
+            // Loudness Normalization
+            AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
+            double lufsVal = Math.Clamp(_settings.TargetLoudnessLufs, -24.0, -6.0);
+            TargetLufsSlider.Value = lufsVal;
+            if (TargetLufsValueText != null)
+                TargetLufsValueText.Text = $"{lufsVal:0.0} LUFS";
+
             // Buffer duration
             double bufSec = Math.Clamp(_settings.PastBufferDurationMs / 1000.0, 0.5, 60.0);
             BufferDurationSlider.Value = bufSec;
@@ -132,6 +168,7 @@ namespace PaDDY
             MaxRecordsLabel.Text = _settings.MaxRecords == 0 ? "∞" : _settings.MaxRecords.ToString();
 
             // Font variant
+            FontVariantCombo.SelectionChanged -= FontVariantCombo_SelectionChanged;
             FontVariantCombo.Items.Clear();
             int fontIdx = 0;
             for (int i = 0; i < App.FontVariants.Count; i++)
@@ -141,6 +178,7 @@ namespace PaDDY
                 if (v.Key == _settings.AppFontVariant) fontIdx = i;
             }
             FontVariantCombo.SelectedIndex = fontIdx;
+            FontVariantCombo.SelectionChanged += FontVariantCombo_SelectionChanged;
 
             // New pad naming
             DefaultPadTitleBox.Text = string.IsNullOrWhiteSpace(_settings.DefaultPadTitleTemplate)
@@ -151,7 +189,15 @@ namespace PaDDY
             // Trim editor output
             PopulateTrimOutputDevices();
 
-            // Appearance: theme + meter skin
+            // Appearance: language + theme + meter skin
+            SelectedLanguage = _settings.Language;
+            LanguageCombo.SelectionChanged -= LanguageCombo_SelectionChanged;
+            if (_settings.Language == "fr")
+                LanguageCombo.SelectedIndex = 1;
+            else
+                LanguageCombo.SelectedIndex = 0;
+            LanguageCombo.SelectionChanged += LanguageCombo_SelectionChanged;
+
             ThemeCombo.SelectionChanged -= ThemeCombo_SelectionChanged;
             ThemeCombo.Items.Clear();
             int themeIdx = 0;
@@ -177,6 +223,7 @@ namespace PaDDY
             MeterDigitalDotsCheck.IsChecked = _settings.MeterDigitalDots;
 
             PerformanceModeCheck.IsChecked = _settings.PerformanceMode;
+            PauseAnimationsWhenUnfocusedCheck.IsChecked = _settings.PauseAnimationsWhenUnfocused;
 
             // System tray / startup
             MinimizeToTrayCheck.IsChecked = _settings.MinimizeToTray;
@@ -228,6 +275,86 @@ namespace PaDDY
             // Auto-update
             AutoInstallUpdatesCheck.IsChecked = _settings.AutoInstallUpdates;
             DownloadBetaUpdatesCheck.IsChecked = _settings.DownloadBetaUpdates;
+
+            // Global Effects
+            GlobalFadeCheck.IsChecked = _settings.GlobalFadeEnabled;
+            double fadeInMs = Math.Clamp(_settings.GlobalFadeInDurationMs, 0.0, 5000.0);
+            double fadeOutMs = Math.Clamp(_settings.GlobalFadeOutDurationMs, 0.0, 5000.0);
+            GlobalFadeInSlider.Value = fadeInMs;
+            GlobalFadeOutSlider.Value = fadeOutMs;
+            GlobalFadeInValueText.Text = $"{fadeInMs:0} ms";
+            GlobalFadeOutValueText.Text = $"{fadeOutMs:0} ms";
+        }
+
+        private void PopulateVersionAndDependenciesInfo()
+        {
+            try
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                var ver = asm.GetName().Version;
+                var infoVersion = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+                string fullVersion = !string.IsNullOrEmpty(infoVersion)
+                    ? infoVersion
+                    : (ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}.{ver.Revision}" : "1.8.4.0715");
+
+                if (fullVersion.Contains('+'))
+                {
+                    var plusIdx = fullVersion.IndexOf('+');
+                    fullVersion = fullVersion[..plusIdx];
+                }
+
+                string versionDisplay = fullVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase)
+                    ? fullVersion
+                    : $"v{fullVersion}";
+
+                VersionInfoText.Text = $"PaDDY {versionDisplay}";
+
+                var deps = new List<string>();
+
+                var netVer = RuntimeInformation.FrameworkDescription;
+                if (!string.IsNullOrEmpty(netVer))
+                    deps.Add(netVer);
+
+                try
+                {
+                    var naudioVer = typeof(NAudio.Wave.WaveStream).Assembly.GetName().Version;
+                    if (naudioVer != null) deps.Add($"NAudio {naudioVer.Major}.{naudioVer.Minor}.{naudioVer.Build}");
+                }
+                catch { }
+
+                try
+                {
+                    var vorticeVer = typeof(Vortice.Direct3D11.ID3D11Device).Assembly.GetName().Version;
+                    if (vorticeVer != null) deps.Add($"Vortice {vorticeVer.Major}.{vorticeVer.Minor}.{vorticeVer.Build}");
+                }
+                catch { }
+
+                try
+                {
+                    var whisperVer = typeof(Whisper.net.WhisperFactory).Assembly.GetName().Version;
+                    if (whisperVer != null) deps.Add($"Whisper.net {whisperVer.Major}.{whisperVer.Minor}.{whisperVer.Build}");
+                }
+                catch { }
+
+                DependenciesInfoText.Text = string.Join("\n", deps);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load version/dependency info: {ex}");
+            }
+        }
+
+        private void LanguageCombo_SelectionChanged(object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (LanguageCombo.SelectedItem is ComboBoxItem item && item.Tag is string lang)
+            {
+                SelectedLanguage = lang;
+                _settings.Language = lang;
+                LocalizationManager.Instance.SetCulture(lang);
+                _settings.Save();
+            }
         }
 
         private void ThemeCombo_SelectionChanged(object sender,
@@ -244,6 +371,14 @@ namespace PaDDY
             int i = MeterSkinCombo.SelectedIndex;
             if (i >= 0 && i < ThemeManager.MeterSkins.Count)
                 ThemeManager.ApplyMeterSkin(ThemeManager.MeterSkins[i].Key, _settings.MeterDigitalDots); // live preview
+        }
+
+        private void FontVariantCombo_SelectionChanged(object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            int i = FontVariantCombo.SelectedIndex;
+            if (i >= 0 && i < App.FontVariants.Count)
+                App.ApplyFont(App.FontVariants[i].Key); // live preview
         }
 
         private void MeterDigitalDotsCheck_Changed(object sender, RoutedEventArgs e)
@@ -369,6 +504,7 @@ namespace PaDDY
             SelectedMeterSkin = (si >= 0 && si < ThemeManager.MeterSkins.Count)
                 ? ThemeManager.MeterSkins[si].Key : "default";
             SelectedPerformanceMode = PerformanceModeCheck.IsChecked == true;
+            SelectedPauseAnimationsWhenUnfocused = PauseAnimationsWhenUnfocusedCheck.IsChecked == true;
 
             SelectedMinimizeToTray = MinimizeToTrayCheck.IsChecked == true;
             SelectedCloseToTray = CloseToTrayCheck.IsChecked == true;
@@ -385,17 +521,50 @@ namespace PaDDY
                 SelectedDiscordClientId = cid;
             else
                 SelectedDiscordClientId = 461618159171141643;
-
-            // Auto-update
             SelectedAutoInstallUpdates = AutoInstallUpdatesCheck.IsChecked == true;
             SelectedDownloadBetaUpdates = DownloadBetaUpdatesCheck.IsChecked == true;
 
+            _settings.VstPluginPath = VstPluginPathTextBox.Text;
+            _settings.Vst3PluginPath = Vst3PluginPathTextBox.Text;
+            _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
+            _settings.TargetLoudnessLufs = Math.Round(TargetLufsSlider.Value, 1);
+
+            // Global Effects
+            SelectedGlobalFadeEnabled = GlobalFadeCheck.IsChecked == true;
+            SelectedGlobalFadeInDurationMs = Math.Round(GlobalFadeInSlider.Value, 0);
+            SelectedGlobalFadeOutDurationMs = Math.Round(GlobalFadeOutSlider.Value, 0);
+
             DialogResult = true;
+            Close();
+        }
+
+        private void AutoNormalizeCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            if (AutoNormalizeCheck.IsChecked.HasValue)
+                _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked.Value;
+        }
+
+        private void TargetLufsSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (TargetLufsValueText != null)
+                TargetLufsValueText.Text = $"{e.NewValue:0.0} LUFS";
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        private void GlobalFadeInSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (GlobalFadeInValueText != null)
+                GlobalFadeInValueText.Text = $"{e.NewValue:0} ms";
+        }
+
+        private void GlobalFadeOutSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (GlobalFadeOutValueText != null)
+                GlobalFadeOutValueText.Text = $"{e.NewValue:0} ms";
         }
 
         private void InstallStreamDeckBtn_Click(object sender, RoutedEventArgs e)
@@ -553,13 +722,47 @@ namespace PaDDY
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            // If the dialog was not confirmed, revert any live theme/meter preview.
+            // If the dialog was not confirmed, revert any live theme/meter/font preview.
             if (DialogResult != true)
             {
                 ThemeManager.ApplyTheme(_settings.Theme);
                 ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
+                App.ApplyFont(_settings.AppFontVariant);
             }
             base.OnClosing(e);
+        }
+
+        private void DiscordRichPresenceCheck_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Unregister or disconnect immediately if desired, but applied on save
+        }
+
+        private void BrowseVstButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "VST2 Plugins (*.dll)|*.dll|All Files (*.*)|*.*",
+                Title = "Select VST2 Plugin"
+            };
+
+            if (dlg.ShowDialog(this) == true)
+            {
+                VstPluginPathTextBox.Text = dlg.FileName;
+            }
+        }
+
+        private void BrowseVst3Button_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "VST3 Plugins (*.vst3)|*.vst3|All Files (*.*)|*.*",
+                Title = "Select VST3 Plugin"
+            };
+
+            if (dlg.ShowDialog(this) == true)
+            {
+                Vst3PluginPathTextBox.Text = dlg.FileName;
+            }
         }
 
         private void NewRecordingsNonDestructiveCheck_Checked(object sender, RoutedEventArgs e)
@@ -581,6 +784,147 @@ namespace PaDDY
                 _isChangingNonDestructiveGlobal = true;
                 NewRecordingsNonDestructiveCheck.IsChecked = true;
                 _isChangingNonDestructiveGlobal = false;
+            }
+        }
+
+        public void ShowLoadingOverlay(string message = "Processing...")
+        {
+            UpdateLoadingOverlayTheme();
+            SettingsLoadingOverlay.Show(message);
+        }
+
+        public void HideLoadingOverlay(bool instantly = false)
+        {
+            SettingsLoadingOverlay.Hide(instantly);
+        }
+
+        private void UpdateLoadingOverlayTheme()
+        {
+            try
+            {
+                var themeKey = _settings?.Theme ?? "dark";
+                var palette = ThemeManager.GetPalette(themeKey);
+                if (palette != null)
+                {
+                    var accent = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["AccentGreenBrush"]);
+                    var secondary = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["SubtleTextBrush"]);
+                    var text = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["PrimaryTextBrush"]);
+                    var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
+
+                    SettingsLoadingOverlay.ApplyThemeColors(accent, secondary, text);
+                    SettingsLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
+                }
+            }
+            catch
+            {
+                // Fallback gracefully on any conversion/loading error
+            }
+        }
+
+        private async void ExportData_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK",
+                FileName = $"PaDDY_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.PADBACK"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                var mainWindow = Owner as MainWindow;
+                ShowLoadingOverlay("Creating backup...");
+                if (mainWindow != null)
+                {
+                    mainWindow.ShowLoadingOverlay("Creating backup...");
+                }
+                await Task.Delay(50); // Let the overlay render
+
+                bool success = false;
+                var backupPath = dlg.FileName;
+                try
+                {
+                    success = await Task.Run(() =>
+                    {
+                        var backupService = new BackupService();
+                        return backupService.CreateBackup(backupPath);
+                    });
+                }
+                finally
+                {
+                    HideLoadingOverlay();
+                    if (mainWindow != null)
+                    {
+                        mainWindow.HideLoadingOverlay();
+                    }
+                }
+
+                if (success)
+                {
+                    System.Windows.MessageBox.Show(this, "Backup created successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show(this, "Failed to create backup. Please ensure your data files are intact.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private async void ImportData_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "PaDDY Backup (*.PADBACK)|*.PADBACK"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                var mainWindow = Owner as MainWindow;
+                ShowLoadingOverlay("Restoring backup...");
+                if (mainWindow != null)
+                {
+                    mainWindow.ShowLoadingOverlay("Restoring backup...");
+                }
+                await Task.Delay(50); // Let the overlay render
+
+                try
+                {
+                    if (mainWindow != null)
+                    {
+                        mainWindow.PrepareRecordingDataRestore();
+                    }
+
+                    var backupPath = dlg.FileName;
+                    bool restoreSuccess = await Task.Run(() =>
+                    {
+                        var backupService = new BackupService();
+                        return backupService.RestoreBackup(backupPath);
+                    });
+
+                    if (restoreSuccess)
+                    {
+                        if (mainWindow != null)
+                        {
+                            await mainWindow.ReloadRecordingDataFromDiskAsync();
+                            System.Windows.MessageBox.Show(this, "Backup restored successfully and recordings have been reloaded.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show(this, "Backup restored successfully. Please restart the application to apply changes.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show(this, "Failed to restore backup. Please ensure the file is a valid PaDDY backup.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                finally
+                {
+                    HideLoadingOverlay();
+                    if (mainWindow != null)
+                    {
+                        mainWindow.HideLoadingOverlay();
+                    }
+                }
             }
         }
     }

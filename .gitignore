@@ -25,6 +25,9 @@ gen_icon.csx
 # Local scripts (not tracked on GitHub)
 scripts/
 
+# GGML models
+.inno/ggml-tiny.bin
+
 
 .continue/
 .kilo/plans/fix-mouse-hover-glitch.md

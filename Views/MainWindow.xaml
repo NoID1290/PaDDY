@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:PaDDY.Controls"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        Title="PaDDY"
+        xmlns:p="clr-namespace:PaDDY.Helpers"
+        Title="{p:Loc MainWindowTitle}"
         Icon="/PaDDY.ico"
         Height="740"
         Width="1380"
@@ -13,7 +14,10 @@
         SnapsToDevicePixels="True"
         Background="{DynamicResource WindowBgBrush}"
         Foreground="{DynamicResource PrimaryTextBrush}"
-        FontFamily="{DynamicResource AppFont}">
+        FontFamily="{DynamicResource AppFont}"
+        AllowDrop="True"
+        DragOver="Window_DragOver"
+        Drop="Window_Drop">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="60"
@@ -28,15 +32,15 @@
         <Style x:Key="MonitorToggleStyle" TargetType="ToggleButton">
             <Setter Property="Foreground"      Value="White"/>
             <Setter Property="Background"      Value="{DynamicResource AccentGreenBrush}"/>
-            <Setter Property="BorderBrush"     Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="BorderBrush"     Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding"         Value="22,0"/>
-            <Setter Property="Width"           Value="185"/>
+            <Setter Property="Width"           Value="220"/>
             <Setter Property="Height"          Value="38"/>
-            <Setter Property="FontWeight"      Value="SemiBold"/>
-            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="FontWeight"      Value="Bold"/>
+            <Setter Property="FontSize"        Value="13.5"/>
             <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Content"         Value="▶ Start Monitoring"/>
+            <Setter Property="Content"         Value="{p:Loc StartMonitoring}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -44,32 +48,29 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8"
+                                CornerRadius="{DynamicResource PillCornerRadius}"
                                 Padding="{TemplateBinding Padding}">
                             <Border.Effect>
-                                <DropShadowEffect ShadowDepth="0" BlurRadius="0"
-                                                  Color="{Binding Foreground.Color, RelativeSource={RelativeSource TemplatedParent}}" Opacity="0"/>
+                                <DropShadowEffect x:Name="Glow" ShadowDepth="0" BlurRadius="8" Color="{Binding Path=Background.Color, ElementName=Bd}" Opacity="0"/>
                             </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter Property="Background"  Value="{DynamicResource AccentRedBrush}"/>
-                                <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
-                                <Setter Property="Content"     Value="■  Stop Monitoring"/>
-                                <Setter Property="Foreground"  Value="{DynamicResource AccentRedBrush}"/>
+                                <Setter Property="Content"     Value="{p:Loc StopMonitoring}"/>
                                 <Trigger.EnterActions>
                                     <BeginStoryboard x:Name="GlowPulse">
                                         <Storyboard>
                                             <DoubleAnimation
                                                 Storyboard.TargetName="Bd"
                                                 Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
-                                                From="6" To="24" Duration="0:0:1.2"
+                                                From="6" To="20" Duration="0:0:1.0"
                                                 AutoReverse="True" RepeatBehavior="Forever"/>
                                             <DoubleAnimation
                                                 Storyboard.TargetName="Bd"
                                                 Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
-                                                From="0.3" To="0.85" Duration="0:0:1.2"
+                                                From="0.25" To="0.75" Duration="0:0:1.0"
                                                 AutoReverse="True" RepeatBehavior="Forever"/>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -79,10 +80,24 @@
                                 </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Opacity" Value="0.88"/>
+                                <Setter Property="Opacity" Value="0.9"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0.4" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Opacity" Value="0.72"/>
+                                <Setter Property="Opacity" Value="0.75"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -91,12 +106,62 @@
         </Style>
 
         <!-- Top-bar action button -->
-        <Style x:Key="TopBarBtn" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Padding"    Value="14,6"/>
+        <Style x:Key="TopBarBtn" TargetType="Button">
+            <Setter Property="Padding"    Value="16,0"/>
             <Setter Property="Height"     Value="34"/>
-            <Setter Property="Background" Value="#14FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#18FFFFFF"/>
-            <Setter Property="Foreground" Value="#FFC0C0D8"/>
+            <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ControlTextBrush}"/>
+            <Setter Property="FontSize"   Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{DynamicResource PillCornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="Glow" ShadowDepth="0" BlurRadius="8" Color="{Binding Path=BorderBrush.Color, ElementName=Bd}" Opacity="0"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Icon-only top bar button -->
@@ -105,11 +170,86 @@
             <Setter Property="Padding" Value="0"/>
         </Style>
 
+        <!-- Top-bar toggle action button (Live Mic) -->
+        <Style x:Key="TopBarToggleBtn" TargetType="ToggleButton">
+            <Setter Property="Padding"    Value="14,0"/>
+            <Setter Property="Height"     Value="34"/>
+            <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ControlTextBrush}"/>
+            <Setter Property="FontSize"   Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="17"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="Glow" ShadowDepth="0" BlurRadius="10" Color="#FFC62828" Opacity="0"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentRedBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFEC407A"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard x:Name="LiveMicGlowPulse">
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Glow"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             From="0.4" To="0.85" Duration="0:0:1.0"
+                                                             AutoReverse="True" RepeatBehavior="Forever"/>
+                                            <DoubleAnimation Storyboard.TargetName="Glow"
+                                                             Storyboard.TargetProperty="BlurRadius"
+                                                             From="8" To="18" Duration="0:0:1.0"
+                                                             AutoReverse="True" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="LiveMicGlowPulse"/>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentRedBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bd" Property="Background" Value="#FFD32F2F"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
         <Style x:Key="LogoAboutBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Tag" Value="{DynamicResource AccentGreenBrush}"/>
             <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -117,35 +257,69 @@
                         <Border x:Name="LogoShell"
                                 Padding="8,6"
                                 CornerRadius="10"
-                                Background="#00000000"
-                                BorderBrush="#00FFFFFF"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
                                 BorderThickness="1">
                             <Border.Effect>
                                 <DropShadowEffect x:Name="LogoGlow"
                                                   ShadowDepth="0"
                                                   BlurRadius="0"
-                                                  Color="#FF4CAF50"
+                                                  Color="{Binding Tag.Color, RelativeSource={RelativeSource TemplatedParent}}"
                                                   Opacity="0"/>
                             </Border.Effect>
                             <Grid>
-                                <StackPanel Orientation="Horizontal" Margin="8,0">
+                                <StackPanel Orientation="Horizontal" Margin="4,0">
+                                    <!-- Stylized Launchpad Grid Icon -->
+                                    <Grid x:Name="LogoIcon" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                        <Grid.RenderTransform>
+                                            <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                        </Grid.RenderTransform>
+                                        <UniformGrid Rows="2" Columns="2">
+                                            <Border x:Name="DotTL" CornerRadius="2.2" Margin="1" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.5" RenderTransformOrigin="0.5,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                                </Border.RenderTransform>
+                                            </Border>
+                                            <Border x:Name="DotTR" CornerRadius="2.2" Margin="1" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.75" RenderTransformOrigin="0.5,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                                </Border.RenderTransform>
+                                            </Border>
+                                            <Border x:Name="DotBL" CornerRadius="2.2" Margin="1" Background="{DynamicResource PrimaryTextBrush}" Opacity="0.75" RenderTransformOrigin="0.5,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                                </Border.RenderTransform>
+                                            </Border>
+                                            <Border x:Name="DotBR" CornerRadius="2.2" Margin="1" Background="{DynamicResource AccentGreenBrush}" RenderTransformOrigin="0.5,0.5">
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                                </Border.RenderTransform>
+                                            </Border>
+                                        </UniformGrid>
+                                    </Grid>
+
+                                    <!-- Typography -->
                                     <TextBlock Text="Pa"
-                                               FontSize="20"
-                                               FontWeight="Bold"
-                                               Foreground="#FF7070A8"
+                                               FontSize="19"
+                                               FontWeight="ExtraBold"
+                                               Foreground="{DynamicResource PrimaryTextBrush}"
+                                               TextOptions.TextFormattingMode="Display"
+                                               TextOptions.TextRenderingMode="ClearType"
                                                VerticalAlignment="Center"/>
                                     <TextBlock Text="DDY"
-                                               FontSize="20"
-                                               FontWeight="Bold"
-                                               Foreground="#FF4CAF50"
+                                               FontSize="19"
+                                               FontWeight="ExtraBold"
+                                               Foreground="{DynamicResource AccentGreenBrush}"
+                                               TextOptions.TextFormattingMode="Display"
+                                               TextOptions.TextRenderingMode="ClearType"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="LogoShell" Property="Background" Value="#0CFFFFFF"/>
-                                <Setter TargetName="LogoShell" Property="BorderBrush" Value="#1EFFFFFF"/>
+                                <Setter TargetName="LogoShell" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                                <Setter TargetName="LogoShell" Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                                 <Trigger.EnterActions>
                                     <BeginStoryboard x:Name="LogoHoverStoryboard">
                                         <Storyboard>
@@ -159,11 +333,67 @@
                                             </DoubleAnimation>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
                                                              Storyboard.TargetProperty="Opacity"
-                                                             To="0.38"
+                                                             To="0.45"
                                                              Duration="0:0:0.2">
                                                 <DoubleAnimation.EasingFunction>
                                                     <CubicEase EasingMode="EaseOut"/>
                                                 </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                             To="1.12"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                             To="1.12"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <!-- Looping dots scale and opacity breathing effect when hovered -->
+                                            <DoubleAnimation Storyboard.TargetName="DotTL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.0" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotTL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.0" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotTL" Storyboard.TargetProperty="Opacity" From="0.4" To="0.8" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.0" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+
+                                            <DoubleAnimation Storyboard.TargetName="DotTR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.2" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotTR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.2" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotTR" Storyboard.TargetProperty="Opacity" From="0.6" To="1.0" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.2" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+
+                                            <DoubleAnimation Storyboard.TargetName="DotBR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.4" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotBR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.4" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotBR" Storyboard.TargetProperty="Opacity" From="0.7" To="1.0" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.4" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+
+                                            <DoubleAnimation Storyboard.TargetName="DotBL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.6" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotBL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1.0" To="1.3" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.6" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="DotBL" Storyboard.TargetProperty="Opacity" From="0.6" To="1.0" Duration="0:0:0.8" AutoReverse="True" BeginTime="0:0:0.6" RepeatBehavior="Forever">
+                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -188,12 +418,29 @@
                                                     <CubicEase EasingMode="EaseIn"/>
                                                 </DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                             To="1"
+                                                             Duration="0:0:0.16">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseIn"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="LogoIcon"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                             To="1"
+                                                             Duration="0:0:0.16">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseIn"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="LogoShell" Property="Opacity" Value="0.82"/>
+                                <Setter TargetName="LogoShell" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                                <Setter TargetName="LogoShell" Property="Opacity" Value="0.85"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -211,7 +458,7 @@
 
     </Window.Resources>
 
-    <Grid x:Name="MainRootGrid">
+    <Grid x:Name="MainRootGrid" AllowDrop="True" DragOver="Window_DragOver" Drop="Window_Drop">
         <Grid.Effect>
             <DropShadowEffect ShadowDepth="0"
                               BlurRadius="18"
@@ -226,8 +473,9 @@
         </Grid.RowDefinitions>
 
         <!-- ═══════════════════════ Row 0: Compact Top Bar ═══════════════════════ -->
-        <Border Grid.Row="0"
-                BorderBrush="#1AFFFFFF"
+        <Border x:Name="TopBarBorder"
+                Grid.Row="0"
+                BorderBrush="{DynamicResource DividerBrush}"
                 BorderThickness="0,0,0,1"
                 Background="{DynamicResource TitleBarGradient}">
             <Grid Margin="16,0">
@@ -258,6 +506,15 @@
 
                 <!-- Action buttons + custom caption buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ToggleButton x:Name="LiveMicBtn"
+                                  Style="{StaticResource TopBarToggleBtn}"
+                                  Content="🎙️ Live Mic"
+                                  Margin="0,0,6,0"
+                                  ToolTip="Toggle Real-time Live Microphone Modulator &amp; Dual-Bus Routing"
+                                  shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                                  Visibility="Visible"
+                                  Checked="LiveMicBtn_CheckedChanged"
+                                  Unchecked="LiveMicBtn_CheckedChanged"/>
                     <Button x:Name="ConfigToggleBtn"
                             Style="{StaticResource TopBarBtn}"
                             Margin="0,0,6,0"
@@ -271,37 +528,34 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource TopBarBtn}"
-                            Content="Settings"
+                            Content="{p:Loc NavSettings}"
                             Margin="0,0,6,0"
                             FontSize="14"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             Click="SettingsButton_Click"/>
                     <!-- Custom caption / window control buttons -->
-                    <Rectangle Width="1" Fill="#18FFFFFF" Margin="10,8,0,8" VerticalAlignment="Stretch"/>
+                    <Rectangle Width="1" Fill="{DynamicResource DividerBrush}" Margin="10,8,0,8" VerticalAlignment="Stretch"/>
                     <Button Style="{StaticResource ChromeMinBtn}"
                             ToolTip="Minimize"
                             Click="ChromeMinimize_Click">
-                            <Button.Effect>
-                                <DropShadowEffect Color="#FFFFFFFF" BlurRadius="5" ShadowDepth="0"/>
-                            </Button.Effect>
-                        <TextBlock Text="&#x2014;" FontSize="14" FontFamily="Segoe UI"/>
+                        <TextBlock Text="&#xE921;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
                     </Button>
                     <Button x:Name="ChromeMaxRestoreBtn"
                             Style="{StaticResource ChromeMaxBtn}"
                             ToolTip="Maximize"
                             Click="ChromeMaximize_Click">
-                            <Button.Effect>
-                                <DropShadowEffect Color="#FFFFFFFF" BlurRadius="5" ShadowDepth="0"/>
-                            </Button.Effect>
-                        <TextBlock x:Name="ChromeMaxIcon" Text="&#x2610;" FontSize="14" FontFamily="Segoe UI"/>
+                        <TextBlock x:Name="ChromeMaxIcon" Text="&#xE922;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
+                    </Button>
+                    <Button x:Name="ChromeFullscreenBtn"
+                            Style="{StaticResource ChromeMaxBtn}"
+                            ToolTip="Fullscreen (F11)"
+                            Click="ChromeFullscreen_Click">
+                        <TextBlock x:Name="ChromeFullscreenIcon" Text="&#xE740;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
                     </Button>
                     <Button Style="{StaticResource ChromeCloseBtn}"
                             ToolTip="Close"
                             Click="ChromeClose_Click">
-                            <Button.Effect>
-                                <DropShadowEffect Color="#FFFF5555" BlurRadius="8" ShadowDepth="0"/>
-                            </Button.Effect>
-                        <TextBlock Text="&#x2715;" FontSize="14" FontFamily="Segoe UI"/>
+                        <TextBlock Text="&#xE8BB;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -326,12 +580,12 @@
                 <!-- ─── INPUT ─── -->
                 <Border Grid.Column="0" Style="{StaticResource GlassCard}" Margin="0,0,5,0">
                     <StackPanel>
-                        <TextBlock Text="INPUT" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc InputGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <!-- Source -->
                         <DockPanel Margin="0,0,0,5">
-                            <TextBlock DockPanel.Dock="Left" Text="Source"
-                                       Style="{StaticResource ConfigLabel}" Width="58"/>
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc SourceLabel}"
+                                       Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="CaptureSourceCombo"
                                       SelectionChanged="CaptureSourceCombo_SelectionChanged"/>
                         </DockPanel>
@@ -339,8 +593,8 @@
                         <!-- Mic/Line device -->
                         <DockPanel>
                             <TextBlock x:Name="InputDeviceLabel" DockPanel.Dock="Left"
-                                       Text="Mic/Line" Style="{StaticResource ConfigLabel}"
-                                       Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
+                                       Text="{p:Loc MicLineLabel}" Style="{StaticResource ConfigLabel}"
+                                       Width="72" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <ComboBox x:Name="InputDeviceCombo"
                                       Margin="0,0,0,5"
                                       Visibility="Collapsed"
@@ -350,8 +604,8 @@
                         <!-- Loopback device -->
                         <DockPanel>
                             <TextBlock x:Name="LoopbackDeviceLabel" DockPanel.Dock="Left"
-                                       Text="Loopback" Style="{StaticResource ConfigLabel}"
-                                       Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
+                                       Text="{p:Loc LoopbackLabel}" Style="{StaticResource ConfigLabel}"
+                                       Width="72" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <ComboBox x:Name="LoopbackDeviceCombo"
                                       Margin="0,0,0,5"
                                       Visibility="Collapsed"
@@ -361,14 +615,14 @@
                         <!-- App loopback -->
                         <DockPanel>
                             <TextBlock x:Name="AppLoopbackLabel" DockPanel.Dock="Left"
-                                       Text="App" Style="{StaticResource ConfigLabel}"
-                                       Width="58" Margin="0,0,6,5" Visibility="Collapsed"/>
+                                       Text="{p:Loc AppLoopbackLabel}" Style="{StaticResource ConfigLabel}"
+                                       Width="72" Margin="0,0,6,5" Visibility="Collapsed"/>
                             <Button x:Name="RefreshAppLoopbackBtn" DockPanel.Dock="Right"
-                                    Content="&#x21BA;" Width="30" FontSize="14" Padding="0"
-                                    Margin="4,0,0,5"
-                                    Visibility="Collapsed"
-                                    ToolTip="Refresh list of apps producing audio"
-                                    Click="RefreshAppLoopback_Click"/>
+                                     Content="&#x21BA;" Width="30" FontSize="14" Padding="0"
+                                     Margin="4,0,0,5"
+                                     Visibility="Collapsed"
+                                     ToolTip="Refresh list of apps producing audio"
+                                     Click="RefreshAppLoopback_Click"/>
                             <ComboBox x:Name="AppLoopbackCombo"
                                       Margin="0,0,0,5"
                                       Visibility="Collapsed"
@@ -376,13 +630,13 @@
                         </DockPanel>
 
                         <!-- Input Volume -->
-                        <Grid>
+                        <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58"/>
+                                <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Volume"
+                            <TextBlock Grid.Column="0" Text="{p:Loc VolumeLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="InputVolumeSlider"
                                     Grid.Column="1"
@@ -395,23 +649,31 @@
                                            Text="80" FontSize="10" Width="26" TextAlignment="Center"/>
                             </Border>
                         </Grid>
+
+                        <!-- Auto-Normalize CheckBox -->
+                        <CheckBox x:Name="AutoNormalizeCheck"
+                                  Content="Auto-Normalize"
+                                  ToolTip="Automatically normalize recorded audio to target LUFS level on capture"
+                                  Margin="0,2,0,0"
+                                  Checked="AutoNormalizeCheck_Changed"
+                                  Unchecked="AutoNormalizeCheck_Changed"/>
                     </StackPanel>
                 </Border>
 
                 <!-- ─── PAD MONITOR ─── -->
                 <Border Grid.Column="1" Style="{StaticResource GlassCard}" Margin="5,0,5,0">
                     <StackPanel>
-                        <TextBlock Text="PAD MONITORING" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc PadMonitoringGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <CheckBox x:Name="ListenOutputEnabledCheck"
-                                  Content="Enable monitor"
+                                  Content="{p:Loc EnableMonitorCheck}"
                                   Margin="0,0,0,10"
                                   Checked="ListenOutputEnabledCheck_Changed"
                                   Unchecked="ListenOutputEnabledCheck_Changed"/>
 
                         <DockPanel Margin="0,0,0,10">
-                            <TextBlock DockPanel.Dock="Left" Text="Device"
-                                       Style="{StaticResource ConfigLabel}" Width="52"/>
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc DeviceLabel}"
+                                       Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="ListenOutputDeviceCombo"
                                       ToolTip="Playback device used when clicking a recording pad"
                                       SelectionChanged="ListenOutputDeviceCombo_SelectionChanged"/>
@@ -419,11 +681,11 @@
 
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Volume"
+                            <TextBlock Grid.Column="0" Text="{p:Loc VolumeLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="PadListenVolumeSlider"
                                     Grid.Column="1"
@@ -443,11 +705,11 @@
                 <!-- ─── DETECTION ─── -->
                 <Border Grid.Column="2" Style="{StaticResource GlassCard}" Margin="5,0,5,0">
                     <StackPanel>
-                        <TextBlock Text="DETECTION" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc DetectionGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <!-- Mode -->
                         <DockPanel Margin="0,0,0,8">
-                            <TextBlock DockPanel.Dock="Left" Text="Mode"
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc ModeLabel}"
                                        Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="RecordingModeCombo"
                                       SelectionChanged="RecordingModeCombo_SelectionChanged"
@@ -461,7 +723,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Sensitivity"
+                            <TextBlock Grid.Column="0" Text="{p:Loc SensitivityLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="SensitivitySlider"
                                     Grid.Column="1"
@@ -482,7 +744,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Silence"
+                            <TextBlock Grid.Column="0" Text="{p:Loc SilenceTimeoutLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="SilenceSlider"
                                     Grid.Column="1"
@@ -496,12 +758,34 @@
                             </Border>
                         </Grid>
 
+                        <!-- Buffer Duration -->
+                        <Grid x:Name="BufferDurationRow" Margin="0,0,0,7" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="72"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Buffer Dur."
+                                       ToolTip="Key Buffer pre-recording duration"
+                                       Style="{StaticResource ConfigLabel}"/>
+                            <Slider x:Name="BufferDurationSlider"
+                                    Grid.Column="1"
+                                    Minimum="1" Maximum="30" Value="10"
+                                    TickFrequency="1"
+                                    HorizontalAlignment="Stretch"
+                                    ValueChanged="BufferDurationSlider_ValueChanged"/>
+                            <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
+                                <TextBlock x:Name="BufferDurationValueLabel"
+                                           Text="10s" FontSize="10" Width="26" TextAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
                         <!-- Hotkey hint (Key Buffer mode) -->
                         <StackPanel x:Name="KeyBufferHint"
                                     Orientation="Horizontal"
                                     Visibility="Collapsed">
-                            <TextBlock Text="Hotkey" Style="{StaticResource ConfigLabel}"/>
-                            <Border Style="{StaticResource ValueBadge}" Margin="2,0,0,0">
+                            <TextBlock Text="Hotkey" Style="{StaticResource ConfigLabel}" Width="72"/>
+                            <Border Style="{StaticResource ValueBadge}" Margin="0,0,0,0">
                                 <TextBlock x:Name="HotkeyLabel"
                                            Text="Ctrl+F9"
                                            Foreground="#FFFFC107"
@@ -516,11 +800,11 @@
                 <!-- ─── OUTPUT ─── -->
                 <Border Grid.Column="3" Style="{StaticResource GlassCard}" Margin="5,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="OUTPUT" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="{p:Loc OutputGroup}" Style="{StaticResource SectionTitle}"/>
 
                         <DockPanel Margin="0,0,0,10">
-                            <TextBlock DockPanel.Dock="Left" Text="Device"
-                                       Style="{StaticResource ConfigLabel}" Width="52"/>
+                            <TextBlock DockPanel.Dock="Left" Text="{p:Loc DeviceLabel}"
+                                       Style="{StaticResource ConfigLabel}" Width="72"/>
                             <ComboBox x:Name="OutputDeviceCombo"
                                       ToolTip="Primary output device for pad playback"
                                       SelectionChanged="OutputDeviceCombo_SelectionChanged"/>
@@ -528,11 +812,11 @@
 
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="72"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Volume"
+                            <TextBlock Grid.Column="0" Text="{p:Loc VolumeLabel}"
                                        Style="{StaticResource ConfigLabel}"/>
                             <Slider x:Name="OutputVolumeSlider"
                                     Grid.Column="1"
@@ -549,21 +833,21 @@
                         <StackPanel x:Name="OverlayConfigPanel" Visibility="Collapsed">
                             <Rectangle Height="1" Fill="#1AFFFFFF" Margin="0,9,0,8"/>
 
-                            <TextBlock Text="OVERLAY" Style="{StaticResource ConfigLabel}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{p:Loc OverlayGroup}" Style="{StaticResource ConfigLabel}" Margin="0,0,0,4"/>
 
                             <CheckBox x:Name="OverlayEnabledCheck"
-                                      Content="Enable in-game overlay"
+                                      Content="{p:Loc EnableOverlayCheck}"
                                       Margin="0,0,0,8"
                                       Checked="OverlayEnabledCheck_Changed"
                                       Unchecked="OverlayEnabledCheck_Changed"/>
 
                             <Grid Margin="0,0,0,7">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="72"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Opacity"
+                                <TextBlock Grid.Column="0" Text="{p:Loc OpacityLabel}"
                                            Style="{StaticResource ConfigLabel}"/>
                                 <Slider x:Name="OverlayOpacitySlider"
                                         Grid.Column="1"
@@ -579,7 +863,7 @@
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="72"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
@@ -1002,7 +1286,7 @@
                                 </Ellipse.Effect>
                             </Ellipse>
                             <TextBlock x:Name="StatusLabel"
-                                       Text="Idle — press Start to begin"
+                                       Text="{p:Loc StatusIdle}"
                                        FontSize="11.5"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource PrimaryTextBrush}"
@@ -1024,7 +1308,7 @@
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>           
                         <TextBlock x:Name="StorageInfoLabel"
-                                   Text="Output folder: calculating usage…"
+                                   Text="Storage data: calculating usage…"
                                    Style="{StaticResource InfoLineLabel}"
                                    MaxWidth="380"/>
                         <TextBlock x:Name="StreamDeckStatusLabel"
@@ -1185,33 +1469,54 @@
                         <Rectangle Width="3" Height="12" Fill="#FF4CAF50"
                                    VerticalAlignment="Center" RadiusX="1" RadiusY="1"
                                    Margin="0,0,7,0"/>
-                        <TextBlock Text="RECORDINGS"
+                        <TextBlock Text="{p:Loc NavRecordings}"
                                    Foreground="{DynamicResource AccentTitleBrush}"
                                    FontSize="10"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"/>
+
+                        <!-- Instant Soundboard Search Bar -->
+                        <Border Width="220" Height="24" CornerRadius="12" Background="#18FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" Margin="16,0,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="11" Foreground="#FF9090A0" Margin="8,0,4,0" VerticalAlignment="Center"/>
+                                <TextBox x:Name="SearchTextBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="11" VerticalAlignment="Center" TextChanged="SearchTextBox_TextChanged"/>
+                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="{p:Loc SearchPlaceholder}" FontSize="11" Foreground="#FF707080" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                                <Button x:Name="ClearSearchBtn" Grid.Column="2" Content="✕" Width="16" Height="16" FontSize="10" Background="Transparent" Foreground="#FF9090A0" BorderThickness="0" Visibility="Collapsed" Click="ClearSearchBtn_Click" Margin="0,0,4,0"/>
+                            </Grid>
+                        </Border>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Right">
                         <TextBlock x:Name="RecordingCountLabel"
-                                   Text="0 clips"
-                                   Foreground="#FF505070"
-                                   FontSize="10"
+                                   Text="0 items"
+                                   Foreground="#FF8080A8"
+                                   FontSize="11"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,14,0"/>
+                                   Margin="0,0,10,0"/>
                         <ComboBox x:Name="SortOrderCombo"
-                                  Width="115"
+                                  Width="120"
                                   Height="24"
                                   Margin="0,0,8,0"
                                   ToolTip="Sort order for recordings"
                                   SelectionChanged="SortOrderCombo_SelectionChanged"/>
-                        <Button Content="Clear Pads"
+                        <Button Content="{p:Loc ImportAudioBtn}"
+                                Height="24"
+                                Padding="10,2"
+                                Margin="0,0,6,0"
+                                ToolTip="Import external audio file(s) from Windows"
+                                Click="ImportAudioButton_Click"/>
+                        <Button Content="{p:Loc ClearPadsBtn}"
                                 Height="24"
                                 Padding="10,2"
                                 Margin="0,0,6,0"
                                 ToolTip="Permanently delete all non-favorite recordings (favorites are kept)"
                                 Click="ClearPadsButton_Click"/>
-                        <Button Content="&#x1F5D1; Delete All Files"
+                        <Button Content="{p:Loc DeleteAllFilesBtn}"
                                 Height="24"
                                 Padding="10,2"
                                 ToolTip="Permanently delete recordings from disk"

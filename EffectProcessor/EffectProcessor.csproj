@@ -18,5 +18,21 @@
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
+    <Platform>x64</Platform>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AudioPlugSharp" Version="0.7.13" />
+    <PackageReference Include="AudioPlugSharpHost" Version="0.7.13" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Plugins\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <EmbeddedResource Include="Plugins\VST2\mdaDe-ess.dll">
+      <LogicalName>Plugins.VST2.mdaDe-ess.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Plugins\VST2\mdaDynamics.dll">
+      <LogicalName>Plugins.VST2.mdaDynamics.dll</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

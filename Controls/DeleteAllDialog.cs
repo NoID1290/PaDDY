@@ -18,7 +18,7 @@ namespace PaDDY.Controls
 
         public DeleteAllDialog()
         {
-            Title = "Delete All Recordings";
+            Title = Services.LocalizationManager.Instance["DeleteAllTitle"];
             Width = 380;
             SizeToContent = SizeToContent.Height;
             ResizeMode = ResizeMode.NoResize;
@@ -44,7 +44,7 @@ namespace PaDDY.Controls
 
             panel.Children.Add(new TextBlock
             {
-                Text = "Delete All Recordings",
+                Text = Services.LocalizationManager.Instance["DeleteAllTitle"],
                 Foreground = ResolveBrush("SecondaryTextBrush", new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xCC))),
                 FontSize = 12,
                 Margin = new Thickness(0, 0, 0, 10)
@@ -52,7 +52,7 @@ namespace PaDDY.Controls
 
             panel.Children.Add(new TextBlock
             {
-                Text = "Delete all recordings from disk?",
+                Text = Services.LocalizationManager.Instance["DeleteAllPrompt"],
                 Foreground = ResolveBrush("PrimaryTextBrush", Brushes.White),
                 FontSize = 13,
                 TextWrapping = TextWrapping.Wrap,
@@ -76,7 +76,7 @@ namespace PaDDY.Controls
 
             var keepBtn = new Button
             {
-                Content = "Keep Favorites",
+                Content = Services.LocalizationManager.Instance["ContextFavorite"],
                 Style = btnStyle,
                 Margin = new Thickness(0, 0, 8, 0)
             };
@@ -84,7 +84,7 @@ namespace PaDDY.Controls
 
             var deleteBtn = new Button
             {
-                Content = "Delete All",
+                Content = Services.LocalizationManager.Instance["Delete"],
                 Style = btnStyle,
                 Margin = new Thickness(0, 0, 8, 0),
                 Foreground = ResolveBrush("AccentRedBrush", new SolidColorBrush(Color.FromRgb(0xFF, 0x6B, 0x6B)))
@@ -93,7 +93,7 @@ namespace PaDDY.Controls
 
             var cancelBtn = new Button
             {
-                Content = "Cancel",
+                Content = Services.LocalizationManager.Instance["Cancel"],
                 Style = btnStyle,
                 IsCancel = true
             };

@@ -16,6 +16,7 @@
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
+    <Platform>x64</Platform>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>false</PublishSingleFile>
@@ -30,14 +31,16 @@
     <ProjectReference Include="OverlayEngine\OverlayEngine.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="3.1.7" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" ExcludeFromSingleFile="true" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Whisper.net" Version="1.9.1" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" ExcludeFromSingleFile="true" />
-    <PackageReference Include="System.Management" Version="10.0.0-preview.4.25258.110" ExcludeFromSingleFile="true" />
-    <PackageReference Include="Vortice.Direct3D9" Version="3.6.2" ExcludeFromSingleFile="true" />
+    <PackageReference Include="MessagePack" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" />
+    <PackageReference Include="System.Management" Version="10.0.0-preview.4.25258.110" />
+    <PackageReference Include="Vortice.Direct3D9" Version="3.6.2" />
+    <PackageReference Include="AudioPlugSharp" Version="0.7.13" />
+    <PackageReference Include="AudioPlugSharpHost" Version="0.7.13" />
   </ItemGroup>
   <Target Name="ExcludeAppDllsFromSingleFile" BeforeTargets="_ComputeFilesToBundle" Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>
@@ -109,4 +112,5 @@
   <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish">
     <RemoveDir Directories="$(PublishDir)runtimes\win-arm64;$(PublishDir)runtimes\win-x86" Condition="Exists('$(PublishDir)runtimes')" />
   </Target>
+
 </Project>

@@ -122,6 +122,8 @@ namespace PaDDY.Services
             }
         }
 
+        private byte[] _captureBuffer = Array.Empty<byte>();
+
         private void CaptureLoop()
         {
             Exception? error = null;
@@ -144,18 +146,19 @@ namespace PaDDY.Services
                                 out long _, out long _));
 
                         int bytesAvailable = framesAvailable * _captureFormat!.BlockAlign;
-                        var buffer = new byte[bytesAvailable];
+                        if (_captureBuffer.Length < bytesAvailable)
+                            _captureBuffer = new byte[bytesAvailable];
 
                         if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0)
-                            Array.Clear(buffer, 0, bytesAvailable);
+                            Array.Clear(_captureBuffer, 0, bytesAvailable);
                         else
-                            Marshal.Copy(dataPtr, buffer, 0, bytesAvailable);
+                            Marshal.Copy(dataPtr, _captureBuffer, 0, bytesAvailable);
 
                         Marshal.ThrowExceptionForHR(
                             _captureClient.ReleaseBuffer(framesAvailable));
 
                         // Pass native multi-channel data directly to consumers
-                        DataAvailable?.Invoke(this, new WaveInEventArgs(buffer, bytesAvailable));
+                        DataAvailable?.Invoke(this, new WaveInEventArgs(_captureBuffer, bytesAvailable));
 
                         Marshal.ThrowExceptionForHR(
                             _captureClient.GetNextPacketSize(out packetSize));

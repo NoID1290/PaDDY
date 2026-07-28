@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using NAudio.Wave;
 
 namespace NoIDSoftwork.AudioProcessor
@@ -21,6 +22,10 @@ namespace NoIDSoftwork.AudioProcessor
         private readonly int _sourceSampleRate;
         private readonly int _targetSampleRate;
         private readonly bool _needsResample;
+
+        private float[] _stereoBuffer = Array.Empty<float>();
+        private float[] _resampleBuffer = Array.Empty<float>();
+        private byte[] _outputByteBuffer = Array.Empty<byte>();
 
         /// <summary>The output format (always stereo IEEE float).</summary>
         public WaveFormat OutputFormat => _outputFormat;
@@ -61,21 +66,40 @@ namespace NoIDSoftwork.AudioProcessor
                 return (Array.Empty<byte>(), 0);
 
             // Step 1: Downmix to stereo float
-            float[] stereoSamples = DownmixToStereo(sourceBuffer, usableBytes, sourceFrames);
+            int stereoSampleCount = sourceFrames * 2;
+            if (_stereoBuffer.Length < stereoSampleCount)
+                _stereoBuffer = new float[stereoSampleCount];
+
+            DownmixToStereo(sourceBuffer, usableBytes, sourceFrames, _stereoBuffer);
 
             // Step 2: Resample if needed
             float[] outputSamples;
+            int outputSampleCount;
             if (_needsResample)
-                outputSamples = Resample(stereoSamples);
+            {
+                double ratio = (double)_targetSampleRate / _sourceSampleRate;
+                int outputFrames = (int)(sourceFrames * ratio);
+                outputSampleCount = outputFrames * 2;
+                if (_resampleBuffer.Length < outputSampleCount)
+                    _resampleBuffer = new float[outputSampleCount];
+
+                Resample(_stereoBuffer, sourceFrames, _resampleBuffer, outputFrames);
+                outputSamples = _resampleBuffer;
+            }
             else
-                outputSamples = stereoSamples;
+            {
+                outputSamples = _stereoBuffer;
+                outputSampleCount = stereoSampleCount;
+            }
 
             // Step 3: Convert float array to byte array
-            int outputBytes = outputSamples.Length * 4;
-            var outputBuffer = new byte[outputBytes];
-            Buffer.BlockCopy(outputSamples, 0, outputBuffer, 0, outputBytes);
+            int outputBytes = outputSampleCount * 4;
+            if (_outputByteBuffer.Length < outputBytes)
+                _outputByteBuffer = new byte[outputBytes];
 
-            return (outputBuffer, outputBytes);
+            Buffer.BlockCopy(outputSamples, 0, _outputByteBuffer, 0, outputBytes);
+
+            return (_outputByteBuffer, outputBytes);
         }
 
         /// <summary>
@@ -87,12 +111,64 @@ namespace NoIDSoftwork.AudioProcessor
             return new WaveInEventArgs(buf, count);
         }
 
-        private float[] DownmixToStereo(byte[] buffer, int byteCount, int frames)
+        private void DownmixToStereo(byte[] buffer, int byteCount, int frames, float[] output)
         {
-            // Output: interleaved L, R pairs
-            var output = new float[frames * 2];
             int bytesPerSample = _sourceFormat.BitsPerSample / 8;
             bool isFloat = _sourceFormat.Encoding == WaveFormatEncoding.IeeeFloat && _sourceFormat.BitsPerSample == 32;
+
+            if (isFloat && bytesPerSample == 4)
+            {
+                ReadOnlySpan<float> floatSrc = MemoryMarshal.Cast<byte, float>(buffer.AsSpan(0, byteCount));
+
+                if (_sourceChannels == 2)
+                {
+                    int sampleCount = Math.Min(frames * 2, Math.Min(floatSrc.Length, output.Length));
+                    for (int i = 0; i < sampleCount; i++)
+                    {
+                        output[i] = Math.Clamp(floatSrc[i], -1f, 1f);
+                    }
+                    return;
+                }
+
+                if (_sourceChannels == 1)
+                {
+                    int maxFrames = Math.Min(frames, floatSrc.Length);
+                    for (int f = 0; f < maxFrames; f++)
+                    {
+                        float s = Math.Clamp(floatSrc[f], -1f, 1f);
+                        output[f * 2] = s;
+                        output[f * 2 + 1] = s;
+                    }
+                    return;
+                }
+
+                // Fast Float Multi-channel downmix (5.1, 7.1, etc.)
+                const float normFactor = 1.0f / 2.5f;
+                int ch = _sourceChannels;
+
+                for (int f = 0; f < frames; f++)
+                {
+                    int frameOffset = f * ch;
+                    if (frameOffset + ch > floatSrc.Length) break;
+
+                    float fl = floatSrc[frameOffset];
+                    float fr = ch > 1 ? floatSrc[frameOffset + 1] : fl;
+                    float fc = ch > 2 ? floatSrc[frameOffset + 2] : 0f;
+                    float lfe = ch > 3 ? floatSrc[frameOffset + 3] : 0f;
+                    float bl = ch > 4 ? floatSrc[frameOffset + 4] : 0f;
+                    float br = ch > 5 ? floatSrc[frameOffset + 5] : 0f;
+                    float sl = ch > 6 ? floatSrc[frameOffset + 6] : 0f;
+                    float sr = ch > 7 ? floatSrc[frameOffset + 7] : 0f;
+
+                    // ITU-R BS.775 stereo downmix
+                    float left = (fl + CenterMix * fc + SurroundMix * bl + SurroundMix * sl + LfeMix * lfe) * normFactor;
+                    float right = (fr + CenterMix * fc + SurroundMix * br + SurroundMix * sr + LfeMix * lfe) * normFactor;
+
+                    output[f * 2] = Math.Clamp(left, -1f, 1f);
+                    output[f * 2 + 1] = Math.Clamp(right, -1f, 1f);
+                }
+                return;
+            }
 
             if (_sourceChannels == 2)
             {
@@ -101,7 +177,7 @@ namespace NoIDSoftwork.AudioProcessor
                     int sourceOffset = i * bytesPerSample;
                     output[i] = ReadSampleAsFloat(buffer, sourceOffset, bytesPerSample, isFloat);
                 }
-                return output;
+                return;
             }
 
             if (_sourceChannels == 1)
@@ -114,11 +190,10 @@ namespace NoIDSoftwork.AudioProcessor
                     output[f * 2] = s;
                     output[f * 2 + 1] = s;
                 }
-                return output;
+                return;
             }
 
-            // Multi-channel downmix
-            // Standard channel order: FL, FR, FC, LFE, BL/SL, BR/SR, SL, SR
+            // Multi-channel downmix fallback for integer PCM
             for (int f = 0; f < frames; f++)
             {
                 int frameOffset = f * _sourceChannels * bytesPerSample;
@@ -136,13 +211,10 @@ namespace NoIDSoftwork.AudioProcessor
                 float right = fr + CenterMix * fc + SurroundMix * br + SurroundMix * sr + LfeMix * lfe;
 
                 // Normalize to prevent clipping (peak coefficient sum ≈ 1 + 0.707 + 0.707 + 0.707 + 0.5 ≈ 3.62)
-                // We apply a conservative normalization factor
                 const float normFactor = 1.0f / 2.5f;
-                output[f * 2] = left * normFactor;
-                output[f * 2 + 1] = right * normFactor;
+                output[f * 2] = Math.Clamp(left * normFactor, -1f, 1f);
+                output[f * 2 + 1] = Math.Clamp(right * normFactor, -1f, 1f);
             }
-
-            return output;
         }
 
         private static float ReadSampleAsFloat(byte[] buffer, int byteOffset, int bytesPerSample, bool isFloat)
@@ -178,12 +250,9 @@ namespace NoIDSoftwork.AudioProcessor
             return byteOffset >= 0 && bytesPerSample > 0 && byteOffset <= buffer.Length - bytesPerSample;
         }
 
-        private float[] Resample(float[] stereoInput)
+        private void Resample(float[] stereoInput, int inputFrames, float[] output, int outputFrames)
         {
-            int inputFrames = stereoInput.Length / 2;
             double ratio = (double)_targetSampleRate / _sourceSampleRate;
-            int outputFrames = (int)(inputFrames * ratio);
-            var output = new float[outputFrames * 2];
 
             for (int i = 0; i < outputFrames; i++)
             {
@@ -198,8 +267,6 @@ namespace NoIDSoftwork.AudioProcessor
                 output[i * 2] = stereoInput[idx0] * (1f - frac) + stereoInput[idx1] * frac;
                 output[i * 2 + 1] = stereoInput[idx0 + 1] * (1f - frac) + stereoInput[idx1 + 1] * frac;
             }
-
-            return output;
         }
 
         /// <summary>
