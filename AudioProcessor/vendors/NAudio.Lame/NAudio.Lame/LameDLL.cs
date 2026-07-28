@@ -1,4 +1,4 @@
-﻿using LameDLLWrap;
+using LameDLLWrap;
 using System;
 using System.IO;
 using System.Linq;
@@ -77,6 +77,42 @@ namespace NAudio.Lame
 				if (!LameDLLImpl.IsWindowsOS)
 					return false;
 
+				var dllname = $"libmp3lame.{(Environment.Is64BitProcess ? "64" : "32")}.dll";
+
+				// ── Try extracting from embedded resource first ──────────────
+				try
+				{
+					var asm = typeof(LameDLL).Assembly;
+					using var stream = asm.GetManifestResourceStream(dllname);
+					if (stream != null)
+					{
+						string extractDir = Path.Combine(
+							Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+							"NoIDSoftwork", "PaDDY", "native");
+						Directory.CreateDirectory(extractDir);
+						string extractPath = Path.Combine(extractDir, dllname);
+
+						// Only re-extract if missing or size changed (updated build).
+						bool needsExtract = true;
+						if (File.Exists(extractPath))
+						{
+							var fi = new FileInfo(extractPath);
+							needsExtract = fi.Length != stream.Length;
+						}
+
+						if (needsExtract)
+						{
+							using var fs = File.Create(extractPath);
+							stream.CopyTo(fs);
+						}
+
+						if (TryLoadLameDLL(new FileInfo(extractPath)))
+							return true;
+					}
+				}
+				catch { /* Fall through to disk search */ }
+
+				// ── Original disk search fallback ────────────────────────────
 				// Fix issue with NAudio.Lame loaded as in-memory assembly (Issue #59)
 				string asmPath = default;
 				try
@@ -94,8 +130,6 @@ namespace NAudio.Lame
 					.Where(p => !string.IsNullOrEmpty(p))
 					.Distinct()
 					.ToArray();
-
-				var dllname = $"libmp3lame.{(Environment.Is64BitProcess ? "64" : "32")}.dll";
 
 				foreach (var path in paths)
 				{

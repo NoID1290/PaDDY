@@ -39,8 +39,7 @@
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" />
     <PackageReference Include="System.Management" Version="10.0.0-preview.4.25258.110" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.6.2" />
-    <PackageReference Include="AudioPlugSharp" Version="0.7.13" />
-    <PackageReference Include="AudioPlugSharpHost" Version="0.7.13" />
+
   </ItemGroup>
   <Target Name="ExcludeAppDllsFromSingleFile" BeforeTargets="_ComputeFilesToBundle" Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>
@@ -89,10 +88,9 @@
     <Resource Include="Themes\Fonts\ari-w9500-display.ttf" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="DiscordGameSDK\discord_game_sdk.dll">
-      <Link>discord_game_sdk.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="DiscordGameSDK\discord_game_sdk.dll">
+      <LogicalName>discord_game_sdk.dll</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <Target Name="RenameExeAfterBuild" AfterTargets="Build">
     <Move SourceFiles="$(OutputPath)NoIDSoftwork.Core.exe" DestinationFiles="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)NoIDSoftwork.Core.exe')" />

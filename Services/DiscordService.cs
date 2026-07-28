@@ -1,5 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Discord;
@@ -10,6 +13,64 @@ namespace PaDDY.Services
     {
         private static readonly Lazy<DiscordService> _instance = new(() => new DiscordService());
         public static DiscordService Instance => _instance.Value;
+
+        /// <summary>
+        /// False when the native discord_game_sdk DLL could not be extracted or loaded.
+        /// All public entry points silently no-op when this is false.
+        /// </summary>
+        private static readonly bool _nativeAvailable;
+
+        static DiscordService()
+        {
+            _nativeAvailable = false;
+            try
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                using var stream = asm.GetManifestResourceStream("discord_game_sdk.dll");
+                if (stream == null)
+                {
+                    Debug.WriteLine("[Discord Service] Embedded discord_game_sdk.dll resource not found. Discord disabled.");
+                    return;
+                }
+
+                string extractDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "NoIDSoftwork", "PaDDY", "native");
+                Directory.CreateDirectory(extractDir);
+                string extractPath = Path.Combine(extractDir, "discord_game_sdk.dll");
+
+                // Only re-extract if missing or size changed (updated build).
+                bool needsExtract = true;
+                if (File.Exists(extractPath))
+                {
+                    var fi = new FileInfo(extractPath);
+                    needsExtract = fi.Length != stream.Length;
+                }
+
+                if (needsExtract)
+                {
+                    using var fs = File.Create(extractPath);
+                    stream.CopyTo(fs);
+                }
+
+                // Register a resolver so DllImport("discord_game_sdk") finds our extracted copy.
+                NativeLibrary.SetDllImportResolver(asm, (name, assembly, searchPath) =>
+                {
+                    if (name == "discord_game_sdk")
+                    {
+                        if (NativeLibrary.TryLoad(extractPath, out IntPtr handle))
+                            return handle;
+                    }
+                    return IntPtr.Zero;
+                });
+
+                _nativeAvailable = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Discord Service] Failed to extract native DLL, Discord disabled: {ex.Message}");
+            }
+        }
 
         private Discord.Discord? _discord;
         private DispatcherTimer? _callbackTimer;
@@ -31,6 +92,8 @@ namespace PaDDY.Services
 
         public void Initialize(bool enabled, long clientId)
         {
+            if (!_nativeAvailable) return;
+
             bool wasEnabled = _enabled;
             long oldClientId = _clientId;
 
@@ -53,6 +116,7 @@ namespace PaDDY.Services
 
         public void Start()
         {
+            if (!_nativeAvailable) return;
             if (_discord != null || _isConnecting) return;
 
             _isConnecting = true;

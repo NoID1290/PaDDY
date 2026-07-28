@@ -149,13 +149,15 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         private static void EnsureEmbeddedPluginsExtracted(string baseDir)
         {
             var assembly = typeof(VstPluginManager).Assembly;
-            string[] embeddedPluginResources = new[]
+
+            // ── VST2 plugins ──────────────────────────────────────────────
+            string[] embeddedVst2Resources = new[]
             {
                 "Plugins.VST2.mdaDe-ess.dll",
                 "Plugins.VST2.mdaDynamics.dll"
             };
 
-            foreach (string resourceName in embeddedPluginResources)
+            foreach (string resourceName in embeddedVst2Resources)
             {
                 try
                 {
@@ -179,6 +181,30 @@ namespace NoIDSoftwork.EffectProcessor.Effects
                 {
                     Console.WriteLine($"Failed to unpack embedded resource '{resourceName}': {ex.Message}");
                 }
+            }
+
+            // ── VST3 plugins ──────────────────────────────────────────────
+            // WetReverb ships as a single win-x64 binary inside a .vst3 bundle directory.
+            try
+            {
+                string vst3TargetDir = Path.Combine(baseDir, "Plugins", "VST3",
+                    "WetReverb.vst3", "Contents", "x86_64-win");
+                string vst3TargetPath = Path.Combine(vst3TargetDir, "WetReverb.vst3");
+
+                if (!File.Exists(vst3TargetPath))
+                {
+                    Directory.CreateDirectory(vst3TargetDir);
+                    using var stream = assembly.GetManifestResourceStream("Plugins.VST3.WetReverb.vst3");
+                    if (stream != null)
+                    {
+                        using var fileStream = File.Create(vst3TargetPath);
+                        stream.CopyTo(fileStream);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to unpack embedded VST3 resource 'WetReverb': {ex.Message}");
             }
         }
     }
