@@ -24,18 +24,17 @@ namespace PaDDY
                 var infoVersion = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
                 string displayVersion;
-                if (ver != null)
+                if (!string.IsNullOrEmpty(infoVersion))
                 {
-                    displayVersion = $"Version {ver.Major}.{ver.Minor}.{ver.Build}";
-                    // Append pre-release suffix if present in the informational version
-                    if (infoVersion != null)
-                    {
-                        var plusIdx = infoVersion.IndexOf('+'); // strip build metadata if any
-                        var infoBase = plusIdx >= 0 ? infoVersion[..plusIdx] : infoVersion;
-                        var dashIdx = infoBase.IndexOf('-');
-                        if (dashIdx >= 0)
-                            displayVersion += " " + infoBase[dashIdx..];
-                    }
+                    var plusIdx = infoVersion.IndexOf('+'); // strip build metadata if any
+                    var infoBase = plusIdx >= 0 ? infoVersion[..plusIdx] : infoVersion;
+                    displayVersion = $"Version {infoBase}";
+                }
+                else if (ver != null)
+                {
+                    displayVersion = ver.Revision > 0
+                        ? $"Version {ver.Major}.{ver.Minor}.{ver.Build}.{ver.Revision}"
+                        : $"Version {ver.Major}.{ver.Minor}.{ver.Build}";
                 }
                 else
                 {

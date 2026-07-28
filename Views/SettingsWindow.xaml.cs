@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
@@ -107,6 +109,8 @@ namespace PaDDY
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            PopulateVersionAndDependenciesInfo();
+
             // Stream Deck Plugin check
             string pluginPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
             if (System.IO.Directory.Exists(pluginPath))
@@ -280,6 +284,65 @@ namespace PaDDY
             GlobalFadeOutSlider.Value = fadeOutMs;
             GlobalFadeInValueText.Text = $"{fadeInMs:0} ms";
             GlobalFadeOutValueText.Text = $"{fadeOutMs:0} ms";
+        }
+
+        private void PopulateVersionAndDependenciesInfo()
+        {
+            try
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                var ver = asm.GetName().Version;
+                var infoVersion = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+                string fullVersion = !string.IsNullOrEmpty(infoVersion)
+                    ? infoVersion
+                    : (ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}.{ver.Revision}" : "1.8.4.0715");
+
+                if (fullVersion.Contains('+'))
+                {
+                    var plusIdx = fullVersion.IndexOf('+');
+                    fullVersion = fullVersion[..plusIdx];
+                }
+
+                string versionDisplay = fullVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase)
+                    ? fullVersion
+                    : $"v{fullVersion}";
+
+                VersionInfoText.Text = $"PaDDY {versionDisplay}";
+
+                var deps = new List<string>();
+
+                var netVer = RuntimeInformation.FrameworkDescription;
+                if (!string.IsNullOrEmpty(netVer))
+                    deps.Add(netVer);
+
+                try
+                {
+                    var naudioVer = typeof(NAudio.Wave.WaveStream).Assembly.GetName().Version;
+                    if (naudioVer != null) deps.Add($"NAudio {naudioVer.Major}.{naudioVer.Minor}.{naudioVer.Build}");
+                }
+                catch { }
+
+                try
+                {
+                    var vorticeVer = typeof(Vortice.Direct3D11.ID3D11Device).Assembly.GetName().Version;
+                    if (vorticeVer != null) deps.Add($"Vortice {vorticeVer.Major}.{vorticeVer.Minor}.{vorticeVer.Build}");
+                }
+                catch { }
+
+                try
+                {
+                    var whisperVer = typeof(Whisper.net.WhisperFactory).Assembly.GetName().Version;
+                    if (whisperVer != null) deps.Add($"Whisper.net {whisperVer.Major}.{whisperVer.Minor}.{whisperVer.Build}");
+                }
+                catch { }
+
+                DependenciesInfoText.Text = string.Join("\n", deps);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load version/dependency info: {ex}");
+            }
         }
 
         private void LanguageCombo_SelectionChanged(object sender,

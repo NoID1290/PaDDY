@@ -1045,6 +1045,29 @@
                         </TabItem>
                     </TabControl>
 
+                    <!-- Footer Section at the bottom left sidebar column -->
+                    <Border Grid.Row="1" Grid.Column="0"
+                            Padding="16,8,16,8"
+                            Background="{DynamicResource SecondaryFooterBackgroundBrush}"
+                            BorderBrush="{DynamicResource DividerBrush}"
+                            BorderThickness="0,1,1,0">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="VersionInfoText"
+                                       Text="PaDDY v0.0.0"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="10.5"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="DependenciesInfoText"
+                                       Text="Dependencies —"
+                                       Foreground="{DynamicResource SubtleTextBrush}"
+                                       FontSize="9.5"
+                                       Margin="0,3,0,0"
+                                       LineHeight="14"/>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Footer Section at the bottom right content column -->
                     <Border Grid.Row="1" Grid.Column="1"
                             Padding="24,12,24,16"
