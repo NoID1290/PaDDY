@@ -159,13 +159,24 @@ namespace PaDDY.Services
                     File.Delete(path);
                     return;
                 }
-                catch (IOException) when (attempt < 4)
+                catch (Exception) when (attempt < 4)
                 {
                     SqliteConnection.ClearAllPools();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
-                    System.Threading.Thread.Sleep(50);
+                    System.Threading.Thread.Sleep(100);
                 }
+            }
+
+            // Fallback: If deleting fails due to OS file lock, truncate file so SQLite ignores stale data
+            try
+            {
+                using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+                fs.SetLength(0);
+            }
+            catch
+            {
+                // Best effort cleanup.
             }
         }
 
@@ -338,13 +349,12 @@ namespace PaDDY.Services
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
-                // 1. Ensure the destination is not locked before proceeding.
+                // 1. Clear companion WAL/SHM files if present so stale WAL frames aren't applied to restored DB
                 ForceDeleteFile(UsrDataPath + "-wal");
                 ForceDeleteFile(UsrDataPath + "-shm");
 
                 if (File.Exists(recordingFile))
                 {
-                    ForceDeleteFile(UsrDataPath);
                     File.Copy(recordingFile, UsrDataPath, true);
                 }
 
