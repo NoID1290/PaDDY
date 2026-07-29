@@ -1260,10 +1260,11 @@
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <Button Style="{StaticResource EditorBtn}"
                                         Content="{p:Loc Cancel}"
-                                        IsCancel="True"/>
+                                        IsCancel="True"
+                                        Click="CancelBtn_Click"/>
                                 <Button x:Name="SaveCopyBtn"
                                         Style="{StaticResource EditorBtn}"
-                                        Content="{p:Loc Save}"
+                                        Content="{p:Loc SaveAsCopy}"
                                         Margin="8,0,0,0"
                                         Click="SaveCopyBtn_Click"/>
                                 <Button x:Name="SaveBtn"

@@ -86,6 +86,26 @@ namespace PaDDY
         public double OutTrimEndFraction { get; private set; }
         public double OutGainDb { get; private set; }
 
+        private static readonly System.Reflection.FieldInfo? IsModalField = typeof(Window).GetField("_isModal", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        private bool? _dialogResult;
+        public new bool? DialogResult
+        {
+            get => _dialogResult ?? (IsModalField?.GetValue(this) is true ? base.DialogResult : null);
+            set
+            {
+                _dialogResult = value;
+                if (IsModalField?.GetValue(this) is true)
+                {
+                    base.DialogResult = value;
+                }
+                else if (value != null)
+                {
+                    Close();
+                }
+            }
+        }
+
         private readonly bool _initialIsNonDestructive;
         private readonly long _initialTrimStartMs;
         private readonly long _initialTrimEndMs;
@@ -1456,6 +1476,11 @@ namespace PaDDY
                 NonDestructiveCheckBox.IsChecked = true;
                 _isChangingNonDestructive = false;
             }
+        }
+
+        private void CancelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
         }
 
         // ── Save (destructive trim) ────────────────────────────────────────

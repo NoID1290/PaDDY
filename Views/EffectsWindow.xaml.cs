@@ -31,6 +31,26 @@ public partial class EffectsWindow : Window
     // Suppresses slider-changed callbacks while loading initial values
     private bool _loading;
 
+    private static readonly System.Reflection.FieldInfo? IsModalField = typeof(Window).GetField("_isModal", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+    private bool? _dialogResult;
+    public new bool? DialogResult
+    {
+        get => _dialogResult ?? (IsModalField?.GetValue(this) is true ? base.DialogResult : null);
+        set
+        {
+            _dialogResult = value;
+            if (IsModalField?.GetValue(this) is true)
+            {
+                base.DialogResult = value;
+            }
+            else if (value != null)
+            {
+                Close();
+            }
+        }
+    }
+
     public EffectsWindow(IEffectChain chain, bool isPerClip)
     {
         _loading = true;      // suppress ValueChanged events fired during XAML init

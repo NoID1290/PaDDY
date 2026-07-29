@@ -53,6 +53,7 @@
   <data name="AppName" xml:space="preserve"><value>PaDDY</value></data>
   <data name="Close" xml:space="preserve"><value>Fermer</value></data>
   <data name="Save" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="SaveAsCopy" xml:space="preserve"><value>Enregistrer une copie</value></data>
   <data name="Cancel" xml:space="preserve"><value>Annuler</value></data>
   <data name="OK" xml:space="preserve"><value>OK</value></data>
   <data name="Delete" xml:space="preserve"><value>Supprimer</value></data>
