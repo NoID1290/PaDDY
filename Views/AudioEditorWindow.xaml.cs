@@ -1931,12 +1931,25 @@ namespace PaDDY
             VstChevron.Text = expand ? "\u25BC" : "\u25BA";
         }
 
+        private VstPluginWindow? _activeVstPluginWindow;
+
         private void ShowVstEditor_Click(object sender, RoutedEventArgs e)
         {
             if (_vstEffects.Count == 0) return;
 
-            var win = new VstPluginWindow(_vstEffects) { Owner = this };
-            win.ShowDialog();
+            if (_activeVstPluginWindow != null && _activeVstPluginWindow.IsLoaded)
+            {
+                if (_activeVstPluginWindow.WindowState == WindowState.Minimized)
+                    _activeVstPluginWindow.WindowState = WindowState.Normal;
+                _activeVstPluginWindow.Activate();
+                _activeVstPluginWindow.Focus();
+                return;
+            }
+
+            var win = new VstPluginWindow(_vstEffects);
+            _activeVstPluginWindow = win;
+            win.Closed += (s, args) => _activeVstPluginWindow = null;
+            win.Show();
         }
 
         private bool IsPluginAlreadyLoaded(string name)

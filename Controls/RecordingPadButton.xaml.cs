@@ -281,10 +281,21 @@ namespace PaDDY.Controls
             OpenAudioEditor();
         }
 
+        private AudioEditorWindow? _activeAudioEditorWindow;
+
         public void OpenAudioEditor()
         {
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
             StopPlayback();
+
+            if (_activeAudioEditorWindow != null && _activeAudioEditorWindow.IsLoaded)
+            {
+                if (_activeAudioEditorWindow.WindowState == WindowState.Minimized)
+                    _activeAudioEditorWindow.WindowState = WindowState.Normal;
+                _activeAudioEditorWindow.Activate();
+                _activeAudioEditorWindow.Focus();
+                return;
+            }
 
             var editor = new AudioEditorWindow(
                 Entry.FilePath,
@@ -294,56 +305,59 @@ namespace PaDDY.Controls
                 Entry.IsNonDestructive,
                 Entry.TrimStartMs,
                 Entry.TrimEndMs,
-                Entry.GainDb)
+                Entry.GainDb);
+            _activeAudioEditorWindow = editor;
+            editor.Closed += (s, args) =>
             {
-                Owner = Window.GetWindow(this)
-            };
-            if (editor.ShowDialog() == true)
-            {
-                if (editor.CopyFilePath != null)
+                _activeAudioEditorWindow = null;
+                if (editor.DialogResult == true)
                 {
-                    // "Save as Copy" — fire event so MainWindow adds a new pad
-                    RecordingCopied?.Invoke(editor.CopyFilePath, editor.ShouldSaveToFavorite);
-                }
-                else
-                {
-                    Entry.IsNonDestructive = editor.OutIsNonDestructive;
-                    if (Entry.IsNonDestructive)
+                    if (editor.CopyFilePath != null)
                     {
-                        try
-                        {
-                            using var reader = AudioReaderFactory.Open(Entry.FilePath);
-                            double totalSec = reader.TotalTime.TotalSeconds;
-                            Entry.TrimStartMs = (long)(editor.OutTrimStartFraction * totalSec * 1000);
-                            Entry.TrimEndMs = (long)(editor.OutTrimEndFraction * totalSec * 1000);
-                            Entry.GainDb = editor.OutGainDb;
-                            Entry.Duration = TimeSpan.FromSeconds((editor.OutTrimEndFraction - editor.OutTrimStartFraction) * totalSec);
-                        }
-                        catch { }
+                        // "Save as Copy" — fire event so MainWindow adds a new pad
+                        RecordingCopied?.Invoke(editor.CopyFilePath, editor.ShouldSaveToFavorite);
                     }
                     else
                     {
-                        Entry.TrimStartMs = 0;
-                        Entry.TrimEndMs = 0;
-                        Entry.GainDb = 0.0;
-                        try
+                        Entry.IsNonDestructive = editor.OutIsNonDestructive;
+                        if (Entry.IsNonDestructive)
                         {
-                            using var reader = AudioReaderFactory.Open(Entry.FilePath);
-                            Entry.Duration = reader.TotalTime;
+                            try
+                            {
+                                using var reader = AudioReaderFactory.Open(Entry.FilePath);
+                                double totalSec = reader.TotalTime.TotalSeconds;
+                                Entry.TrimStartMs = (long)(editor.OutTrimStartFraction * totalSec * 1000);
+                                Entry.TrimEndMs = (long)(editor.OutTrimEndFraction * totalSec * 1000);
+                                Entry.GainDb = editor.OutGainDb;
+                                Entry.Duration = TimeSpan.FromSeconds((editor.OutTrimEndFraction - editor.OutTrimStartFraction) * totalSec);
+                            }
+                            catch { }
                         }
-                        catch { }
-                    }
-                    SetEntry(Entry);
-                    RecordingEdited?.Invoke(Entry);
+                        else
+                        {
+                            Entry.TrimStartMs = 0;
+                            Entry.TrimEndMs = 0;
+                            Entry.GainDb = 0.0;
+                            try
+                            {
+                                using var reader = AudioReaderFactory.Open(Entry.FilePath);
+                                Entry.Duration = reader.TotalTime;
+                            }
+                            catch { }
+                        }
+                        SetEntry(Entry);
+                        RecordingEdited?.Invoke(Entry);
 
-                    if (editor.ShouldSaveToFavorite && !IsFavorite)
-                    {
-                        IsFavorite = true;
-                        Entry.IsFavorite = true;
-                        FavoriteToggled?.Invoke(this, EventArgs.Empty);
+                        if (editor.ShouldSaveToFavorite && !IsFavorite)
+                        {
+                            IsFavorite = true;
+                            Entry.IsFavorite = true;
+                            FavoriteToggled?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                 }
-            }
+            };
+            editor.Show();
         }
 
         // ── Right-click: play on listen/monitor device only ───────────────────────────────────

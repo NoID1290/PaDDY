@@ -137,9 +137,23 @@ namespace PaDDY
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
+        private CreditsWindow? _activeCreditsWindow;
+
         private void CreditsButton_Click(object sender, RoutedEventArgs e)
         {
-            new CreditsWindow { Owner = this }.ShowDialog();
+            if (_activeCreditsWindow != null && _activeCreditsWindow.IsLoaded)
+            {
+                if (_activeCreditsWindow.WindowState == WindowState.Minimized)
+                    _activeCreditsWindow.WindowState = WindowState.Normal;
+                _activeCreditsWindow.Activate();
+                _activeCreditsWindow.Focus();
+                return;
+            }
+
+            var win = new CreditsWindow();
+            _activeCreditsWindow = win;
+            win.Closed += (s, args) => _activeCreditsWindow = null;
+            win.Show();
         }
 
         private void GitHubButton_Click(object sender, RoutedEventArgs e)

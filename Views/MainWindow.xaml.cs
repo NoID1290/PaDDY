@@ -2063,144 +2063,171 @@ namespace PaDDY
         }
 
         // ── Settings / About buttons ───────────────────────────────────────────
+        private SettingsWindow? _activeSettingsWindow;
+        private AboutWindow? _activeAboutWindow;
+
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            var win = new SettingsWindow(_settings)
+            if (_activeSettingsWindow != null && _activeSettingsWindow.IsLoaded)
             {
-                Owner = this
-            };
-            if (win.ShowDialog() != true) return;
+                if (_activeSettingsWindow.WindowState == WindowState.Minimized)
+                    _activeSettingsWindow.WindowState = WindowState.Normal;
+                _activeSettingsWindow.Activate();
+                _activeSettingsWindow.Focus();
+                return;
+            }
 
-            // Apply changes
-            _settings.RecordCodec = win.SelectedCodec;
-            _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
-            _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
-            _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
-            _settings.MaxRecords = win.SelectedMaxRecords;
-            _settings.AppFontVariant = win.SelectedFontVariant;
-            _settings.DefaultPadTitleTemplate = win.SelectedDefaultPadTitleTemplate;
-            _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
-            _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
-
-            bool wasND = _settings.NewRecordingsNonDestructive;
-            _settings.NewRecordingsNonDestructive = win.SelectedNewRecordingsNonDestructive;
-            if (wasND && !_settings.NewRecordingsNonDestructive)
+            var win = new SettingsWindow(_settings);
+            _activeSettingsWindow = win;
+            win.Closed += (s, args) =>
             {
-                foreach (var pad in _padCache.Values)
+                _activeSettingsWindow = null;
+                if (win.DialogResult != true) return;
+
+                // Apply changes
+                _settings.RecordCodec = win.SelectedCodec;
+                _settings.PastBufferDurationMs = win.SelectedBufferDurationMs;
+                _settings.BufferHotKeyModifiers = win.SelectedHotKeyModifiers;
+                _settings.BufferHotKeyVk = win.SelectedHotKeyVk;
+                _settings.MaxRecords = win.SelectedMaxRecords;
+                _settings.AppFontVariant = win.SelectedFontVariant;
+                _settings.DefaultPadTitleTemplate = win.SelectedDefaultPadTitleTemplate;
+                _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
+                _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
+
+                bool wasND = _settings.NewRecordingsNonDestructive;
+                _settings.NewRecordingsNonDestructive = win.SelectedNewRecordingsNonDestructive;
+                if (wasND && !_settings.NewRecordingsNonDestructive)
                 {
-                    if (pad.Entry != null && pad.Entry.IsNonDestructive)
+                    foreach (var pad in _padCache.Values)
                     {
-                        pad.Entry.IsNonDestructive = false;
-                        pad.Entry.TrimStartMs = 0;
-                        pad.Entry.TrimEndMs = 0;
-                        pad.Entry.GainDb = 0.0;
-                        
-                        try
+                        if (pad.Entry != null && pad.Entry.IsNonDestructive)
                         {
-                            using var reader = AudioReaderFactory.Open(pad.Entry.FilePath);
-                            pad.Entry.Duration = reader.TotalTime;
+                            pad.Entry.IsNonDestructive = false;
+                            pad.Entry.TrimStartMs = 0;
+                            pad.Entry.TrimEndMs = 0;
+                            pad.Entry.GainDb = 0.0;
+                            
+                            try
+                            {
+                                using var reader = AudioReaderFactory.Open(pad.Entry.FilePath);
+                                pad.Entry.Duration = reader.TotalTime;
+                            }
+                            catch { }
+
+                            pad.SetEntry(pad.Entry);
+
+                            _recordingStore.UpdateNonDestructiveSettings(
+                                pad.Entry.RecordingId,
+                                false,
+                                0,
+                                0,
+                                0.0,
+                                (long)pad.Entry.Duration.TotalMilliseconds
+                            );
                         }
-                        catch { }
-
-                        pad.SetEntry(pad.Entry);
-
-                        _recordingStore.UpdateNonDestructiveSettings(
-                            pad.Entry.RecordingId,
-                            false,
-                            0,
-                            0,
-                            0.0,
-                            (long)pad.Entry.Duration.TotalMilliseconds
-                        );
                     }
                 }
                 UpdatePadState();
-            }
 
-            // Appearance
-            _settings.Theme = win.SelectedTheme;
-            _settings.MeterSkin = win.SelectedMeterSkin;
-            _settings.PerformanceMode = win.SelectedPerformanceMode;
-            _settings.PauseAnimationsWhenUnfocused = win.SelectedPauseAnimationsWhenUnfocused;
+                // Appearance
+                _settings.Theme = win.SelectedTheme;
+                _settings.MeterSkin = win.SelectedMeterSkin;
+                _settings.PerformanceMode = win.SelectedPerformanceMode;
+                _settings.PauseAnimationsWhenUnfocused = win.SelectedPauseAnimationsWhenUnfocused;
 
-            // System tray / startup
-            _settings.MinimizeToTray = win.SelectedMinimizeToTray;
-            _settings.CloseToTray = win.SelectedCloseToTray;
-            _settings.StartMinimizedInTray = win.SelectedStartMinimizedInTray;
-            _settings.RunOnWindowsStartup = win.SelectedRunOnWindowsStartup;
+                // System tray / startup
+                _settings.MinimizeToTray = win.SelectedMinimizeToTray;
+                _settings.CloseToTray = win.SelectedCloseToTray;
+                _settings.StartMinimizedInTray = win.SelectedStartMinimizedInTray;
+                _settings.RunOnWindowsStartup = win.SelectedRunOnWindowsStartup;
 
-            // Detection / speech
-            _settings.DetectionAlgorithm = win.SelectedDetectionAlgorithm;
-            _settings.AutoRenameWithSpeech = win.SelectedAutoRenameWithSpeech;
-            _settings.SpeechModel = win.SelectedSpeechModel;
-            _settings.SpeechLanguage = win.SelectedSpeechLanguage;
-            _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
-            _settings.DiscordRichPresenceEnabled = win.SelectedDiscordRichPresenceEnabled;
-            _settings.DiscordClientId = win.SelectedDiscordClientId;
-            _settings.AutoInstallUpdates = win.SelectedAutoInstallUpdates;
-            _settings.DownloadBetaUpdates = win.SelectedDownloadBetaUpdates;
+                // Detection / speech
+                _settings.DetectionAlgorithm = win.SelectedDetectionAlgorithm;
+                _settings.AutoRenameWithSpeech = win.SelectedAutoRenameWithSpeech;
+                _settings.SpeechModel = win.SelectedSpeechModel;
+                _settings.SpeechLanguage = win.SelectedSpeechLanguage;
+                _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
+                _settings.DiscordRichPresenceEnabled = win.SelectedDiscordRichPresenceEnabled;
+                _settings.DiscordClientId = win.SelectedDiscordClientId;
+                _settings.AutoInstallUpdates = win.SelectedAutoInstallUpdates;
+                _settings.DownloadBetaUpdates = win.SelectedDownloadBetaUpdates;
 
-            // Global Effects
-            _settings.GlobalFadeEnabled = win.SelectedGlobalFadeEnabled;
-            _settings.GlobalFadeInDurationMs = win.SelectedGlobalFadeInDurationMs;
-            _settings.GlobalFadeOutDurationMs = win.SelectedGlobalFadeOutDurationMs;
-            _settings.Save();
-
-            DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
-
-            App.ApplyFont(win.SelectedFontVariant);
-            Helpers.ThemeManager.ApplyTheme(_settings.Theme);
-            UpdateLoadingOverlayTheme();
-            Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
-            Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
-            bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
-            bool startupEnabled = Helpers.StartupRegistration.IsRunOnStartupEnabled();
-            if (!startupApplied || startupEnabled != _settings.RunOnWindowsStartup)
-            {
-                _settings.RunOnWindowsStartup = startupEnabled;
+                // Global Effects
+                _settings.GlobalFadeEnabled = win.SelectedGlobalFadeEnabled;
+                _settings.GlobalFadeInDurationMs = win.SelectedGlobalFadeInDurationMs;
+                _settings.GlobalFadeOutDurationMs = win.SelectedGlobalFadeOutDurationMs;
                 _settings.Save();
-                System.Windows.MessageBox.Show(
-                    "PaDDY could not fully apply the Windows startup setting. The toggle was synced to the current registry state.",
-                    "Startup registration",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
-            _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
-            _performanceMode = _settings.PerformanceMode;
-            _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
 
-            _captureService.RecordCodec = win.SelectedCodec;
-            _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
+                DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
 
-            // Re-register hotkey with new key
-            _hotkeyService.Reregister(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
-            UpdateHotkeyLabel();
+                App.ApplyFont(win.SelectedFontVariant);
+                Helpers.ThemeManager.ApplyTheme(_settings.Theme);
+                UpdateLoadingOverlayTheme();
+                Helpers.ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
+                Helpers.ThemeManager.ApplyPerformanceMode(_settings.PerformanceMode);
+                bool startupApplied = Helpers.StartupRegistration.SetRunOnStartup(_settings.RunOnWindowsStartup);
+                bool startupEnabled = Helpers.StartupRegistration.IsRunOnStartupEnabled();
+                if (!startupApplied || startupEnabled != _settings.RunOnWindowsStartup)
+                {
+                    _settings.RunOnWindowsStartup = startupEnabled;
+                    _settings.Save();
+                    System.Windows.MessageBox.Show(
+                        "PaDDY could not fully apply the Windows startup setting. The toggle was synced to the current registry state.",
+                        "Startup registration",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+                _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
+                _performanceMode = _settings.PerformanceMode;
+                _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
 
-            // Restart monitoring to apply new format settings
-            RestartMonitoringIfActive();
-            RefreshOutputFormatInfo();
-            RefreshInputFormatInfo();
-            RefreshPadOutputRouting();
-            WhisperARTTStatus();
-            Forget(RefreshStorageInfoAsync());
+                _captureService.RecordCodec = win.SelectedCodec;
+                _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
 
-            // Sync quick-config panel UI with updated settings
-            _suppressSelectionEvents = true;
-            try
-            {
-                AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
-                BufferDurationSlider.Value = _settings.PastBufferDurationMs / 1000.0;
-                BufferDurationValueLabel.Text = $"{_settings.PastBufferDurationMs / 1000}s";
-            }
-            finally
-            {
-                _suppressSelectionEvents = false;
-            }
+                // Re-register hotkey with new key
+                _hotkeyService.Reregister(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
+                UpdateHotkeyLabel();
+
+                // Restart monitoring to apply new format settings
+                RestartMonitoringIfActive();
+                RefreshOutputFormatInfo();
+                RefreshInputFormatInfo();
+                RefreshPadOutputRouting();
+                WhisperARTTStatus();
+                Forget(RefreshStorageInfoAsync());
+
+                // Sync quick-config panel UI with updated settings
+                _suppressSelectionEvents = true;
+                try
+                {
+                    AutoNormalizeCheck.IsChecked = _settings.AutoNormalizeOnCapture;
+                    BufferDurationSlider.Value = _settings.PastBufferDurationMs / 1000.0;
+                    BufferDurationValueLabel.Text = $"{_settings.PastBufferDurationMs / 1000}s";
+                }
+                finally
+                {
+                    _suppressSelectionEvents = false;
+                }
+            };
+            win.Show();
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
         {
-            new AboutWindow { Owner = this }.ShowDialog();
+            if (_activeAboutWindow != null && _activeAboutWindow.IsLoaded)
+            {
+                if (_activeAboutWindow.WindowState == WindowState.Minimized)
+                    _activeAboutWindow.WindowState = WindowState.Normal;
+                _activeAboutWindow.Activate();
+                _activeAboutWindow.Focus();
+                return;
+            }
+
+            var win = new AboutWindow();
+            _activeAboutWindow = win;
+            win.Closed += (s, args) => _activeAboutWindow = null;
+            win.Show();
         }
 
         // ── Global hotkey → buffer capture ────────────────────────────────────
@@ -2793,15 +2820,32 @@ namespace PaDDY
         }
 
         // ── Effect chain management ───────────────────────────────────────────────
+        private EffectsWindow? _activeGlobalEffectsWindow;
+
         private void OpenGlobalEffectsWindow()
         {
-            var win = new EffectsWindow(_globalCaptureChain, isPerClip: false) { Owner = this };
-            if (win.ShowDialog() == true)
+            if (_activeGlobalEffectsWindow != null && _activeGlobalEffectsWindow.IsLoaded)
             {
-                _effectSettings.GlobalChain = EffectSettingsManager.ToConfig(_globalCaptureChain);
-                EffectSettingsManager.Save(_effectSettings);
-                // Live chain is already updated by CommitValues() inside the window
+                if (_activeGlobalEffectsWindow.WindowState == WindowState.Minimized)
+                    _activeGlobalEffectsWindow.WindowState = WindowState.Normal;
+                _activeGlobalEffectsWindow.Activate();
+                _activeGlobalEffectsWindow.Focus();
+                return;
             }
+
+            var win = new EffectsWindow(_globalCaptureChain, isPerClip: false);
+            _activeGlobalEffectsWindow = win;
+            win.Closed += (s, args) =>
+            {
+                _activeGlobalEffectsWindow = null;
+                if (win.DialogResult == true)
+                {
+                    _effectSettings.GlobalChain = EffectSettingsManager.ToConfig(_globalCaptureChain);
+                    EffectSettingsManager.Save(_effectSettings);
+                    // Live chain is already updated by CommitValues() inside the window
+                }
+            };
+            win.Show();
         }
 
         private void AddPadButton(RecordingEntry entry, bool toFavorites)
@@ -3618,6 +3662,7 @@ namespace PaDDY
                 return;
             }
 
+            CloseOwnedSecondaryWindows();
             _trayIcon?.Dispose();
             _speechService?.Dispose();
             _hotkeyService.Dispose();
@@ -3629,6 +3674,20 @@ namespace PaDDY
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();
             DiscordService.Instance.Dispose();
+        }
+
+        private void CloseOwnedSecondaryWindows()
+        {
+            try
+            {
+                if (_activeSettingsWindow != null && _activeSettingsWindow.IsLoaded)
+                    _activeSettingsWindow.Close();
+                if (_activeAboutWindow != null && _activeAboutWindow.IsLoaded)
+                    _activeAboutWindow.Close();
+                if (_activeGlobalEffectsWindow != null && _activeGlobalEffectsWindow.IsLoaded)
+                    _activeGlobalEffectsWindow.Close();
+            }
+            catch { }
         }
 
         // ── Audio Import & Drag/Drop ───────────────────────────────────────────
