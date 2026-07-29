@@ -4,6 +4,13 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0729-Pre-release_2] - 2026-07-29
+
+- Dev Updates Test 3
+- Credits updates
+- Disable Transparency since it's causing problems with some themes
+- fix Audio Editor that crash PaDDY when saving
+
 ## [2.0.0.0729-Pre-release_1] - 2026-07-29
 
 - Discontinued Overlay
