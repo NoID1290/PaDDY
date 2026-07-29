@@ -122,7 +122,8 @@ namespace PaDDY
 
         private void OnDebugModeChanged()
         {
-            VstSection.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            // VST section is always visible — shipped VST2 plugins load regardless of debug mode.
+            // VST3 availability is controlled separately via VstPluginManager.IsVst3Enabled.
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
