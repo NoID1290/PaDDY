@@ -14,13 +14,21 @@
             <DoubleAnimation 
                 Storyboard.TargetName="InnerRing"
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                From="360" To="0" Duration="0:0:1.5" />
+                From="360" To="0" Duration="0:0:1.5">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
                 
             <!-- Slow outer ring spin (Clockwise) -->
             <DoubleAnimation 
                 Storyboard.TargetName="OuterRing"
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                From="0" To="360" Duration="0:0:2.5" />
+                From="0" To="360" Duration="0:0:2.5">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
             
             <!-- Pulse the logo glow -->
             <DoubleAnimation 
