@@ -684,9 +684,10 @@ namespace PaDDY
                 }
                 else
                 {
+                    string detail = !string.IsNullOrEmpty(backupService.LastError) ? $"\n\nDetails: {backupService.LastError}" : "";
                     System.Windows.MessageBox.Show(
                         this,
-                        "Failed to restore backup.\nPlease ensure the file is a valid PaDDY backup.",
+                        $"Failed to restore backup.\nPlease ensure the file is a valid PaDDY backup.{detail}",
                         "Restore Failed — PaDDY",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
@@ -2737,6 +2738,9 @@ namespace PaDDY
                 ForceResetInputMeter();
 
                 _recordingStore.Dispose();
+                Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
             catch
             {

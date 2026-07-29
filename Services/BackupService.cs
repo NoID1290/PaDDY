@@ -18,6 +18,11 @@ namespace PaDDY.Services
         public string UsrDataSettings { get; set; } = AppDataPaths.SettingsPath;
         public string UsrDataEffectSettings { get; set; } = AppDataPaths.EffectSettingsPath;
 
+        /// <summary>
+        /// Contains details of the last error encountered during backup or restore operations.
+        /// </summary>
+        public string? LastError { get; private set; }
+
 
         private static readonly byte[] BackupKey =
         {
@@ -87,7 +92,7 @@ namespace PaDDY.Services
         {
             try
             {
-                using var connection = new SqliteConnection($"Data Source={UsrDataPath};Mode=ReadOnly;Cache=Shared");
+                using var connection = new SqliteConnection($"Data Source={UsrDataPath};Mode=ReadOnly;Cache=Shared;Pooling=False");
                 connection.Open();
 
                 using var command = connection.CreateCommand();
@@ -110,12 +115,14 @@ namespace PaDDY.Services
                 {
                     DataSource = UsrDataPath,
                     Mode = SqliteOpenMode.ReadOnly,
-                    Cache = SqliteCacheMode.Shared
+                    Cache = SqliteCacheMode.Shared,
+                    Pooling = false
                 };
 
                 var destinationBuilder = new SqliteConnectionStringBuilder
                 {
-                    DataSource = tempPath
+                    DataSource = tempPath,
+                    Pooling = false
                 };
 
                 using var source = new SqliteConnection(sourceBuilder.ConnectionString);
@@ -143,10 +150,22 @@ namespace PaDDY.Services
 
         private static void ForceDeleteFile(string path)
         {
-            if (File.Exists(path))
+            if (!File.Exists(path)) return;
+
+            for (int attempt = 0; attempt < 5; attempt++)
             {
-                // If this throws, the file is locked and we must stop the restore.
-                File.Delete(path);
+                try
+                {
+                    File.Delete(path);
+                    return;
+                }
+                catch (IOException) when (attempt < 4)
+                {
+                    SqliteConnection.ClearAllPools();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    System.Threading.Thread.Sleep(50);
+                }
             }
         }
 
@@ -254,6 +273,7 @@ namespace PaDDY.Services
         {
             string? tempDirectory = null;
             string? tempZipPath = null;
+            LastError = null;
 
             try
             {
@@ -313,12 +333,12 @@ namespace PaDDY.Services
 
                 Directory.CreateDirectory(Path.GetDirectoryName(UsrDataPath)!);
 
-                // Release any lingering pooled handles before attempting to replace files.
+                // Release any lingering pooled handles and force GC before attempting to replace files.
                 SqliteConnection.ClearAllPools();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
                 // 1. Ensure the destination is not locked before proceeding.
-                // We try to "Force Delete" companion files. If they are locked by 
-                // an open SqliteConnection, this will throw and bail early.
                 ForceDeleteFile(UsrDataPath + "-wal");
                 ForceDeleteFile(UsrDataPath + "-shm");
 
@@ -345,7 +365,9 @@ namespace PaDDY.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Restore failed: {ex.Message}");
+                LastError = ex.Message;
+                Console.WriteLine($"Restore failed: {ex}");
+                System.Diagnostics.Debug.WriteLine($"Restore failed: {ex}");
                 return false;
             }
             finally
@@ -379,7 +401,7 @@ namespace PaDDY.Services
                     return false;
 
                 using var connection =
-                    new SqliteConnection($"Data Source={UsrDataPath}");
+                    new SqliteConnection($"Data Source={UsrDataPath};Pooling=False");
 
                 connection.Open();
 

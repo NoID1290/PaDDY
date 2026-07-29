@@ -897,9 +897,10 @@ namespace PaDDY
                     }
 
                     var backupPath = dlg.FileName;
+                    BackupService backupService = null!;
                     bool restoreSuccess = await Task.Run(() =>
                     {
-                        var backupService = new BackupService();
+                        backupService = new BackupService();
                         return backupService.RestoreBackup(backupPath);
                     });
 
@@ -917,7 +918,8 @@ namespace PaDDY
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show(this, "Failed to restore backup. Please ensure the file is a valid PaDDY backup.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        string detail = !string.IsNullOrEmpty(backupService?.LastError) ? $"\n\nDetails: {backupService.LastError}" : "";
+                        System.Windows.MessageBox.Show(this, $"Failed to restore backup. Please ensure the file is a valid PaDDY backup.{detail}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 finally

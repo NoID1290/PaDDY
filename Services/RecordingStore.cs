@@ -57,7 +57,7 @@ namespace PaDDY.Services
             AppDataPaths.EnsureAppDataRoot();
             MigrateLegacyStore();
             Directory.CreateDirectory(Path.GetDirectoryName(StorePath)!);
-            _db = new SqliteConnection($"Data Source={StorePath}");
+            _db = new SqliteConnection($"Data Source={StorePath};Pooling=False");
             _db.Open();
             Initialize();
         }
