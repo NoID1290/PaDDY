@@ -843,34 +843,7 @@ namespace PaDDY.Controls
         private void OnPadMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (Entry == null) return;
-
-            var cm = new System.Windows.Controls.ContextMenu();
-
-            var itemPlayMonitor = new System.Windows.Controls.MenuItem { Header = $"🎧 {LocalizationManager.Instance["ContextPlay"]}" };
-            itemPlayMonitor.Click += (_, _) => StartPlaybackListenOnly();
-            cm.Items.Add(itemPlayMonitor);
-
-            cm.Items.Add(new System.Windows.Controls.Separator());
-
-            var itemNorm = new System.Windows.Controls.MenuItem { Header = "🔊 Normalize Loudness (LUFS)" };
-            itemNorm.Click += (_, _) => NormalizeLoudness();
-            cm.Items.Add(itemNorm);
-
-            var itemTranscribe = new System.Windows.Controls.MenuItem { Header = "🤖 Transcribe & Auto-Tag" };
-            itemTranscribe.Click += (_, _) => TranscribePad();
-            cm.Items.Add(itemTranscribe);
-
-            cm.Items.Add(new System.Windows.Controls.Separator());
-
-            var itemRename = new System.Windows.Controls.MenuItem { Header = $"✏ {LocalizationManager.Instance["ContextRename"]}" };
-            itemRename.Click += (_, _) => OpenRename();
-            cm.Items.Add(itemRename);
-
-            var itemDel = new System.Windows.Controls.MenuItem { Header = $"✕ {LocalizationManager.Instance["ContextDelete"]}" };
-            itemDel.Click += (_, _) => MenuDelete_Click(this, new RoutedEventArgs());
-            cm.Items.Add(itemDel);
-
-            cm.IsOpen = true;
+            StartPlaybackListenOnly();
             e.Handled = true;
         }
 
