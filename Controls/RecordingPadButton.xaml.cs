@@ -95,7 +95,9 @@ namespace PaDDY.Controls
         private VolumeSampleProvider? _listenVolumeProvider;
         private PlaybackMeterProvider? _listenMeterProvider;
         private bool _isPlaying;
-        private DispatcherTimer? _countdownTimer;
+        private Stopwatch? _playbackStopwatch;
+        private bool _countdownActive;
+        private DispatcherTimer? _perfCountdownTimer;
         private TimeSpan _playbackTotalDuration;
 
         /// <summary>Fired when the user clicks the inline delete (âœ•) or menu Delete.</summary>
@@ -696,7 +698,9 @@ namespace PaDDY.Controls
             }
         }
 
-        // ── Countdown timer ────────────────────────────────────────────────
+        // ── Real-time countdown ────────────────────────────────────────────
+        // Normal mode: Stopwatch + CompositionTarget.Rendering (~60 fps)
+        // Performance mode: Stopwatch + DispatcherTimer @ 200 ms
         private void StartCountdownTimer(IUnifiedAudioReader? reader)
         {
             if (reader == null || Entry == null) return;
@@ -711,66 +715,68 @@ namespace PaDDY.Controls
                 _playbackTotalDuration = Entry.Duration;
             }
 
-            _countdownTimer = new DispatcherTimer
+            _playbackStopwatch = Stopwatch.StartNew();
+            _countdownActive = true;
+
+            if (Helpers.ThemeManager.PerformanceMode)
             {
-                Interval = Helpers.ThemeManager.PerformanceMode ? TimeSpan.FromMilliseconds(500) : TimeSpan.FromMilliseconds(200)
-            };
-            _countdownTimer.Tick += CountdownTimer_Tick;
-            _countdownTimer.Start();
+                _perfCountdownTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(200)
+                };
+                _perfCountdownTimer.Tick += OnCountdownTick;
+                _perfCountdownTimer.Start();
+            }
+            else
+            {
+                CompositionTarget.Rendering += OnCountdownTick;
+            }
         }
 
         private void StopCountdownTimer()
         {
-            if (_countdownTimer != null)
+            if (_countdownActive)
             {
-                _countdownTimer.Stop();
-                _countdownTimer.Tick -= CountdownTimer_Tick;
-                _countdownTimer = null;
+                if (_perfCountdownTimer != null)
+                {
+                    _perfCountdownTimer.Stop();
+                    _perfCountdownTimer.Tick -= OnCountdownTick;
+                    _perfCountdownTimer = null;
+                }
+                else
+                {
+                    CompositionTarget.Rendering -= OnCountdownTick;
+                }
+                _countdownActive = false;
             }
+            _playbackStopwatch?.Stop();
+            _playbackStopwatch = null;
 
             // Restore the static duration label
             if (Entry != null)
                 DurationLabel.Text = Entry.DurationLabel;
         }
 
-        private void CountdownTimer_Tick(object? sender, EventArgs e)
+        private void OnCountdownTick(object? sender, EventArgs e)
         {
-            // Use whichever reader is active
-            var reader = _reader ?? _listenReader;
-            if (reader == null || Entry == null)
+            if (_playbackStopwatch == null || Entry == null)
             {
                 StopCountdownTimer();
                 return;
             }
 
-            try
+            TimeSpan elapsed = _playbackStopwatch.Elapsed;
+            TimeSpan remaining = _playbackTotalDuration - elapsed;
+            if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+
+            // Format: show tenths-of-a-second for real-time feel
+            if (remaining.TotalMinutes >= 1)
             {
-                TimeSpan currentPos = reader.CurrentTime;
-
-                // For non-destructive clips, offset current position relative to trim start
-                TimeSpan elapsed;
-                if (Entry.IsNonDestructive && Entry.TrimStartMs > 0)
-                {
-                    elapsed = currentPos - TimeSpan.FromMilliseconds(Entry.TrimStartMs);
-                    if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
-                }
-                else
-                {
-                    elapsed = currentPos;
-                }
-
-                TimeSpan remaining = _playbackTotalDuration - elapsed;
-                if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
-
-                // Format the remaining time the same way as DurationLabel
-                DurationLabel.Text = remaining.TotalSeconds < 60
-                    ? $"{remaining.TotalSeconds:0.0}s"
-                    : $"{(int)remaining.TotalMinutes}m {remaining.Seconds:00}s";
+                DurationLabel.Text = $"{(int)remaining.TotalMinutes}:{remaining.Seconds:00}.{remaining.Milliseconds / 100}";
             }
-            catch
+            else
             {
-                // Reader may have been disposed on another thread — just stop
-                StopCountdownTimer();
+                DurationLabel.Text = $"{remaining.Seconds}.{remaining.Milliseconds / 100}s";
             }
         }
 
