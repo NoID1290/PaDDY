@@ -129,6 +129,14 @@ namespace PaDDY.Controls
             // Play entrance animation when loaded — skip during bulk loads (startup / page switch)
             Loaded += (_, _) =>
             {
+                // In performance mode, strip all hover/click EventTriggers from the tile
+                // and skip the entrance animation entirely.
+                if (ThemeManager.PerformanceMode)
+                {
+                    TileBorder.Triggers.Clear();
+                    return;
+                }
+
                 if (SuppressEntranceAnimation > 0) return;
                 try
                 {

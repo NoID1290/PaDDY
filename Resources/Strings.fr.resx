@@ -87,8 +87,6 @@
   <data name="SensitivityLabel" xml:space="preserve"><value>Sensibilité</value></data>
   <data name="SilenceTimeoutLabel" xml:space="preserve"><value>Délai de silence</value></data>
   <data name="OutputGroup" xml:space="preserve"><value>SORTIE</value></data>
-  <data name="OverlayGroup" xml:space="preserve"><value>INCRUSTATION</value></data>
-  <data name="EnableOverlayCheck" xml:space="preserve"><value>Activer l'incrustation en jeu</value></data>
   <data name="OpacityLabel" xml:space="preserve"><value>Opacité</value></data>
   <data name="FpsLabel" xml:space="preserve"><value>FPS</value></data>
   <data name="RecordingsHeader" xml:space="preserve"><value>ENREGISTREMENTS</value></data>
@@ -140,7 +138,6 @@
   <data name="SettingsTabSystem" xml:space="preserve"><value>Système</value></data>
   <data name="SettingsTabThirdParty" xml:space="preserve"><value>Options tierces</value></data>
   <data name="SettingsTabBackup" xml:space="preserve"><value>Sauvegarde &amp; Restauration</value></data>
-  <data name="SettingsTabOverlay" xml:space="preserve"><value>Incrustation</value></data>
   <data name="SettingsTabHotkeys" xml:space="preserve"><value>Raccourcis</value></data>
   <data name="SettingsTabSpeech" xml:space="preserve"><value>Reconnaissance Vocale</value></data>
   <data name="SettingsTabUpdates" xml:space="preserve"><value>Mises à jour</value></data>

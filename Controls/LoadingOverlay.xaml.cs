@@ -87,7 +87,17 @@ namespace PaDDY.Controls
             if (Visibility != Visibility.Visible)
             {
                 Visibility = Visibility.Visible;
-                _animation?.Begin(this, true);
+
+                if (Helpers.ThemeManager.PerformanceMode)
+                {
+                    // No animations — set everything to a static visible state
+                    LoadingText.Opacity = 1.0;
+                    if (LogoGlow != null) LogoGlow.Opacity = 0.5;
+                }
+                else
+                {
+                    _animation?.Begin(this, true);
+                }
             }
         }
 
@@ -104,7 +114,10 @@ namespace PaDDY.Controls
             
             if (instantly || currentToken == _hideToken)
             {
-                _animation?.Stop(this);
+                if (!Helpers.ThemeManager.PerformanceMode)
+                {
+                    _animation?.Stop(this);
+                }
                 Visibility = Visibility.Collapsed;
             }
         }

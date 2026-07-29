@@ -17,11 +17,7 @@ using Microsoft.Data.Sqlite;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NoIDSoftwork.AudioProcessor;
-using NoIDSoftwork.OverlayEngine.Diagnostics;
 using NoIDSoftwork.EffectProcessor;
-using NoIDSoftwork.OverlayEngine.Configuration;
-using NoIDSoftwork.OverlayEngine.Core;
-using NoIDSoftwork.OverlayEngine.Models;
 using PaDDY.Controls;
 using PaDDY.Helpers;
 using PaDDY.Models;
@@ -35,7 +31,6 @@ namespace PaDDY
     {
         private readonly AudioCaptureService _captureService = new();
         private readonly GlobalHotkeyService _hotkeyService = new();
-        private readonly IOverlayEngine _overlayEngine = new OverlayEngine();
         private RecordingStore _recordingStore = new();
         private readonly Dictionary<string, RecordingPadButton> _padCache = new();
         private AppSettings _settings = AppSettings.Load();
@@ -268,11 +263,6 @@ namespace PaDDY
             this.PreviewKeyDown += OnPadHotKey;
             PadMonitorMeterHostL.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
             PadMonitorMeterHostR.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
-            
-            App.DebugModeChanged += () =>
-            {
-                OverlayConfigPanel.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
-            };
         }
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
@@ -430,52 +420,6 @@ namespace PaDDY
                 return;
             }
 
-#if DEBUG
-            // ── Debug only: Ctrl+Alt+O — force-show the overlay engine ──────────────
-            // This bypasses the Enabled check and attaches to PaDDY itself so the
-            // overlay is visible without needing a loopback process configured.
-            var isO = e.Key == Key.O || (e.Key == Key.System && e.SystemKey == Key.O);
-            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == (ModifierKeys.Control | ModifierKeys.Alt) && isO)
-            {
-                e.Handled = true;
-
-                // 1. Initialise if engine has never been started
-                if (_overlayEngine.State == OverlayEngineState.Created)
-                {
-                    _overlayEngine.Initialize(BuildOverlayOptions());
-                    System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] Initialized. State={_overlayEngine.State}");
-                }
-
-                // 2. Force Enabled=true — without this, Show() silently returns
-                var forceOptions = BuildOverlayOptions();
-                forceOptions.Enabled = true;
-                _overlayEngine.UpdateOptions(forceOptions);
-                System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] Options forced Enabled=true. State={_overlayEngine.State}");
-
-                // 3. Attach to the PaDDY process itself so bounds.Width > 0.
-                //    Without a valid attached window the render loop always hides the overlay.
-                uint selfPid = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
-                bool attached = _overlayEngine.AttachToProcess(selfPid);
-                System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] AttachToProcess(self={selfPid}) -> attached={attached}. State={_overlayEngine.State}");
-
-                // 4. Push a clearly labelled debug frame
-                _overlayEngine.UpdateFrame(new OverlayFrame
-                {
-                    Title = "[DEBUG] PaDDY Overlay",
-                    Lines = new[]
-                    {
-                        "Force-shown via Ctrl+Alt+O",
-                        $"Attached: {attached}  State: {_overlayEngine.State}"
-                    }
-                });
-
-                // 5. Show — state after AttachToProcess is already Running when Enabled=true,
-                //    so Show() is a belt-and-suspenders call but costs nothing.
-                _overlayEngine.Show();
-                System.Diagnostics.Debug.WriteLine($"[Overlay:DBG] Show() called. Final State={_overlayEngine.State}");
-                return;
-            }
-#endif
 
             if (_hoveredPad == null) return;
             // Don't intercept when a text-entry control has keyboard focus
@@ -544,19 +488,8 @@ namespace PaDDY
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
 
-            _overlayEngine.DiagnosticEvent += OverlayEngine_DiagnosticEvent;  // NOT READY YET! CAN BE CALL WITH DEV KEY BUT NEED TO BE UNCOMMENT
-
             ShowLoadingOverlay("Features starting");
             await Task.Delay(50);
-            if (_settings.OverlayEnabled)
-            {
-                _overlayEngine.Initialize(BuildOverlayOptions());
-                if (_settings.AppLoopbackProcessId != 0)
-                {
-                    _overlayEngine.AttachToProcess(_settings.AppLoopbackProcessId);
-                    _overlayEngine.Show();
-                }
-            }
 
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
@@ -1452,70 +1385,13 @@ namespace PaDDY
             ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
             ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
 
-            OverlayEnabledCheck.IsChecked = _settings.OverlayEnabled;
-            OverlayOpacitySlider.Value = Math.Clamp(_settings.OverlayOpacity * 100.0, 20, 100);
-            OverlayFpsSlider.Value = Math.Clamp(_settings.OverlayFrameRateCap, 30, 240);
-
             UpdatePadMonitorMeterAvailability();
             RefreshPadOutputRouting();
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
 
-            ApplyOverlayOptionsFromSettings();
-
             // Initialize Discord Service
             DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
-        }
-
-        private OverlayOptions BuildOverlayOptions()
-        {
-            return new OverlayOptions
-            {
-                Enabled = _settings.OverlayEnabled,
-                FrameRateCap = Math.Clamp(_settings.OverlayFrameRateCap, 30, 240),
-                VisualStyle = new OverlayVisualStyle
-                {
-                    Opacity = Math.Clamp(_settings.OverlayOpacity, 0.2, 1.0),
-                    AccentColorHex = "#FF4CAF50",
-                    PrimaryColorHex = "#FFFFFFFF",
-                    FontFamily = "Segoe UI",
-                    FontSize = 18f
-                }
-            };
-        }
-
-        private void ApplyOverlayOptionsFromSettings()
-        {
-            if (_settings.OverlayEnabled && _overlayEngine.State == OverlayEngineState.Created)
-            {
-                _overlayEngine.Initialize(BuildOverlayOptions());
-            }
-
-            if (_overlayEngine.State == OverlayEngineState.Created || _overlayEngine.State == OverlayEngineState.Disposed)
-            {
-                return;
-            }
-
-            _overlayEngine.UpdateOptions(BuildOverlayOptions());
-            if (!_settings.OverlayEnabled)
-            {
-                _overlayEngine.Hide();
-                return;
-            }
-
-            if (_settings.AppLoopbackProcessId != 0)
-            {
-                UpdateOverlayTarget(_settings.AppLoopbackProcessId);
-            }
-        }
-
-        private void OverlayEngine_DiagnosticEvent(object? sender, OverlayDiagnosticEvent e)
-        {
-            Debug.WriteLine($"[Overlay:{e.Level}] {e.Category}: {e.Message}");
-            if (e.Exception != null)
-            {
-                Debug.WriteLine(e.Exception);
-            }
         }
 
         private void UpdateHotkeyLabel()
@@ -1620,7 +1496,6 @@ namespace PaDDY
                     throw new InvalidOperationException("No app selected for loopback capture.");
 
                 _captureService.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
-                UpdateOverlayTarget(_appLoopbackProcesses[idx].ProcessId);
                 _captureService.Start(0, mode, null);
                 SetStatus($"Monitoring app: {_appLoopbackProcesses[idx].ProcessName}…", "#FF4CAF50");
                 RefreshInputFormatInfo();
@@ -1675,103 +1550,12 @@ namespace PaDDY
             {
                 _settings.AppLoopbackProcessId = _appLoopbackProcesses[idx].ProcessId;
                 _settings.Save();
-                UpdateOverlayTarget(_settings.AppLoopbackProcessId);
             }
             RefreshInputFormatInfo();
             RestartMonitoringIfActive();
         }
 
-        private void UpdateOverlayTarget(uint processId)
-        {
-            if (!_settings.OverlayEnabled)
-            {
-                if (_overlayEngine.State != OverlayEngineState.Created && _overlayEngine.State != OverlayEngineState.Disposed)
-                {
-                    _overlayEngine.Hide();
-                    _overlayEngine.Detach();
-                }
-                return;
-            }
 
-            if (processId == 0)
-            {
-                if (_overlayEngine.State != OverlayEngineState.Created && _overlayEngine.State != OverlayEngineState.Disposed)
-                {
-                    _overlayEngine.Hide();
-                    _overlayEngine.Detach();
-                }
-                return;
-            }
-
-            if (_overlayEngine.State == OverlayEngineState.Created)
-            {
-                _overlayEngine.Initialize(BuildOverlayOptions());
-            }
-
-            if (_overlayEngine.AttachToProcess(processId))
-            {
-                string processName = _appLoopbackProcesses.FirstOrDefault(p => p.ProcessId == processId).ProcessName;
-                if (string.IsNullOrWhiteSpace(processName))
-                {
-                    processName = $"PID {processId}";
-                }
-
-                _overlayEngine.UpdateFrame(new OverlayFrame
-                {
-                    Title = "PaDDY",
-                    Lines = new[]
-                    {
-                        $"Tracking: {processName}",
-                        "Press monitor hotkey to capture"
-                    }
-                });
-                _overlayEngine.Show();
-            }
-            else
-            {
-                _overlayEngine.Hide();
-            }
-        }
-
-        private void OverlayEnabledCheck_Changed(object sender, RoutedEventArgs e)
-        {
-            if (OverlayEnabledCheck == null)
-            {
-                return;
-            }
-
-            _settings.OverlayEnabled = OverlayEnabledCheck.IsChecked == true;
-            _settings.Save();
-            ApplyOverlayOptionsFromSettings();
-        }
-
-        private void OverlayOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (OverlayOpacityValueLabel == null)
-            {
-                return;
-            }
-
-            int pct = (int)Math.Round(e.NewValue);
-            OverlayOpacityValueLabel.Text = $"{pct}%";
-            _settings.OverlayOpacity = pct / 100.0;
-            _settings.Save();
-            ApplyOverlayOptionsFromSettings();
-        }
-
-        private void OverlayFpsSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (OverlayFpsValueLabel == null)
-            {
-                return;
-            }
-
-            int fps = (int)Math.Round(e.NewValue);
-            OverlayFpsValueLabel.Text = fps.ToString();
-            _settings.OverlayFrameRateCap = fps;
-            _settings.Save();
-            ApplyOverlayOptionsFromSettings();
-        }
 
         private void RefreshAppLoopback_Click(object sender, RoutedEventArgs e)
         {
@@ -3668,8 +3452,6 @@ namespace PaDDY
             _hotkeyService.Dispose();
             _captureService.Dispose();
             _ipcServer?.Dispose();
-            _overlayEngine.DiagnosticEvent -= OverlayEngine_DiagnosticEvent;
-            _overlayEngine.Dispose();
             _recordingStore.CleanupAllTempFiles();
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.Dispose();

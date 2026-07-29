@@ -28,7 +28,6 @@
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
     <ProjectReference Include="EffectProcessor\EffectProcessor.csproj" />
-    <ProjectReference Include="OverlayEngine\OverlayEngine.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MessagePack" Version="3.1.7" />
@@ -39,11 +38,12 @@
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" />
     <PackageReference Include="System.Management" Version="10.0.0-preview.4.25258.110" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.6.2" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.6.2" />
+    <PackageReference Include="Vortice.DXGI" Version="3.6.2" />
   </ItemGroup>
   <Target Name="ExcludeAppDllsFromSingleFile" BeforeTargets="_ComputeFilesToBundle" Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>
       <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Filename)' == 'NoIDSoftwork.AudioProcessor' or                      '%(Filename)' == 'NoIDSoftwork.EffectProcessor'" ExcludeFromSingleFile="true" />
-      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Filename)' == 'NoIDSoftwork.OverlayEngine'" ExcludeFromSingleFile="true" />
       <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.NuGetPackageId)' == 'MessagePack' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'MessagePack.Annotations' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.Data.Sqlite' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.Data.Sqlite.Core' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.bundle_e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.core' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.lib.e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.provider.e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SQLitePCLRaw.config.e_sqlite3' or                      '%(ResolvedFileToPublish.NuGetPackageId)' == 'SourceGear.sqlite3'" ExcludeFromSingleFile="true" />
     </ItemGroup>
   </Target>
@@ -58,11 +58,6 @@
     <EmbeddedResource Remove="EffectProcessor\**" />
     <Page Remove="EffectProcessor\**" />
     <ApplicationDefinition Remove="EffectProcessor\**" />
-    <Compile Remove="OverlayEngine\**" />
-    <None Remove="OverlayEngine\**" />
-    <EmbeddedResource Remove="OverlayEngine\**" />
-    <Page Remove="OverlayEngine\**" />
-    <ApplicationDefinition Remove="OverlayEngine\**" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AudioProcessor\vendors\licenses\*.txt">

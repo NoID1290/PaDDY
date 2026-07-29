@@ -70,11 +70,6 @@ namespace PaDDY
         public int TrimEditorOutputDeviceIndex { get; set; } = 0;
         public bool NewRecordingsNonDestructive { get; set; } = false;
 
-        // ---- Overlay ----
-        public bool OverlayEnabled { get; set; } = false;
-        public int OverlayFrameRateCap { get; set; } = 60;
-        public double OverlayOpacity { get; set; } = 0.9;
-
         // ---- Appearance ----
         // Language code: "en", "fr"
         public string Language { get; set; } = "en";
