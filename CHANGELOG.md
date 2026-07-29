@@ -4,6 +4,17 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0729-Pre-release_1] - 2026-07-29
+
+- Discontinued Overlay
+- Fix Performance Mode chrashing on some systems
+- Added high-resolution timer for sub-ms accuracy
+- Smoothing Animation Loading
+- Z-Order Layering Freedom
+- Fix wrong context menu showing on each pad
+- Fix VST2 not loading
+- Fix dynamic files going into the wrong path in local
+
 ## [2.0.0.0728-Pre-release_1] - 2026-07-28
 
 - Added import/drag-and-drop support for audio files outside of PaDDY
