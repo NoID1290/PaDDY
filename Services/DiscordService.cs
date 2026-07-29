@@ -35,7 +35,7 @@ namespace PaDDY.Services
 
                 string extractDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "NoIDSoftwork", "PaDDY", "native");
+                    "NoID Softwork", "PaDDY", "native");
                 Directory.CreateDirectory(extractDir);
                 string extractPath = Path.Combine(extractDir, "discord_game_sdk.dll");
 
