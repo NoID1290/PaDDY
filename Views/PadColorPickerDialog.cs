@@ -70,7 +70,7 @@ namespace PaDDY.Views
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             ResizeMode = ResizeMode.NoResize;
             WindowStyle = WindowStyle.None;
-            AllowsTransparency = true;
+            AllowsTransparency = false; // default to true, this is causing problem with some themes, need to fix in future
             Background = System.Windows.Media.Brushes.Transparent;
 
             // Main Border Frame
