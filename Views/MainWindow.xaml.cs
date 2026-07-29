@@ -2082,7 +2082,7 @@ namespace PaDDY
             win.Closed += (s, args) =>
             {
                 _activeSettingsWindow = null;
-                if (win.DialogResult != true) return;
+                if (!win.Confirmed) return;
 
                 // Apply changes
                 _settings.RecordCodec = win.SelectedCodec;

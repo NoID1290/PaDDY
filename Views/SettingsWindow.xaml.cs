@@ -22,6 +22,9 @@ namespace PaDDY
         private readonly AppSettings _settings;
         private List<(string Value, string Label)> _visibleCodecOptions = new();
 
+        // Whether the user confirmed (OK) vs cancelled/closed
+        public bool Confirmed { get; private set; }
+
         // Resolved output values
         public string SelectedCodec { get; private set; } = "wav";
         public int SelectedBufferDurationMs { get; private set; }
@@ -534,7 +537,7 @@ namespace PaDDY
             SelectedGlobalFadeInDurationMs = Math.Round(GlobalFadeInSlider.Value, 0);
             SelectedGlobalFadeOutDurationMs = Math.Round(GlobalFadeOutSlider.Value, 0);
 
-            DialogResult = true;
+            Confirmed = true;
             Close();
         }
 
@@ -552,7 +555,7 @@ namespace PaDDY
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
+            Close();
         }
 
         private void GlobalFadeInSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -723,7 +726,7 @@ namespace PaDDY
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             // If the dialog was not confirmed, revert any live theme/meter/font preview.
-            if (DialogResult != true)
+            if (!Confirmed)
             {
                 ThemeManager.ApplyTheme(_settings.Theme);
                 ThemeManager.ApplyMeterSkin(_settings.MeterSkin, _settings.MeterDigitalDots);
