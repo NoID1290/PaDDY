@@ -86,7 +86,7 @@
                                    HorizontalAlignment="Center"
                                    Margin="0,4,0,0"/>
                         <TextBlock x:Name="AuthorLabel"
-                                   Text="© 2020-2026 NoID Softwork. All Rights Reserved."
+                                   Text="© 2020-2026 NoID Softwork"
                                    Foreground="{DynamicResource SubtleTextBrush}"
                                    FontSize="10"
                                    Margin="0,2,0,0"                                
