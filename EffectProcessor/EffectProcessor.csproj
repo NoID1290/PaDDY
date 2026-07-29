@@ -13,7 +13,7 @@
     <Version>2.0.0.0729</Version>
     <AssemblyVersion>2.0.0.0729</AssemblyVersion>
     <FileVersion>2.0.0.0729</FileVersion>
-    <InformationalVersion>2.0.0.0729-Pre-release_2</InformationalVersion>
+    <InformationalVersion>2.0.0.0729-Pre-release_3</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <PlatformTarget>x64</PlatformTarget>

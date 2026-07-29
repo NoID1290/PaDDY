@@ -4,6 +4,11 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0729-Pre-release_3] - 2026-07-29
+
+- Dev Updates Test 4
+- Fix backup restore
+
 ## [2.0.0.0729-Pre-release_2] - 2026-07-29
 
 - Dev Updates Test 3
