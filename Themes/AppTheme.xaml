@@ -759,40 +759,49 @@
         </Setter>
     </Style>
 
-    <!-- Illuminated Studio Rack Power Switch -->
+    <!-- Illuminated Sliding Studio Rack Power Switch -->
     <Style x:Key="RackPowerSwitch" TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
         <Setter Property="FontSize" Value="10.5"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Height" Value="22"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Border x:Name="PowerBd"
-                            Background="{DynamicResource InputBgBrush}"
-                            BorderBrush="{DynamicResource CardBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="{DynamicResource SmallCornerRadius}"
-                            Padding="8,3">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <!-- Glowing Status LED -->
-                            <Border x:Name="LedDot"
-                                    Width="8" Height="8"
-                                    CornerRadius="4"
-                                    Background="#3A3A4D"
-                                    Margin="0,0,6,0"
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <ContentPresenter VerticalAlignment="Center" Margin="0,0,6,0"/>
+
+                        <!-- Sliding Track Container -->
+                        <Border x:Name="Track"
+                                Width="38" Height="20"
+                                CornerRadius="10"
+                                Background="#181B28"
+                                BorderBrush="#2C3048"
+                                BorderThickness="1"
+                                Padding="2">
+                            <!-- Sliding Round Thumb -->
+                            <Border x:Name="Thumb"
+                                    Width="14" Height="14"
+                                    CornerRadius="7"
+                                    Background="#6C748C"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"/>
-                            <ContentPresenter VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
+                        </Border>
+                    </StackPanel>
+
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="PowerBd" Property="Background" Value="{DynamicResource CardBgBrush}"/>
-                            <Setter TargetName="PowerBd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
-                            <Setter TargetName="LedDot" Property="Background" Value="{DynamicResource AccentGreenBrush}"/>
+                            <Setter TargetName="Track" Property="Background" Value="#1C3828"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                            <Setter TargetName="Thumb" Property="Background" Value="{DynamicResource AccentGreenBrush}"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="PowerBd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

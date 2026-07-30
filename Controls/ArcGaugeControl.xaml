@@ -36,7 +36,8 @@
 
             <!-- Center Content: Title & Gain Value -->
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,14,0,0">
-                <TextBlock Text="Master Gain"
+                <TextBlock x:Name="TitleText"
+                           Text="Master Gain"
                            FontSize="12"
                            FontWeight="Bold"
                            Foreground="{DynamicResource PrimaryTextBrush}"
@@ -69,7 +70,8 @@
         </Grid>
 
         <!-- Bottom Subtitle / Info -->
-        <TextBlock Grid.Row="1"
+        <TextBlock x:Name="SubtitleText"
+                   Grid.Row="1"
                    Text="OUTPUT BUS"
                    FontSize="9"
                    FontWeight="Bold"

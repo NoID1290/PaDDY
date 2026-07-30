@@ -84,16 +84,18 @@ namespace PaDDY.Controls
 
         public void SetAudioLevel(float level)
         {
-            _isPlaying = level > 0.001f;
+            _isPlaying = level > 0.0005f;
             if (_isPlaying)
             {
-                double baseLevel = Math.Clamp(level * 60.0, 4.0, 65.0);
+                // High sensitivity perceptual scaling (square-root mapping)
+                double percLevel = Math.Sqrt(Math.Max(level, 0.0001f));
+                double baseLevel = Math.Clamp(percLevel * 70.0, 4.0, 70.0);
                 for (int i = 0; i < BarCount; i++)
                 {
-                    // Gaussian curve centered around middle frequencies with random variation
-                    double freqFactor = Math.Sin((double)i / BarCount * Math.PI);
+                    // Dynamic frequency curve centered around middle frequencies with random variation
+                    double freqFactor = Math.Sin((double)i / BarCount * Math.PI) * 0.85 + 0.15;
                     double noise = _rand.NextDouble() * 0.4 + 0.8;
-                    _targetHeights[i] = Math.Clamp(baseLevel * freqFactor * noise, 4.0, 65.0);
+                    _targetHeights[i] = Math.Clamp(baseLevel * freqFactor * noise, 4.0, 70.0);
                 }
             }
         }

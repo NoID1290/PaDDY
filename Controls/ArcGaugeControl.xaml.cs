@@ -33,6 +33,22 @@ namespace PaDDY.Controls
             DependencyProperty.Register(nameof(Maximum), typeof(double), typeof(ArcGaugeControl),
                 new PropertyMetadata(24.0, OnMinMaxChanged));
 
+        public static readonly DependencyProperty TitleProperty =
+            DependencyProperty.Register(nameof(Title), typeof(string), typeof(ArcGaugeControl),
+                new PropertyMetadata("Master Gain", OnLabelChanged));
+
+        public static readonly DependencyProperty SubtitleProperty =
+            DependencyProperty.Register(nameof(Subtitle), typeof(string), typeof(ArcGaugeControl),
+                new PropertyMetadata("OUTPUT BUS", OnLabelChanged));
+
+        public static readonly DependencyProperty UnitProperty =
+            DependencyProperty.Register(nameof(Unit), typeof(string), typeof(ArcGaugeControl),
+                new PropertyMetadata("dB", OnLabelChanged));
+
+        public static readonly DependencyProperty StepProperty =
+            DependencyProperty.Register(nameof(Step), typeof(double), typeof(ArcGaugeControl),
+                new PropertyMetadata(0.5));
+
         public double Value
         {
             get => (double)GetValue(ValueProperty);
@@ -51,6 +67,30 @@ namespace PaDDY.Controls
             set => SetValue(MaximumProperty, value);
         }
 
+        public string Title
+        {
+            get => (string)GetValue(TitleProperty);
+            set => SetValue(TitleProperty, value);
+        }
+
+        public string Subtitle
+        {
+            get => (string)GetValue(SubtitleProperty);
+            set => SetValue(SubtitleProperty, value);
+        }
+
+        public string Unit
+        {
+            get => (string)GetValue(UnitProperty);
+            set => SetValue(UnitProperty, value);
+        }
+
+        public double Step
+        {
+            get => (double)GetValue(StepProperty);
+            set => SetValue(StepProperty, value);
+        }
+
         public ArcGaugeControl()
         {
             InitializeComponent();
@@ -63,6 +103,11 @@ namespace PaDDY.Controls
         }
 
         private static void OnMinMaxChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ArcGaugeControl gauge) gauge.UpdateVisuals();
+        }
+
+        private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is ArcGaugeControl gauge) gauge.UpdateVisuals();
         }
@@ -85,8 +130,37 @@ namespace PaDDY.Controls
             TrackArc.Data = CreateArcGeometry(center, radius, StartAngle, EndAngle);
             ValueArc.Data = CreateArcGeometry(center, radius, StartAngle, currentAngle);
 
-            GainValueText.Text = val == 0.0 ? "0.0 dB" : $"{val:+0.0;-0.0} dB";
-            ToolTip = $"Master Gain: {GainValueText.Text}";
+            if (TitleText != null) TitleText.Text = Title;
+            if (SubtitleText != null) SubtitleText.Text = Subtitle;
+
+            string formattedVal;
+            if (Unit == "dB")
+            {
+                formattedVal = val == 0.0 ? "0.0 dB" : $"{val:+0.0;-0.0} dB";
+            }
+            else if (Unit == "st" || Unit == "semitones")
+            {
+                formattedVal = $"{val:+0;-0;0} st";
+            }
+            else if (Unit == "x")
+            {
+                formattedVal = $"{val:0.00}x";
+            }
+            else if (Unit == "%")
+            {
+                formattedVal = $"{val:0}%";
+            }
+            else if (string.IsNullOrEmpty(Unit))
+            {
+                formattedVal = $"{val:0.00}";
+            }
+            else
+            {
+                formattedVal = $"{val:0.0} {Unit}";
+            }
+
+            if (GainValueText != null) GainValueText.Text = formattedVal;
+            ToolTip = $"{Title}: {formattedVal}";
         }
 
         private static Geometry CreateArcGeometry(Point center, double radius, double startAngleDeg, double endAngleDeg)
@@ -169,8 +243,8 @@ namespace PaDDY.Controls
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            double change = e.Delta > 0 ? 0.5 : -0.5;
-            Value = Math.Clamp(Math.Round(Value + change, 1), Minimum, Maximum);
+            double change = e.Delta > 0 ? Step : -Step;
+            Value = Math.Clamp(Math.Round((Value + change) / Step) * Step, Minimum, Maximum);
             e.Handled = true;
         }
     }

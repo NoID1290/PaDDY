@@ -129,7 +129,6 @@ namespace PaDDY
             _initialGainDb = gainDb;
 
             FileNameLabel.Text = !string.IsNullOrEmpty(displayName) ? displayName : Path.GetFileName(filePath); // Get real name
-            if (SidebarActiveFileLabel != null) SidebarActiveFileLabel.Text = FileNameLabel.Text;
             //FileNameLabel.Text = Path.GetFileNameWithoutExtension(filePath); // Get raw name
 
             Loaded += OnLoaded;
@@ -1100,6 +1099,120 @@ namespace PaDDY
             else
                 EffectSettingsManager.ApplyConfig(_perClipChain, settings.GlobalChain);
             return _perClipChain;
+        }
+
+        private void CardHeader_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource is DependencyObject orig && IsOrInside<System.Windows.Controls.CheckBox>(orig))
+                return;
+
+            if (sender is FrameworkElement header && header.Tag is UIElement body)
+            {
+                bool willCollapse = body.Visibility == Visibility.Visible;
+                body.Visibility = willCollapse ? Visibility.Collapsed : Visibility.Visible;
+
+                if (header is System.Windows.Controls.Panel panel)
+                {
+                    foreach (var child in panel.Children)
+                    {
+                        if (child is StackPanel sp)
+                        {
+                            foreach (var spChild in sp.Children)
+                            {
+                                if (spChild is TextBlock tb && (tb.Text == "▾" || tb.Text == "▸"))
+                                {
+                                    tb.Text = willCollapse ? "▸" : "▾";
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool IsOrInside<T>(DependencyObject? obj) where T : DependencyObject
+        {
+            while (obj != null)
+            {
+                if (obj is T) return true;
+                obj = System.Windows.Media.VisualTreeHelper.GetParent(obj);
+            }
+            return false;
+        }
+
+        private void StepBackBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_totalDurationSeconds <= 0) return;
+            double currentSec = _trimStartFraction * _totalDurationSeconds;
+            if (_isPreviewing)
+            {
+                double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
+                currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
+            }
+            double newSec = Math.Max(0.0, currentSec - 0.1);
+            UpdatePlaybackLinePosition(newSec);
+            UpdatePlaybackTimecode(newSec);
+        }
+
+        private void StepForwardBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_totalDurationSeconds <= 0) return;
+            double currentSec = _trimStartFraction * _totalDurationSeconds;
+            if (_isPreviewing)
+            {
+                double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
+                currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
+            }
+            double newSec = Math.Min(_totalDurationSeconds, currentSec + 0.1);
+            UpdatePlaybackLinePosition(newSec);
+            UpdatePlaybackTimecode(newSec);
+        }
+
+        private void TrimInBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_totalDurationSeconds <= 0) return;
+
+            double currentFraction;
+            if (_isPreviewing)
+            {
+                double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
+                double currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
+                currentFraction = currentSec / _totalDurationSeconds;
+            }
+            else
+            {
+                currentFraction = _trimStartFraction;
+            }
+
+            double minTrimFraction = MinTrimSeconds / _totalDurationSeconds;
+            _trimStartFraction = Math.Clamp(currentFraction, 0.0, _trimEndFraction - minTrimFraction);
+
+            UpdateHandlePositions();
+            UpdateTimeLabels();
+        }
+
+        private void TrimOutBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_totalDurationSeconds <= 0) return;
+
+            double currentFraction;
+            if (_isPreviewing)
+            {
+                double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
+                double currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
+                currentFraction = currentSec / _totalDurationSeconds;
+            }
+            else
+            {
+                currentFraction = _trimEndFraction;
+            }
+
+            double minTrimFraction = MinTrimSeconds / _totalDurationSeconds;
+            _trimEndFraction = Math.Clamp(currentFraction, _trimStartFraction + minTrimFraction, 1.0);
+
+            UpdateHandlePositions();
+            UpdateTimeLabels();
         }
 
         private void PlayBtn_Click(object sender, RoutedEventArgs e)
