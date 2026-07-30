@@ -1141,34 +1141,6 @@ namespace PaDDY
             return false;
         }
 
-        private void StepBackBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (_totalDurationSeconds <= 0) return;
-            double currentSec = _trimStartFraction * _totalDurationSeconds;
-            if (_isPreviewing)
-            {
-                double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
-                currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
-            }
-            double newSec = Math.Max(0.0, currentSec - 0.1);
-            UpdatePlaybackLinePosition(newSec);
-            UpdatePlaybackTimecode(newSec);
-        }
-
-        private void StepForwardBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (_totalDurationSeconds <= 0) return;
-            double currentSec = _trimStartFraction * _totalDurationSeconds;
-            if (_isPreviewing)
-            {
-                double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
-                currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
-            }
-            double newSec = Math.Min(_totalDurationSeconds, currentSec + 0.1);
-            UpdatePlaybackLinePosition(newSec);
-            UpdatePlaybackTimecode(newSec);
-        }
-
         private void TrimInBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_totalDurationSeconds <= 0) return;

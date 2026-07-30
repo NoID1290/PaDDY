@@ -759,7 +759,7 @@
         </Setter>
     </Style>
 
-    <!-- Illuminated Sliding Studio Rack Power Switch -->
+    <!-- Illuminated Smooth-Animated Sliding Studio Rack Power Switch -->
     <Style x:Key="RackPowerSwitch" TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
         <Setter Property="FontSize" Value="10.5"/>
@@ -778,27 +778,68 @@
                                 CornerRadius="10"
                                 Background="#181B28"
                                 BorderBrush="#2C3048"
-                                BorderThickness="1"
-                                Padding="2">
-                            <!-- Sliding Round Thumb -->
+                                BorderThickness="1">
+                            <!-- Sliding Round Thumb with TranslateTransform -->
                             <Border x:Name="Thumb"
                                     Width="14" Height="14"
                                     CornerRadius="7"
                                     Background="#6C748C"
                                     HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"/>
+                                    VerticalAlignment="Center"
+                                    Margin="2,0,0,0">
+                                <Border.RenderTransform>
+                                    <TranslateTransform x:Name="ThumbTransform" X="0"/>
+                                </Border.RenderTransform>
+                            </Border>
                         </Border>
                     </StackPanel>
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Track" Property="Background" Value="#1C3828"/>
-                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
-                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
-                            <Setter TargetName="Thumb" Property="Background" Value="{DynamicResource AccentGreenBrush}"/>
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ThumbTransform"
+                                                         Storyboard.TargetProperty="X"
+                                                         To="18" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ColorAnimation Storyboard.TargetName="Thumb"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#4CAF50" Duration="0:0:0.15"/>
+                                        <ColorAnimation Storyboard.TargetName="Track"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#1C3828" Duration="0:0:0.15"/>
+                                        <ColorAnimation Storyboard.TargetName="Track"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="#4CAF50" Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ThumbTransform"
+                                                         Storyboard.TargetProperty="X"
+                                                         To="0" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ColorAnimation Storyboard.TargetName="Thumb"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#6C748C" Duration="0:0:0.15"/>
+                                        <ColorAnimation Storyboard.TargetName="Track"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#181B28" Duration="0:0:0.15"/>
+                                        <ColorAnimation Storyboard.TargetName="Track"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="#2C3048" Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4"/>
