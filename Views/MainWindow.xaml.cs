@@ -2687,7 +2687,16 @@ namespace PaDDY
                     Cursor = System.Windows.Input.Cursors.Hand
                 };
                 string pageId = page.Id;
+                var currentPage = page;
                 tab.Click += (_, _) => SwitchToPadPage(pageId);
+                tab.MouseDown += (s, e) =>
+                {
+                    if (e.ChangedButton == System.Windows.Input.MouseButton.Middle)
+                    {
+                        e.Handled = true;
+                        OpenFolderInSecondaryWindow(currentPage);
+                    }
+                };
                 tab.AllowDrop = true;
                 tab.DragOver += (_, ev) =>
                 {
@@ -2726,6 +2735,49 @@ namespace PaDDY
             RecordingPadButton.SuppressEntranceAnimation++;
             LoadFavoritesFromStore();
             RecordingPadButton.SuppressEntranceAnimation--;
+
+            foreach (var win in _secondaryFolderWindows.Values.ToList())
+            {
+                if (win.IsLoaded) win.RefreshPads();
+            }
+        }
+
+        private readonly Dictionary<string, Views.SecondaryFolderWindow> _secondaryFolderWindows = new();
+
+        public void OpenFolderInSecondaryWindow(PadPage page)
+        {
+            if (page == null) return;
+
+            if (_secondaryFolderWindows.TryGetValue(page.Id, out var existingWin) && existingWin.IsLoaded)
+            {
+                if (existingWin.WindowState == WindowState.Minimized)
+                    existingWin.WindowState = WindowState.Normal;
+                existingWin.Activate();
+                existingWin.Focus();
+                return;
+            }
+
+            var win = new Views.SecondaryFolderWindow(
+                page,
+                _recordingStore,
+                _settings,
+                _outputDeviceIndex,
+                GetCurrentListenDeviceIndex(),
+                _outputVolume,
+                _padListenVolume,
+                onDataChanged: () =>
+                {
+                    Dispatcher.InvokeAsync(() =>
+                    {
+                        ReloadFavoritesPanel();
+                        UpdatePadState();
+                        Forget(RefreshStorageInfoAsync());
+                    });
+                });
+
+            _secondaryFolderWindows[page.Id] = win;
+            win.Closed += (s, e) => _secondaryFolderWindows.Remove(page.Id);
+            win.Show();
         }
 
         public void PrepareRecordingDataRestore()
@@ -2737,10 +2789,16 @@ namespace PaDDY
                 _captureService.Stop();
                 ForceResetInputMeter();
 
+                CloseOwnedSecondaryWindows();
+                PadPanel.Children.Clear();
+                FavoritesPanel.Children.Clear();
+                _padCache.Clear();
+
                 _recordingStore.Dispose();
                 Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
+                GC.Collect();
             }
             catch
             {
@@ -3472,6 +3530,12 @@ namespace PaDDY
                     _activeAboutWindow.Close();
                 if (_activeGlobalEffectsWindow != null && _activeGlobalEffectsWindow.IsLoaded)
                     _activeGlobalEffectsWindow.Close();
+
+                foreach (var win in _secondaryFolderWindows.Values.ToList())
+                {
+                    if (win.IsLoaded) win.Close();
+                }
+                _secondaryFolderWindows.Clear();
             }
             catch { }
         }

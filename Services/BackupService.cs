@@ -152,31 +152,83 @@ namespace PaDDY.Services
         {
             if (!File.Exists(path)) return;
 
-            for (int attempt = 0; attempt < 5; attempt++)
+            for (int attempt = 0; attempt < 10; attempt++)
             {
                 try
                 {
+                    SqliteConnection.ClearAllPools();
                     File.Delete(path);
                     return;
                 }
-                catch (Exception) when (attempt < 4)
+                catch (Exception)
                 {
                     SqliteConnection.ClearAllPools();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
-                    System.Threading.Thread.Sleep(100);
+                    System.Threading.Thread.Sleep(150);
                 }
             }
 
-            // Fallback: If deleting fails due to OS file lock, truncate file so SQLite ignores stale data
+            // Fallback: If deleting fails due to OS file lock, move out of the way then truncate
             try
             {
-                using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
-                fs.SetLength(0);
+                string tempOld = path + ".old_" + Guid.NewGuid().ToString("N");
+                File.Move(path, tempOld);
+                TryDeleteFile(tempOld);
             }
             catch
             {
-                // Best effort cleanup.
+                try
+                {
+                    using var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+                    fs.SetLength(0);
+                }
+                catch { }
+            }
+        }
+
+        private static void ForceCopyFile(string source, string destination)
+        {
+            for (int attempt = 0; attempt < 10; attempt++)
+            {
+                try
+                {
+                    SqliteConnection.ClearAllPools();
+                    File.Copy(source, destination, true);
+                    return;
+                }
+                catch (Exception)
+                {
+                    SqliteConnection.ClearAllPools();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    System.Threading.Thread.Sleep(150);
+                }
+            }
+
+            // Fallback: If destination file is locked by OS handle, move destination out of the way then copy
+            try
+            {
+                string tempOld = destination + ".old_" + Guid.NewGuid().ToString("N");
+                if (File.Exists(destination))
+                {
+                    File.Move(destination, tempOld);
+                }
+                File.Copy(source, destination, true);
+                TryDeleteFile(tempOld);
+            }
+            catch
+            {
+                try
+                {
+                    using var srcStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var destStream = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+                    srcStream.CopyTo(destStream);
+                }
+                catch
+                {
+                    File.Copy(source, destination, true);
+                }
             }
         }
 
@@ -355,20 +407,20 @@ namespace PaDDY.Services
 
                 if (File.Exists(recordingFile))
                 {
-                    File.Copy(recordingFile, UsrDataPath, true);
+                    ForceCopyFile(recordingFile, UsrDataPath);
                 }
 
                 if (File.Exists(recordingWalFile))
-                    File.Copy(recordingWalFile, UsrDataPath + "-wal", true);
+                    ForceCopyFile(recordingWalFile, UsrDataPath + "-wal");
 
                 if (File.Exists(recordingShmFile))
-                    File.Copy(recordingShmFile, UsrDataPath + "-shm", true);
+                    ForceCopyFile(recordingShmFile, UsrDataPath + "-shm");
 
                 if (File.Exists(settingsFile))
-                    File.WriteAllBytes(UsrDataSettings, File.ReadAllBytes(settingsFile));
+                    ForceCopyFile(settingsFile, UsrDataSettings);
 
                 if (File.Exists(effectSettingsFile))
-                    File.WriteAllBytes(UsrDataEffectSettings, File.ReadAllBytes(effectSettingsFile));
+                    ForceCopyFile(effectSettingsFile, UsrDataEffectSettings);
 
                 Console.WriteLine("Backup restored successfully.");
                 return true;
