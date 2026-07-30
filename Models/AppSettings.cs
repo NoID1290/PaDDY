@@ -50,9 +50,10 @@ namespace PaDDY
         // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest
         public int PadSortOrder { get; set; } = 0;
 
-        // Favorites section UI state
+        // Favorites & Audio panel UI state
         public bool FavoritesPanelCollapsed { get; set; } = false;
-        public bool RecordingsPanelCollapsed { get; set; } = false;
+        public bool RecordingsPanelCollapsed { get; set; } = true;
+        public bool AudioPanelVisible { get; set; } = false;
 
         // Volume controls (0–100 range)
         public double InputVolume { get; set; } = 80.0;
@@ -228,6 +229,19 @@ namespace PaDDY
             }
 
             return favorites;
+        }
+
+        public void ResetToDefaults()
+        {
+            var fresh = new AppSettings();
+            var props = typeof(AppSettings).GetProperties();
+            foreach (var prop in props)
+            {
+                if (prop.CanWrite)
+                {
+                    prop.SetValue(this, prop.GetValue(fresh));
+                }
+            }
         }
     }
 }

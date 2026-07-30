@@ -567,7 +567,7 @@
                 Background="{DynamicResource CardBgBrush}"
                 BorderBrush="#14FFFFFF"
                 BorderThickness="0,0,0,1"
-                MaxHeight="290"
+                MaxHeight="0"
                 ClipToBounds="True">
             <Grid Margin="10,8,10,10">
                 <Grid.ColumnDefinitions>
@@ -1465,11 +1465,7 @@
                                 Margin="0,0,6,0"
                                 ToolTip="Permanently delete all non-favorite recordings (favorites are kept)"
                                 Click="ClearPadsButton_Click"/>
-                        <Button Content="{p:Loc DeleteAllFilesBtn}"
-                                Height="24"
-                                Padding="10,2"
-                                ToolTip="Permanently delete recordings from disk"
-                                Click="DeleteAllFilesButton_Click"/>
+
                         <Button x:Name="RecordingsCollapseButton"
                                 Width="22"
                                 Height="22"

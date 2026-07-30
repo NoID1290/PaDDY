@@ -12,7 +12,10 @@
         Background="{DynamicResource WindowGlowBrush}"
         Foreground="{DynamicResource PrimaryTextBrush}"
         FontFamily="{DynamicResource AppFont}"
-        ShowInTaskbar="True">
+        ShowInTaskbar="True"
+        AllowDrop="True"
+        DragOver="Window_DragOver"
+        Drop="Window_Drop">
 
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="38"

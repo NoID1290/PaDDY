@@ -31,6 +31,8 @@ namespace PaDDY.Services
             Path.Combine(Path.GetTempPath(), "PaDDY_Update_Installer.exe");
 
         // ── GitHub API ───────────────────────────────────────────────────────────
+        public static readonly Uri ReleasesPageUri = new("https://github.com/NoID1290/PaDDY/releases");
+
         private const string LatestReleaseApiEndpoint =
             "https://api.github.com/repos/NoID1290/PaDDY/releases/latest";
 
@@ -46,7 +48,7 @@ namespace PaDDY.Services
 
         // ── Data ─────────────────────────────────────────────────────────────────
         public record UpdateCheckResult(
-            Version LatestVersion,
+            SemanticTagVersion LatestVersion,
             string InstallerDownloadUrl,
             long AssetSizeBytes);
 
@@ -64,8 +66,7 @@ namespace PaDDY.Services
                 if (!TryParseTagVersion(tagName, out var latestVersion))
                     return null;
 
-                var currentVersion = Assembly.GetExecutingAssembly().GetName().Version
-                                     ?? new Version(0, 0, 0, 0);
+                var currentVersion = GetCurrentAppVersion();
 
                 if (latestVersion <= currentVersion)
                     return null;
@@ -311,25 +312,87 @@ namespace PaDDY.Services
 
         // ── Helpers ──────────────────────────────────────────────────────────────
 
-        private static bool TryParseTagVersion(string tagName, out Version version)
+    public struct SemanticTagVersion : IComparable<SemanticTagVersion>
+    {
+        public Version BaseVersion { get; set; }
+        public int PreReleaseNumber { get; set; }
+        public string RawTag { get; set; }
+
+        public int CompareTo(SemanticTagVersion other)
         {
-            version = new Version(0, 0, 0, 0);
+            int cmp = BaseVersion.CompareTo(other.BaseVersion);
+            if (cmp != 0) return cmp;
+            return PreReleaseNumber.CompareTo(other.PreReleaseNumber);
+        }
+
+        public static bool operator >(SemanticTagVersion a, SemanticTagVersion b) => a.CompareTo(b) > 0;
+        public static bool operator <(SemanticTagVersion a, SemanticTagVersion b) => a.CompareTo(b) < 0;
+        public static bool operator >=(SemanticTagVersion a, SemanticTagVersion b) => a.CompareTo(b) >= 0;
+        public static bool operator <=(SemanticTagVersion a, SemanticTagVersion b) => a.CompareTo(b) <= 0;
+
+        public override string ToString() => RawTag ?? BaseVersion.ToString();
+    }
+
+    private static bool TryParseTagVersion(string tagName, out SemanticTagVersion semVer)
+        {
+            semVer = new SemanticTagVersion { BaseVersion = new Version(0, 0, 0, 0), PreReleaseNumber = 0, RawTag = tagName ?? string.Empty };
             if (string.IsNullOrWhiteSpace(tagName)) return false;
 
             string normalized = tagName.Trim();
             if (normalized.StartsWith("v", StringComparison.OrdinalIgnoreCase))
                 normalized = normalized[1..];
 
-            // Strip pre-release suffixes (e.g. "1.8.0.0712-Pre-release_1" → "1.8.0.0712")
+            string basePart = normalized;
+            int preReleaseNum = 99999; // Default for official releases without pre-release suffix
+
             int dashIndex = normalized.IndexOf('-');
             if (dashIndex > 0)
-                normalized = normalized[..dashIndex];
+            {
+                basePart = normalized[..dashIndex];
+                string suffix = normalized[(dashIndex + 1)..];
 
-            if (!Version.TryParse(normalized, out var parsed))
+                var match = System.Text.RegularExpressions.Regex.Match(suffix, @"\d+");
+                if (match.Success && int.TryParse(match.Value, out int parsedNum))
+                {
+                    preReleaseNum = parsedNum;
+                }
+                else
+                {
+                    preReleaseNum = 1;
+                }
+            }
+
+            if (!Version.TryParse(basePart, out var parsedVersion))
                 return false;
 
-            version = parsed;
+            semVer = new SemanticTagVersion
+            {
+                BaseVersion = parsedVersion,
+                PreReleaseNumber = preReleaseNum,
+                RawTag = tagName
+            };
             return true;
+        }
+
+        public static SemanticTagVersion GetCurrentAppVersion()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var ver = asm.GetName().Version ?? new Version(1, 0, 0, 0);
+
+            var infoVerAttr = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+            string raw = infoVerAttr?.InformationalVersion ?? ver.ToString();
+
+            if (TryParseTagVersion(raw, out var semVer))
+            {
+                return semVer;
+            }
+
+            return new SemanticTagVersion
+            {
+                BaseVersion = ver,
+                PreReleaseNumber = 99999,
+                RawTag = ver.ToString()
+            };
         }
 
         private static void TryDeleteFile(string path)

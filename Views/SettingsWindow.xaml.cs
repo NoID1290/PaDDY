@@ -100,8 +100,14 @@ namespace PaDDY
             Vst3PluginRow.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
             App.DebugModeChanged += OnDebugModeChanged;
             
+            PaDDY.Services.SpeechRecognitionService.DownloadProgressUpdated += OnSpeechModelDownloadProgressUpdated;
+
             Loaded += OnLoaded;
-            Closed += (_, _) => App.DebugModeChanged -= OnDebugModeChanged;
+            Closed += (_, _) =>
+            {
+                App.DebugModeChanged -= OnDebugModeChanged;
+                PaDDY.Services.SpeechRecognitionService.DownloadProgressUpdated -= OnSpeechModelDownloadProgressUpdated;
+            };
         }
 
         private void OnDebugModeChanged()
@@ -189,8 +195,9 @@ namespace PaDDY
                 : _settings.DefaultPadTitleTemplate;
             UseFocusedAppNameCheck.IsChecked = _settings.UseFocusedAppForPadTitle;
 
-            // Trim editor output
+            // Trim editor output & Live Mic
             PopulateTrimOutputDevices();
+            PopulateLiveMicDevices();
 
             // Appearance: language + theme + meter skin
             SelectedLanguage = _settings.Language;
@@ -410,6 +417,51 @@ namespace PaDDY
             int selected = Math.Clamp(_settings.TrimEditorOutputDeviceIndex, 0, TrimOutputDeviceCombo.Items.Count - 1);
             TrimOutputDeviceCombo.SelectedIndex = selected;
         }
+        private void PopulateLiveMicDevices()
+        {
+            LiveMicDeviceCombo.Items.Clear();
+            LiveMicDeviceCombo.Items.Add("Default Microphone");
+            for (int i = 0; i < NAudio.Wave.WaveInEvent.DeviceCount; i++)
+            {
+                var caps = NAudio.Wave.WaveInEvent.GetCapabilities(i);
+                LiveMicDeviceCombo.Items.Add(caps.ProductName);
+            }
+
+            int selectedLiveMic = Math.Clamp(_settings.LiveMicDeviceIndex + 1, 0, LiveMicDeviceCombo.Items.Count - 1);
+            LiveMicDeviceCombo.SelectedIndex = selectedLiveMic;
+
+            LiveMicFxCheck.IsChecked = _settings.LiveMicFxEnabled;
+            LiveMicGainSlider.Value = Math.Clamp(_settings.LiveMicGain, 0.0, 2.0);
+            if (LiveMicGainValueText != null)
+                LiveMicGainValueText.Text = $"{(_settings.LiveMicGain * 100):0}%";
+        }
+
+        private void LiveMicGainSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (LiveMicGainValueText != null)
+                LiveMicGainValueText.Text = $"{e.NewValue * 100:0}%";
+        }
+
+        private void ClearAllDataBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var res = System.Windows.MessageBox.Show(
+                this,
+                "⚠ Are you sure you want to CLEAR ALL DATA?\n\nThis will permanently delete ALL recordings, audio clips, custom folders, and reset all settings to defaults.\n\nThis action CANNOT be undone!",
+                "Clear All Data — PaDDY",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (res == MessageBoxResult.Yes)
+            {
+                if (MainWindow.Instance != null)
+                {
+                    MainWindow.Instance.PerformClearAllData();
+                    Confirmed = true;
+                    Close();
+                }
+            }
+        }
 
         private void CodecCombo_SelectionChanged(object sender,
             System.Windows.Controls.SelectionChangedEventArgs e)
@@ -531,11 +583,17 @@ namespace PaDDY
             _settings.Vst3PluginPath = Vst3PluginPathTextBox.Text;
             _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
             _settings.TargetLoudnessLufs = Math.Round(TargetLufsSlider.Value, 1);
+            _settings.LiveMicDeviceIndex = LiveMicDeviceCombo.SelectedIndex - 1;
+            _settings.LiveMicFxEnabled = LiveMicFxCheck.IsChecked == true;
+            _settings.LiveMicGain = LiveMicGainSlider.Value;
 
             // Global Effects
             SelectedGlobalFadeEnabled = GlobalFadeCheck.IsChecked == true;
             SelectedGlobalFadeInDurationMs = Math.Round(GlobalFadeInSlider.Value, 0);
             SelectedGlobalFadeOutDurationMs = Math.Round(GlobalFadeOutSlider.Value, 0);
+            _settings.GlobalFadeEnabled = SelectedGlobalFadeEnabled;
+            _settings.GlobalFadeInDurationMs = SelectedGlobalFadeInDurationMs;
+            _settings.GlobalFadeOutDurationMs = SelectedGlobalFadeOutDurationMs;
 
             Confirmed = true;
             Close();
@@ -631,6 +689,27 @@ namespace PaDDY
         {
             if (SpeechModelCombo.SelectedItem is string model)
             {
+                if (PaDDY.Services.SpeechRecognitionService.ActiveDownloadingModel == model)
+                {
+                    DownloadModelBtn.IsEnabled = false;
+                    SpeechModelCombo.IsEnabled = false;
+                    ModelDownloadProgress.Visibility = Visibility.Visible;
+                    ModelDownloadStatusText.Visibility = Visibility.Visible;
+                    if (PaDDY.Services.SpeechRecognitionService.ActiveDownloadPercent < 0)
+                    {
+                        ModelDownloadProgress.IsIndeterminate = true;
+                    }
+                    else
+                    {
+                        ModelDownloadProgress.IsIndeterminate = false;
+                        ModelDownloadProgress.Value = PaDDY.Services.SpeechRecognitionService.ActiveDownloadPercent * 100;
+                    }
+                    ModelDownloadStatusText.Text = PaDDY.Services.SpeechRecognitionService.ActiveDownloadStatusText;
+                    return;
+                }
+
+                DownloadModelBtn.IsEnabled = true;
+                SpeechModelCombo.IsEnabled = true;
                 bool downloaded = PaDDY.Services.SpeechRecognitionService.IsModelDownloaded(model);
                 if (downloaded)
                 {
@@ -651,6 +730,43 @@ namespace PaDDY
                     UninstallModelBtn.Visibility = Visibility.Collapsed;
                 }
             }
+        }
+
+        private void OnSpeechModelDownloadProgressUpdated(string model, double percent, string statusText)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                if (SpeechModelCombo.SelectedItem is string selected && selected == model)
+                {
+                    if (percent >= 0)
+                    {
+                        ModelDownloadProgress.IsIndeterminate = false;
+                        ModelDownloadProgress.Value = percent * 100;
+                        ModelDownloadProgress.Visibility = Visibility.Visible;
+                        ModelDownloadStatusText.Visibility = Visibility.Visible;
+                        ModelDownloadStatusText.Text = statusText;
+                        DownloadModelBtn.IsEnabled = false;
+                        SpeechModelCombo.IsEnabled = false;
+                    }
+                    else if (percent == -1 && !string.IsNullOrEmpty(statusText))
+                    {
+                        ModelDownloadProgress.IsIndeterminate = true;
+                        ModelDownloadProgress.Visibility = Visibility.Visible;
+                        ModelDownloadStatusText.Visibility = Visibility.Visible;
+                        ModelDownloadStatusText.Text = statusText;
+                        DownloadModelBtn.IsEnabled = false;
+                        SpeechModelCombo.IsEnabled = false;
+                    }
+                    else
+                    {
+                        ModelDownloadProgress.Visibility = Visibility.Collapsed;
+                        ModelDownloadStatusText.Visibility = Visibility.Collapsed;
+                        SpeechModelCombo.IsEnabled = true;
+                        DownloadModelBtn.IsEnabled = true;
+                        UpdateDownloadButtonState();
+                    }
+                }
+            });
         }
 
         private void UninstallModelBtn_Click(object sender, RoutedEventArgs e)
@@ -680,6 +796,7 @@ namespace PaDDY
         private async void DownloadModelBtn_Click(object sender, RoutedEventArgs e)
         {
             if (SpeechModelCombo.SelectedItem is not string model) return;
+            if (PaDDY.Services.SpeechRecognitionService.ActiveDownloadingModel != null) return;
             
             DownloadModelBtn.IsEnabled = false;
             SpeechModelCombo.IsEnabled = false;

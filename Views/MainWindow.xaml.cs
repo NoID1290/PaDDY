@@ -202,10 +202,12 @@ namespace PaDDY
         private static readonly Uri ReleasesPageUri = new("https://github.com/NoID1290/PaDDY/releases");
         private const string ReleasesApiEndpoint = "https://api.github.com/repos/NoID1290/PaDDY/releases/latest";
 
-        private bool _configPanelVisible = true;
+        public static MainWindow? Instance { get; private set; }
+        private bool _configPanelVisible = false;
 
         public MainWindow()
         {
+            Instance = this;
             // Decide up-front whether we should start hidden in the tray. When we do,
             // open the window minimized, non-activated and off the taskbar BEFORE the
             // first paint so the OS never flashes a black/unpainted window on screen.
@@ -263,6 +265,9 @@ namespace PaDDY
             this.PreviewKeyDown += OnPadHotKey;
             PadMonitorMeterHostL.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
             PadMonitorMeterHostR.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
+
+            RecordingPadButton.GlobalPlaybackRmsChanged += UpdateOutputMeter;
+            RecordingPadButton.GlobalListenPlaybackRmsChanged += UpdatePadMonitorMeter;
         }
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
@@ -383,6 +388,8 @@ namespace PaDDY
         private void ToggleConfigPanel_Click(object sender, RoutedEventArgs e)
         {
             _configPanelVisible = !_configPanelVisible;
+            _settings.AudioPanelVisible = _configPanelVisible;
+            _settings.Save();
             var target = _configPanelVisible ? 290.0 : 0.0;
             var anim = new System.Windows.Media.Animation.DoubleAnimation(target,
                 TimeSpan.FromMilliseconds(240))
@@ -450,6 +457,11 @@ namespace PaDDY
             ShowLoadingOverlay("Applying settings");
             await Task.Delay(500);
             ApplySettings();
+
+            _configPanelVisible = _settings.AudioPanelVisible;
+            ConfigPanelBorder.MaxHeight = _configPanelVisible ? 290.0 : 0.0;
+            ConfigToggleText.Text = _configPanelVisible ? "▲" : "▼";
+
             ShowLoadingOverlay("Cleaning up temp files");
             await Task.Delay(50);
             _recordingStore.CleanupInternalTempRecordings();
@@ -2750,6 +2762,13 @@ namespace PaDDY
         {
             if (page == null) return;
 
+            if (!page.IsFavorites && !_settings.FavoritesPanelCollapsed)
+            {
+                _settings.FavoritesPanelCollapsed = true;
+                _settings.Save();
+                UpdatePadState();
+            }
+
             if (_secondaryFolderWindows.TryGetValue(page.Id, out var existingWin) && existingWin.IsLoaded)
             {
                 if (existingWin.WindowState == WindowState.Minimized)
@@ -3140,46 +3159,7 @@ namespace PaDDY
             Forget(CompactAndRefreshAsync());
         }
 
-        private void DeleteAllFilesButton_Click(object sender, RoutedEventArgs e)
-        {
-            int total = PadPanel.Children.Count + FavoritesPanel.Children.Count;
-            if (total == 0) return;
 
-            var dlg = new DeleteAllDialog { Owner = this, Icon = Icon };
-            if (dlg.ShowDialog() != true) return;
-
-            var toDelete = new List<RecordingPadButton>();
-
-            // Always delete from PadPanel
-            foreach (var child in PadPanel.Children.OfType<RecordingPadButton>())
-                toDelete.Add(child);
-
-            // Apply to FavoritesPanel only if NOT keeping favorites
-            if (!dlg.KeepFavorites)
-            {
-                foreach (var child in FavoritesPanel.Children.OfType<RecordingPadButton>())
-                    toDelete.Add(child);
-            }
-
-            var idsToDelete = toDelete
-                .Where(b => b.Entry != null && !string.IsNullOrEmpty(b.Entry.RecordingId))
-                .Select(b => b.Entry!.RecordingId)
-                .ToList();
-
-            foreach (var btn in toDelete)
-            {
-                btn.StopPlayback();
-                PadPanel.Children.Remove(btn);
-                if (!dlg.KeepFavorites)
-                    FavoritesPanel.Children.Remove(btn);
-            }
-
-            _recordingStore.DeleteAll(idsToDelete);
-            foreach (var id in idsToDelete) _padCache.Remove(id);
-
-            UpdatePadState();
-            Forget(CompactAndRefreshAsync());
-        }
 
         // ── Helpers ────────────────────────────────────────────────────────────
         private static readonly HashSet<string> _audioExtensions =
@@ -3219,6 +3199,39 @@ namespace PaDDY
                 : $"{FormatSampleRate(sampleRate)} | {FormatChannels(channels)}";
 
             SetInfoLabel(OutputFormatInfoLabel, LocalizationManager.Instance["RecordingFormatPrefix"], $"{codec} | {suffix}");
+        }
+
+        public void PerformClearAllData()
+        {
+            ShowLoadingOverlay("Clearing all application data...");
+            try
+            {
+                var buttons = PadPanel.Children.OfType<RecordingPadButton>().Concat(FavoritesPanel.Children.OfType<RecordingPadButton>()).ToList();
+                foreach (var b in buttons) b.StopPlayback();
+
+                PadPanel.Children.Clear();
+                FavoritesPanel.Children.Clear();
+
+                var allPads = _recordingStore.GetAll();
+                var ids = allPads.Select(p => p.Id).ToList();
+                _recordingStore.DeleteAll(ids);
+                _padCache.Clear();
+
+                _recordingStore.CleanupAllTempFiles();
+                _recordingStore.CleanupInternalTempRecordings();
+
+                _settings.ResetToDefaults();
+                _settings.Save();
+                ApplySettings();
+                UpdatePadState();
+                Forget(RefreshStorageInfoAsync());
+
+                SetStatus("All data cleared successfully.", "#FF4CAF50");
+            }
+            finally
+            {
+                HideLoadingOverlay();
+            }
         }
 
         private async Task CompactAndRefreshAsync()
@@ -3278,39 +3291,17 @@ namespace PaDDY
         {
             try
             {
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
-                http.DefaultRequestHeaders.UserAgent.ParseAdd("PaDDY-UpdateCheck/1.0");
-                using var response = await http.GetAsync(ReleasesApiEndpoint);
-                if (!response.IsSuccessStatusCode)
+                var updateService = new UpdateService(_settings.DownloadBetaUpdates);
+                var updateResult = await updateService.CheckForUpdateAsync();
+                if (updateResult != null)
+                {
+                    UpdateNoticeLink.NavigateUri = UpdateService.ReleasesPageUri;
+                    UpdateNoticeText.Visibility = Visibility.Visible;
+                }
+                else
                 {
                     UpdateNoticeText.Visibility = Visibility.Collapsed;
-                    return;
                 }
-
-                await using var stream = await response.Content.ReadAsStreamAsync();
-                using var document = await JsonDocument.ParseAsync(stream);
-                if (!document.RootElement.TryGetProperty("tag_name", out var tagNameProperty))
-                {
-                    UpdateNoticeText.Visibility = Visibility.Collapsed;
-                    return;
-                }
-
-                string tagName = tagNameProperty.GetString() ?? string.Empty;
-                if (!TryParseTagVersion(tagName, out var latestVersion))
-                {
-                    UpdateNoticeText.Visibility = Visibility.Collapsed;
-                    return;
-                }
-
-                var currentVersion = GetCurrentAppVersion();
-                if (latestVersion <= currentVersion)
-                {
-                    UpdateNoticeText.Visibility = Visibility.Collapsed;
-                    return;
-                }
-
-                UpdateNoticeLink.NavigateUri = ReleasesPageUri;
-                UpdateNoticeText.Visibility = Visibility.Visible;
             }
             catch
             {
@@ -3575,7 +3566,7 @@ namespace PaDDY
             {
                 if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files)
                 {
-                    if (files.Any(f => AudioImportService.IsSupportedExtension(f)))
+                    if (files.Any(f => AudioImportService.IsSupportedExtensionOrDirectory(f)))
                     {
                         e.Effects = System.Windows.DragDropEffects.Copy;
                         e.Handled = true;
@@ -3591,8 +3582,8 @@ namespace PaDDY
             {
                 if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files && files.Length > 0)
                 {
-                    var supportedFiles = files.Where(f => AudioImportService.IsSupportedExtension(f)).ToArray();
-                    if (supportedFiles.Length > 0)
+                    var supportedFiles = AudioImportService.ExpandAudioFiles(files);
+                    if (supportedFiles.Count > 0)
                     {
                         e.Handled = true;
                         await ProcessAudioImportsAsync(supportedFiles);
@@ -3603,7 +3594,7 @@ namespace PaDDY
 
         private async Task ProcessAudioImportsAsync(IEnumerable<string> filePaths)
         {
-            var filesList = filePaths.ToList();
+            var filesList = AudioImportService.ExpandAudioFiles(filePaths);
             if (filesList.Count == 0) return;
 
             ShowLoadingOverlay($"Importing {filesList.Count} audio file(s)...");
@@ -3635,10 +3626,17 @@ namespace PaDDY
 
                         if (_settings.AutoNormalizeOnCapture && File.Exists(entry.FilePath))
                         {
-                            LoudnessNormalizer.NormalizeWavFile(entry.FilePath, entry.FilePath, _settings.TargetLoudnessLufs);
-                            double newLufs = LoudnessNormalizer.MeasureIntegratedLoudness(entry.FilePath);
-                            entry.LufsValue = newLufs;
-                            _recordingStore.UpdateLufs(id, newLufs);
+                            try
+                            {
+                                LoudnessNormalizer.NormalizeWavFile(entry.FilePath, entry.FilePath, _settings.TargetLoudnessLufs);
+                                double newLufs = LoudnessNormalizer.MeasureIntegratedLoudness(entry.FilePath);
+                                entry.LufsValue = newLufs;
+                                _recordingStore.UpdateLufs(id, newLufs);
+                            }
+                            catch (Exception normEx)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"LUFS normalization skipped: {normEx.Message}");
+                            }
                         }
 
                         AddPadButton(entry, toFavorites: false);

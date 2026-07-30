@@ -34,6 +34,7 @@ namespace PaDDY
             new() { Name = "Whisper.net", License = "MIT", Usage = "On-device speech-to-text for auto-renaming", LicenseFile = "Whisper.net-LICENSE.txt" },
             new() { Name = "Whisper.net.Runtime.Cuda", License = "MIT", Usage = "CUDA GPU acceleration for Whisper speech-to-text", LicenseFile = "Whisper.net-LICENSE.txt" },
             new() { Name = "VST.NET (vstnet)", License = "MIT", Usage = "VST2 plugin hosting support", LicenseFile = "VST.NET-LICENSE.txt" },
+            new() { Name = "AudioPlugSharp", License = "MIT", Usage = "VST3 host interface wrapper", LicenseFile = "AudioPlugSharp-LICENSE.txt" },
             new() { Name = "MDA VST Plugins", License = "MIT", Usage = "Default VST2 dynamics and de-esser voice processing plugins", LicenseFile = "MDA-VST-LICENSE.txt" },
             new() { Name = "WetReverb VST3", License = "MIT", Usage = "Default VST3 reverb environment voice effect", LicenseFile = "WetReverb-LICENSE.txt" },
         };

@@ -29,6 +29,48 @@ namespace PaDDY.Services
             return Array.Exists(SupportedExtensions, e => e.Equals(ext, StringComparison.OrdinalIgnoreCase));
         }
 
+        public static bool IsSupportedExtensionOrDirectory(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return false;
+            if (File.Exists(path)) return IsSupportedExtension(path);
+            if (Directory.Exists(path))
+            {
+                try
+                {
+                    return Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
+                        .Any(IsSupportedExtension);
+                }
+                catch { return false; }
+            }
+            return false;
+        }
+
+        public static System.Collections.Generic.List<string> ExpandAudioFiles(System.Collections.Generic.IEnumerable<string> paths)
+        {
+            var result = new System.Collections.Generic.List<string>();
+            if (paths == null) return result;
+
+            foreach (var path in paths)
+            {
+                if (string.IsNullOrWhiteSpace(path)) continue;
+                if (File.Exists(path))
+                {
+                    if (IsSupportedExtension(path)) result.Add(path);
+                }
+                else if (Directory.Exists(path))
+                {
+                    try
+                    {
+                        var files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
+                            .Where(IsSupportedExtension);
+                        result.AddRange(files);
+                    }
+                    catch { }
+                }
+            }
+            return result;
+        }
+
         public static Task<AudioImportResult> ImportFileAsync(string filePath)
         {
             return Task.Run(() =>

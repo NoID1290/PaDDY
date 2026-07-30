@@ -275,5 +275,81 @@ namespace PaDDY.Views
         {
             SearchTextBox.Text = string.Empty;
         }
+
+        private void Window_DragOver(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(RecordingPadButton.PadDragFormat))
+            {
+                e.Effects = System.Windows.DragDropEffects.Move;
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files)
+                {
+                    if (files.Any(f => AudioImportService.IsSupportedExtensionOrDirectory(f)))
+                    {
+                        e.Effects = System.Windows.DragDropEffects.Copy;
+                        e.Handled = true;
+                        return;
+                    }
+                }
+            }
+        }
+
+        private async void Window_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(RecordingPadButton.PadDragFormat))
+            {
+                if (e.Data.GetData(RecordingPadButton.PadDragFormat) is RecordingPadButton pad && pad.Entry != null)
+                {
+                    if (Page.IsFavorites)
+                    {
+                        _store.SetFavorite(pad.Entry.RecordingId, true);
+                    }
+                    else
+                    {
+                        _store.SetPadPage(pad.Entry.RecordingId, Page.Id);
+                    }
+
+                    _onDataChanged?.Invoke();
+                    RefreshPads();
+                }
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files && files.Length > 0)
+                {
+                    var supportedFiles = AudioImportService.ExpandAudioFiles(files);
+                    if (supportedFiles.Count > 0)
+                    {
+                        e.Handled = true;
+                        foreach (var file in supportedFiles)
+                        {
+                            var result = await AudioImportService.ImportFileAsync(file);
+                            if (result.Success && result.AudioData.Length > 0)
+                            {
+                                string id = _store.Add(result.DisplayName, result.Codec, result.Duration, DateTime.Now, result.AudioData);
+                                if (Page.IsFavorites)
+                                {
+                                    _store.SetFavorite(id, true);
+                                }
+                                else
+                                {
+                                    _store.SetPadPage(id, Page.Id);
+                                }
+                            }
+                        }
+                        _onDataChanged?.Invoke();
+                        RefreshPads();
+                    }
+                }
+            }
+        }
     }
 }

@@ -214,48 +214,52 @@ namespace NoIDSoftwork.AudioProcessor
             float gainLinear = (float)Math.Pow(10.0, requiredGainDb / 20.0);
 
             // Read samples and check max peak after gain
+            WaveFormat format;
+            float[] samples;
+            int read;
+
             using (AudioFileReader reader = new AudioFileReader(sourceWavPath))
             {
-                WaveFormat format = reader.WaveFormat;
+                format = reader.WaveFormat;
                 int sampleCount = (int)(reader.Length / (format.BitsPerSample / 8));
-                float[] samples = new float[sampleCount];
-                int read = reader.Read(samples, 0, sampleCount);
-
-                float maxPeakLinear = 0f;
-                for (int i = 0; i < read; i++)
-                {
-                    float abs = Math.Abs(samples[i]);
-                    if (abs > maxPeakLinear) maxPeakLinear = abs;
-                }
-
-                float peakAfterGain = maxPeakLinear * gainLinear;
-                float maxAllowedPeakLinear = (float)Math.Pow(10.0, maxPeakDb / 20.0);
-
-                if (peakAfterGain > maxAllowedPeakLinear)
-                {
-                    // Scale gain down to fit within max peak ceiling to prevent clipping
-                    gainLinear = maxAllowedPeakLinear / Math.Max(1e-6f, maxPeakLinear);
-                }
-
-                // Apply gain to samples
-                for (int i = 0; i < read; i++)
-                {
-                    samples[i] = Math.Clamp(samples[i] * gainLinear, -1.0f, 1.0f);
-                }
-
-                // Write output file using WaveFileWriter
-                string tempFile = Path.Combine(Path.GetDirectoryName(outputWavPath) ?? Path.GetTempPath(), $"norm_{Guid.NewGuid():N}.wav");
-                using (WaveFileWriter writer = new WaveFileWriter(tempFile, format))
-                {
-                    writer.WriteSamples(samples, 0, read);
-                }
-
-                if (File.Exists(outputWavPath))
-                {
-                    File.Delete(outputWavPath);
-                }
-                File.Move(tempFile, outputWavPath);
+                samples = new float[sampleCount];
+                read = reader.Read(samples, 0, sampleCount);
             }
+
+            float maxPeakLinear = 0f;
+            for (int i = 0; i < read; i++)
+            {
+                float abs = Math.Abs(samples[i]);
+                if (abs > maxPeakLinear) maxPeakLinear = abs;
+            }
+
+            float peakAfterGain = maxPeakLinear * gainLinear;
+            float maxAllowedPeakLinear = (float)Math.Pow(10.0, maxPeakDb / 20.0);
+
+            if (peakAfterGain > maxAllowedPeakLinear)
+            {
+                // Scale gain down to fit within max peak ceiling to prevent clipping
+                gainLinear = maxAllowedPeakLinear / Math.Max(1e-6f, maxPeakLinear);
+            }
+
+            // Apply gain to samples
+            for (int i = 0; i < read; i++)
+            {
+                samples[i] = Math.Clamp(samples[i] * gainLinear, -1.0f, 1.0f);
+            }
+
+            // Write output file using WaveFileWriter
+            string tempFile = Path.Combine(Path.GetDirectoryName(outputWavPath) ?? Path.GetTempPath(), $"norm_{Guid.NewGuid():N}.wav");
+            using (WaveFileWriter writer = new WaveFileWriter(tempFile, format))
+            {
+                writer.WriteSamples(samples, 0, read);
+            }
+
+            if (File.Exists(outputWavPath))
+            {
+                File.Delete(outputWavPath);
+            }
+            File.Move(tempFile, outputWavPath);
 
             return true;
         }

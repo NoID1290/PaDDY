@@ -109,6 +109,11 @@ namespace PaDDY.Services
             return false;
         }
 
+        public static string? ActiveDownloadingModel { get; private set; }
+        public static double ActiveDownloadPercent { get; private set; } = -1;
+        public static string ActiveDownloadStatusText { get; private set; } = string.Empty;
+        public static event Action<string, double, string>? DownloadProgressUpdated;
+
         public static async Task DownloadModelAsync(string? model, IProgress<(double Percent, string StatusText)>? progress, CancellationToken ct = default)
         {
             GgmlType type = MapModel(model);
@@ -116,59 +121,79 @@ namespace PaDDY.Services
             string appDataPath = Path.Combine(ModelsFolder, fileName);
             string tmp = appDataPath + ".part";
 
-            string urlType = type switch
+            ActiveDownloadingModel = model;
+            ActiveDownloadPercent = -1;
+            ActiveDownloadStatusText = $"Downloading {model} model...";
+            DownloadProgressUpdated?.Invoke(model ?? string.Empty, ActiveDownloadPercent, ActiveDownloadStatusText);
+
+            try
             {
-                GgmlType.Tiny => "tiny",
-                GgmlType.Small => "small",
-                GgmlType.Medium => "medium",
-                GgmlType.LargeV3 => "large-v3",
-                _ => "base"
-            };
-            string url = $"https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-{urlType}.bin";
-
-            using var httpClient = new HttpClient();
-            using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            long? totalBytes = response.Content.Headers.ContentLength;
-            using var modelStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-
-            using var fileWriter = File.Create(tmp);
-            byte[] buffer = new byte[81920];
-            int read;
-            long totalRead = 0;
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            long lastReportTime = 0;
-            long lastReportBytes = 0;
-
-            while ((read = await modelStream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false)) > 0)
-            {
-                await fileWriter.WriteAsync(buffer, 0, read, ct).ConfigureAwait(false);
-                totalRead += read;
-
-                if (progress != null && sw.ElapsedMilliseconds - lastReportTime > 250)
+                string urlType = type switch
                 {
-                    double percent = totalBytes.HasValue ? (double)totalRead / totalBytes.Value : -1;
-                    
-                    double elapsedSec = (sw.ElapsedMilliseconds - lastReportTime) / 1000.0;
-                    double bytesPerSec = elapsedSec > 0 ? (totalRead - lastReportBytes) / elapsedSec : 0;
-                    
-                    string speed = bytesPerSec > 1048576 
-                        ? $"{(bytesPerSec / 1048576):F1} MB/s" 
-                        : $"{(bytesPerSec / 1024):F1} KB/s";
+                    GgmlType.Tiny => "tiny",
+                    GgmlType.Small => "small",
+                    GgmlType.Medium => "medium",
+                    GgmlType.LargeV3 => "large-v3",
+                    _ => "base"
+                };
+                string url = $"https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-{urlType}.bin";
 
-                    string dataInfo = totalBytes.HasValue
-                        ? $"{(totalRead / 1048576.0):F1} / {(totalBytes.Value / 1048576.0):F1} MB"
-                        : $"{(totalRead / 1048576.0):F1} MB";
+                using var httpClient = new HttpClient();
+                using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
 
-                    progress.Report((percent, $"Downloading {model} model... {dataInfo} ({speed})"));
-                    
-                    lastReportTime = sw.ElapsedMilliseconds;
-                    lastReportBytes = totalRead;
+                long? totalBytes = response.Content.Headers.ContentLength;
+                using var modelStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+
+                using var fileWriter = File.Create(tmp);
+                byte[] buffer = new byte[81920];
+                int read;
+                long totalRead = 0;
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                long lastReportTime = 0;
+                long lastReportBytes = 0;
+
+                while ((read = await modelStream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false)) > 0)
+                {
+                    await fileWriter.WriteAsync(buffer, 0, read, ct).ConfigureAwait(false);
+                    totalRead += read;
+
+                    if (sw.ElapsedMilliseconds - lastReportTime > 250)
+                    {
+                        double percent = totalBytes.HasValue ? (double)totalRead / totalBytes.Value : -1;
+                        
+                        double elapsedSec = (sw.ElapsedMilliseconds - lastReportTime) / 1000.0;
+                        double bytesPerSec = elapsedSec > 0 ? (totalRead - lastReportBytes) / elapsedSec : 0;
+                        
+                        string speed = bytesPerSec > 1048576 
+                            ? $"{(bytesPerSec / 1048576):F1} MB/s" 
+                            : $"{(bytesPerSec / 1024):F1} KB/s";
+
+                        string dataInfo = totalBytes.HasValue
+                            ? $"{(totalRead / 1048576.0):F1} / {(totalBytes.Value / 1048576.0):F1} MB"
+                            : $"{(totalRead / 1048576.0):F1} MB";
+
+                        string statusMsg = $"Downloading {model} model... {dataInfo} ({speed})";
+                        ActiveDownloadPercent = percent;
+                        ActiveDownloadStatusText = statusMsg;
+
+                        progress?.Report((percent, statusMsg));
+                        DownloadProgressUpdated?.Invoke(model ?? string.Empty, percent, statusMsg);
+                        
+                        lastReportTime = sw.ElapsedMilliseconds;
+                        lastReportBytes = totalRead;
+                    }
                 }
+                fileWriter.Close();
+                File.Move(tmp, appDataPath, overwrite: true);
             }
-            fileWriter.Close();
-            File.Move(tmp, appDataPath, overwrite: true);
+            finally
+            {
+                ActiveDownloadingModel = null;
+                ActiveDownloadPercent = -1;
+                ActiveDownloadStatusText = string.Empty;
+                DownloadProgressUpdated?.Invoke(model ?? string.Empty, -1, string.Empty);
+            }
         }
 
         /// <summary>
