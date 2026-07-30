@@ -93,7 +93,7 @@ namespace PaDDY.Views
             }
             else
             {
-                matchingEntries = allEntries.Where(e => e.PadPage == Page.Id || (e.IsFavorite && string.IsNullOrEmpty(e.PadPage))).ToList();
+                matchingEntries = allEntries.Where(e => e.PadPage == Page.Id).ToList();
             }
 
             string filter = SearchTextBox?.Text?.Trim().ToLowerInvariant() ?? string.Empty;
