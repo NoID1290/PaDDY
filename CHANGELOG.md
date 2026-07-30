@@ -4,6 +4,17 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0730-Pre-release_1] - 2026-07-30
+
+- Dev Updates Test 5
+- chore: update project dependencies to latest versions
+- Security Update for StreamDeck plugin #2
+- Security Update for the StreamDeck Plugin
+- Fixing restore for version 2
+- Now custom folders only show recordings that are explicitly assigned to them
+- backup fix for secondary windows
+- SQLite's Write-Ahead Log companion file error
+
 ## [2.0.0.0729-Pre-release_3] - 2026-07-29
 
 - Dev Updates Test 4
