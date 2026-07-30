@@ -15,5 +15,9 @@
   "devDependencies": {
     "@elgato/cli": "^1.7.4",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "brace-expansion": "^2.1.2"
   }
 }
+
