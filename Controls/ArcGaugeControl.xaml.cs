@@ -91,10 +91,41 @@ namespace PaDDY.Controls
             set => SetValue(StepProperty, value);
         }
 
+        private Action? _themeUnsubscribe;
+
         public ArcGaugeControl()
         {
             InitializeComponent();
-            Loaded += (_, _) => UpdateVisuals();
+            Loaded += (_, _) =>
+            {
+                UpdateThemeGlow();
+                UpdateVisuals();
+                Helpers.ThemeManager.ThemeChanged += OnThemeChanged;
+                _themeUnsubscribe = () => Helpers.ThemeManager.ThemeChanged -= OnThemeChanged;
+            };
+            Unloaded += (_, _) =>
+            {
+                _themeUnsubscribe?.Invoke();
+                _themeUnsubscribe = null;
+            };
+        }
+
+        private void OnThemeChanged()
+        {
+            UpdateThemeGlow();
+        }
+
+        private void UpdateThemeGlow()
+        {
+            try
+            {
+                var accentResource = TryFindResource("AccentGreenBrush");
+                if (accentResource is SolidColorBrush scb && ArcGlowEffect != null)
+                {
+                    ArcGlowEffect.Color = scb.Color;
+                }
+            }
+            catch { }
         }
 
         private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

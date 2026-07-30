@@ -18,7 +18,7 @@
         <Grid Grid.Row="0" Width="64" Height="64" HorizontalAlignment="Center" VerticalAlignment="Center">
             <!-- Outer Track Arc (Background Ring) -->
             <Path x:Name="TrackArc"
-                  Stroke="#2A2D3E"
+                  Stroke="{DynamicResource InputBorderBrush}"
                   StrokeThickness="4"
                   StrokeStartLineCap="Round"
                   StrokeEndLineCap="Round"/>
@@ -35,18 +35,12 @@
             </Path>
 
             <!-- Inner Dial Face -->
-            <Ellipse Width="46" Height="46" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Ellipse.Fill>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#FF222534" Offset="0"/>
-                        <GradientStop Color="#FF141622" Offset="1"/>
-                    </LinearGradientBrush>
-                </Ellipse.Fill>
-                <Ellipse.Stroke>
-                    <SolidColorBrush Color="#3A3E54"/>
-                </Ellipse.Stroke>
+            <Ellipse Width="46" Height="46"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Fill="{DynamicResource InputBgBrush}"
+                     Stroke="{DynamicResource CardBorderBrush}">
                 <Ellipse.Effect>
-                    <DropShadowEffect BlurRadius="6" Color="#000000" Opacity="0.5" ShadowDepth="2"/>
+                    <DropShadowEffect BlurRadius="6" Color="#000000" Opacity="0.25" ShadowDepth="2"/>
                 </Ellipse.Effect>
             </Ellipse>
 

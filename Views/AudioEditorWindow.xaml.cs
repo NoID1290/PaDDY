@@ -133,11 +133,19 @@ namespace PaDDY
 
             Loaded += OnLoaded;
             WaveformGrid.SizeChanged += WaveformGrid_SizeChanged;
+            ThemeManager.ThemeChanged += OnThemeChanged;
             Closed += (_, _) => 
             {
                 StopPreview();
                 App.DebugModeChanged -= OnDebugModeChanged;
+                ThemeManager.ThemeChanged -= OnThemeChanged;
             };
+        }
+
+        private void OnThemeChanged()
+        {
+            if (_originalPeaks != null)
+                RenderWaveformFromPeaks();
         }
 
         private void OnDebugModeChanged()

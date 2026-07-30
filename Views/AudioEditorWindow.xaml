@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterOwner"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
-        Background="#0F1118"
+        Background="{DynamicResource WindowBgBrush}"
         Foreground="{DynamicResource PrimaryTextBrush}"
         FontFamily="{DynamicResource AppFont}">
 
@@ -29,9 +29,9 @@
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Height" Value="32"/>
-            <Setter Property="Background" Value="#1C1F2E"/>
-            <Setter Property="Foreground" Value="#E0E4F0"/>
-            <Setter Property="BorderBrush" Value="#2C3044"/>
+            <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -42,11 +42,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#282C40"/>
-                                <Setter TargetName="bd" Property="BorderBrush" Value="#3D4260"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#141724"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4"/>
@@ -57,11 +57,11 @@
             </Setter>
         </Style>
 
-        <!-- Primary Action Button (Green Accent) -->
+        <!-- Primary Action Button (Accent) -->
         <Style x:Key="PrimaryBtn" TargetType="Button" BasedOn="{StaticResource EditorBtn}">
-            <Setter Property="Background" Value="#1C2E24"/>
+            <Setter Property="Background" Value="{DynamicResource InputBgBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentGreenBrush}"/>
-            <Setter Property="BorderBrush" Value="#2A4C3A"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -71,11 +71,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#243C2E"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
                                 <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#14221A"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -85,8 +85,8 @@
 
         <!-- Daw Card Style -->
         <Style x:Key="DawCard" TargetType="Border">
-            <Setter Property="Background" Value="#161824"/>
-            <Setter Property="BorderBrush" Value="#222636"/>
+            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="10"/>
@@ -95,8 +95,8 @@
 
         <!-- Value Badge Style -->
         <Style x:Key="ValueBadge" TargetType="Border">
-            <Setter Property="Background" Value="#1A1D2B"/>
-            <Setter Property="BorderBrush" Value="#2A2F45"/>
+            <Setter Property="Background" Value="{DynamicResource InputBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="Padding" Value="4,2"/>
@@ -109,11 +109,11 @@
                 <Border Width="2" Background="{DynamicResource AccentGreenBrush}" HorizontalAlignment="Center"/>
                 <!-- Top grip head -->
                 <Border Width="12" Height="16" Background="{DynamicResource AccentGreenBrush}" CornerRadius="3" VerticalAlignment="Top" HorizontalAlignment="Center">
-                    <TextBlock Text="||" Foreground="#0F1118" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="||" Foreground="{DynamicResource ButtonBgBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- Bottom grip head -->
                 <Border Width="12" Height="16" Background="{DynamicResource AccentGreenBrush}" CornerRadius="3" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                    <TextBlock Text="||" Foreground="#0F1118" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="||" Foreground="{DynamicResource ButtonBgBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
             </Grid>
         </ControlTemplate>
@@ -131,15 +131,15 @@
 
                 <!-- Row 0: Custom Title Bar -->
                 <Border Grid.Row="0"
-                        Background="#12141F"
-                        BorderBrush="#1E2232"
+                        Background="{DynamicResource TitleBarGradient}"
+                        BorderBrush="{DynamicResource DividerBrush}"
                         BorderThickness="0,0,0,1"
-                        CornerRadius="10,10,0,0">
+                        CornerRadius="{DynamicResource TopWindowCornerRadius}">
                     <Grid>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
                             <TextBlock Text="🎛" FontSize="13" Foreground="{DynamicResource AccentGreenBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="Audio Editor &amp; Trim"
-                                       Foreground="#E2E6F2"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
                                        FontSize="12"
                                        FontWeight="Bold"
                                        VerticalAlignment="Center"/>
@@ -174,8 +174,8 @@
 
                         <!-- Row 0 — Waveform Display Container -->
                         <Border Grid.Row="0"
-                                Background="#0E1017"
-                                BorderBrush="#222636"
+                                Background="{DynamicResource WindowBgBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 ClipToBounds="True">
@@ -184,13 +184,13 @@
                                 <Grid VerticalAlignment="Top" Margin="12,10,12,0" Panel.ZIndex="10">
                                     <TextBlock x:Name="FileNameLabel"
                                                Text="Audio Track"
-                                               Foreground="#E6EAFA"
+                                               Foreground="{DynamicResource PrimaryTextBrush}"
                                                FontSize="13.5"
                                                FontWeight="Bold"
                                                HorizontalAlignment="Left"/>
                                     <TextBlock x:Name="TotalDurationLabel"
                                                Text="0.0s"
-                                               Foreground="#8C94AC"
+                                               Foreground="{DynamicResource SubtleTextBrush}"
                                                FontSize="11.5"
                                                FontWeight="SemiBold"
                                                HorizontalAlignment="Right"/>
@@ -210,27 +210,27 @@
                                                 <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
                                                 <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="1" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="2" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="3" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="4" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="5" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="6" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="7" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="8" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="9" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="10" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="11" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
-                                            <Border Grid.Column="12" BorderBrush="#FFFFFF" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="0" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="1" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="2" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="3" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="4" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="5" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="6" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="7" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="8" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="9" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="10" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="11" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
+                                            <Border Grid.Column="12" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,1,0"/>
                                         </Grid>
                                         <Grid x:Name="HorizontalGridLines" IsHitTestVisible="False" Opacity="0.05">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
                                             </Grid.RowDefinitions>
-                                            <Border Grid.Row="0" BorderBrush="#FFFFFF" BorderThickness="0,0,0,1"/>
-                                            <Border Grid.Row="1" BorderBrush="#FFFFFF" BorderThickness="0,0,0,1"/>
-                                            <Border Grid.Row="2" BorderBrush="#FFFFFF" BorderThickness="0,0,0,1"/>
+                                            <Border Grid.Row="0" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
+                                            <Border Grid.Row="1" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
+                                            <Border Grid.Row="2" BorderBrush="{DynamicResource PrimaryTextBrush}" BorderThickness="0,0,0,1"/>
                                         </Grid>
 
                                         <!-- Waveform Graphic -->
@@ -239,8 +239,8 @@
                                                RenderOptions.BitmapScalingMode="NearestNeighbor"/>
 
                                         <!-- Unselected Regions Overlays -->
-                                        <Border x:Name="LeftOverlay" Background="#0C0E14" Opacity="0.65" HorizontalAlignment="Left" Width="0"/>
-                                        <Border x:Name="RightOverlay" Background="#0C0E14" Opacity="0.65" HorizontalAlignment="Right" Width="0"/>
+                                        <Border x:Name="LeftOverlay" Background="{DynamicResource WindowBgBrush}" Opacity="0.65" HorizontalAlignment="Left" Width="0"/>
+                                        <Border x:Name="RightOverlay" Background="{DynamicResource WindowBgBrush}" Opacity="0.65" HorizontalAlignment="Right" Width="0"/>
 
                                         <!-- Playhead Cursor Line -->
                                         <Border x:Name="PlaybackLine" Width="16" HorizontalAlignment="Left" Visibility="Collapsed" IsHitTestVisible="False">
@@ -260,7 +260,7 @@
 
                                 <!-- Floating Transport Console (Anchored Bottom Center of Waveform Container) -->
                                 <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" Panel.ZIndex="20">
-                                    <Border Background="#161824" BorderBrush="#2C3044" BorderThickness="1" CornerRadius="6" Padding="8,4">
+                                    <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <!-- Preview / Play Button -->
                                             <Button x:Name="PlayBtn"
@@ -287,7 +287,7 @@
                                                     Click="TrimOutBtn_Click"/>
 
                                             <!-- Zoom Control -->
-                                            <TextBlock Text="Zoom:" Foreground="#8A92A8" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Zoom:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <Slider x:Name="ZoomSlider"
                                                     Minimum="1" Maximum="10" Value="1"
                                                     Width="85" Height="22"
@@ -311,18 +311,18 @@
 
                                 <!-- Time Markers Row -->
                                 <Grid Grid.Row="0" Margin="4,0">
-                                    <TextBlock x:Name="StartTimeLabel" Text="0.00s" Foreground="#8A92A8" FontSize="10.5" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="0.20s" Foreground="#5C647C" FontSize="10" HorizontalAlignment="Left" Margin="100,0,0,0"/>
-                                    <TextBlock Text="0.40s" Foreground="#5C647C" FontSize="10" HorizontalAlignment="Left" Margin="200,0,0,0"/>
-                                    <TextBlock x:Name="TrimmedDurationLabel" Text="0.60s" Foreground="#8A92A8" FontSize="10.5" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="0.80s" Foreground="#5C647C" FontSize="10" HorizontalAlignment="Right" Margin="0,0,200,0"/>
-                                    <TextBlock Text="1.20s" Foreground="#5C647C" FontSize="10" HorizontalAlignment="Right" Margin="0,0,100,0"/>
-                                    <TextBlock x:Name="EndTimeLabel" Text="1.60s" Foreground="#8A92A8" FontSize="10.5" HorizontalAlignment="Right"/>
+                                    <TextBlock x:Name="StartTimeLabel" Text="0.00s" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10.5" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="0.20s" Foreground="{DynamicResource SubtleTextBrush}" FontSize="10" HorizontalAlignment="Left" Margin="100,0,0,0"/>
+                                    <TextBlock Text="0.40s" Foreground="{DynamicResource SubtleTextBrush}" FontSize="10" HorizontalAlignment="Left" Margin="200,0,0,0"/>
+                                    <TextBlock x:Name="TrimmedDurationLabel" Text="0.60s" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10.5" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="0.80s" Foreground="{DynamicResource SubtleTextBrush}" FontSize="10" HorizontalAlignment="Right" Margin="0,0,200,0"/>
+                                    <TextBlock Text="1.20s" Foreground="{DynamicResource SubtleTextBrush}" FontSize="10" HorizontalAlignment="Right" Margin="0,0,100,0"/>
+                                    <TextBlock x:Name="EndTimeLabel" Text="1.60s" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10.5" HorizontalAlignment="Right"/>
                                 </Grid>
 
                                 <!-- Trim Selection Bar & Handles -->
                                 <Grid Grid.Row="1">
-                                    <Border Background="#141724" BorderBrush="#222636" BorderThickness="1" CornerRadius="4"/>
+                                    <Border Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4"/>
 
                                     <!-- Left Trim Handle -->
                                     <Thumb x:Name="LeftHandle"
@@ -359,14 +359,14 @@
                                     <StackPanel Grid.Column="0">
 
                                         <!-- Noise Gate Card (Collapsible Header + Sliding Switch) -->
-                                        <Border Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <!-- Card Header Bar (Click to Collapse/Expand) -->
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=GateBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="Noise Gate" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Noise Gate" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <!-- Sliding Toggle Switch -->
                                                     <CheckBox x:Name="GateEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
@@ -376,19 +376,19 @@
                                                 <StackPanel x:Name="GateBody">
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Threshold (dB)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Threshold (dB)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="GateThresholdSlider" Minimum="-80" Maximum="0" Value="-40" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="GateThresholdLabel" Text="-40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Attack (ms)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Attack (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="GateAttackSlider" Minimum="1" Maximum="200" Value="10" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="GateAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Release (ms)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Release (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="GateReleaseSlider" Minimum="10" Maximum="1000" Value="100" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="GateReleaseLabel" Text="100" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
@@ -397,13 +397,13 @@
                                         </Border>
 
                                         <!-- Equalizer Card (Collapsible Header + Sliding Switch) -->
-                                        <Border Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=EqBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="5-Band Equalizer" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="5-Band Equalizer" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <CheckBox x:Name="EqEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                                 </Grid>
@@ -411,31 +411,31 @@
                                                 <StackPanel x:Name="EqBody">
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Sub Bass" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Sub Bass" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="EqSubBassSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqSubBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Bass" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Bass" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="EqBassSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Mid" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Mid" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="EqMidSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqMidLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Presence" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Presence" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="EqPresenceSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqPresenceLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Treble" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Treble" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="EqTrebleSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqTrebleLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
@@ -444,13 +444,13 @@
                                         </Border>
 
                                         <!-- Compressor Card (Collapsible Header + Sliding Switch) -->
-                                        <Border Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=CompBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="Compressor" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Compressor" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <CheckBox x:Name="CompressorEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                                 </Grid>
@@ -463,25 +463,25 @@
 
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Ratio" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Ratio" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="CompRatioSlider" Minimum="1" Maximum="20" Value="4" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompRatioLabel" Text="4.0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Attack (ms)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Attack (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="CompAttackSlider" Minimum="1" Maximum="100" Value="10" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Release (ms)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Release (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="CompReleaseSlider" Minimum="10" Maximum="1000" Value="100" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompReleaseLabel" Text="100" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Makeup (dB)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Makeup (dB)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="CompMakeupSlider" Minimum="0" Maximum="24" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompMakeupLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
@@ -490,13 +490,13 @@
                                         </Border>
 
                                         <!-- Pitch Shift Card (Collapsible Header + Sliding Switch) -->
-                                        <Border Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=PitchBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="Pitch Shift" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Pitch Shift" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <CheckBox x:Name="PitchShiftEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                                 </Grid>
@@ -509,13 +509,13 @@
 
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Grain Size (ms)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Grain Size (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="PitchShiftGrainSizeSlider" Minimum="10" Maximum="200" Value="50" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="PitchShiftGrainSizeLabel" Text="50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Mix (wet)" FontSize="11" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Mix (wet)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                         <Slider Grid.Column="1" x:Name="PitchShiftMixSlider" Minimum="0" Maximum="1" Value="1.0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="PitchShiftMixLabel" Text="1.00" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
@@ -528,13 +528,13 @@
                                     <StackPanel Grid.Column="2">
 
                                         <!-- Distortion Card (Collapsible Header + 3 Rotary Knobs + Sliding Switch) -->
-                                        <Border Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=DistBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="Distortion" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Distortion" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <CheckBox x:Name="DistortionEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                                 </Grid>
@@ -558,13 +558,13 @@
                                         </Border>
 
                                         <!-- Echo Card (Collapsible Header + 3 Rotary Knobs + Sliding Switch) -->
-                                        <Border Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=EchoBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="Echo &amp; Delay" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Echo &amp; Delay" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <CheckBox x:Name="EchoEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                                 </Grid>
@@ -588,13 +588,13 @@
                                         </Border>
 
                                         <!-- Reverb Card (Collapsible Header + 3 Rotary Knobs + Sliding Switch) -->
-                                        <Border Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=ReverbBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="Reverb" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Reverb" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                     <CheckBox x:Name="ReverbEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                                 </Grid>
@@ -617,17 +617,17 @@
                                         </Border>
 
                                         <!-- VST Plugins Card (Collapsible Header) -->
-                                        <Border x:Name="VstSection" Style="{StaticResource DawCard}" Background="#121420">
+                                        <Border x:Name="VstSection" Style="{StaticResource DawCard}">
                                             <StackPanel>
                                                 <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=VstBody}" MouseDown="CardHeader_MouseDown">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="VST Plugins" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                        <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="VST Plugins" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                        <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Grid>
                                                 <StackPanel x:Name="VstBody">
-                                                    <TextBlock x:Name="VstNameLabel" Text="No VST Plugin Loaded" FontSize="11" Foreground="#8A92A8" Margin="0,0,0,8"/>
+                                                    <TextBlock x:Name="VstNameLabel" Text="No VST Plugin Loaded" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,8"/>
                                                     <Button x:Name="ShowVstEditorButton" Style="{StaticResource EditorBtn}" Content="Open VST Editor" Height="28" Click="ShowVstEditor_Click"/>
                                                 </StackPanel>
                                             </StackPanel>
@@ -660,7 +660,7 @@
                                            Text="MASTER &amp; FADE RACK"
                                            FontSize="10.5"
                                            FontWeight="Bold"
-                                           Foreground="#8A92A8"
+                                           Foreground="{DynamicResource AccentTitleBrush}"
                                            VerticalAlignment="Center"
                                            Margin="0,0,0,6"/>
 
@@ -672,13 +672,13 @@
                             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <StackPanel>
                                     <!-- Side Card 1: File Info (Collapsible Header) -->
-                                    <Border Style="{StaticResource DawCard}" Background="#121420" Margin="0,0,0,10">
+                                    <Border Style="{StaticResource DawCard}" Margin="0,0,0,10">
                                         <StackPanel>
                                             <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=FileInfoBody}" MouseDown="CardHeader_MouseDown">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="File Info" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                    <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="File Info" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                    <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Grid>
                                             <StackPanel x:Name="FileInfoBody" Margin="2,0,2,2">
@@ -697,30 +697,30 @@
                                                         <RowDefinition Height="Auto"/>
                                                     </Grid.RowDefinitions>
 
-                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Format:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="FileFormatLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Format:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="FileFormatLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
 
-                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Sample Rate:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="FileSampleRateLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Sample Rate:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="FileSampleRateLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
 
-                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Channels:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="FileChannelsLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Channels:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="FileChannelsLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
 
-                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="File Size:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="3" Grid.Column="1" x:Name="FileSizeLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="File Size:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="3" Grid.Column="1" x:Name="FileSizeLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
                                                 </Grid>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
 
                                     <!-- Side Card 2: Fade In / Fade Out (Collapsible Header + Sliding Switch + Sliders) -->
-                                    <Border Style="{StaticResource DawCard}" Background="#121420" Margin="0,0,0,10">
+                                    <Border Style="{StaticResource DawCard}" Margin="0,0,0,10">
                                         <StackPanel>
                                             <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=FadeBody}" MouseDown="CardHeader_MouseDown">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="Fade In / Fade Out" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                    <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Fade In / Fade Out" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                    <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                                 <CheckBox x:Name="FadeEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                             </Grid>
@@ -733,7 +733,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="42"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Fade In (ms)" FontSize="10.5" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Fade In (ms)" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Slider Grid.Column="1" x:Name="FadeInSlider" Minimum="0" Maximum="5000" Value="500" TickFrequency="100" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
                                                         <TextBlock x:Name="FadeInLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -747,7 +747,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="42"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Fade Out (ms)" FontSize="10.5" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Fade Out (ms)" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Slider Grid.Column="1" x:Name="FadeOutSlider" Minimum="0" Maximum="5000" Value="500" TickFrequency="100" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
                                                         <TextBlock x:Name="FadeOutLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -758,13 +758,13 @@
                                     </Border>
 
                                     <!-- Side Card 3: Remaster Rack (Collapsible Header + Sliding Switch + Presets & Controls) -->
-                                    <Border Style="{StaticResource DawCard}" Background="#121420" Margin="0,0,0,10">
+                                    <Border Style="{StaticResource DawCard}" Margin="0,0,0,10">
                                         <StackPanel>
                                             <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=RemasterBody}" MouseDown="CardHeader_MouseDown">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="Remaster Rack" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                    <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Remaster Rack" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                    <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                                 <CheckBox x:Name="RemasterEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
                                             </Grid>
@@ -772,7 +772,7 @@
                                             <StackPanel x:Name="RemasterBody">
                                                 <ComboBox x:Name="RemasterPresetCombo"
                                                           Margin="0,2,0,8" Height="26" FontSize="11"
-                                                          Background="#1C1F2E" Foreground="#E0E4F0"
+                                                          Background="{DynamicResource InputBgBrush}" Foreground="{DynamicResource PrimaryTextBrush}"
                                                           SelectionChanged="RemasterPresetCombo_SelectionChanged">
                                                     <ComboBoxItem Content="Clean &amp; Transparent"/>
                                                     <ComboBoxItem Content="Warm Analog"/>
@@ -795,31 +795,31 @@
 
                                                 <Grid Margin="0,3">
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Brilliance" FontSize="10.5" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Brilliance" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Slider Grid.Column="1" x:Name="RemasterBrillianceSlider" Minimum="-6" Maximum="6" Value="0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterBrillianceLabel" Text="0.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Stereo Width" FontSize="10.5" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Stereo Width" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Slider Grid.Column="1" x:Name="RemasterWidthSlider" Minimum="0" Maximum="2" Value="1.0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterWidthLabel" Text="1.00x" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Drive" FontSize="10.5" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Drive" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Slider Grid.Column="1" x:Name="RemasterDriveSlider" Minimum="1" Maximum="10" Value="1.0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterDriveLabel" Text="1.00" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Ratio" FontSize="10.5" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Ratio" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Slider Grid.Column="1" x:Name="RemasterRatioSlider" Minimum="1" Maximum="10" Value="2.0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterRatioLabel" Text="2.0:1" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Ceiling" FontSize="10.5" Foreground="#A0A8C0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Ceiling" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Slider Grid.Column="1" x:Name="RemasterCeilingSlider" Minimum="-6" Maximum="0" Value="-0.1" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterCeilingLabel" Text="-0.1 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
@@ -828,13 +828,13 @@
                                     </Border>
 
                                     <!-- Side Card 4: Master Bus Panel (Collapsible Header) -->
-                                    <Border Style="{StaticResource DawCard}" Background="#121420" Margin="0,0,0,4">
+                                    <Border Style="{StaticResource DawCard}" Margin="0,0,0,4">
                                         <StackPanel>
                                             <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=MasterBusBody}" MouseDown="CardHeader_MouseDown">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="Master Bus" FontSize="11.5" FontWeight="Bold" Foreground="#E2E6F2"/>
-                                                    <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Master Bus" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                    <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Grid>
 
@@ -854,15 +854,15 @@
 
                 <!-- Row 2: Bottom Footer Action Bar -->
                 <Border Grid.Row="2"
-                        Background="#12141F"
-                        BorderBrush="#1E2232"
+                        Background="{DynamicResource CardBgBrush}"
+                        BorderBrush="{DynamicResource CardBorderBrush}"
                         BorderThickness="0,1,0,0"
                         Padding="14,8">
                     <Grid>
                         <!-- Left Options Checkboxes -->
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <CheckBox x:Name="SaveToFavCheckBox" Content="Add to Favourites" Foreground="#C0C8DC" FontSize="11.5" Margin="0,0,18,0"/>
-                            <CheckBox x:Name="NonDestructiveCheckBox" Content="Non-Destructive Playback" IsChecked="True" Foreground="#C0C8DC" FontSize="11.5" Checked="NonDestructiveCheckBox_Checked" Unchecked="NonDestructiveCheckBox_Unchecked"/>
+                            <CheckBox x:Name="SaveToFavCheckBox" Content="Add to Favourites" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11.5" Margin="0,0,18,0"/>
+                            <CheckBox x:Name="NonDestructiveCheckBox" Content="Non-Destructive Playback" IsChecked="True" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11.5" Checked="NonDestructiveCheckBox_Checked" Unchecked="NonDestructiveCheckBox_Unchecked"/>
                         </StackPanel>
 
                         <!-- Right Action Buttons -->

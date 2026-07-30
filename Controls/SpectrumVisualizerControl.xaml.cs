@@ -29,6 +29,8 @@ namespace PaDDY.Controls
             Unloaded += OnUnloaded;
         }
 
+        private Action? _themeUnsubscribe;
+
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             BuildBars();
@@ -38,12 +40,56 @@ namespace PaDDY.Controls
             };
             _animTimer.Tick += AnimTimer_Tick;
             _animTimer.Start();
+
+            Helpers.ThemeManager.ThemeChanged += OnThemeChanged;
+            _themeUnsubscribe = () => Helpers.ThemeManager.ThemeChanged -= OnThemeChanged;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             _animTimer?.Stop();
             _animTimer = null;
+            _themeUnsubscribe?.Invoke();
+            _themeUnsubscribe = null;
+        }
+
+        private void OnThemeChanged()
+        {
+            UpdateBarBrushes();
+        }
+
+        private LinearGradientBrush CreateThemeGradientBrush()
+        {
+            Color mainColor = Color.FromRgb(0x4C, 0xAF, 0x50);
+            try
+            {
+                var accentResource = TryFindResource("AccentGreenBrush");
+                if (accentResource is SolidColorBrush scb)
+                    mainColor = scb.Color;
+            }
+            catch { }
+
+            Color topColor = Color.FromArgb(255, (byte)Math.Min(255, mainColor.R * 1.3), (byte)Math.Min(255, mainColor.G * 1.3), (byte)Math.Min(255, mainColor.B * 1.3));
+            Color bottomColor = Color.FromArgb(255, (byte)(mainColor.R * 0.35), (byte)(mainColor.G * 0.35), (byte)(mainColor.B * 0.35));
+
+            LinearGradientBrush brush = new LinearGradientBrush
+            {
+                StartPoint = new Point(0, 1),
+                EndPoint = new Point(0, 0)
+            };
+            brush.GradientStops.Add(new GradientStop(bottomColor, 0.0));
+            brush.GradientStops.Add(new GradientStop(mainColor, 0.7));
+            brush.GradientStops.Add(new GradientStop(topColor, 1.0));
+            return brush;
+        }
+
+        private void UpdateBarBrushes()
+        {
+            var brush = CreateThemeGradientBrush();
+            foreach (var rect in _bars)
+            {
+                rect.Fill = brush;
+            }
         }
 
         private void BuildBars()
@@ -52,14 +98,7 @@ namespace PaDDY.Controls
             BarsHost.ColumnDefinitions.Clear();
             _bars.Clear();
 
-            LinearGradientBrush greenBrush = new LinearGradientBrush
-            {
-                StartPoint = new Point(0, 1),
-                EndPoint = new Point(0, 0)
-            };
-            greenBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x1B, 0x5E, 0x20), 0.0));
-            greenBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x4C, 0xAF, 0x50), 0.7));
-            greenBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x81, 0xC7, 0x84), 1.0));
+            var barBrush = CreateThemeGradientBrush();
 
             for (int i = 0; i < BarCount; i++)
             {
@@ -67,7 +106,7 @@ namespace PaDDY.Controls
 
                 WpfRectangle rect = new WpfRectangle
                 {
-                    Fill = greenBrush,
+                    Fill = barBrush,
                     VerticalAlignment = VerticalAlignment.Bottom,
                     Height = 4,
                     Margin = new Thickness(1, 0, 1, 0),
