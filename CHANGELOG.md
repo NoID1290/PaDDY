@@ -4,6 +4,19 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0730-Pre-release_2] - 2026-07-30
+
+- Dev Updates Test 6
+- Linking theme to audio editor
+- UI final update layout
+- UI Update #3
+- UI update #2
+- UI update # 1
+- Removed the "Delete All Files" button from the main window toolbar.
+- Added a comprehensive "Clear All Data" process inside the Backup & Restore settings tab to replace it.
+- Changed Settings window size from `880x650` to `980x700` (now resizable with grip) to fix text truncation, overlapping controls, and compressed sliders.
+- Changed default Audio Panel state to closed on fresh installs. This state now persists across sessions.
+
 ## [2.0.0.0730-Pre-release_1] - 2026-07-30
 
 - Dev Updates Test 5
