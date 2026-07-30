@@ -628,7 +628,7 @@
                                                 </Grid>
                                                 <StackPanel x:Name="VstBody">
                                                     <TextBlock x:Name="VstNameLabel" Text="No VST Plugin Loaded" FontSize="11" Foreground="#8A92A8" Margin="0,0,0,8"/>
-                                                    <Button x:Name="ShowVstEditorButton" Style="{StaticResource EditorBtn}" Content="Open VST Editor" Height="28"/>
+                                                    <Button x:Name="ShowVstEditorButton" Style="{StaticResource EditorBtn}" Content="Open VST Editor" Height="28" Click="ShowVstEditor_Click"/>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
@@ -649,13 +649,23 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <!-- Sidebar Header -->
+                            <!-- Sidebar Header & Output Spectrum Visualizer Meter -->
                             <Grid Grid.Row="0" Margin="2,0,2,8">
-                                <TextBlock Text="MASTER &amp; FADE RACK"
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="MASTER &amp; FADE RACK"
                                            FontSize="10.5"
                                            FontWeight="Bold"
                                            Foreground="#8A92A8"
-                                           VerticalAlignment="Center"/>
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,0,6"/>
+
+                                <!-- Dynamic Audio Spectrum Visualizer (Top Level) -->
+                                <controls:SpectrumVisualizerControl Grid.Row="1" x:Name="MasterSpectrumVisualizer" Margin="0,2,0,4"/>
                             </Grid>
 
                             <!-- Side Cards List -->
@@ -671,8 +681,34 @@
                                                     <TextBlock Text="▾" FontSize="10" Foreground="#6C748C" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Grid>
-                                            <StackPanel x:Name="FileInfoBody">
-                                                <TextBlock x:Name="PlaybackTimecodeLabel" Text="00:00.000 / 00:00.000" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentGreenBrush}" Margin="0,2,0,4"/>
+                                            <StackPanel x:Name="FileInfoBody" Margin="2,0,2,2">
+                                                <TextBlock x:Name="PlaybackTimecodeLabel" Text="00:00.000 / 00:00.000" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentGreenBrush}" Margin="0,0,0,8"/>
+
+                                                <!-- Detailed File Metadata Grid -->
+                                                <Grid Margin="0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="90"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Format:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="FileFormatLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+
+                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Sample Rate:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="FileSampleRateLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+
+                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Channels:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="FileChannelsLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+
+                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="File Size:" FontSize="10.5" Foreground="#8A92A8" Margin="0,2"/>
+                                                    <TextBlock Grid.Row="3" Grid.Column="1" x:Name="FileSizeLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="#D0D6E8" Margin="0,2"/>
+                                                </Grid>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
@@ -807,9 +843,6 @@
                                                 <controls:ArcGaugeControl Title="Master Gain" Subtitle="OUTPUT BUS" Unit="dB" Minimum="-24" Maximum="24" Step="0.5" Value="{Binding ElementName=GainSlider, Path=Value, Mode=TwoWay}" HorizontalAlignment="Center" Margin="0,4,0,8"/>
                                                 <Slider x:Name="GainSlider" Minimum="-24" Maximum="24" Value="0" Visibility="Collapsed" ValueChanged="GainSlider_ValueChanged"/>
                                                 <TextBlock x:Name="GainLabel" Visibility="Collapsed"/>
-
-                                                <!-- Dynamic Audio Spectrum Visualizer -->
-                                                <controls:SpectrumVisualizerControl x:Name="MasterSpectrumVisualizer" Margin="0,4,0,0"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>

@@ -175,6 +175,17 @@ namespace PaDDY
             string filePath = _filePath;
             double totalDurationSeconds = 0;
             TimeSpan totalDuration = TimeSpan.Zero;
+            int sampleRate = 44100;
+            int channels = 2;
+            long fileSize = 0;
+            string format = System.IO.Path.GetExtension(filePath).TrimStart('.').ToUpperInvariant();
+
+            try
+            {
+                var fi = new System.IO.FileInfo(filePath);
+                if (fi.Exists) fileSize = fi.Length;
+            }
+            catch { }
 
             int width = (int)WaveformGrid.ActualWidth;
             int height = (int)WaveformGrid.ActualHeight;
@@ -193,7 +204,8 @@ namespace PaDDY
 
                     var sampleProvider = reader.AsSampleProvider();
                     var waveFormat = reader.WaveFormat;
-                    int channels = waveFormat.Channels;
+                    channels = waveFormat.Channels;
+                    sampleRate = waveFormat.SampleRate;
 
                     // Pass 1: Decode all samples and accumulate min/max into a flat list.
                     // We don't know the exact sample count up-front (TotalTime estimate from
@@ -256,6 +268,12 @@ namespace PaDDY
             _totalDuration = totalDuration;
             _totalDurationSeconds = totalDurationSeconds;
             TotalDurationLabel.Text = FormatTime(_totalDuration);
+
+            // Populate File Info metadata details
+            FileFormatLabel.Text = string.IsNullOrEmpty(format) ? "Unknown" : format;
+            FileSampleRateLabel.Text = $"{sampleRate / 1000.0:0.0} kHz ({sampleRate} Hz)";
+            FileChannelsLabel.Text = channels == 1 ? "1 (Mono)" : (channels == 2 ? "2 (Stereo)" : $"{channels} Channels");
+            FileSizeLabel.Text = FormatFileSize(fileSize);
 
             // Load initial settings
             if (_initialIsNonDestructive)
@@ -1995,8 +2013,6 @@ namespace PaDDY
 
         private void ShowVstEditor_Click(object sender, RoutedEventArgs e)
         {
-            if (_vstEffects.Count == 0) return;
-
             if (_activeVstPluginWindow != null && _activeVstPluginWindow.IsLoaded)
             {
                 if (_activeVstPluginWindow.WindowState == WindowState.Minimized)
@@ -2055,6 +2071,18 @@ namespace PaDDY
         private void FilterRackCategory(string category)
         {
             // Category filter handled safely by layout
+        }
+
+        private static string FormatFileSize(long bytes)
+        {
+            if (bytes <= 0) return "0 B";
+            if (bytes < 1024) return $"{bytes} B";
+            double kb = bytes / 1024.0;
+            if (kb < 1024) return $"{kb:0.0} KB";
+            double mb = kb / 1024.0;
+            if (mb < 1024) return $"{mb:0.00} MB";
+            double gb = mb / 1024.0;
+            return $"{gb:0.00} GB";
         }
 
         private static void SetModuleVisibility(FrameworkElement? element, bool visible)
