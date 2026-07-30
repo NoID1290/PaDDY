@@ -1995,7 +1995,9 @@ namespace PaDDY
                     _suppressSelectionEvents = false;
                 }
             };
+            win.Owner = this;
             win.Show();
+
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
@@ -2829,8 +2831,19 @@ namespace PaDDY
             PadPanel.Children.Clear();
             FavoritesPanel.Children.Clear();
 
-            // Re-apply all application settings to UI and services
+            // Re-populate device combos from the freshly restored settings so the
+            // correct audio devices are selected without requiring a restart.
             _suppressSelectionEvents = true;
+            PopulateInputDevices();
+            PopulateLoopbackDevices();
+            PopulateAppLoopbackProcesses();
+            PopulateOutputDevices();
+            PopulateListenOutputDevices();
+
+            // Sync _outputDeviceIndex from the combo that PopulateOutputDevices just set.
+            _outputDeviceIndex = OutputDeviceCombo.SelectedIndex - 1;
+
+            // Re-apply all application settings to UI and services
             ApplySettings();
             ThemeManager.ApplyTheme(_settings.Theme);
             UpdateLoadingOverlayTheme();
