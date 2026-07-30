@@ -1,0 +1,11 @@
+<UserControl x:Class="PaDDY.Controls.SpectrumVisualizerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="75"
+             ClipToBounds="True">
+    <Border Background="#0C0E16" BorderBrush="#1C2030" BorderThickness="1" CornerRadius="6" Padding="4">
+        <Grid x:Name="BarsHost">
+            <!-- Spectrum bars will be generated dynamically -->
+        </Grid>
+    </Border>
+</UserControl>

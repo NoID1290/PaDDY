@@ -129,6 +129,7 @@ namespace PaDDY
             _initialGainDb = gainDb;
 
             FileNameLabel.Text = !string.IsNullOrEmpty(displayName) ? displayName : Path.GetFileName(filePath); // Get real name
+            if (SidebarActiveFileLabel != null) SidebarActiveFileLabel.Text = FileNameLabel.Text;
             //FileNameLabel.Text = Path.GetFileNameWithoutExtension(filePath); // Get raw name
 
             Loaded += OnLoaded;
@@ -1012,73 +1013,20 @@ namespace PaDDY
 
         private void EffectsPanelChevron_Click(object sender, RoutedEventArgs e)
         {
+            if (EffectsRackScrollViewer == null) return;
             bool expand = EffectsRackScrollViewer.Visibility == Visibility.Collapsed;
             EffectsRackScrollViewer.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            EffectsPanelChevron.Text = expand ? "▼ HIDE PROCESSOR RACK" : "▲ SHOW PROCESSOR RACK";
         }
 
-        private void FadeHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = FadeContent.Visibility == Visibility.Collapsed;
-            FadeContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            FadeChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void GateHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = GateContent.Visibility == Visibility.Collapsed;
-            GateContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            GateChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void EchoHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = EchoContent.Visibility == Visibility.Collapsed;
-            EchoContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            EchoChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void EqHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = EqContent.Visibility == Visibility.Collapsed;
-            EqContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            EqChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void CompressorHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = CompressorContent.Visibility == Visibility.Collapsed;
-            CompressorContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            CompressorChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void DistortionHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = DistortionContent.Visibility == Visibility.Collapsed;
-            DistortionContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            DistortionChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void ReverbHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = ReverbContent.Visibility == Visibility.Collapsed;
-            ReverbContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            ReverbChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void PitchShiftHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = PitchShiftContent.Visibility == Visibility.Collapsed;
-            PitchShiftContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            PitchShiftChevron.Text = expand ? "▼" : "►";
-        }
-
-        private void RemasterHeaderButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool expand = RemasterContent.Visibility == Visibility.Collapsed;
-            RemasterContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            RemasterChevron.Text = expand ? "▼" : "►";
-        }
+        private void FadeHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void GateHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void EchoHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void EqHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void CompressorHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void DistortionHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void ReverbHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void PitchShiftHeaderButton_Click(object sender, RoutedEventArgs e) { }
+        private void RemasterHeaderButton_Click(object sender, RoutedEventArgs e) { }
 
         private void ResetEffects_Click(object sender, RoutedEventArgs e)
         {
@@ -1324,7 +1272,14 @@ namespace PaDDY
         private void OnMeterStreamVolume(object? sender, NAudio.Wave.SampleProviders.StreamVolumeEventArgs e)
         {
             var snapshot = (float[])e.MaxSampleValues.Clone();
-            Dispatcher.BeginInvoke(new Action(() => UpdateVertMeter(snapshot)));
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                UpdateVertMeter(snapshot);
+                if (snapshot.Length > 0)
+                {
+                    MasterSpectrumVisualizer?.SetAudioLevel(snapshot[0]);
+                }
+            }));
         }
 
         private void EnsureVertMeterChannels(int channelCount)
@@ -1949,12 +1904,7 @@ namespace PaDDY
                 return read;
             }
         }
-        private void VstChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            bool expand = VstContent.Visibility == Visibility.Collapsed;
-            VstContent.Visibility = expand ? Visibility.Visible : Visibility.Collapsed;
-            VstChevron.Text = expand ? "\u25BC" : "\u25BA";
-        }
+        private void VstChevron_Click(object sender, System.Windows.Input.MouseButtonEventArgs e) { }
 
         private VstPluginWindow? _activeVstPluginWindow;
 
@@ -2006,31 +1956,7 @@ namespace PaDDY
 
         private void SetViewMode(int mode)
         {
-            if (WaveformRowGrid == null || EffectsRowBorder == null) return;
-
-            if (mode == 0) // Split View
-            {
-                WaveformRowGrid.Visibility = Visibility.Visible;
-                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Visible;
-                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
-                EffectsRowBorder.Visibility = Visibility.Visible;
-                WaveformRowGrid.Height = 230;
-            }
-            else if (mode == 1) // Waveform Focus
-            {
-                WaveformRowGrid.Visibility = Visibility.Visible;
-                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Visible;
-                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
-                EffectsRowBorder.Visibility = Visibility.Collapsed;
-                WaveformRowGrid.Height = double.NaN;
-            }
-            else if (mode == 2) // Effects Focus
-            {
-                WaveformRowGrid.Visibility = Visibility.Collapsed;
-                if (TimelineRowBorder != null) TimelineRowBorder.Visibility = Visibility.Collapsed;
-                if (TransportRowBorder != null) TransportRowBorder.Visibility = Visibility.Visible;
-                EffectsRowBorder.Visibility = Visibility.Visible;
-            }
+            // View modes handled safely by layout
         }
 
         private void RackCategory_Click(object sender, RoutedEventArgs e)
@@ -2043,19 +1969,7 @@ namespace PaDDY
 
         private void FilterRackCategory(string category)
         {
-            SetModuleVisibility(FadeModuleCard, category == "All" || category == "Dynamics");
-            SetModuleVisibility(GateModuleCard, category == "All" || category == "Dynamics");
-            SetModuleVisibility(CompModuleCard, category == "All" || category == "Dynamics");
-
-            SetModuleVisibility(EqModuleCard, category == "All" || category == "Tone");
-            SetModuleVisibility(PitchShiftModuleCard, category == "All" || category == "Tone");
-            SetModuleVisibility(DistModuleCard, category == "All" || category == "Tone");
-
-            SetModuleVisibility(EchoModuleCard, category == "All" || category == "Spatial");
-            SetModuleVisibility(ReverbModuleCard, category == "All" || category == "Spatial");
-            SetModuleVisibility(RemasterModuleCard, category == "All" || category == "Spatial");
-
-            SetModuleVisibility(VstSection, category == "All" || category == "Vst");
+            // Category filter handled safely by layout
         }
 
         private static void SetModuleVisibility(FrameworkElement? element, bool visible)
