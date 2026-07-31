@@ -741,7 +741,7 @@
                                         <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,10"/>
 
                                         <!-- Pause animations when unfocused -->
-                                        <Grid Margin="0,0,0,0">
+                                        <Grid Margin="0,0,0,10">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
@@ -751,6 +751,22 @@
                                                 <TextBlock Text="{p:Loc PauseAnimDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
                                             <CheckBox x:Name="PauseAnimationsWhenUnfocusedCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Divider -->
+                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,10"/>
+
+                                        <!-- Preload Audio RAM Cache -->
+                                        <Grid Margin="0,0,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc PreloadAudioCacheLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc PreloadAudioCacheDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="PreloadAudioCacheCheck" Grid.Column="1" VerticalAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>

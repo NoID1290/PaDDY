@@ -36,6 +36,34 @@ namespace PaDDY.Controls
 
         public RecordingEntry? Entry { get; private set; }
 
+        /// <summary>
+        /// Reference to RecordingStore used for on-demand materialization when PreloadAudioCache is false.
+        /// </summary>
+        public RecordingStore? Store { get; set; }
+
+        /// <summary>
+        /// Ensures the audio file is materialized on disk. If in Low RAM mode (file not pre-materialized),
+        /// extracts the audio BLOB from <see cref="Store"/> on demand.
+        /// </summary>
+        public string EnsureMaterialized(RecordingStore? store = null)
+        {
+            if (Entry == null) return string.Empty;
+            if (!string.IsNullOrEmpty(Entry.FilePath) && File.Exists(Entry.FilePath))
+                return Entry.FilePath;
+
+            var targetStore = store ?? Store;
+            if (targetStore != null && !string.IsNullOrEmpty(Entry.RecordingId))
+            {
+                try
+                {
+                    string codec = !string.IsNullOrEmpty(Entry.Codec) ? Entry.Codec : "wav";
+                    Entry.FilePath = targetStore.MaterializeToTemp(Entry.RecordingId, codec);
+                }
+                catch { }
+            }
+            return Entry.FilePath;
+        }
+
         // Device routing injected from MainWindow
         public int OutputDeviceIndex { get; set; } = 0;
 
@@ -427,6 +455,7 @@ namespace PaDDY.Controls
 
         public void OpenAudioEditor()
         {
+            EnsureMaterialized();
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
             StopPlayback();
 
@@ -682,6 +711,7 @@ namespace PaDDY.Controls
 
         private void StartPlayback()
         {
+            EnsureMaterialized();
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
             StopPlayback();
 
@@ -754,6 +784,7 @@ namespace PaDDY.Controls
         /// <summary>Plays audio only on the listen/monitor device (right-click behaviour).</summary>
         private void StartPlaybackListenOnly()
         {
+            EnsureMaterialized();
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
             if (ListenDeviceIndex < -1) return; // listen disabled
 
@@ -1112,6 +1143,7 @@ namespace PaDDY.Controls
         private void ExportBtn_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
+            EnsureMaterialized();
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
 
             string ext = Path.GetExtension(Entry.FilePath);
@@ -1140,6 +1172,7 @@ namespace PaDDY.Controls
 
         public void NormalizeLoudness()
         {
+            EnsureMaterialized();
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
 
             try
@@ -1161,6 +1194,7 @@ namespace PaDDY.Controls
 
         public async void TranscribePad()
         {
+            EnsureMaterialized();
             if (Entry == null || !File.Exists(Entry.FilePath)) return;
 
             try

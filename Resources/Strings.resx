@@ -221,6 +221,8 @@
   <data name="PauseAnimationsSetting" xml:space="preserve"><value>Pause Animations When Unfocused</value></data>
   <data name="PauseAnimLabel" xml:space="preserve"><value>Pause Animations When Unfocused</value></data>
   <data name="PauseAnimDesc" xml:space="preserve"><value>Stops all decorative animation rendering when PaDDY is not active window, freeing CPU and GPU resources.</value></data>
+  <data name="PreloadAudioCacheLabel" xml:space="preserve"><value>Preload Audio RAM Cache</value></data>
+  <data name="PreloadAudioCacheDesc" xml:space="preserve"><value>Preload and cache all audio clips into memory on startup for instant playback. Disable on lower-end PCs to reduce RAM usage.</value></data>
 
   <!-- Settings System -->
   <data name="SystemHeader" xml:space="preserve"><value>System &amp; Integrations</value></data>

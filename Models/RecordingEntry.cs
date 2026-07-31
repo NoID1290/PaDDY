@@ -10,6 +10,9 @@ namespace PaDDY.Models
         /// <summary>Path to the materialised temp file for this session. Used by playback and editor.</summary>
         public string FilePath { get; set; } = string.Empty;
 
+        /// <summary>Audio codec format (e.g. "wav", "flac", "mp3", "ogg", "opus", "m4a").</summary>
+        public string Codec { get; set; } = "wav";
+
         /// <summary>Human-readable display name (e.g. "Recording_20260426_143052.wav").</summary>
         public string DisplayName { get; set; } = string.Empty;
 

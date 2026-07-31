@@ -83,6 +83,8 @@ namespace PaDDY
         public bool PerformanceMode { get; set; } = false;
         // Pause all decorative animation rendering when PaDDY is not the active window
         public bool PauseAnimationsWhenUnfocused { get; set; } = false;
+        // Preload and cache all audio clips in RAM/temp files on startup (default: true). Disable for low RAM PCs.
+        public bool PreloadAudioCache { get; set; } = true;
 
         // ---- System tray / startup ----
         public bool RunOnWindowsStartup { get; set; } = false;

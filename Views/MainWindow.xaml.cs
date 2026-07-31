@@ -440,11 +440,8 @@ namespace PaDDY
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             ShowLoadingOverlay("Core starting up");
-            // Yield to the UI thread so the loading overlay can actually render before we block it
-            await Task.Delay(100);
+            await Task.Yield();
 
-            ShowLoadingOverlay("Warming up engine");
-            await Task.Delay(3000);
             PopulateCaptureSourceModes();
             PopulateInputDevices();
             PopulateLoopbackDevices();
@@ -454,16 +451,12 @@ namespace PaDDY
             PopulateRecordingModes();
             PopulateSortOrderCombo();
 
-            ShowLoadingOverlay("Applying settings");
-            await Task.Delay(500);
             ApplySettings();
 
             _configPanelVisible = _settings.AudioPanelVisible;
             ConfigPanelBorder.MaxHeight = _configPanelVisible ? 290.0 : 0.0;
             ConfigToggleText.Text = _configPanelVisible ? "▲" : "▼";
 
-            ShowLoadingOverlay("Cleaning up temp files");
-            await Task.Delay(50);
             _recordingStore.CleanupInternalTempRecordings();
             _recordingStore.CleanupAllTempFiles();
 
@@ -475,12 +468,8 @@ namespace PaDDY
             RecordingPadButton.SuppressEntranceAnimation--;
             _suppressSelectionEvents = false;
 
-            ShowLoadingOverlay("Initializing audio effects");
-            await Task.Delay(400);
             _globalCaptureChain?.Reset();
 
-            ShowLoadingOverlay("VST plugins startup");
-            await Task.Delay(600);
             var currentSettings = AppSettings.Load();
             bool vstSettingsChanged = false;
             if (!string.IsNullOrEmpty(currentSettings.VstPluginPath) && !File.Exists(currentSettings.VstPluginPath))
@@ -500,9 +489,6 @@ namespace PaDDY
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
 
-            ShowLoadingOverlay("Features starting");
-            await Task.Delay(50);
-
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
             WhisperARTTStatus();
@@ -511,19 +497,14 @@ namespace PaDDY
             // ── Auto-update / update check ──────────────────────────────────
             if (Services.UpdateService.HasPendingRestore())
             {
-                // Post-update restart: restore the auto-backup
                 ShowLoadingOverlay("Restoring your data...");
-                await Task.Delay(100);
                 var restoreService = new Services.UpdateService();
                 restoreService.StatusChanged += msg => ShowLoadingOverlay(msg);
                 restoreService.RestorePostUpdateBackup();
-                await Task.Delay(500);
             }
             else if (_settings.AutoInstallUpdates)
             {
-                // Auto-update: check → download → backup → install
                 ShowLoadingOverlay("Checking for updates...");
-                await Task.Delay(1000);
                 var updateService = new Services.UpdateService(_settings.DownloadBetaUpdates);
                 updateService.StatusChanged += msg => ShowLoadingOverlay(msg);
                 updateService.DownloadProgressChanged += fraction =>
@@ -544,7 +525,6 @@ namespace PaDDY
 
                     if (installerPath != null)
                     {
-                        // Hide progress bar before backup phase
                         Dispatcher.Invoke(() =>
                         {
                             _splashWindow?.HideProgress();
@@ -552,62 +532,50 @@ namespace PaDDY
                         });
 
                         ShowLoadingOverlay("Backing up your data...");
-                        await Task.Delay(100);
                         bool backupOk = updateService.CreatePreUpdateBackup();
 
                         if (backupOk)
                         {
-                            // Launch installer and exit — this method does not return
                             updateService.LaunchInstallerAndExit(installerPath);
-                            return; // App is shutting down
+                            return;
                         }
                         else
                         {
-                            // Backup failed — skip update, continue normal startup
                             ShowLoadingOverlay("Backup failed — skipping update");
-                            await Task.Delay(1500);
                         }
                     }
                     else
                     {
-                        // Download failed — continue normal startup
                         ShowLoadingOverlay("Download failed — skipping update");
                         Dispatcher.Invoke(() =>
                         {
                             _splashWindow?.HideProgress();
                             MainLoadingOverlay.HideProgress();
                         });
-                        await Task.Delay(1500);
                     }
                 }
-                // else: up-to-date, continue normal startup
             }
             else
             {
-                // Passive update check (just shows the update notice link)
-                ShowLoadingOverlay("Checking for new updates");
-                await Task.Delay(50);
                 _ = CheckForUpdateAsync();
             }
 
-            ShowLoadingOverlay("Loading AR-STT model");
-            await Task.Delay(50);
-            try
+            if (_settings.PreloadAudioCache && (_settings.AutoRenameWithSpeech || _settings.AutoSpeechIndexingEnabled))
             {
-                _speechService = new Services.SpeechRecognitionService();
-                await _speechService.PreloadModelAsync(_settings.SpeechModel, _settings.UseCudaForSpeech);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to preload Whisper model: {ex.Message}");
+                ShowLoadingOverlay("Loading AR-STT model");
+                try
+                {
+                    _speechService = new Services.SpeechRecognitionService();
+                    await _speechService.PreloadModelAsync(_settings.SpeechModel, _settings.UseCudaForSpeech);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to preload Whisper model: {ex.Message}");
+                }
             }
 
-            ShowLoadingOverlay("Starting services");
-            await Task.Delay(50);
             InitializeTrayIcon();
 
-            ShowLoadingOverlay("Starting third-party services");
-            await Task.Delay(50);
             if (_settings.DiscordRichPresenceEnabled)
             {
                 DiscordService.Instance.Initialize(true, _settings.DiscordClientId);
@@ -633,6 +601,16 @@ namespace PaDDY
             _ipcServer.Start();
 
             HideLoadingOverlay();
+
+            // Reclaim startup temporary memory and compact SQLite DB WAL
+            try
+            {
+                _recordingStore.Compact();
+                GC.Collect(2, GCCollectionMode.Aggressive, true, true);
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+            catch { }
 
             // Register global hotkey
             _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
@@ -1934,6 +1912,7 @@ namespace PaDDY
                 _settings.MeterSkin = win.SelectedMeterSkin;
                 _settings.PerformanceMode = win.SelectedPerformanceMode;
                 _settings.PauseAnimationsWhenUnfocused = win.SelectedPauseAnimationsWhenUnfocused;
+                _settings.PreloadAudioCache = win.SelectedPreloadAudioCache;
 
                 // System tray / startup
                 _settings.MinimizeToTray = win.SelectedMinimizeToTray;
@@ -2467,6 +2446,7 @@ namespace PaDDY
             var btn = new RecordingPadButton
             {
                 Margin = new Thickness(6),
+                Store = _recordingStore,
                 OutputDeviceIndex = _outputDeviceIndex,
                 ListenDeviceIndex = GetCurrentListenDeviceIndex(),
                 TrimEditorOutputDeviceIndex = _settings.TrimEditorOutputDeviceIndex,
@@ -2973,11 +2953,15 @@ namespace PaDDY
 
                 try
                 {
-                    string tempPath = _recordingStore.MaterializeToTemp(rec.Id, rec.Codec);
+                    string tempPath = _settings.PreloadAudioCache
+                        ? _recordingStore.MaterializeToTemp(rec.Id, rec.Codec)
+                        : string.Empty;
+
                     var entry = new RecordingEntry
                     {
                         RecordingId = rec.Id,
                         FilePath = tempPath,
+                        Codec = rec.Codec,
                         DisplayName = rec.DisplayName,
                         Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
                         CreatedAt = rec.CreatedAt,

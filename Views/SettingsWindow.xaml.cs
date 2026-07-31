@@ -43,6 +43,7 @@ namespace PaDDY
         public string SelectedMeterSkin { get; private set; } = "default";
         public bool SelectedPerformanceMode { get; private set; }
         public bool SelectedPauseAnimationsWhenUnfocused { get; private set; }
+        public bool SelectedPreloadAudioCache { get; private set; }
         public bool SelectedMinimizeToTray { get; private set; }
         public bool SelectedCloseToTray { get; private set; }
         public bool SelectedStartMinimizedInTray { get; private set; }
@@ -235,6 +236,7 @@ namespace PaDDY
 
             PerformanceModeCheck.IsChecked = _settings.PerformanceMode;
             PauseAnimationsWhenUnfocusedCheck.IsChecked = _settings.PauseAnimationsWhenUnfocused;
+            PreloadAudioCacheCheck.IsChecked = _settings.PreloadAudioCache;
 
             // System tray / startup
             MinimizeToTrayCheck.IsChecked = _settings.MinimizeToTray;
@@ -562,6 +564,8 @@ namespace PaDDY
                 ? ThemeManager.MeterSkins[si].Key : "default";
             SelectedPerformanceMode = PerformanceModeCheck.IsChecked == true;
             SelectedPauseAnimationsWhenUnfocused = PauseAnimationsWhenUnfocusedCheck.IsChecked == true;
+            SelectedPreloadAudioCache = PreloadAudioCacheCheck.IsChecked == true;
+            _settings.PreloadAudioCache = SelectedPreloadAudioCache;
 
             SelectedMinimizeToTray = MinimizeToTrayCheck.IsChecked == true;
             SelectedCloseToTray = CloseToTrayCheck.IsChecked == true;
