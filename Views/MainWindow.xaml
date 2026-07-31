@@ -198,7 +198,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentRedBrush}"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFEC407A"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentRedBrush}"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                 <Trigger.EnterActions>
@@ -229,7 +229,7 @@
                                     <Condition Property="IsMouseOver" Value="True"/>
                                     <Condition Property="IsChecked" Value="True"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="Bd" Property="Background" Value="#FFD32F2F"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentRedBrush}"/>
                             </MultiTrigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
@@ -1328,9 +1328,9 @@
                                     Margin="6,0,0,0"
                                     Padding="0"
                                     Background="Transparent"
-                                    BorderBrush="#33FFC107"
+                                    BorderBrush="{DynamicResource AccentAmberBrush}"
                                     BorderThickness="1"
-                                    Foreground="#FFFFC107"
+                                    Foreground="{DynamicResource AccentAmberBrush}"
                                     Content="+"
                                     FontSize="12"
                                     FontWeight="Bold"
@@ -1338,7 +1338,7 @@
                                     Click="AddPadPageButton_Click"/>
                             <TextBlock x:Name="FavoriteCountLabel"
                                        Text=" — 0"
-                                       Foreground="#FF8A8A60"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
                                        FontSize="10"
                                        VerticalAlignment="Center"
                                        Margin="8,0,0,0"/>
@@ -1352,7 +1352,7 @@
                                 Background="Transparent"
                                 BorderBrush="Transparent"
                                 BorderThickness="0"
-                                Foreground="#FFFFC107"
+                                Foreground="{DynamicResource AccentAmberBrush}"
                                 Content="✎"
                                 FontSize="11"
                                 ToolTip="Rename current page"
@@ -1364,7 +1364,7 @@
                                 Background="Transparent"
                                 BorderBrush="Transparent"
                                 BorderThickness="0"
-                                Foreground="#FFE57373"
+                                Foreground="{DynamicResource AccentRedBrush}"
                                 Content="🗑"
                                 FontSize="11"
                                 ToolTip="Delete current page (pads move to Favorites)"
@@ -1381,7 +1381,7 @@
                                 Click="FavoritesCollapseButton_Click">
                             <TextBlock x:Name="FavoritesCollapseIcon"
                                        Text="▼"
-                                       Foreground="#FFFFC107"
+                                       Foreground="{DynamicResource AccentAmberBrush}"
                                        FontSize="10"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
@@ -1393,7 +1393,7 @@
             <!-- ── Favorites WrapPanel ── -->
             <Border x:Name="FavoritesPanelBorder"
                     Grid.Row="1"
-                    Background="#0AFFC107"
+                    Background="{DynamicResource InputBgBrush}"
                     Visibility="Collapsed"
                     Padding="12,6,12,6">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -1410,12 +1410,12 @@
             <!-- ── Recordings header ── -->
             <Border Grid.Row="2"
                     Background="{DynamicResource InputBgBrush}"
-                    BorderBrush="#18FFFFFF"
+                    BorderBrush="{DynamicResource DividerBrush}"
                     BorderThickness="0,0,0,1"
                     Padding="14,7">
                 <Grid>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Rectangle Width="3" Height="12" Fill="#FF4CAF50"
+                        <Rectangle Width="3" Height="12" Fill="{DynamicResource AccentGreenBrush}"
                                    VerticalAlignment="Center" RadiusX="1" RadiusY="1"
                                    Margin="0,0,7,0"/>
                         <TextBlock Text="{p:Loc NavRecordings}"
@@ -1425,17 +1425,17 @@
                                    VerticalAlignment="Center"/>
 
                         <!-- Instant Soundboard Search Bar -->
-                        <Border Width="220" Height="24" CornerRadius="12" Background="#18FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" Margin="16,0,0,0">
+                        <Border Width="220" Height="24" CornerRadius="12" Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Margin="16,0,0,0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="🔍" FontSize="11" Foreground="#FF9090A0" Margin="8,0,4,0" VerticalAlignment="Center"/>
-                                <TextBox x:Name="SearchTextBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="11" VerticalAlignment="Center" TextChanged="SearchTextBox_TextChanged"/>
-                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="{p:Loc SearchPlaceholder}" FontSize="11" Foreground="#FF707080" IsHitTestVisible="False" VerticalAlignment="Center"/>
-                                <Button x:Name="ClearSearchBtn" Grid.Column="2" Content="✕" Width="16" Height="16" FontSize="10" Background="Transparent" Foreground="#FF9090A0" BorderThickness="0" Visibility="Collapsed" Click="ClearSearchBtn_Click" Margin="0,0,4,0"/>
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="8,0,4,0" VerticalAlignment="Center"/>
+                                <TextBox x:Name="SearchTextBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" VerticalAlignment="Center" TextChanged="SearchTextBox_TextChanged"/>
+                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="{p:Loc SearchPlaceholder}" FontSize="11" Foreground="{DynamicResource SubtleTextBrush}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                                <Button x:Name="ClearSearchBtn" Grid.Column="2" Content="✕" Width="16" Height="16" FontSize="10" Background="Transparent" Foreground="{DynamicResource SecondaryTextBrush}" BorderThickness="0" Visibility="Collapsed" Click="ClearSearchBtn_Click" Margin="0,0,4,0"/>
                             </Grid>
                         </Border>
                     </StackPanel>

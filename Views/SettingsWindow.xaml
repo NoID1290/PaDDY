@@ -226,7 +226,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBox x:Name="VstPluginPathTextBox" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
+                                                    <TextBox x:Name="VstPluginPathTextBox" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="{DynamicResource InputBgBrush}" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource InputBorderBrush}"/>
                                                     <Button x:Name="BrowseVstButton" Grid.Column="1" Content="..." Width="32" Height="28" Click="BrowseVstButton_Click"/>
                                                 </Grid>
                                             </Grid>
@@ -241,14 +241,14 @@
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                         <TextBlock Text="VST3 Plugin Path (Experimental)" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                        <TextBlock Text="Select a .vst3 plugin to be available in the Audio Editor." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="Select a .vst3 plugin to be available in the Audio Editor." FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                                                     </StackPanel>
                                                     <Grid Grid.Column="1" Width="240" VerticalAlignment="Center">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBox x:Name="Vst3PluginPathTextBox" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
+                                                        <TextBox x:Name="Vst3PluginPathTextBox" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="{DynamicResource InputBgBrush}" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource InputBorderBrush}"/>
                                                         <Button x:Name="BrowseVst3Button" Grid.Column="1" Content="..." Width="32" Height="28" Click="BrowseVst3Button_Click"/>
                                                     </Grid>
                                                 </Grid>
@@ -1147,10 +1147,10 @@
                                                 <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="Clear All Data" FontWeight="SemiBold" Foreground="#FFEF5350"/>
+                                                <TextBlock Text="Clear All Data" FontWeight="SemiBold" Foreground="{DynamicResource AccentRedBrush}"/>
                                                 <TextBlock Text="Permanently delete all audio pads, custom folders, recordings database, and reset application settings." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <Button x:Name="ClearAllDataBtn" Grid.Column="1" Content="Clear All Data" Width="220" Height="30" Background="#CCB71C1C" Foreground="White" Click="ClearAllDataBtn_Click" VerticalAlignment="Center"/>
+                                            <Button x:Name="ClearAllDataBtn" Grid.Column="1" Content="Clear All Data" Width="220" Height="30" Background="{DynamicResource AccentRedBrush}" Foreground="White" Click="ClearAllDataBtn_Click" VerticalAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>

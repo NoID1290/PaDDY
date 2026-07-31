@@ -57,15 +57,15 @@
         <!-- Header -->
         <Border Grid.Row="0"
                 Style="{StaticResource SecondaryWindowHeaderCard}"
-                BorderBrush="#22FFFFFF"
+                BorderBrush="{DynamicResource CardBorderBrush}"
                 Padding="16,10"
                 Margin="0,0,0,12">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Pa" Foreground="#FF7070A8" FontSize="17" FontWeight="Bold"/>
-                <TextBlock Text="DDY" Foreground="#FF4CAF50" FontSize="17" FontWeight="Bold"/>
-                <TextBlock Text="  —  " Foreground="#FF9090B8" FontSize="13" VerticalAlignment="Center"/>
+                <TextBlock Text="Pa" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="17" FontWeight="Bold"/>
+                <TextBlock Text="DDY" Foreground="{DynamicResource AccentGreenBrush}" FontSize="17" FontWeight="Bold"/>
+                <TextBlock Text="  —  " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" VerticalAlignment="Center"/>
                 <TextBlock Text="{p:Loc AboutCredits}"
-                           Foreground="#FF9090B8"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
                            FontSize="13"
                            VerticalAlignment="Center"/>
             </StackPanel>
@@ -73,8 +73,8 @@
 
         <!-- Credits text area -->
         <Border Grid.Row="1"
-                Background="#FF0E1019"
-                BorderBrush="#28FFFFFF"
+                Background="{DynamicResource InputBgBrush}"
+                BorderBrush="{DynamicResource InputBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="7">
             <Border.Effect>
@@ -88,12 +88,12 @@
                      FontFamily="Consolas"
                      FontSize="12"
                      Background="Transparent"
-                     Foreground="#FFB8B8D8"
+                     Foreground="{DynamicResource PrimaryTextBrush}"
                      BorderThickness="0"
                      Padding="12"
                      AcceptsReturn="True"
-                     CaretBrush="#FF4CAF50"
-                     SelectionBrush="#224CAF50"
+                     CaretBrush="{DynamicResource AccentGreenBrush}"
+                     SelectionBrush="{DynamicResource AccentGreenBrush}"
                      Height="Auto"
                      VerticalAlignment="Stretch"
                      VerticalContentAlignment="Top"/>

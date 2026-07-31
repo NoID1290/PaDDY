@@ -88,17 +88,17 @@
                         </Grid.RowDefinitions>
 
                         <!-- Instant Search Bar -->
-                        <Border Grid.Row="0" Width="260" Height="26" CornerRadius="13" Background="#18FFFFFF" BorderBrush="#30FFFFFF" BorderThickness="1" HorizontalAlignment="Left" Margin="6,4,0,10">
+                        <Border Grid.Row="0" Width="260" Height="26" CornerRadius="13" Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" HorizontalAlignment="Left" Margin="6,4,0,10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="🔍" FontSize="11" Foreground="#FF9090A0" Margin="8,0,4,0" VerticalAlignment="Center"/>
-                                <TextBox x:Name="SearchTextBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="11" VerticalAlignment="Center" TextChanged="SearchTextBox_TextChanged"/>
-                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="{p:Loc SearchPlaceholder}" FontSize="11" Foreground="#FF707080" IsHitTestVisible="False" VerticalAlignment="Center"/>
-                                <Button x:Name="ClearSearchBtn" Grid.Column="2" Content="✕" Width="16" Height="16" FontSize="10" Background="Transparent" Foreground="#FF9090A0" BorderThickness="0" Visibility="Collapsed" Click="ClearSearchBtn_Click" Margin="0,0,4,0"/>
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="8,0,4,0" VerticalAlignment="Center"/>
+                                <TextBox x:Name="SearchTextBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="11" VerticalAlignment="Center" TextChanged="SearchTextBox_TextChanged"/>
+                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="1" Text="{p:Loc SearchPlaceholder}" FontSize="11" Foreground="{DynamicResource SubtleTextBrush}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                                <Button x:Name="ClearSearchBtn" Grid.Column="2" Content="✕" Width="16" Height="16" FontSize="10" Background="Transparent" Foreground="{DynamicResource SecondaryTextBrush}" BorderThickness="0" Visibility="Collapsed" Click="ClearSearchBtn_Click" Margin="0,0,4,0"/>
                             </Grid>
                         </Border>
 

@@ -65,7 +65,7 @@
                                     Value="True">
                                 <Setter TargetName="Bd"
                                         Property="Background"
-                                        Value="#44FFFFFF"/>
+                                        Value="{DynamicResource ButtonHoverBgBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
