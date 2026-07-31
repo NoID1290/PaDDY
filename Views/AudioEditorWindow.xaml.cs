@@ -140,6 +140,7 @@ namespace PaDDY
             //FileNameLabel.Text = Path.GetFileNameWithoutExtension(filePath); // Get raw name
 
             Loaded += OnLoaded;
+            StateChanged += OnStateChanged;
             WaveformGrid.SizeChanged += WaveformGrid_SizeChanged;
             ThemeManager.ThemeChanged += OnThemeChanged;
             Closed += (_, _) => 
@@ -392,21 +393,19 @@ namespace PaDDY
 
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            if (Math.Abs(e.NewSize.Width - e.PreviousSize.Width) < 1.0 && Math.Abs(e.NewSize.Height - e.PreviousSize.Height) < 1.0)
+                return;
+
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
             UpdatePeaksForWidth((int)_waveformWidth);
             RenderWaveformFromPeaks();
             UpdateHandlePositions();
 
-            if (_isPreviewing && _reader != null)
+            if (_isPreviewing)
             {
-                // Restart the linear animation from current playback position with remaining duration
                 double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
                 double currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
-                double remaining = _playbackEndSec - currentSec;
-                if (remaining > 0)
-                    StartPlaybackAnimation(currentSec, _playbackEndSec, TimeSpan.FromSeconds(remaining));
-                else
-                    UpdatePlaybackLinePosition(currentSec);
+                UpdatePlaybackLinePosition(currentSec);
             }
         }
 
@@ -542,6 +541,8 @@ namespace PaDDY
             RenderWaveformFromPeaks();
         }
 
+        private WriteableBitmap? _waveformBmp;
+
         private void RenderWaveformFromPeaks()
         {
             if (_originalPeaks == null) return;
@@ -556,7 +557,12 @@ namespace PaDDY
             var accent = GetThemeAccentColor();
             byte aR = accent.R, aG = accent.G, aB = accent.B;
 
-            var bmp = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            if (_waveformBmp == null || (int)_waveformBmp.Width != width || (int)_waveformBmp.Height != height)
+            {
+                _waveformBmp = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+                WaveformImage.Source = _waveformBmp;
+            }
+
             int stride = width * 4;
             int byteCount = stride * height;
             byte[] pixels = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
@@ -598,8 +604,7 @@ namespace PaDDY
                     }
                 }
 
-                bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
-                WaveformImage.Source = bmp;
+                _waveformBmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
             }
             finally
             {
@@ -770,12 +775,19 @@ namespace PaDDY
         private void StartTimecodeTimer()
         {
             StopTimecodeTimer();
-            _timecodeTimer = new System.Windows.Threading.DispatcherTimer
+            if (Helpers.ThemeManager.PerformanceMode)
             {
-                Interval = TimeSpan.FromMilliseconds(30)
-            };
-            _timecodeTimer.Tick += TimecodeTimer_Tick;
-            _timecodeTimer.Start();
+                _timecodeTimer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(100)
+                };
+                _timecodeTimer.Tick += TimecodeTimer_Tick;
+                _timecodeTimer.Start();
+            }
+            else
+            {
+                System.Windows.Media.CompositionTarget.Rendering += OnCompositionRendering;
+            }
         }
 
         private void StopTimecodeTimer()
@@ -786,9 +798,20 @@ namespace PaDDY
                 _timecodeTimer.Tick -= TimecodeTimer_Tick;
                 _timecodeTimer = null;
             }
+            System.Windows.Media.CompositionTarget.Rendering -= OnCompositionRendering;
+        }
+
+        private void OnCompositionRendering(object? sender, EventArgs e)
+        {
+            UpdatePlaybackTimecodeTick();
         }
 
         private void TimecodeTimer_Tick(object? sender, EventArgs e)
+        {
+            UpdatePlaybackTimecodeTick();
+        }
+
+        private void UpdatePlaybackTimecodeTick()
         {
             if (!_isPreviewing)
             {
@@ -798,7 +821,10 @@ namespace PaDDY
             double elapsed = (DateTime.UtcNow - _playbackStartedAt).TotalSeconds;
             double currentSec = Math.Clamp(_playbackStartSec + elapsed, _playbackStartSec, _playbackEndSec);
             UpdatePlaybackTimecode(currentSec);
+            UpdatePlaybackLinePosition(currentSec);
         }
+
+
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
         private void ChromeMinimize_Click(object sender, RoutedEventArgs e)
@@ -809,15 +835,40 @@ namespace PaDDY
             if (WindowState == WindowState.Maximized)
             {
                 SystemCommands.RestoreWindow(this);
-                ChromeMaxIcon.Text = "\uE922"; // Maximize icon
-                ChromeMaxRestoreBtn.ToolTip = "Maximize";
             }
             else
             {
                 SystemCommands.MaximizeWindow(this);
-                ChromeMaxIcon.Text = "\uE923"; // Restore icon
-                ChromeMaxRestoreBtn.ToolTip = "Restore";
             }
+        }
+
+        private void OnStateChanged(object? sender, EventArgs e)
+        {
+            if (ChromeMaxIcon != null && ChromeMaxRestoreBtn != null)
+            {
+                if (WindowState == WindowState.Maximized)
+                {
+                    ChromeMaxIcon.Text = "\uE923";
+                    ChromeMaxRestoreBtn.ToolTip = "Restore";
+                }
+                else
+                {
+                    ChromeMaxIcon.Text = "\uE922";
+                    ChromeMaxRestoreBtn.ToolTip = "Maximize";
+                }
+            }
+
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+            {
+                _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
+                if (_waveformWidth > 0)
+                {
+                    UpdatePeaksForWidth((int)_waveformWidth);
+                    RenderWaveformFromPeaks();
+                    UpdateHandlePositions();
+                    UpdateTimeLabels();
+                }
+            }));
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
@@ -1264,6 +1315,154 @@ namespace PaDDY
         private void PitchShiftHeaderButton_Click(object sender, RoutedEventArgs e) { }
         private void RemasterHeaderButton_Click(object sender, RoutedEventArgs e) { }
 
+        private void ResetGate_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                GateEnabledCheck.IsChecked = false;
+                GateThresholdSlider.Value = -40;
+                GateAttackSlider.Value = 10;
+                GateReleaseSlider.Value = 100;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetEq_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                EqEnabledCheck.IsChecked = false;
+                EqSubBassSlider.Value = 0;
+                EqBassSlider.Value = 0;
+                EqMidSlider.Value = 0;
+                EqPresenceSlider.Value = 0;
+                EqTrebleSlider.Value = 0;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetCompressor_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                CompressorEnabledCheck.IsChecked = false;
+                CompThresholdSlider.Value = -20;
+                CompRatioSlider.Value = 4;
+                CompAttackSlider.Value = 10;
+                CompReleaseSlider.Value = 100;
+                CompMakeupSlider.Value = 0;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetPitchShift_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                PitchShiftEnabledCheck.IsChecked = false;
+                PitchShiftSemitonesSlider.Value = 0;
+                PitchShiftGrainSizeSlider.Value = 50;
+                PitchShiftMixSlider.Value = 1.0;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetDistortion_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                DistortionEnabledCheck.IsChecked = false;
+                DistDriveSlider.Value = 8;
+                DistMixSlider.Value = 0.80;
+                DistOutputSlider.Value = 0.80;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetEcho_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                EchoEnabledCheck.IsChecked = false;
+                EchoDelaySlider.Value = 200;
+                EchoFeedbackSlider.Value = 0.30;
+                EchoMixSlider.Value = 0.40;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetReverb_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                ReverbEnabledCheck.IsChecked = false;
+                ReverbRoomSlider.Value = 0.5;
+                ReverbDampingSlider.Value = 0.5;
+                ReverbMixSlider.Value = 0.3;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetFade_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                FadeEnabledCheck.IsChecked = false;
+                FadeInSlider.Value = 500;
+                FadeOutSlider.Value = 500;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetRemaster_Click(object sender, RoutedEventArgs e)
+        {
+            _effectsLoading = true;
+            try
+            {
+                RemasterEnabledCheck.IsChecked = false;
+                RemasterPresetCombo.SelectedIndex = 5; // Custom / Default
+                RemasterWarmthSlider.Value = 0;
+                RemasterPunchSlider.Value = 0;
+                RemasterBrillianceSlider.Value = 0;
+                RemasterWidthSlider.Value = 1.0;
+                RemasterDriveSlider.Value = 1.0;
+                RemasterRatioSlider.Value = 2.0;
+                RemasterCeilingSlider.Value = -0.1;
+            }
+            finally { _effectsLoading = false; }
+            UpdateEffectLabels();
+            CommitEffectsToChain();
+        }
+
+        private void ResetMasterBus_Click(object sender, RoutedEventArgs e)
+        {
+            GainSlider.Value = 0;
+        }
+
         private void ResetEffects_Click(object sender, RoutedEventArgs e)
         {
             _effectsLoading = true;
@@ -1278,8 +1477,8 @@ namespace PaDDY
                 GateReleaseSlider.Value = 100;
                 EchoEnabledCheck.IsChecked = false;
                 EchoDelaySlider.Value = 200;
-                EchoFeedbackSlider.Value = 0.3;
-                EchoMixSlider.Value = 0.4;
+                EchoFeedbackSlider.Value = 0.30;
+                EchoMixSlider.Value = 0.40;
                 EqEnabledCheck.IsChecked = false;
                 EqSubBassSlider.Value = 0;
                 EqBassSlider.Value = 0;
@@ -1287,15 +1486,15 @@ namespace PaDDY
                 EqPresenceSlider.Value = 0;
                 EqTrebleSlider.Value = 0;
                 CompressorEnabledCheck.IsChecked = false;
-                CompThresholdSlider.Value = -18;
+                CompThresholdSlider.Value = -20;
                 CompRatioSlider.Value = 4;
                 CompAttackSlider.Value = 10;
-                CompReleaseSlider.Value = 120;
+                CompReleaseSlider.Value = 100;
                 CompMakeupSlider.Value = 0;
                 DistortionEnabledCheck.IsChecked = false;
                 DistDriveSlider.Value = 8;
-                DistMixSlider.Value = 0.6;
-                DistOutputSlider.Value = 0.8;
+                DistMixSlider.Value = 0.80;
+                DistOutputSlider.Value = 0.80;
                 ReverbEnabledCheck.IsChecked = false;
                 ReverbRoomSlider.Value = 0.5;
                 ReverbDampingSlider.Value = 0.5;
@@ -1305,20 +1504,28 @@ namespace PaDDY
                 PitchShiftGrainSizeSlider.Value = 50;
                 PitchShiftMixSlider.Value = 1.0;
                 RemasterEnabledCheck.IsChecked = false;
-                RemasterPresetCombo.SelectedIndex = 1;
-                var defRem = new RemasterEffect();
-                defRem.ApplyPreset(RemasterPreset.WarmAnalog);
-                RemasterWarmthSlider.Value = defRem.WarmthDb;
-                RemasterPunchSlider.Value = defRem.PunchDb;
-                RemasterBrillianceSlider.Value = defRem.BrillianceDb;
-                RemasterWidthSlider.Value = defRem.StereoWidth;
-                RemasterDriveSlider.Value = defRem.Drive;
-                RemasterRatioSlider.Value = defRem.Ratio;
-                RemasterCeilingSlider.Value = defRem.LimiterCeilingDb;
+                RemasterPresetCombo.SelectedIndex = 5;
+                RemasterWarmthSlider.Value = 0;
+                RemasterPunchSlider.Value = 0;
+                RemasterBrillianceSlider.Value = 0;
+                RemasterWidthSlider.Value = 1.0;
+                RemasterDriveSlider.Value = 1.0;
+                RemasterRatioSlider.Value = 2.0;
+                RemasterCeilingSlider.Value = -0.1;
             }
             finally { _effectsLoading = false; }
             UpdateEffectLabels();
             CommitEffectsToChain();
+        }
+
+        private void ResetAllBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ResetEffects_Click(sender, e);
+            GainSlider.Value = 0;
+            _trimStartFraction = 0.0;
+            _trimEndFraction = 1.0;
+            UpdateHandlePositions();
+            UpdateTimeLabels();
         }
 
         /// <summary>
@@ -1513,17 +1720,7 @@ namespace PaDDY
 
         private void StartPlaybackAnimation(double fromSec, double toSec, TimeSpan duration)
         {
-            if (_totalDurationSeconds <= 0 || _waveformWidth <= 0) return;
-
-            double fromX = fromSec / _totalDurationSeconds * _waveformWidth;
-            double toX = toSec / _totalDurationSeconds * _waveformWidth;
-
-            var anim = new DoubleAnimation(fromX, toX, new Duration(duration))
-            {
-                FillBehavior = FillBehavior.HoldEnd
-            };
-            // No EasingFunction — linear by default
-            PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, anim);
+            UpdatePlaybackLinePosition(fromSec);
         }
 
         private void UpdatePlaybackLinePosition(double currentSec)
@@ -1536,8 +1733,6 @@ namespace PaDDY
 
             double clampedSec = Math.Clamp(currentSec, 0.0, _totalDurationSeconds);
             double fraction = clampedSec / _totalDurationSeconds;
-            // Detach any running animation then set value directly
-            PlaybackLineTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, null);
             PlaybackLineTransform.X = fraction * _waveformWidth;
         }
 

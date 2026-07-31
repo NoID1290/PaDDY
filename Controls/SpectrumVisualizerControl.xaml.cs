@@ -34,12 +34,19 @@ namespace PaDDY.Controls
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             BuildBars();
-            _animTimer = new DispatcherTimer
+            if (Helpers.ThemeManager.PerformanceMode)
             {
-                Interval = TimeSpan.FromMilliseconds(33) // ~30 fps animation
-            };
-            _animTimer.Tick += AnimTimer_Tick;
-            _animTimer.Start();
+                _animTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(100)
+                };
+                _animTimer.Tick += AnimTimer_Tick;
+                _animTimer.Start();
+            }
+            else
+            {
+                CompositionTarget.Rendering += OnCompositionRendering;
+            }
 
             Helpers.ThemeManager.ThemeChanged += OnThemeChanged;
             _themeUnsubscribe = () => Helpers.ThemeManager.ThemeChanged -= OnThemeChanged;
@@ -47,10 +54,20 @@ namespace PaDDY.Controls
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            _animTimer?.Stop();
-            _animTimer = null;
+            if (_animTimer != null)
+            {
+                _animTimer.Stop();
+                _animTimer.Tick -= AnimTimer_Tick;
+                _animTimer = null;
+            }
+            CompositionTarget.Rendering -= OnCompositionRendering;
             _themeUnsubscribe?.Invoke();
             _themeUnsubscribe = null;
+        }
+
+        private void OnCompositionRendering(object? sender, EventArgs e)
+        {
+            StepAnimation();
         }
 
         private void OnThemeChanged()
@@ -140,6 +157,11 @@ namespace PaDDY.Controls
         }
 
         private void AnimTimer_Tick(object? sender, EventArgs e)
+        {
+            StepAnimation();
+        }
+
+        private void StepAnimation()
         {
             if (!_isPlaying)
             {

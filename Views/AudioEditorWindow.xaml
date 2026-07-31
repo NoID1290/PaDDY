@@ -117,6 +117,33 @@
                 </Border>
             </Grid>
         </ControlTemplate>
+        <!-- Small Icon Reset Button Style -->
+        <Style x:Key="SmallIconResetBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource SubtleTextBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="ToolTip" Value="Reset section to default values"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <TextBlock Text="↺" FontSize="12" Foreground="{TemplateBinding Foreground}" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentGreenBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -388,8 +415,11 @@
                                                         <TextBlock Text="Noise Gate" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <!-- Sliding Toggle Switch -->
-                                                    <CheckBox x:Name="GateEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    <!-- Reset & Power Switch -->
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button ToolTip="Reset Noise Gate" Click="ResetGate_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                        <CheckBox x:Name="GateEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <!-- Collapsible Card Content Body -->
@@ -425,7 +455,10 @@
                                                         <TextBlock Text="5-Band Equalizer" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <CheckBox x:Name="EqEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button ToolTip="Reset Equalizer" Click="ResetEq_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                        <CheckBox x:Name="EqEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel x:Name="EqBody">
@@ -472,7 +505,10 @@
                                                         <TextBlock Text="Compressor" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <CheckBox x:Name="CompressorEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button ToolTip="Reset Compressor" Click="ResetCompressor_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                        <CheckBox x:Name="CompressorEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel x:Name="CompBody">
@@ -518,7 +554,10 @@
                                                         <TextBlock Text="Pitch Shift" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <CheckBox x:Name="PitchShiftEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button ToolTip="Reset Pitch Shift" Click="ResetPitchShift_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                        <CheckBox x:Name="PitchShiftEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel x:Name="PitchBody">
@@ -556,7 +595,10 @@
                                                         <TextBlock Text="Distortion" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <CheckBox x:Name="DistortionEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button ToolTip="Reset Distortion" Click="ResetDistortion_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                        <CheckBox x:Name="DistortionEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel x:Name="DistBody">
@@ -586,7 +628,10 @@
                                                         <TextBlock Text="Echo &amp; Delay" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <CheckBox x:Name="EchoEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button ToolTip="Reset Echo &amp; Delay" Click="ResetEcho_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                        <CheckBox x:Name="EchoEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel x:Name="EchoBody">
@@ -616,7 +661,10 @@
                                                         <TextBlock Text="Reverb" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    <CheckBox x:Name="ReverbEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button ToolTip="Reset Reverb" Click="ResetReverb_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                        <CheckBox x:Name="ReverbEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <StackPanel x:Name="ReverbBody">
@@ -742,7 +790,10 @@
                                                     <TextBlock Text="Fade In / Fade Out" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                     <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
-                                                <CheckBox x:Name="FadeEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <Button ToolTip="Reset Fade In / Fade Out" Click="ResetFade_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                    <CheckBox x:Name="FadeEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </StackPanel>
                                             </Grid>
 
                                             <StackPanel x:Name="FadeBody">
@@ -786,7 +837,10 @@
                                                     <TextBlock Text="Remaster Rack" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                     <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
-                                                <CheckBox x:Name="RemasterEnabledCheck" HorizontalAlignment="Right" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <Button ToolTip="Reset Remaster Rack" Click="ResetRemaster_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                    <CheckBox x:Name="RemasterEnabledCheck" Style="{StaticResource RackPowerSwitch}" Checked="EffectEnabled_Changed" Unchecked="EffectEnabled_Changed"/>
+                                                </StackPanel>
                                             </Grid>
 
                                             <StackPanel x:Name="RemasterBody">
@@ -856,6 +910,9 @@
                                                     <TextBlock Text="Master Bus" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                     <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <Button ToolTip="Reset Master Bus" Click="ResetMasterBus_Click" Style="{StaticResource SmallIconResetBtn}"/>
+                                                </StackPanel>
                                             </Grid>
 
                                             <StackPanel x:Name="MasterBusBody">
@@ -887,6 +944,16 @@
 
                         <!-- Right Action Buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button x:Name="ResetAllBtn"
+                                    Style="{StaticResource EditorBtn}"
+                                    Content="Reset All"
+                                    Height="32"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    Margin="0,0,10,0"
+                                    ToolTip="Reset all audio processing effects, trim range, and gain to defaults"
+                                    Click="ResetAllBtn_Click"/>
+
                             <Button x:Name="SaveBtn"
                                     Style="{StaticResource PrimaryBtn}"
                                     Content="Apply"
