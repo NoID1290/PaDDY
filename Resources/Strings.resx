@@ -187,7 +187,7 @@
   <data name="CudaDesc" xml:space="preserve"><value>Leverage NVIDIA CUDA hardware to speed up speech model execution.</value></data>
 
   <!-- Settings Audio Devices -->
-  <data name="AudioDevicesHeader" xml:space="preserve"><value>Playback Settings</value></data>
+  <data name="AudioDevicesHeader" xml:space="preserve"><value>Audio Devices &amp; Loudness Normalization</value></data>
   <data name="AudioDevicesSubtitle" xml:space="preserve"><value>Configure output routing and monitoring configurations for post-editing.</value></data>
   <data name="TrimOutputGroup" xml:space="preserve"><value>TRIM EDITOR OUTPUT</value></data>
   <data name="TrimOutputLabel" xml:space="preserve"><value>Trim Editor Output Device</value></data>
@@ -226,8 +226,8 @@
   <data name="PreloadAudioCacheDesc" xml:space="preserve"><value>Preload and cache all audio clips into memory on startup for instant playback. Disable on lower-end PCs to reduce RAM usage.</value></data>
 
   <!-- Settings System -->
-  <data name="SystemHeader" xml:space="preserve"><value>System &amp; Integrations</value></data>
-  <data name="SystemSubtitle" xml:space="preserve"><value>Manage background services, system tray toggles, startup operations, and plugins.</value></data>
+  <data name="SystemHeader" xml:space="preserve"><value>System behavior</value></data>
+  <data name="SystemSubtitle" xml:space="preserve"><value>Manage startup, system tray options, and updates.</value></data>
   <data name="TrayGroup" xml:space="preserve"><value>SYSTEM TRAY OPERATIONS</value></data>
   <data name="MinTrayLabel" xml:space="preserve"><value>Minimize to System Tray</value></data>
   <data name="MinTrayDesc" xml:space="preserve"><value>Move the application window to the Windows notification tray area when minimized.</value></data>
