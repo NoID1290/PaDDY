@@ -264,6 +264,10 @@
   <data name="GlobalFadeOutLabel" xml:space="preserve"><value>Fade-Out Duration (ms)</value></data>
   <data name="GlobalFadeOutDesc" xml:space="preserve"><value>Duration of the fade-out ramp applied at the end of each clip (0 = disabled).</value></data>
 
+  <!-- Multi-Pad Playback -->
+  <data name="AllowMultiPadPlaybackLabel" xml:space="preserve"><value>Multi-Pad Playback</value></data>
+  <data name="AllowMultiPadPlaybackDesc" xml:space="preserve"><value>Allow playing more than one pad simultaneously (polyphonic mode).</value></data>
+
   <!-- Settings Backup & Restore -->
   <data name="BackupHeader" xml:space="preserve"><value>Backup &amp; Restore</value></data>
   <data name="BackupSubtitle" xml:space="preserve"><value>Secure and manage your recordings, library database, and settings configuration.</value></data>

@@ -1337,6 +1337,7 @@ namespace PaDDY
 
         private void ApplySettings()
         {
+            RecordingPadButton.AllowMultiPadPlayback = _settings.AllowMultiPadPlayback;
             var requestedMode = (CaptureSourceMode)Math.Clamp(_settings.CaptureSourceMode, 0, 2);
             if (!_captureSourceModes.Contains(requestedMode))
                 requestedMode = _captureSourceModes.Contains(CaptureSourceMode.OutputLoopback)
@@ -1421,6 +1422,7 @@ namespace PaDDY
 
         private void RefreshPadOutputRouting()
         {
+            RecordingPadButton.AllowMultiPadPlayback = _settings.AllowMultiPadPlayback;
             int listenDevice = GetCurrentListenDeviceIndex();
             foreach (var panel in new[] { PadPanel, FavoritesPanel })
             {
@@ -1950,10 +1952,12 @@ namespace PaDDY
                 _settings.AutoInstallUpdates = win.SelectedAutoInstallUpdates;
                 _settings.DownloadBetaUpdates = win.SelectedDownloadBetaUpdates;
 
-                // Global Effects
+                // Global Effects & Playback
                 _settings.GlobalFadeEnabled = win.SelectedGlobalFadeEnabled;
                 _settings.GlobalFadeInDurationMs = win.SelectedGlobalFadeInDurationMs;
                 _settings.GlobalFadeOutDurationMs = win.SelectedGlobalFadeOutDurationMs;
+                _settings.AllowMultiPadPlayback = win.SelectedAllowMultiPadPlayback;
+                RecordingPadButton.AllowMultiPadPlayback = _settings.AllowMultiPadPlayback;
                 _settings.Save();
 
                 DiscordService.Instance.Initialize(_settings.DiscordRichPresenceEnabled, _settings.DiscordClientId);
@@ -2176,7 +2180,7 @@ namespace PaDDY
                 // If both L and R are zero (playback stopped), start decay animation
                 if (left <= 0 && right <= 0)
                     StartOutputMeterDecay();
-            }), System.Windows.Threading.DispatcherPriority.Render);
+            }), System.Windows.Threading.DispatcherPriority.Normal);
         }
 
         private void UpdateOutputMeterOverlaysLayout()
@@ -2255,7 +2259,7 @@ namespace PaDDY
 
                 MonitorPeakIndicatorL.Background = (now - _monitorPeakHoldTimeL).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
                 MonitorPeakIndicatorR.Background = (now - _monitorPeakHoldTimeR).TotalSeconds < PeakHoldSeconds ? PeakHotBrush : PeakColdBrush;
-            }), System.Windows.Threading.DispatcherPriority.Render);
+            }), System.Windows.Threading.DispatcherPriority.Normal);
         }
 
         private void UpdateMonitorMeterOverlaysLayout()

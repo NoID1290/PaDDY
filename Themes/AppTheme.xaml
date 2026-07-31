@@ -158,11 +158,11 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Foreground"        Value="{DynamicResource AccentGreenBrush}"/>
         <Setter Property="Background"        Value="{DynamicResource InputBorderBrush}"/>
-        <Setter Property="MinHeight"         Value="20"/>
+        <Setter Property="MinHeight"         Value="22"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
-                    <Grid Margin="0,2">
+                    <Grid Margin="0">
                         <!-- Horizontal track background -->
                         <Border x:Name="TrackBg"
                                 Height="4"

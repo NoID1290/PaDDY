@@ -69,8 +69,121 @@ namespace PaDDY.Controls
         /// <summary>Global event fired with listen output RMS values from any active pad.</summary>
         public static event Action<double, double>? GlobalListenPlaybackRmsChanged;
 
-        public static string? ActivePlayingRecordingId { get; private set; }
-        public static RecordingPadButton? ActivePlayingPadInstance { get; private set; }
+        private static readonly HashSet<RecordingPadButton> _activePlayingPads = new();
+        private static readonly object _activePadsLock = new();
+
+        /// <summary>Whether multi-pad playback is allowed (polyphonic mode).</summary>
+        public static bool AllowMultiPadPlayback { get; set; } = true;
+
+        public static string? ActivePlayingRecordingId
+        {
+            get
+            {
+                lock (_activePadsLock)
+                {
+                    return _activePlayingPads.FirstOrDefault()?.Entry?.RecordingId;
+                }
+            }
+        }
+
+        public static RecordingPadButton? ActivePlayingPadInstance
+        {
+            get
+            {
+                lock (_activePadsLock)
+                {
+                    return _activePlayingPads.FirstOrDefault();
+                }
+            }
+        }
+
+        public static bool IsAnyPadPlaying
+        {
+            get
+            {
+                lock (_activePadsLock)
+                {
+                    return _activePlayingPads.Count > 0;
+                }
+            }
+        }
+
+        public static bool IsRecordingPlaying(string? recordingId)
+        {
+            if (string.IsNullOrEmpty(recordingId)) return false;
+            lock (_activePadsLock)
+            {
+                return _activePlayingPads.Any(p => p.Entry?.RecordingId == recordingId && p._isPlaying);
+            }
+        }
+
+        public static void StopAllPlayback()
+        {
+            List<RecordingPadButton> playing;
+            lock (_activePadsLock)
+            {
+                playing = _activePlayingPads.ToList();
+            }
+            foreach (var pad in playing)
+            {
+                pad.StopPlayback();
+            }
+        }
+
+        public static void StopRecordingPlayback(string recordingId)
+        {
+            if (string.IsNullOrEmpty(recordingId)) return;
+            List<RecordingPadButton> toStop;
+            lock (_activePadsLock)
+            {
+                toStop = _activePlayingPads.Where(p => p.Entry?.RecordingId == recordingId).ToList();
+            }
+            foreach (var pad in toStop)
+            {
+                pad.StopPlayback();
+            }
+        }
+
+        public double CurrentRmsL { get; private set; }
+        public double CurrentRmsR { get; private set; }
+        public double CurrentListenRmsL { get; private set; }
+        public double CurrentListenRmsR { get; private set; }
+
+        private static void BroadcastGlobalRms()
+        {
+            double sumL2 = 0;
+            double sumR2 = 0;
+            double sumListenL2 = 0;
+            double sumListenR2 = 0;
+            bool anyPlaying = false;
+
+            lock (_activePadsLock)
+            {
+                foreach (var pad in _activePlayingPads)
+                {
+                    anyPlaying = true;
+                    sumL2 += pad.CurrentRmsL * pad.CurrentRmsL;
+                    sumR2 += pad.CurrentRmsR * pad.CurrentRmsR;
+                    sumListenL2 += pad.CurrentListenRmsL * pad.CurrentListenRmsL;
+                    sumListenR2 += pad.CurrentListenRmsR * pad.CurrentListenRmsR;
+                }
+            }
+
+            if (!anyPlaying)
+            {
+                GlobalPlaybackRmsChanged?.Invoke(0, 0);
+                GlobalListenPlaybackRmsChanged?.Invoke(0, 0);
+                return;
+            }
+
+            double combinedL = Math.Min(100.0, Math.Sqrt(sumL2));
+            double combinedR = Math.Min(100.0, Math.Sqrt(sumR2));
+            double combinedListenL = Math.Min(100.0, Math.Sqrt(sumListenL2));
+            double combinedListenR = Math.Min(100.0, Math.Sqrt(sumListenR2));
+
+            GlobalPlaybackRmsChanged?.Invoke(combinedL, combinedR);
+            GlobalListenPlaybackRmsChanged?.Invoke(combinedListenL, combinedListenR);
+        }
 
         private bool _isFavorite;
         public bool IsFavorite
@@ -86,7 +199,7 @@ namespace PaDDY.Controls
                 else
                     FavBtn.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "SubtleTextBrush");
 
-                if (!_isPlaying)
+                if (!_visualIsPlaying)
                 {
                     if (value)
                         TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");
@@ -105,6 +218,7 @@ namespace PaDDY.Controls
         private VolumeSampleProvider? _listenVolumeProvider;
         private PlaybackMeterProvider? _listenMeterProvider;
         private bool _isPlaying;
+        private bool _visualIsPlaying;
         private Stopwatch? _playbackStopwatch;
         private bool _countdownActive;
         private DispatcherTimer? _perfCountdownTimer;
@@ -142,7 +256,7 @@ namespace PaDDY.Controls
 
             Loaded += (_, _) =>
             {
-                if (Entry != null && ActivePlayingRecordingId == Entry.RecordingId && !ReferenceEquals(this, ActivePlayingPadInstance))
+                if (Entry != null && IsRecordingPlaying(Entry.RecordingId) && !_isPlaying)
                 {
                     StartVisualSlaveTimer();
                 }
@@ -401,13 +515,16 @@ namespace PaDDY.Controls
         {
             if (Entry == null || string.IsNullOrEmpty(Entry.RecordingId)) return;
 
-            if (ActivePlayingRecordingId == Entry.RecordingId)
+            if (_isPlaying || IsRecordingPlaying(Entry.RecordingId))
             {
-                ActivePlayingPadInstance?.StopPlayback();
+                StopRecordingPlayback(Entry.RecordingId);
             }
             else
             {
-                ActivePlayingPadInstance?.StopPlayback();
+                if (!AllowMultiPadPlayback)
+                {
+                    StopAllPlayback();
+                }
                 StartPlayback();
             }
         }
@@ -415,7 +532,7 @@ namespace PaDDY.Controls
         private void OnGlobalPadStateChanged(string recId, bool isPlaying)
         {
             if (Entry == null || Entry.RecordingId != recId) return;
-            if (ReferenceEquals(this, ActivePlayingPadInstance)) return;
+            if (_isPlaying) return;
 
             Dispatcher.InvokeAsync(() =>
             {
@@ -444,8 +561,14 @@ namespace PaDDY.Controls
                 _playbackTotalDuration = Entry.Duration;
             }
 
-            if (ActivePlayingPadInstance?._playbackStopwatch != null)
-                _playbackStopwatch = ActivePlayingPadInstance._playbackStopwatch;
+            RecordingPadButton? master;
+            lock (_activePadsLock)
+            {
+                master = _activePlayingPads.FirstOrDefault(p => p.Entry?.RecordingId == Entry.RecordingId);
+            }
+
+            if (master?._playbackStopwatch != null)
+                _playbackStopwatch = master._playbackStopwatch;
             else
                 _playbackStopwatch = Stopwatch.StartNew();
 
@@ -564,8 +687,11 @@ namespace PaDDY.Controls
 
             try
             {
-                ActivePlayingRecordingId = Entry.RecordingId;
-                ActivePlayingPadInstance = this;
+                _isPlaying = true;
+                lock (_activePadsLock)
+                {
+                    _activePlayingPads.Add(this);
+                }
 
                 _reader = AudioReaderFactory.Open(Entry.FilePath);
                 ISampleProvider rawSource = BuildNonDestructiveSource(_reader);
@@ -577,8 +703,10 @@ namespace PaDDY.Controls
                 _meterProvider = new PlaybackMeterProvider(_outputVolumeProvider);
                 _meterProvider.RmsLevelChanged += (l, r) =>
                 {
+                    CurrentRmsL = l;
+                    CurrentRmsR = r;
                     PlaybackRmsChanged?.Invoke(l, r);
-                    GlobalPlaybackRmsChanged?.Invoke(l, r);
+                    BroadcastGlobalRms();
                 };
                 _player = AudioOutputDeviceResolver.CreateWasapiPlayer(OutputDeviceIndex, 100);
                 _player.Init(_meterProvider.ToWaveProvider16());
@@ -601,8 +729,10 @@ namespace PaDDY.Controls
                     _listenMeterProvider = new PlaybackMeterProvider(_listenVolumeProvider);
                     _listenMeterProvider.RmsLevelChanged += (l, r) =>
                     {
+                        CurrentListenRmsL = l;
+                        CurrentListenRmsR = r;
                         ListenPlaybackRmsChanged?.Invoke(l, r);
-                        GlobalListenPlaybackRmsChanged?.Invoke(l, r);
+                        BroadcastGlobalRms();
                     };
                     _listenPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(ListenDeviceIndex, 120);
                     _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
@@ -630,8 +760,11 @@ namespace PaDDY.Controls
             StopPlayback();
             try
             {
-                ActivePlayingRecordingId = Entry.RecordingId;
-                ActivePlayingPadInstance = this;
+                _isPlaying = true;
+                lock (_activePadsLock)
+                {
+                    _activePlayingPads.Add(this);
+                }
 
                 _listenReader = AudioReaderFactory.Open(Entry.FilePath);
                 ISampleProvider rawListen = BuildNonDestructiveSource(_listenReader);
@@ -643,8 +776,10 @@ namespace PaDDY.Controls
                 _listenMeterProvider = new PlaybackMeterProvider(_listenVolumeProvider);
                 _listenMeterProvider.RmsLevelChanged += (l, r) =>
                 {
+                    CurrentListenRmsL = l;
+                    CurrentListenRmsR = r;
                     ListenPlaybackRmsChanged?.Invoke(l, r);
-                    GlobalListenPlaybackRmsChanged?.Invoke(l, r);
+                    BroadcastGlobalRms();
                 };
                 _listenPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(ListenDeviceIndex, 120);
                 _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
@@ -668,14 +803,18 @@ namespace PaDDY.Controls
         public void StopPlayback()
         {
             string? stoppedId = Entry?.RecordingId;
-            bool wasMaster = ReferenceEquals(this, ActivePlayingPadInstance);
+            bool wasPlaying = _isPlaying;
+            _isPlaying = false;
+
+            lock (_activePadsLock)
+            {
+                _activePlayingPads.Remove(this);
+            }
 
             StopCountdownTimer();
             _player?.Stop();
             _player?.Dispose();
             _player = null;
-            if (_meterProvider != null)
-                _meterProvider.RmsLevelChanged -= null; // event will be GC'd with the provider
             _meterProvider = null;
             _outputVolumeProvider = null;
             _reader?.Dispose();
@@ -687,16 +826,19 @@ namespace PaDDY.Controls
             _listenReader = null;
             _listenVolumeProvider = null;
             _listenMeterProvider = null;
+
+            CurrentRmsL = 0;
+            CurrentRmsR = 0;
+            CurrentListenRmsL = 0;
+            CurrentListenRmsR = 0;
+
             PlaybackRmsChanged?.Invoke(0, 0);
             ListenPlaybackRmsChanged?.Invoke(0, 0);
+            BroadcastGlobalRms();
 
-            if (wasMaster)
+            if (wasPlaying && !string.IsNullOrEmpty(stoppedId))
             {
-                ActivePlayingRecordingId = null;
-                ActivePlayingPadInstance = null;
-                GlobalPlaybackRmsChanged?.Invoke(0, 0);
-                GlobalListenPlaybackRmsChanged?.Invoke(0, 0);
-                if (!string.IsNullOrEmpty(stoppedId))
+                if (!IsRecordingPlaying(stoppedId))
                 {
                     GlobalPadPlaybackStateChanged?.Invoke(stoppedId, false);
                 }
@@ -720,7 +862,7 @@ namespace PaDDY.Controls
 
         private void SetPlayingVisual(bool playing)
         {
-            _isPlaying = playing;
+            _visualIsPlaying = playing;
             IconText.Text = playing ? "⏹" : "🎤";
 
             if (playing)
@@ -758,7 +900,7 @@ namespace PaDDY.Controls
             if (string.IsNullOrWhiteSpace(hexColor))
             {
                 TileBorder.SetResourceReference(System.Windows.Controls.Border.BackgroundProperty, "CardBgBrush");
-                if (!_isPlaying)
+                if (!_visualIsPlaying)
                 {
                     if (_isFavorite)
                         TileBorder.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "AccentAmberBrush");

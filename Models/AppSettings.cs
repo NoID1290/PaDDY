@@ -115,6 +115,9 @@ namespace PaDDY
         /// <summary>Global fade-out duration in milliseconds (applied at end of each clip).</summary>
         public double GlobalFadeOutDurationMs { get; set; } = 500.0;
 
+        /// <summary>Allow playing more than one pad simultaneously (polyphonic mode).</summary>
+        public bool AllowMultiPadPlayback { get; set; } = true;
+
         // ---- Live Mic Modulator & Dual-Bus Routing ----
         public bool LiveMicEnabled { get; set; } = false;
         public int LiveMicDeviceIndex { get; set; } = 0;

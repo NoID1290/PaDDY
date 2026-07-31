@@ -159,7 +159,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>                  <!-- Column 0: Center Waveform & All Studio Effects -->
                         <ColumnDefinition Width="10"/>                 <!-- Gap -->
-                        <ColumnDefinition Width="345" MinWidth="300"/> <!-- Column 1: Right Side Panel (File Info, Fade In/Out, Remaster, Master Bus) -->
+                        <ColumnDefinition Width="360" MinWidth="310"/> <!-- Column 1: Right Side Panel (File Info, Fade In/Out, Remaster, Master Bus) -->
                     </Grid.ColumnDefinitions>
 
                     <!-- ═══════════════════════════════════════════════════════════════
@@ -377,19 +377,19 @@
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Threshold (dB)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="GateThresholdSlider" Minimum="-80" Maximum="0" Value="-40" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="GateThresholdSlider" Minimum="-80" Maximum="0" Value="-40" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="GateThresholdLabel" Text="-40" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Attack (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="GateAttackSlider" Minimum="1" Maximum="200" Value="10" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="GateAttackSlider" Minimum="1" Maximum="200" Value="10" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="GateAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Release (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="GateReleaseSlider" Minimum="10" Maximum="1000" Value="100" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="GateReleaseSlider" Minimum="10" Maximum="1000" Value="100" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="GateReleaseLabel" Text="100" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                 </StackPanel>
@@ -412,31 +412,31 @@
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Sub Bass" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="EqSubBassSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="EqSubBassSlider" Minimum="-12" Maximum="12" Value="0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqSubBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Bass" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="EqBassSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="EqBassSlider" Minimum="-12" Maximum="12" Value="0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqBassLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Mid" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="EqMidSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="EqMidSlider" Minimum="-12" Maximum="12" Value="0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqMidLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Presence" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="EqPresenceSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="EqPresenceSlider" Minimum="-12" Maximum="12" Value="0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqPresenceLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Treble" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="EqTrebleSlider" Minimum="-12" Maximum="12" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="EqTrebleSlider" Minimum="-12" Maximum="12" Value="0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="EqTrebleLabel" Text="0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                 </StackPanel>
@@ -464,25 +464,25 @@
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Ratio" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="CompRatioSlider" Minimum="1" Maximum="20" Value="4" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="CompRatioSlider" Minimum="1" Maximum="20" Value="4" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompRatioLabel" Text="4.0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Attack (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="CompAttackSlider" Minimum="1" Maximum="100" Value="10" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="CompAttackSlider" Minimum="1" Maximum="100" Value="10" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompAttackLabel" Text="10" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Release (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="CompReleaseSlider" Minimum="10" Maximum="1000" Value="100" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="CompReleaseSlider" Minimum="10" Maximum="1000" Value="100" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompReleaseLabel" Text="100" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Makeup (dB)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="CompMakeupSlider" Minimum="0" Maximum="24" Value="0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="CompMakeupSlider" Minimum="0" Maximum="24" Value="0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="CompMakeupLabel" Text="0" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                 </StackPanel>
@@ -510,13 +510,13 @@
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Grain Size (ms)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="PitchShiftGrainSizeSlider" Minimum="10" Maximum="200" Value="50" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="PitchShiftGrainSizeSlider" Minimum="10" Maximum="200" Value="50" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="PitchShiftGrainSizeLabel" Text="50" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                     <Grid Margin="0,4">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
                                                         <TextBlock Text="Mix (wet)" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1" x:Name="PitchShiftMixSlider" Minimum="0" Maximum="1" Value="1.0" Height="22" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                        <Slider Grid.Column="1" x:Name="PitchShiftMixSlider" Minimum="0" Maximum="1" Value="1.0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                         <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="PitchShiftMixLabel" Text="1.00" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                     </Grid>
                                                 </StackPanel>
@@ -670,7 +670,7 @@
 
                             <!-- Side Cards List -->
                             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                <StackPanel>
+                                <StackPanel Margin="0,0,10,0">
                                     <!-- Side Card 1: File Info (Collapsible Header) -->
                                     <Border Style="{StaticResource DawCard}" Margin="0,0,0,10">
                                         <StackPanel>
@@ -731,10 +731,10 @@
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="80"/>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="42"/>
+                                                        <ColumnDefinition Width="Auto" MinWidth="42"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="Fade In (ms)" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                    <Slider Grid.Column="1" x:Name="FadeInSlider" Minimum="0" Maximum="5000" Value="500" TickFrequency="100" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" x:Name="FadeInSlider" Minimum="0" Maximum="5000" Value="500" TickFrequency="100" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
                                                         <TextBlock x:Name="FadeInLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                                                     </Border>
@@ -745,10 +745,10 @@
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="80"/>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="42"/>
+                                                        <ColumnDefinition Width="Auto" MinWidth="42"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="Fade Out (ms)" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                    <Slider Grid.Column="1" x:Name="FadeOutSlider" Minimum="0" Maximum="5000" Value="500" TickFrequency="100" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" x:Name="FadeOutSlider" Minimum="0" Maximum="5000" Value="500" TickFrequency="100" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}">
                                                         <TextBlock x:Name="FadeOutLabel" Text="500" Foreground="{DynamicResource AccentGreenBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                                                     </Border>
@@ -794,33 +794,33 @@
                                                 <TextBlock x:Name="RemasterPunchLabel" Visibility="Collapsed"/>
 
                                                 <Grid Margin="0,3">
-                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto" MinWidth="48"/></Grid.ColumnDefinitions>
                                                     <TextBlock Text="Brilliance" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                    <Slider Grid.Column="1" x:Name="RemasterBrillianceSlider" Minimum="-6" Maximum="6" Value="0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" x:Name="RemasterBrillianceSlider" Minimum="-6" Maximum="6" Value="0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterBrillianceLabel" Text="0.0 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
-                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto" MinWidth="48"/></Grid.ColumnDefinitions>
                                                     <TextBlock Text="Stereo Width" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                    <Slider Grid.Column="1" x:Name="RemasterWidthSlider" Minimum="0" Maximum="2" Value="1.0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" x:Name="RemasterWidthSlider" Minimum="0" Maximum="2" Value="1.0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterWidthLabel" Text="1.00x" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
-                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto" MinWidth="48"/></Grid.ColumnDefinitions>
                                                     <TextBlock Text="Drive" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                    <Slider Grid.Column="1" x:Name="RemasterDriveSlider" Minimum="1" Maximum="10" Value="1.0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" x:Name="RemasterDriveSlider" Minimum="1" Maximum="10" Value="1.0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterDriveLabel" Text="1.00" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
-                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto" MinWidth="48"/></Grid.ColumnDefinitions>
                                                     <TextBlock Text="Ratio" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                    <Slider Grid.Column="1" x:Name="RemasterRatioSlider" Minimum="1" Maximum="10" Value="2.0" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" x:Name="RemasterRatioSlider" Minimum="1" Maximum="10" Value="2.0" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterRatioLabel" Text="2.0:1" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                                 <Grid Margin="0,3">
-                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto" MinWidth="48"/></Grid.ColumnDefinitions>
                                                     <TextBlock Text="Ceiling" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
-                                                    <Slider Grid.Column="1" x:Name="RemasterCeilingSlider" Minimum="-6" Maximum="0" Value="-0.1" Height="20" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
+                                                    <Slider Grid.Column="1" x:Name="RemasterCeilingSlider" Minimum="-6" Maximum="0" Value="-0.1" Height="24" Margin="4,0" ValueChanged="EffectSlider_Changed"/>
                                                     <Border Grid.Column="2" Style="{StaticResource ValueBadge}"><TextBlock x:Name="RemasterCeilingLabel" Text="-0.1 dB" Foreground="{DynamicResource AccentGreenBrush}" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
                                                 </Grid>
                                             </StackPanel>

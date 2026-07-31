@@ -61,6 +61,7 @@ namespace PaDDY
         public bool SelectedGlobalFadeEnabled { get; private set; }
         public double SelectedGlobalFadeInDurationMs { get; private set; } = 500.0;
         public double SelectedGlobalFadeOutDurationMs { get; private set; } = 500.0;
+        public bool SelectedAllowMultiPadPlayback { get; private set; } = true;
 
         private static readonly (string Value, string Label)[] CodecOptions =
         {
@@ -286,7 +287,7 @@ namespace PaDDY
             AutoInstallUpdatesCheck.IsChecked = _settings.AutoInstallUpdates;
             DownloadBetaUpdatesCheck.IsChecked = _settings.DownloadBetaUpdates;
 
-            // Global Effects
+            // Global Effects & Playback
             GlobalFadeCheck.IsChecked = _settings.GlobalFadeEnabled;
             double fadeInMs = Math.Clamp(_settings.GlobalFadeInDurationMs, 0.0, 5000.0);
             double fadeOutMs = Math.Clamp(_settings.GlobalFadeOutDurationMs, 0.0, 5000.0);
@@ -294,6 +295,7 @@ namespace PaDDY
             GlobalFadeOutSlider.Value = fadeOutMs;
             GlobalFadeInValueText.Text = $"{fadeInMs:0} ms";
             GlobalFadeOutValueText.Text = $"{fadeOutMs:0} ms";
+            AllowMultiPadPlaybackCheck.IsChecked = _settings.AllowMultiPadPlayback;
         }
 
         private void PopulateVersionAndDependenciesInfo()
@@ -587,13 +589,15 @@ namespace PaDDY
             _settings.LiveMicFxEnabled = LiveMicFxCheck.IsChecked == true;
             _settings.LiveMicGain = LiveMicGainSlider.Value;
 
-            // Global Effects
+            // Global Effects & Playback
             SelectedGlobalFadeEnabled = GlobalFadeCheck.IsChecked == true;
             SelectedGlobalFadeInDurationMs = Math.Round(GlobalFadeInSlider.Value, 0);
             SelectedGlobalFadeOutDurationMs = Math.Round(GlobalFadeOutSlider.Value, 0);
             _settings.GlobalFadeEnabled = SelectedGlobalFadeEnabled;
             _settings.GlobalFadeInDurationMs = SelectedGlobalFadeInDurationMs;
             _settings.GlobalFadeOutDurationMs = SelectedGlobalFadeOutDurationMs;
+            SelectedAllowMultiPadPlayback = AllowMultiPadPlaybackCheck.IsChecked == true;
+            _settings.AllowMultiPadPlayback = SelectedAllowMultiPadPlayback;
 
             Confirmed = true;
             Close();

@@ -1043,6 +1043,21 @@
                                             </StackPanel>
                                         </Grid>
 
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Allow Multi-Pad Playback Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc AllowMultiPadPlaybackLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc AllowMultiPadPlaybackDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="AllowMultiPadPlaybackCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                        </Grid>
+
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

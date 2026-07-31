@@ -264,6 +264,10 @@
   <data name="GlobalFadeOutLabel" xml:space="preserve"><value>Durée du fondu sortant (ms)</value></data>
   <data name="GlobalFadeOutDesc" xml:space="preserve"><value>Durée de la descente progressive appliquée à la fin de chaque clip (0 = désactivé).</value></data>
 
+  <!-- Multi-Pad Playback -->
+  <data name="AllowMultiPadPlaybackLabel" xml:space="preserve"><value>Lecture Multi-Pads</value></data>
+  <data name="AllowMultiPadPlaybackDesc" xml:space="preserve"><value>Permet de lire plusieurs pads simultanément (mode polyphonique).</value></data>
+
   <!-- Settings Backup & Restore -->
   <data name="BackupHeader" xml:space="preserve"><value>Sauvegarde &amp; Restauration</value></data>
   <data name="BackupSubtitle" xml:space="preserve"><value>Sécurisez et gérez vos enregistrements, votre base de données et la configuration des paramètres.</value></data>
