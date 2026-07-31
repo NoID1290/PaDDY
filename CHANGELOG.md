@@ -4,6 +4,17 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0731-Pre-release_1] - 2026-07-31
+
+- Dev Updates Test 7
+- Per-Section Reset Icons
+- Fixing Timecode Zoom in Trimming Zone
+- Toggle Switch Updates
+- Settings Window Enhancement
+- Preload Audio RAM Cache Setting
+- Implement Fullscreen For AudioEditorWindow
+- Meter Freeze Fix
+
 ## [2.0.0.0730-Pre-release_2] - 2026-07-30
 
 - Dev Updates Test 6
