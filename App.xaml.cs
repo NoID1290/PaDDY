@@ -125,7 +125,6 @@ public partial class App : WpfApplication
         Microsoft.Win32.SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
 
         MainWindow = new MainWindow();
-        MainWindow.Show();
     }
 
     private void SystemEvents_UserPreferenceChanged(object sender, Microsoft.Win32.UserPreferenceChangedEventArgs e)

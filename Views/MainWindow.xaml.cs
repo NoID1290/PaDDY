@@ -89,6 +89,7 @@ namespace PaDDY
 
                     if (!_startHiddenInTray)
                     {
+                        this.Show();
                         this.WindowState = WindowState.Normal;
                         this.Activate();
                     }
@@ -229,31 +230,32 @@ namespace PaDDY
 
             if (_startHiddenInTray)
             {
-                // Open minimized (and without stealing focus) so no black/unpainted
-                // window flashes on screen, but keep the taskbar entry so the user can
-                // still find and restore the app from the taskbar.
                 ShowActivated = false;
                 WindowState = WindowState.Minimized;
                 _initialTrayMinimize = true;
-                this.Opacity = 0; // Hide the main window while it loads
+                this.Opacity = 1;
                 this.IsHitTestVisible = false;
             }
             else
             {
                 this.ShowActivated = false;
-                this.WindowState = WindowState.Minimized;
-                this.Opacity = 0; // Hide the main window while it loads
+                this.Visibility = Visibility.Hidden;
+                this.Opacity = 1;
                 this.IsHitTestVisible = false;
             }
 
             InitializeComponent();
             LiveMicBtn.Visibility = Visibility.Visible;
             UpdateLoadingOverlayTheme();
-            Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             StateChanged += MainWindow_StateChanged;
             Activated += OnWindowActivated;
             Deactivated += OnWindowDeactivated;
+
+            Dispatcher.BeginInvoke(new Action(async () =>
+            {
+                await StartStartupSequenceAsync();
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
             ThresholdCanvas.SizeChanged += (_, _) =>
             {
                 UpdateThresholdMarker();
@@ -437,8 +439,12 @@ namespace PaDDY
         }
 
         // ── Startup ────────────────────────────────────────────────────────────
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private bool _startupSequenceStarted;
+        private async Task StartStartupSequenceAsync()
         {
+            if (_startupSequenceStarted) return;
+            _startupSequenceStarted = true;
+
             ShowLoadingOverlay("Core starting up");
             await Task.Yield();
 

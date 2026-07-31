@@ -6,10 +6,10 @@
         xmlns:p="clr-namespace:PaDDY.Helpers"
         Title="{p:Loc SettingsTitle}"
         Icon="/PaDDY.ico"
-        Width="980"
-        Height="700"
-        MinWidth="900"
-        MinHeight="620"
+        Width="1120"
+        Height="760"
+        MinWidth="980"
+        MinHeight="680"
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner"
         UseLayoutRounding="True"
@@ -40,11 +40,14 @@
                         BorderThickness="0,0,0,1"
                         CornerRadius="{DynamicResource TopWindowCornerRadius}">
                     <Grid>
-                        <TextBlock Text="PaDDY — Settings"
-                                   Foreground="{DynamicResource SubtleTextBrush}"
-                                   FontSize="12"
-                                   VerticalAlignment="Center"
-                                   Margin="16,0,0,0"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                            <TextBlock Text="⚙" FontSize="13" Foreground="{DynamicResource AccentGreenBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="PaDDY — Settings"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       FontSize="12"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
                         <Button Style="{StaticResource ChromeCloseBtn}"
                                 HorizontalAlignment="Right"
                                 ToolTip="Close"
@@ -62,7 +65,7 @@
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <!-- Column 0: Vertical Sidebar Navigation -->
-                        <ColumnDefinition Width="210"/>
+                        <ColumnDefinition Width="220"/>
                         <!-- Column 1: Main Content Panels -->
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
@@ -82,7 +85,7 @@
                             <ControlTemplate TargetType="TabControl">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="210"/>
+                                        <ColumnDefinition Width="220"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     
@@ -93,7 +96,7 @@
                                     
                                     <!-- Content Viewport -->
                                     <Border Grid.Column="1" Background="Transparent">
-                                        <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False" Padding="24,16,24,12">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False" Padding="28,20,28,16">
                                             <ContentPresenter ContentSource="SelectedContent"/>
                                         </ScrollViewer>
                                     </Border>
@@ -106,7 +109,7 @@
                             <Style TargetType="TabItem">
                                 <Setter Property="Background" Value="Transparent"/>
                                 <Setter Property="Foreground" Value="#FF8080A8"/>
-                                <Setter Property="Padding" Value="18,11,18,11"/>
+                                <Setter Property="Padding" Value="20,12,20,12"/>
                                 <Setter Property="Cursor" Value="Hand"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
@@ -121,7 +124,7 @@
                                                                   HorizontalAlignment="Left"
                                                                   VerticalAlignment="Center"
                                                                   TextElement.Foreground="{TemplateBinding Foreground}"
-                                                                  TextElement.FontSize="12"
+                                                                  TextElement.FontSize="12.5"
                                                                   TextElement.FontWeight="SemiBold"
                                                                   TextElement.FontFamily="{DynamicResource AppFont}"/>
                                             </Border>
@@ -149,11 +152,11 @@
                             </Style>
                         </TabControl.Resources>
 
-                        <!-- ══ RECORDING TAB ════════════════════════════════════ -->
+                        <!-- ══ 1. RECORDING TAB ═════════════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE724;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE724;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
                                     <TextBlock Text="{p:Loc SettingsTabGeneral}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TabItem.Header>
@@ -161,7 +164,7 @@
                             <StackPanel>
                                 <!-- Header -->
                                 <TextBlock Text="{p:Loc RecConfigHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc RecConfigSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+                                <TextBlock Text="{p:Loc RecConfigSubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
 
                                 <!-- Recording Format Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
@@ -174,13 +177,13 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc CodecLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc CodecDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <ComboBox x:Name="CodecCombo" Grid.Column="1" Width="200" VerticalAlignment="Center" SelectionChanged="CodecCombo_SelectionChanged"/>
+                                            <ComboBox x:Name="CodecCombo" Grid.Column="1" Width="220" VerticalAlignment="Center" SelectionChanged="CodecCombo_SelectionChanged"/>
                                         </Grid>
                                         
                                         <!-- Info label block -->
@@ -202,7 +205,7 @@
                                                 <TextBlock Text="{p:Loc NonDestructiveLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc NonDestructiveDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="NewRecordingsNonDestructiveCheck" Grid.Column="1" VerticalAlignment="Center" Checked="NewRecordingsNonDestructiveCheck_Checked" Unchecked="NewRecordingsNonDestructiveCheck_Unchecked"/>
+                                            <CheckBox x:Name="NewRecordingsNonDestructiveCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}" Checked="NewRecordingsNonDestructiveCheck_Checked" Unchecked="NewRecordingsNonDestructiveCheck_Unchecked"/>
                                         </Grid>
 
                                         <StackPanel x:Name="VstSettingsPanel" Visibility="Visible">
@@ -212,19 +215,19 @@
                                             <Grid Margin="0,6">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                    <ColumnDefinition Width="Auto" MinWidth="240"/>
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                     <TextBlock Text="VST2 Plugin Path" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                     <TextBlock Text="Select a .dll VST2 plugin to be available in the Audio Editor." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                                 </StackPanel>
-                                                <Grid Grid.Column="1" Width="200" VerticalAlignment="Center">
+                                                <Grid Grid.Column="1" Width="240" VerticalAlignment="Center">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBox x:Name="VstPluginPathTextBox" Grid.Column="0" Height="26" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
-                                                    <Button x:Name="BrowseVstButton" Grid.Column="1" Content="..." Width="30" Height="26" Click="BrowseVstButton_Click"/>
+                                                    <TextBox x:Name="VstPluginPathTextBox" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
+                                                    <Button x:Name="BrowseVstButton" Grid.Column="1" Content="..." Width="32" Height="28" Click="BrowseVstButton_Click"/>
                                                 </Grid>
                                             </Grid>
 
@@ -234,23 +237,177 @@
                                                 <Grid Margin="0,6">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                        <ColumnDefinition Width="Auto" MinWidth="240"/>
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                         <TextBlock Text="VST3 Plugin Path (Experimental)" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                         <TextBlock Text="Select a .vst3 plugin to be available in the Audio Editor." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                                     </StackPanel>
-                                                    <Grid Grid.Column="1" Width="200" VerticalAlignment="Center">
+                                                    <Grid Grid.Column="1" Width="240" VerticalAlignment="Center">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBox x:Name="Vst3PluginPathTextBox" Grid.Column="0" Height="26" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
-                                                        <Button x:Name="BrowseVst3Button" Grid.Column="1" Content="..." Width="30" Height="26" Click="BrowseVst3Button_Click"/>
+                                                        <TextBox x:Name="Vst3PluginPathTextBox" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="#0CFFFFFF" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DividerBrush}"/>
+                                                        <Button x:Name="BrowseVst3Button" Grid.Column="1" Content="..." Width="32" Height="28" Click="BrowseVst3Button_Click"/>
                                                     </Grid>
                                                 </Grid>
                                             </StackPanel>
                                         </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Buffer Recording Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="{p:Loc BufferRecGroup}" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <!-- Duration Slider Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="260"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc PastBufferLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc PastBufferDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Grid Grid.Column="1" Width="260">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="45"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Slider x:Name="BufferDurationSlider" Grid.Column="0" Minimum="0.5" Maximum="60" TickFrequency="0.5" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="BufferDurationSlider_Changed"/>
+                                                <TextBlock x:Name="BufferDurationLabel" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Text="10s" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                            </Grid>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Hotkey Modifiers Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc BufferHotkeyLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc BufferHotkeyDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <CheckBox x:Name="ModCtrl" Content="Ctrl" Style="{StaticResource RackPowerSwitch}" Margin="0,0,16,0"/>
+                                                <CheckBox x:Name="ModAlt" Content="Alt" Style="{StaticResource RackPowerSwitch}" Margin="0,0,16,0"/>
+                                                <CheckBox x:Name="ModShift" Content="Shift" Style="{StaticResource RackPowerSwitch}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Hotkey Key Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Hotkey Trigger Key" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Click the box then press any key to bind quick capture shortcut." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <TextBox x:Name="HotkeyKeyBox" Grid.Column="1" Width="220" Height="28" IsReadOnly="True" Cursor="Hand" TextAlignment="Center" ToolTip="Click then press any key to assign" PreviewKeyDown="HotkeyKeyBox_PreviewKeyDown" GotFocus="HotkeyKeyBox_GotFocus" LostFocus="HotkeyKeyBox_LostFocus" VerticalContentAlignment="Center"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </TabItem>
+
+                        <!-- ══ 2. AUDIO & PLAYBACK TAB ══════════════════════════ -->
+                        <TabItem>
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                                    <TextBlock Text="&#xE7F6;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{p:Loc SettingsTabAudio}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
+                            
+                            <StackPanel>
+                                <!-- Header -->
+                                <TextBlock Text="{p:Loc AudioDevicesHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{p:Loc AudioDevicesSubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
+
+                                <!-- Trim Editor Output Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="{p:Loc TrimOutputGroup}" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <!-- Playback device selection -->
+                                    <Grid Margin="0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto" MinWidth="280"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{p:Loc TrimOutputLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                            <TextBlock Text="{p:Loc TrimOutputDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="TrimOutputDeviceCombo" Grid.Column="1" Width="280" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Live Microphone Configuration Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="Live Microphone Configuration" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <!-- Live Mic Input Device -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="280"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Live Microphone Device" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Select physical microphone device for real-time live mic streaming and dual-bus routing." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <ComboBox x:Name="LiveMicDeviceCombo" Grid.Column="1" Width="280" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Live Mic Input Gain -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="280"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Live Microphone Input Gain" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Adjust real-time input gain boost for live microphone feed." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="280">
+                                                <Slider x:Name="LiveMicGainSlider" Minimum="0.0" Maximum="2.0" TickFrequency="0.05" IsSnapToTickEnabled="True" Width="210" VerticalAlignment="Center" ValueChanged="LiveMicGainSlider_ValueChanged"/>
+                                                <TextBlock x:Name="LiveMicGainValueText" Text="100%" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Live Mic FX Modulation Toggle -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Enable Voice FX Modulation" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Apply real-time pitch shift, reverb, and VST DSP voice modulation to live mic feed." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="LiveMicFxCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
+                                        </Grid>
                                     </StackPanel>
                                 </Border>
 
@@ -271,7 +428,7 @@
                                                 <TextBlock Text="{p:Loc AutoNormLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc AutoNormDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="AutoNormalizeCheck" Grid.Column="1" VerticalAlignment="Center" Checked="AutoNormalizeCheck_Changed" Unchecked="AutoNormalizeCheck_Changed"/>
+                                            <CheckBox x:Name="AutoNormalizeCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}" Checked="AutoNormalizeCheck_Changed" Unchecked="AutoNormalizeCheck_Changed"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -280,116 +437,124 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="250"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="280"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc TargetLoudnessLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc TargetLoudnessDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                                <Slider x:Name="TargetLufsSlider" Width="150" Minimum="-24.0" Maximum="-6.0" Value="-14.0" TickFrequency="1.0" SmallChange="0.5" LargeChange="1.0" ValueChanged="TargetLufsSlider_ValueChanged" VerticalAlignment="Center"/>
-                                                <TextBlock x:Name="TargetLufsValueText" Text="-14.0 LUFS" Width="80" Margin="8,0,0,0" TextAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                                                <Slider x:Name="TargetLufsSlider" Width="180" Minimum="-24.0" Maximum="-6.0" Value="-14.0" TickFrequency="1.0" SmallChange="0.5" LargeChange="1.0" ValueChanged="TargetLufsSlider_ValueChanged" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="TargetLufsValueText" Text="-14.0 LUFS" Width="90" Margin="8,0,0,0" TextAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- Buffer Recording Group -->
+                                <!-- Global Auto Fade & Multi-Pad Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
                                     <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="{p:Loc BufferRecGroup}" Style="{StaticResource HeaderText}"/>
+                                    <TextBlock Text="{p:Loc GlobalAutoFadeGroup}" Style="{StaticResource HeaderText}"/>
                                 </StackPanel>
                                 <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
                                     <StackPanel>
-                                        <!-- Duration Slider Row -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="240"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc PastBufferLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc PastBufferDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <Grid Grid.Column="1" Width="240">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="40"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Slider x:Name="BufferDurationSlider" Grid.Column="0" Minimum="0.5" Maximum="60" TickFrequency="0.5" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="BufferDurationSlider_Changed"/>
-                                                <TextBlock x:Name="BufferDurationLabel" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Text="10s" Foreground="{DynamicResource SecondaryTextBrush}"/>
-                                            </Grid>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
-
-                                        <!-- Hotkey Modifiers Row -->
+                                        <!-- Enable Toggle Row -->
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc BufferHotkeyLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc BufferHotkeyDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <CheckBox x:Name="ModCtrl" Content="Ctrl" Margin="0,0,14,0"/>
-                                                <CheckBox x:Name="ModAlt" Content="Alt" Margin="0,0,14,0"/>
-                                                <CheckBox x:Name="ModShift" Content="Shift"/>
+                                            <CheckBox x:Name="GlobalFadeCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Fade-In Duration Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="280"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc GlobalFadeInLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeInDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="280">
+                                                <Slider x:Name="GlobalFadeInSlider"
+                                                        Minimum="0" Maximum="5000" TickFrequency="50"
+                                                        IsSnapToTickEnabled="True"
+                                                        Width="200"
+                                                        VerticalAlignment="Center"
+                                                        ValueChanged="GlobalFadeInSlider_ValueChanged"/>
+                                                <TextBlock x:Name="GlobalFadeInValueText"
+                                                           Width="70"
+                                                           TextAlignment="Right"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontSize="11"
+                                                           FontWeight="Bold"
+                                                           Margin="8,0,0,0"/>
                                             </StackPanel>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
-                                        <!-- Hotkey Key Row -->
+                                        <!-- Fade-Out Duration Row -->
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="280"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc BufferHotkeyLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc BufferHotkeyDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeOutLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc GlobalFadeOutDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <TextBox x:Name="HotkeyKeyBox" Grid.Column="1" Width="200" Height="28" IsReadOnly="True" Cursor="Hand" TextAlignment="Center" ToolTip="Click then press any key to assign" PreviewKeyDown="HotkeyKeyBox_PreviewKeyDown" GotFocus="HotkeyKeyBox_GotFocus" LostFocus="HotkeyKeyBox_LostFocus" VerticalContentAlignment="Center"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="280">
+                                                <Slider x:Name="GlobalFadeOutSlider"
+                                                        Minimum="0" Maximum="5000" TickFrequency="50"
+                                                        IsSnapToTickEnabled="True"
+                                                        Width="200"
+                                                        VerticalAlignment="Center"
+                                                        ValueChanged="GlobalFadeOutSlider_ValueChanged"/>
+                                                <TextBlock x:Name="GlobalFadeOutValueText"
+                                                           Width="70"
+                                                           TextAlignment="Right"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           FontSize="11"
+                                                           FontWeight="Bold"
+                                                           Margin="8,0,0,0"/>
+                                            </StackPanel>
                                         </Grid>
-                                    </StackPanel>
-                                </Border>
 
-                                <!-- Auto-Cleanup Group -->
-                                <StackPanel Style="{StaticResource GroupHeader}">
-                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="{p:Loc DiskCleanupGroup}" Style="{StaticResource HeaderText}"/>
-                                </StackPanel>
-                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                                    <Grid Margin="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto" MinWidth="240"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                            <TextBlock Text="{p:Loc MaxRecordsLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                            <TextBlock Text="{p:Loc MaxRecordsDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <Grid Grid.Column="1" Width="240">
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Allow Multi-Pad Playback Row -->
+                                        <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="40"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="MaxRecordsSlider" Grid.Column="0" Minimum="0" Maximum="500" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="MaxRecordsSlider_Changed"/>
-                                            <TextBlock x:Name="MaxRecordsLabel" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Text="∞" Foreground="{DynamicResource SecondaryTextBrush}" ToolTip="0 = unlimited. Favorites are never auto-deleted."/>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc AllowMultiPadPlaybackLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc AllowMultiPadPlaybackDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="AllowMultiPadPlaybackCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
-                                    </Grid>
+                                    </StackPanel>
                                 </Border>
                             </StackPanel>
                         </TabItem>
 
-                        <!-- ══ NAMING TAB ══════════════════════════════════════ -->
+                        <!-- ══ 3. NAMING & AI TAB ═══════════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE134;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE134;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
                                     <TextBlock Text="{p:Loc SettingsTabNaming}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TabItem.Header>
@@ -397,7 +562,7 @@
                             <StackPanel>
                                 <!-- Header -->
                                 <TextBlock Text="{p:Loc NamingHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc NamingSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+                                <TextBlock Text="{p:Loc NamingSubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
 
                                 <!-- Naming Options Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
@@ -410,13 +575,13 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="250"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc TitleTemplateLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc TitleTemplateDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <TextBox x:Name="DefaultPadTitleBox" Grid.Column="1" Width="220" Height="28" ToolTip="Use placeholders: {timestamp}, {codec}, {app}." VerticalContentAlignment="Center"/>
+                                            <TextBox x:Name="DefaultPadTitleBox" Grid.Column="1" Width="250" Height="28" ToolTip="Use placeholders: {timestamp}, {codec}, {app}." VerticalContentAlignment="Center"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -431,7 +596,7 @@
                                                 <TextBlock Text="{p:Loc IncludeAppLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc IncludeAppDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="UseFocusedAppNameCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="UseFocusedAppNameCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -453,7 +618,7 @@
                                                 <TextBlock Text="{p:Loc AutoRenameSpeechLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc AutoRenameSpeechDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="AutoRenameSpeechCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="AutoRenameSpeechCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -462,13 +627,13 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="260"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="280"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc WhisperModelLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc WhisperModelDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <Grid Grid.Column="1" Width="260">
+                                            <Grid Grid.Column="1" Width="280">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
@@ -489,131 +654,24 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc WhisperLangLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc WhisperLangDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <TextBox x:Name="SpeechLanguageBox" Grid.Column="1" Width="200" Height="28" ToolTip="Language code, e.g. en, fr, de, or 'auto' to detect." VerticalContentAlignment="Center"/>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
-
-                                        <!-- CUDA GPU Support -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc CudaLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc CudaDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <CheckBox x:Name="UseCudaCheck" Grid.Column="1" VerticalAlignment="Center"/>
-                                        </Grid>
-                                        <TextBlock x:Name="CudaStatusText" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0"/>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </TabItem>
-
-                        <!-- ══ PLAYBACK TAB ═════════════════════════════════════ -->
-                        <TabItem>
-                            <TabItem.Header>
-                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE7F6;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{p:Loc SettingsTabAudio}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </TabItem.Header>
-                            
-                            <StackPanel>
-                                <!-- Header -->
-                                <TextBlock Text="{p:Loc AudioDevicesHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc AudioDevicesSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
-
-                                 <!-- Trim Editor Output Group -->
-                                <StackPanel Style="{StaticResource GroupHeader}">
-                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="{p:Loc TrimOutputGroup}" Style="{StaticResource HeaderText}"/>
-                                </StackPanel>
-                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                                    <!-- Playback device selection -->
-                                    <Grid Margin="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto" MinWidth="260"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                            <TextBlock Text="{p:Loc TrimOutputLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                            <TextBlock Text="{p:Loc TrimOutputDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <ComboBox x:Name="TrimOutputDeviceCombo" Grid.Column="1" Width="260" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-
-                                <!-- Live Microphone Configuration Group -->
-                                <StackPanel Style="{StaticResource GroupHeader}">
-                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="Live Microphone Configuration" Style="{StaticResource HeaderText}"/>
-                                </StackPanel>
-                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                                    <StackPanel>
-                                        <!-- Live Mic Input Device -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="260"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="Live Microphone Device" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="Select the physical microphone device for real-time live mic streaming and dual-bus routing." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <ComboBox x:Name="LiveMicDeviceCombo" Grid.Column="1" Width="260" VerticalAlignment="Center"/>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
-
-                                        <!-- Live Mic FX Modulation Toggle -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="Enable Voice FX Modulation" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="Apply real-time pitch shift, reverb, and VST DSP voice modulation to live mic feed." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <CheckBox x:Name="LiveMicFxCheck" Grid.Column="1" VerticalAlignment="Center"/>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
-
-                                        <!-- Live Mic Input Gain -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="260"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="Live Microphone Input Gain" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="Adjust real-time input gain boost for live microphone." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="260">
-                                                <Slider x:Name="LiveMicGainSlider" Minimum="0.0" Maximum="2.0" TickFrequency="0.05" IsSnapToTickEnabled="True" Width="200" VerticalAlignment="Center" ValueChanged="LiveMicGainSlider_ValueChanged"/>
-                                                <TextBlock x:Name="LiveMicGainValueText" Text="100%" FontSize="12" Foreground="{DynamicResource PrimaryTextBrush}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                            </StackPanel>
+                                            <TextBox x:Name="SpeechLanguageBox" Grid.Column="1" Width="220" Height="28" ToolTip="Language code, e.g. en, fr, de, or 'auto' to detect." VerticalContentAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
                         </TabItem>
 
-                        <!-- ══ APPEARANCE TAB ═══════════════════════════════════ -->
+                        <!-- ══ 4. APPEARANCE TAB ════════════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE790;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE790;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
                                     <TextBlock Text="{p:Loc SettingsTabAppearance}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TabItem.Header>
@@ -621,51 +679,9 @@
                             <StackPanel>
                                 <!-- Header -->
                                 <TextBlock Text="{p:Loc AppearanceHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc AppearanceSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+                                <TextBlock Text="{p:Loc AppearanceSubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
 
-                                <!-- Language Group -->
-                                <StackPanel Style="{StaticResource GroupHeader}">
-                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="{p:Loc LanguageSetting}" Style="{StaticResource HeaderText}"/>
-                                </StackPanel>
-                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                                    <Grid Margin="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto" MinWidth="200"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                            <TextBlock Text="{p:Loc LanguageSetting}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                            <TextBlock Text="{p:Loc SelectLanguageDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <ComboBox x:Name="LanguageCombo" Grid.Column="1" Width="200" VerticalAlignment="Center" SelectionChanged="LanguageCombo_SelectionChanged">
-                                            <ComboBoxItem x:Name="LangEnItem" Content="{p:Loc LanguageEnglish}" Tag="en"/>
-                                            <ComboBoxItem x:Name="LangFrItem" Content="{p:Loc LanguageFrench}" Tag="fr"/>
-                                        </ComboBox>
-                                    </Grid>
-                                </Border>
-
-                                <!-- Font Variant Group -->
-                                <StackPanel Style="{StaticResource GroupHeader}">
-                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="{p:Loc FontGroup}" Style="{StaticResource HeaderText}"/>
-                                </StackPanel>
-                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                                    <!-- Font selection -->
-                                    <Grid Margin="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto" MinWidth="200"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                            <TextBlock Text="{p:Loc FontLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                            <TextBlock Text="{p:Loc FontDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <ComboBox x:Name="FontVariantCombo" Grid.Column="1" Width="200" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-
-                                <!-- Theme Group -->
+                                <!-- Theme & Typography Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
                                     <Rectangle Style="{StaticResource HeaderAccentBar}"/>
                                     <TextBlock Text="{p:Loc ThemeGroup}" Style="{StaticResource HeaderText}"/>
@@ -676,28 +692,68 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc ThemeLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc ThemeDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <ComboBox x:Name="ThemeCombo" Grid.Column="1" Width="200" VerticalAlignment="Center" SelectionChanged="ThemeCombo_SelectionChanged"/>
+                                            <ComboBox x:Name="ThemeCombo" Grid.Column="1" Width="220" VerticalAlignment="Center" SelectionChanged="ThemeCombo_SelectionChanged"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
+                                        <!-- Font Variant Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc FontLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc FontDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <ComboBox x:Name="FontVariantCombo" Grid.Column="1" Width="220" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Language Setting Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc LanguageSetting}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc SelectLanguageDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <ComboBox x:Name="LanguageCombo" Grid.Column="1" Width="220" VerticalAlignment="Center" SelectionChanged="LanguageCombo_SelectionChanged">
+                                                <ComboBoxItem x:Name="LangEnItem" Content="{p:Loc LanguageEnglish}" Tag="en"/>
+                                                <ComboBoxItem x:Name="LangFrItem" Content="{p:Loc LanguageFrench}" Tag="fr"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Audio VU Meters & Skins Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="AUDIO VISUALIZERS &amp; METERS" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
                                         <!-- Meter Skin Row -->
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc MeterSkinLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc MeterSkinDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <ComboBox x:Name="MeterSkinCombo" Grid.Column="1" Width="200" VerticalAlignment="Center" SelectionChanged="MeterSkinCombo_SelectionChanged"/>
+                                            <ComboBox x:Name="MeterSkinCombo" Grid.Column="1" Width="220" VerticalAlignment="Center" SelectionChanged="MeterSkinCombo_SelectionChanged"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -712,15 +768,31 @@
                                                 <TextBlock Text="{p:Loc DigitalDotsLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc DigitalDotsDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="MeterDigitalDotsCheck" Grid.Column="1" VerticalAlignment="Center" Checked="MeterDigitalDotsCheck_Changed" Unchecked="MeterDigitalDotsCheck_Changed"/>
+                                            <CheckBox x:Name="MeterDigitalDotsCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}" Checked="MeterDigitalDotsCheck_Changed" Unchecked="MeterDigitalDotsCheck_Changed"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
+                            </StackPanel>
+                        </TabItem>
 
-                                <!-- Performance Mode Group -->
+                        <!-- ══ 5. PERFORMANCE TAB (NEW) ═════════════════════════ -->
+                        <TabItem>
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
+                                    <TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{p:Loc SettingsTabPerformance}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
+                            
+                            <StackPanel>
+                                <!-- Header -->
+                                <TextBlock Text="Performance &amp; Optimization" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Optimize rendering, CPU usage, hardware GPU acceleration, and audio memory caching." FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
+
+                                <!-- Rendering & Graphics Optimization Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
                                     <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="{p:Loc PerfGroup}" Style="{StaticResource HeaderText}"/>
+                                    <TextBlock Text="GRAPHICS &amp; CPU OPTIMIZATION" Style="{StaticResource HeaderText}"/>
                                 </StackPanel>
                                 <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
                                     <StackPanel Margin="0,6">
@@ -734,14 +806,14 @@
                                                 <TextBlock Text="{p:Loc PerfModeLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc PerfModeDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="PerformanceModeCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="PerformanceModeCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
 
                                         <!-- Divider -->
                                         <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,10"/>
 
                                         <!-- Pause animations when unfocused -->
-                                        <Grid Margin="0,0,0,10">
+                                        <Grid Margin="0,0,0,0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
@@ -750,14 +822,20 @@
                                                 <TextBlock Text="{p:Loc PauseAnimLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc PauseAnimDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="PauseAnimationsWhenUnfocusedCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="PauseAnimationsWhenUnfocusedCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
+                                    </StackPanel>
+                                </Border>
 
-                                        <!-- Divider -->
-                                        <Rectangle Height="1" Fill="{DynamicResource DividerBrush}" Margin="0,0,0,10"/>
-
+                                <!-- Audio RAM & Storage Caching Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="AUDIO RAM &amp; DISK CLEANUP" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
                                         <!-- Preload Audio RAM Cache -->
-                                        <Grid Margin="0,0,0,0">
+                                        <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
@@ -766,18 +844,63 @@
                                                 <TextBlock Text="{p:Loc PreloadAudioCacheLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc PreloadAudioCacheDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="PreloadAudioCacheCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="PreloadAudioCacheCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
+                                        <!-- Max Records Auto-Cleanup Slider -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="260"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc MaxRecordsLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc MaxRecordsDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Grid Grid.Column="1" Width="260">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="45"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Slider x:Name="MaxRecordsSlider" Grid.Column="0" Minimum="0" Maximum="500" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="MaxRecordsSlider_Changed"/>
+                                                <TextBlock x:Name="MaxRecordsLabel" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Text="∞" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}" ToolTip="0 = unlimited. Favorites are never auto-deleted."/>
+                                            </Grid>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Hardware GPU Acceleration Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="HARDWARE GPU ACCELERATION" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <!-- CUDA GPU Support -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc CudaLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc CudaDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <CheckBox x:Name="UseCudaCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
+                                        </Grid>
+                                        <TextBlock x:Name="CudaStatusText" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
                         </TabItem>
 
-                        <!-- ══ SYSTEM TAB ═══════════════════════════════════════ -->
+                        <!-- ══ 6. SYSTEM TAB ════════════════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
                                     <TextBlock Text="{p:Loc SettingsTabSystem}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TabItem.Header>
@@ -785,7 +908,7 @@
                             <StackPanel>
                                 <!-- Header -->
                                 <TextBlock Text="{p:Loc SystemHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc SystemSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+                                <TextBlock Text="{p:Loc SystemSubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
 
                                 <!-- System Tray Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
@@ -804,7 +927,7 @@
                                                 <TextBlock Text="{p:Loc MinTrayLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc MinTrayDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="MinimizeToTrayCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="MinimizeToTrayCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -819,7 +942,7 @@
                                                 <TextBlock Text="{p:Loc CloseTrayLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc CloseTrayDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="CloseToTrayCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="CloseToTrayCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -834,7 +957,7 @@
                                                 <TextBlock Text="{p:Loc StartMinLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc StartMinDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="StartMinimizedCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="StartMinimizedCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -856,7 +979,7 @@
                                                 <TextBlock Text="{p:Loc RunStartupLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc RunStartupDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="RunOnStartupCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="RunOnStartupCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -871,7 +994,7 @@
                                                 <TextBlock Text="{p:Loc AutoUpdateLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc AutoUpdateDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="AutoInstallUpdatesCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="AutoInstallUpdatesCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -886,18 +1009,18 @@
                                                 <TextBlock Text="{p:Loc BetaUpdateLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc BetaUpdateDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="DownloadBetaUpdatesCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="DownloadBetaUpdatesCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
                         </TabItem>
 
-                        <!-- ══ THIRD PARTY TAB ════════════════════════════════ -->
+                        <!-- ══ 7. THIRD PARTY TAB ══════════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE71D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE71D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
                                     <TextBlock Text="{p:Loc SettingsTabThirdParty}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TabItem.Header>
@@ -905,7 +1028,7 @@
                             <StackPanel>
                                 <!-- Header -->
                                 <TextBlock Text="{p:Loc ThirdPartyHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc ThirdPartySubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+                                <TextBlock Text="{p:Loc ThirdPartySubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
 
                                 <!-- Hardware Integrations Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
@@ -917,13 +1040,13 @@
                                     <Grid Margin="0,6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                            <ColumnDefinition Width="Auto" MinWidth="240"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                             <TextBlock Text="{p:Loc StreamDeckLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                             <TextBlock Text="{p:Loc StreamDeckDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                         </StackPanel>
-                                        <Button x:Name="InstallStreamDeckBtn" Grid.Column="1" Content="{p:Loc InstallStreamDeckBtn}" Width="220" Height="28" Click="InstallStreamDeckBtn_Click" VerticalAlignment="Center"/>
+                                        <Button x:Name="InstallStreamDeckBtn" Grid.Column="1" Content="{p:Loc InstallStreamDeckBtn}" Width="240" Height="30" Click="InstallStreamDeckBtn_Click" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
 
@@ -944,7 +1067,7 @@
                                                 <TextBlock Text="{p:Loc DiscordLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc DiscordDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="DiscordRichPresenceCheck" Grid.Column="1" VerticalAlignment="Center"/>
+                                            <CheckBox x:Name="DiscordRichPresenceCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -953,137 +1076,24 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="240"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc DiscordClientIdLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc DiscordClientIdDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <TextBox x:Name="DiscordClientIdBox" Grid.Column="1" Width="220" Height="28" ToolTip="Custom Application ID from Discord Developer Portal. Default test ID is 461618159171141643." VerticalContentAlignment="Center"/>
+                                            <TextBox x:Name="DiscordClientIdBox" Grid.Column="1" Width="240" Height="28" ToolTip="Custom Application ID from Discord Developer Portal. Default test ID is 461618159171141643." VerticalContentAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
                         </TabItem>
 
-                        <!-- ══ GLOBAL EFFECTS TAB ════════════════════════════════ -->
+                        <!-- ══ 8. BACKUP & RESTORE TAB ══════════════════════════ -->
                         <TabItem>
                             <TabItem.Header>
                                 <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE9E9;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{p:Loc SettingsTabGlobalEffects}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </TabItem.Header>
-
-                            <StackPanel>
-                                <!-- Header -->
-                                <TextBlock Text="{p:Loc GlobalEffectsHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc GlobalEffectsSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
-
-                                <!-- Auto Fade In/Out Group -->
-                                <StackPanel Style="{StaticResource GroupHeader}">
-                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
-                                    <TextBlock Text="{p:Loc GlobalAutoFadeGroup}" Style="{StaticResource HeaderText}"/>
-                                </StackPanel>
-                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
-                                    <StackPanel>
-
-                                        <!-- Enable Toggle Row -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc GlobalFadeLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc GlobalFadeDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <CheckBox x:Name="GlobalFadeCheck" Grid.Column="1" VerticalAlignment="Center"/>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
-
-                                        <!-- Fade-In Duration Row -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="260"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc GlobalFadeInLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc GlobalFadeInDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="260">
-                                                <Slider x:Name="GlobalFadeInSlider"
-                                                        Minimum="0" Maximum="5000" TickFrequency="50"
-                                                        IsSnapToTickEnabled="True"
-                                                        Width="186"
-                                                        VerticalAlignment="Center"
-                                                        ValueChanged="GlobalFadeInSlider_ValueChanged"/>
-                                                <TextBlock x:Name="GlobalFadeInValueText"
-                                                           Width="64"
-                                                           TextAlignment="Right"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                                           FontSize="11"
-                                                           Margin="8,0,0,0"/>
-                                            </StackPanel>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
-
-                                        <!-- Fade-Out Duration Row -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="260"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc GlobalFadeOutLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc GlobalFadeOutDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="260">
-                                                <Slider x:Name="GlobalFadeOutSlider"
-                                                        Minimum="0" Maximum="5000" TickFrequency="50"
-                                                        IsSnapToTickEnabled="True"
-                                                        Width="186"
-                                                        VerticalAlignment="Center"
-                                                        ValueChanged="GlobalFadeOutSlider_ValueChanged"/>
-                                                <TextBlock x:Name="GlobalFadeOutValueText"
-                                                           Width="64"
-                                                           TextAlignment="Right"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                                           FontSize="11"
-                                                           Margin="8,0,0,0"/>
-                                            </StackPanel>
-                                        </Grid>
-
-                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
-
-                                        <!-- Allow Multi-Pad Playback Row -->
-                                        <Grid Margin="0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="{p:Loc AllowMultiPadPlaybackLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                <TextBlock Text="{p:Loc AllowMultiPadPlaybackDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            <CheckBox x:Name="AllowMultiPadPlaybackCheck" Grid.Column="1" VerticalAlignment="Center"/>
-                                        </Grid>
-
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </TabItem>
-
-                        <!-- ══ BACKUP & RESTORE TAB ═════════════════════════════ -->
-                        <TabItem>
-                            <TabItem.Header>
-                                <StackPanel Orientation="Horizontal" Margin="4,0,0,0">
-                                    <TextBlock Text="&#xE8B5;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="22" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE8B5;" FontFamily="Segoe MDL2 Assets" FontSize="14" Width="24" VerticalAlignment="Center"/>
                                     <TextBlock Text="{p:Loc SettingsTabBackup}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </TabItem.Header>
@@ -1091,7 +1101,7 @@
                             <StackPanel>
                                 <!-- Header -->
                                 <TextBlock Text="{p:Loc BackupHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
-                                <TextBlock Text="{p:Loc BackupSubtitle}" FontSize="11" Foreground="#FF8080A8" Margin="0,0,0,16"/>
+                                <TextBlock Text="{p:Loc BackupSubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
 
                                 <!-- Backup and Restore operations group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
@@ -1104,28 +1114,28 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc BackupLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc BackupDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <Button x:Name="BackupButton" Grid.Column="1" Content="{p:Loc BackupBtn}" Width="200" Height="28" Click="ExportData_Click" VerticalAlignment="Center"/>
+                                            <Button x:Name="BackupButton" Grid.Column="1" Content="{p:Loc BackupBtn}" Width="220" Height="30" Click="ExportData_Click" VerticalAlignment="Center"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
-                                         <!-- Restore Row -->
+                                        <!-- Restore Row -->
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="{p:Loc RestoreLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc RestoreDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <Button x:Name="RestoreButton" Grid.Column="1" Content="{p:Loc RestoreBtn}" Width="200" Height="28" Click="ImportData_Click" VerticalAlignment="Center"/>
+                                            <Button x:Name="RestoreButton" Grid.Column="1" Content="{p:Loc RestoreBtn}" Width="220" Height="30" Click="ImportData_Click" VerticalAlignment="Center"/>
                                         </Grid>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
@@ -1134,13 +1144,13 @@
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="220"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <TextBlock Text="Clear All Data" FontWeight="SemiBold" Foreground="#FFEF5350"/>
                                                 <TextBlock Text="Permanently delete all audio pads, custom folders, recordings database, and reset application settings." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <Button x:Name="ClearAllDataBtn" Grid.Column="1" Content="Clear All Data" Width="200" Height="28" Background="#CCB71C1C" Foreground="White" Click="ClearAllDataBtn_Click" VerticalAlignment="Center"/>
+                                            <Button x:Name="ClearAllDataBtn" Grid.Column="1" Content="Clear All Data" Width="220" Height="30" Background="#CCB71C1C" Foreground="White" Click="ClearAllDataBtn_Click" VerticalAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -1148,9 +1158,9 @@
                         </TabItem>
                     </TabControl>
 
-                    <!-- Footer Section at the bottom left sidebar column -->
+                    <!-- Footer Section at bottom left sidebar column -->
                     <Border Grid.Row="1" Grid.Column="0"
-                            Padding="16,8,16,8"
+                            Padding="16,10,16,10"
                             Background="{DynamicResource SecondaryFooterBackgroundBrush}"
                             BorderBrush="{DynamicResource DividerBrush}"
                             BorderThickness="0,1,1,0">
@@ -1171,7 +1181,7 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Footer Section at the bottom right content column -->
+                    <!-- Footer Section at bottom right content column -->
                     <Border Grid.Row="1" Grid.Column="1"
                             Padding="24,12,24,16"
                             Background="{DynamicResource SecondaryFooterBackgroundBrush}"
@@ -1179,13 +1189,15 @@
                             BorderThickness="0,1,0,0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="{p:Loc OK}"
-                                    Width="88"
-                                    Margin="0,0,10,0"
+                                    Width="96"
+                                    Height="32"
+                                    Margin="0,0,12,0"
                                     Click="OkButton_Click"
                                     IsDefault="True"
                                     Foreground="{DynamicResource AccentGreenBrush}"/>
                             <Button Content="{p:Loc Cancel}"
-                                    Width="88"
+                                    Width="96"
+                                    Height="32"
                                     Click="CancelButton_Click"
                                     IsCancel="True"/>
                         </StackPanel>

@@ -143,6 +143,7 @@
   <data name="SettingsTabSpeech" xml:space="preserve"><value>Reconnaissance Vocale</value></data>
   <data name="SettingsTabUpdates" xml:space="preserve"><value>Mises à jour</value></data>
   <data name="SettingsTabGlobalEffects" xml:space="preserve"><value>Effets Globaux</value></data>
+  <data name="SettingsTabPerformance" xml:space="preserve"><value>Performances</value></data>
 
   <!-- Settings General / Recording Configuration -->
   <data name="RecConfigHeader" xml:space="preserve"><value>Configuration de l'enregistrement</value></data>
