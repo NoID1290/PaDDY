@@ -66,6 +66,14 @@ namespace PaDDY
 
         private const double MinTrimSeconds = 0.05; // 50 ms minimum
 
+        // ── Fullscreen state ───────────────────────────────────────────────────
+        private bool _isFullscreen;
+        private WindowState _preFullscreenWindowState;
+        private WindowStyle _preFullscreenWindowStyle;
+        private ResizeMode _preFullscreenResizeMode;
+        private Rect _preFullscreenBounds;
+        private double _preFullscreenChromeHeight;
+
         // Stored waveform peaks for gain-responsive re-render
         private (float min, float max)[]? _originalPeaks;
         private List<(float min, float max)>? _rawBlockPeaks;
@@ -721,6 +729,101 @@ namespace PaDDY
         // ── Playback preview ────────────────────────────────────────────────
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
+
+        // ── Fullscreen (F11) ──────────────────────────────────────────────────
+        private void ChromeFullscreen_Click(object sender, RoutedEventArgs e)
+            => ToggleFullscreen();
+
+        private void ToggleFullscreen()
+        {
+            if (_isFullscreen)
+                ExitFullscreen();
+            else
+                EnterFullscreen();
+        }
+
+        private void EnterFullscreen()
+        {
+            if (_isFullscreen) return;
+
+            // Save current state for restoration
+            _preFullscreenWindowState = WindowState;
+            _preFullscreenWindowStyle = WindowStyle;
+            _preFullscreenResizeMode = ResizeMode;
+            _preFullscreenBounds = new Rect(Left, Top, Width, Height);
+
+            var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
+            _preFullscreenChromeHeight = chrome?.CaptionHeight ?? 36;
+
+            // Must restore first if maximized, then set style, then maximize again.
+            if (WindowState == WindowState.Maximized)
+                WindowState = WindowState.Normal;
+
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+
+            // Remove chrome caption so the title bar area becomes content space
+            if (chrome != null)
+                chrome.CaptionHeight = 0;
+
+            WindowState = WindowState.Maximized;
+            _isFullscreen = true;
+
+            // Update fullscreen button
+            ChromeFullscreenIcon.Text = "\uE73F"; // Exit fullscreen icon
+            ChromeFullscreenBtn.ToolTip = "Exit Fullscreen (F11)";
+        }
+
+        private void ExitFullscreen()
+        {
+            if (!_isFullscreen) return;
+
+            _isFullscreen = false;
+
+            // Restore window chrome
+            var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
+            if (chrome != null)
+                chrome.CaptionHeight = _preFullscreenChromeHeight;
+
+            // Restore window style
+            WindowState = WindowState.Normal;
+            WindowStyle = _preFullscreenWindowStyle;
+            ResizeMode = _preFullscreenResizeMode;
+
+            // Restore position and size
+            Left = _preFullscreenBounds.Left;
+            Top = _preFullscreenBounds.Top;
+            Width = _preFullscreenBounds.Width;
+            Height = _preFullscreenBounds.Height;
+
+            // Restore previous window state
+            WindowState = _preFullscreenWindowState;
+
+            // Update fullscreen button
+            ChromeFullscreenIcon.Text = "\uE740"; // Enter fullscreen icon
+            ChromeFullscreenBtn.ToolTip = "Fullscreen (F11)";
+        }
+
+        protected override void OnKeyDown(System.Windows.Input.KeyEventArgs e)
+        {
+            // F11: toggle fullscreen
+            if (e.Key == System.Windows.Input.Key.F11)
+            {
+                e.Handled = true;
+                ToggleFullscreen();
+                return;
+            }
+
+            // Escape: exit fullscreen
+            if (e.Key == System.Windows.Input.Key.Escape && _isFullscreen)
+            {
+                e.Handled = true;
+                ExitFullscreen();
+                return;
+            }
+
+            base.OnKeyDown(e);
+        }
 
         // ── Inline effects panel ────────────────────────────────────────────
 

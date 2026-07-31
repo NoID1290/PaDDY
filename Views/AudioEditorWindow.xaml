@@ -145,12 +145,20 @@
                                        VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <Button Style="{StaticResource ChromeCloseBtn}"
-                                HorizontalAlignment="Right"
-                                ToolTip="Close"
-                                Click="ChromeClose_Click">
-                            <TextBlock Text="&#xE8BB;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
-                        </Button>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                    shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            <Button x:Name="ChromeFullscreenBtn"
+                                    Style="{StaticResource ChromeMaxBtn}"
+                                    ToolTip="Fullscreen (F11)"
+                                    Click="ChromeFullscreen_Click">
+                                <TextBlock x:Name="ChromeFullscreenIcon" Text="&#xE740;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
+                            </Button>
+                            <Button Style="{StaticResource ChromeCloseBtn}"
+                                    ToolTip="Close"
+                                    Click="ChromeClose_Click">
+                                <TextBlock Text="&#xE8BB;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
