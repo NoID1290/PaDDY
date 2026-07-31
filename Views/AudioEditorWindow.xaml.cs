@@ -438,11 +438,26 @@ namespace PaDDY
                 ZoomLabel.Text = $"{e.NewValue:0.0}x";
             }
             UpdateWaveformZoom();
+            UpdateTimeLabels();
         }
 
         private void WaveformScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdateWaveformZoom();
+            UpdateTimeLabels();
+        }
+
+        private void WaveformScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (e.HorizontalChange != 0 || e.ExtentWidthChange != 0 || e.ViewportWidthChange != 0)
+            {
+                UpdateTimeLabels();
+            }
+        }
+
+        private void TimeMarkersGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateTimeLabels();
         }
 
         private void UpdateWaveformZoom()
@@ -665,15 +680,74 @@ namespace PaDDY
 
         private void UpdateTimeLabels()
         {
-            double startSec = _trimStartFraction * _totalDuration.TotalSeconds;
-            double endSec = _trimEndFraction * _totalDuration.TotalSeconds;
+            if (StartTimeLabel == null || EndTimeLabel == null || TrimmedDurationLabel == null) return;
+
+            double totalSec = _totalDuration.TotalSeconds;
+            double startSec = _trimStartFraction * totalSec;
+            double endSec = _trimEndFraction * totalSec;
             double trimmed = endSec - startSec;
 
-            StartTimeLabel.Text = $"{startSec:0.00}s";
-            EndTimeLabel.Text = $"{endSec:0.00}s";
+            // Timeline ruler reflects the track timeline (0.0s to totalSec), not trim handles
+            double rangeStartSec = 0.0;
+            double rangeEndSec = totalSec;
+
+            // If zoomed in, reflect the visible waveform region in the ruler start/end
+            if (ZoomSlider != null && ZoomSlider.Value > 1.0 && WaveformScrollViewer != null && WaveformGrid != null && WaveformGrid.ActualWidth > 0)
+            {
+                double viewportWidth = WaveformScrollViewer.ActualWidth;
+                double totalWidth = WaveformGrid.ActualWidth;
+                if (viewportWidth > 0 && totalWidth > 0)
+                {
+                    double scrollOffset = WaveformScrollViewer.HorizontalOffset;
+                    rangeStartSec = Math.Clamp((scrollOffset / totalWidth) * totalSec, 0, totalSec);
+                    rangeEndSec = Math.Clamp(((scrollOffset + viewportWidth) / totalWidth) * totalSec, 0, totalSec);
+                }
+            }
+
+            StartTimeLabel.Text = FormatTime(TimeSpan.FromSeconds(rangeStartSec));
+            EndTimeLabel.Text = FormatTime(TimeSpan.FromSeconds(rangeEndSec));
             TrimmedDurationLabel.Text = string.Format(LocalizationManager.Instance["TrimmedLabel"], FormatTime(TimeSpan.FromSeconds(trimmed)));
 
             SaveBtn.IsEnabled = trimmed >= MinTrimSeconds;
+
+            // Dynamically update intermediate timecode markers (TimeMarker1..4)
+            if (TimeMarkersGrid != null && TimeMarker1 != null && TimeMarker2 != null && TimeMarker3 != null && TimeMarker4 != null)
+            {
+                double gridWidth = TimeMarkersGrid.ActualWidth;
+                if (gridWidth < 50) return;
+
+                if (gridWidth < 380)
+                {
+                    TimeMarker1.Visibility = Visibility.Collapsed;
+                    TimeMarker4.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    TimeMarker1.Visibility = Visibility.Visible;
+                    TimeMarker4.Visibility = Visibility.Visible;
+                }
+
+                double span = rangeEndSec - rangeStartSec;
+                double frac1 = 0.167;
+                double frac2 = 0.333;
+                double frac3 = 0.667;
+                double frac4 = 0.833;
+
+                TimeMarker1.Text = FormatTime(TimeSpan.FromSeconds(rangeStartSec + span * frac1));
+                TimeMarker2.Text = FormatTime(TimeSpan.FromSeconds(rangeStartSec + span * frac2));
+                TimeMarker3.Text = FormatTime(TimeSpan.FromSeconds(rangeStartSec + span * frac3));
+                TimeMarker4.Text = FormatTime(TimeSpan.FromSeconds(rangeStartSec + span * frac4));
+
+                double pos1 = Math.Max(0, gridWidth * frac1 - 15);
+                double pos2 = Math.Max(0, gridWidth * frac2 - 15);
+                double pos3 = Math.Max(0, gridWidth * frac3 - 15);
+                double pos4 = Math.Max(0, gridWidth * frac4 - 15);
+
+                TimeMarker1.Margin = new Thickness(pos1, 0, 0, 0);
+                TimeMarker2.Margin = new Thickness(pos2, 0, 0, 0);
+                TimeMarker3.Margin = new Thickness(pos3, 0, 0, 0);
+                TimeMarker4.Margin = new Thickness(pos4, 0, 0, 0);
+            }
         }
 
         private void UpdatePlaybackTimecode(double currentSec)
