@@ -147,6 +147,17 @@
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                                     shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            <Button Style="{StaticResource ChromeMinBtn}"
+                                    ToolTip="Minimize"
+                                    Click="ChromeMinimize_Click">
+                                <TextBlock Text="&#xE921;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
+                            </Button>
+                            <Button x:Name="ChromeMaxRestoreBtn"
+                                    Style="{StaticResource ChromeMaxBtn}"
+                                    ToolTip="Maximize"
+                                    Click="ChromeMaximize_Click">
+                                <TextBlock x:Name="ChromeMaxIcon" Text="&#xE922;" FontSize="10" FontFamily="Segoe MDL2 Assets"/>
+                            </Button>
                             <Button x:Name="ChromeFullscreenBtn"
                                     Style="{StaticResource ChromeMaxBtn}"
                                     ToolTip="Fullscreen (F11)"

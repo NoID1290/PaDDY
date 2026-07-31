@@ -726,7 +726,25 @@ namespace PaDDY
             UpdatePlaybackTimecode(currentSec);
         }
 
-        // ── Playback preview ────────────────────────────────────────────────
+        // ── Custom Window Chrome ───────────────────────────────────────────────
+        private void ChromeMinimize_Click(object sender, RoutedEventArgs e)
+            => SystemCommands.MinimizeWindow(this);
+
+        private void ChromeMaximize_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                SystemCommands.RestoreWindow(this);
+                ChromeMaxIcon.Text = "\uE922"; // Maximize icon
+                ChromeMaxRestoreBtn.ToolTip = "Maximize";
+            }
+            else
+            {
+                SystemCommands.MaximizeWindow(this);
+                ChromeMaxIcon.Text = "\uE923"; // Restore icon
+                ChromeMaxRestoreBtn.ToolTip = "Restore";
+            }
+        }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
 
@@ -769,6 +787,10 @@ namespace PaDDY
             WindowState = WindowState.Maximized;
             _isFullscreen = true;
 
+            // Update maximize button icon to reflect state
+            ChromeMaxIcon.Text = "\uE923"; // Restore icon
+            ChromeMaxRestoreBtn.ToolTip = "Restore";
+
             // Update fullscreen button
             ChromeFullscreenIcon.Text = "\uE73F"; // Exit fullscreen icon
             ChromeFullscreenBtn.ToolTip = "Exit Fullscreen (F11)";
@@ -798,6 +820,18 @@ namespace PaDDY
 
             // Restore previous window state
             WindowState = _preFullscreenWindowState;
+
+            // Update maximize button icon
+            if (WindowState == WindowState.Maximized)
+            {
+                ChromeMaxIcon.Text = "\uE923"; // Restore icon
+                ChromeMaxRestoreBtn.ToolTip = "Restore";
+            }
+            else
+            {
+                ChromeMaxIcon.Text = "\uE922"; // Maximize icon
+                ChromeMaxRestoreBtn.ToolTip = "Maximize";
+            }
 
             // Update fullscreen button
             ChromeFullscreenIcon.Text = "\uE740"; // Enter fullscreen icon
