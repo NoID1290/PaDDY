@@ -83,6 +83,36 @@
             </Setter>
         </Style>
 
+        <Style x:Key="TransportToggleBtn" TargetType="ToggleButton">
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ButtonPressedBgBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentGreenBrush}"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentGreenBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Daw Card Style -->
         <Style x:Key="DawCard" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
@@ -318,6 +348,29 @@
                                                     FontSize="11.5"
                                                     Click="PlayBtn_Click"/>
 
+                                                <ToggleButton x:Name="LoopToggle"
+                                                      Style="{StaticResource TransportToggleBtn}"
+                                                      Content="↻ Loop"
+                                                      ToolTip="Loop the active trim range"
+                                                      AutomationProperties.Name="Loop Trim Range"
+                                                      Margin="6,0,0,0"/>
+
+                                                    <Button x:Name="ClipAlertButton"
+                                                        Content="CLIP"
+                                                        ToolTip="Clipping detected. Click to reset."
+                                                        AutomationProperties.Name="Reset Clipping Alert"
+                                                        Click="ResetClipAlert_Click"
+                                                        Visibility="Collapsed"
+                                                        Height="28"
+                                                        Padding="8,0"
+                                                        Margin="6,0,0,0"
+                                                        FontSize="10.5"
+                                                        FontWeight="Bold"
+                                                        Foreground="White"
+                                                        Background="#FFD50000"
+                                                        BorderBrush="#FFFF5252"
+                                                        BorderThickness="1"/>
+
                                             <!-- Functional Crop / Trim Buttons (✂◄ and ►✂) -->
                                             <Button x:Name="TrimInBtn"
                                                     Content="✂◄"
@@ -342,6 +395,11 @@
                                                     VerticalAlignment="Center"
                                                     ValueChanged="ZoomSlider_ValueChanged"/>
                                             <TextBlock x:Name="ZoomLabel" Text="1.0x" Foreground="{DynamicResource AccentGreenBrush}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0" Width="32"/>
+                                                <Button ToolTip="Reset Zoom"
+                                                    AutomationProperties.Name="Reset Zoom"
+                                                    Click="ResetZoom_Click"
+                                                    Style="{StaticResource SmallIconResetBtn}"
+                                                    Margin="4,0,0,0"/>
                                         </StackPanel>
                                     </Border>
                                 </Border>
@@ -696,6 +754,7 @@
                                                 </Grid>
                                                 <StackPanel x:Name="VstBody">
                                                     <TextBlock x:Name="VstNameLabel" Text="No VST Plugin Loaded" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,8"/>
+                                                    <StackPanel x:Name="VstPluginRackPanel" Margin="0,0,0,8"/>
                                                     <Button x:Name="ShowVstEditorButton" Style="{StaticResource EditorBtn}" Content="Open VST Editor" Height="28" Click="ShowVstEditor_Click"/>
                                                 </StackPanel>
                                             </StackPanel>
@@ -713,6 +772,7 @@
                     <Border Grid.Column="2" Style="{StaticResource DawCard}" Padding="10">
                         <Grid>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
@@ -736,51 +796,50 @@
                                 <controls:SpectrumVisualizerControl Grid.Row="1" x:Name="MasterSpectrumVisualizer" Margin="0,2,0,4"/>
                             </Grid>
 
-                            <!-- Side Cards List -->
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                <StackPanel Margin="0,0,10,0">
-                                    <!-- Side Card 1: File Info (Collapsible Header) -->
-                                    <Border Style="{StaticResource DawCard}" Margin="0,0,0,10">
-                                        <StackPanel>
-                                            <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=FileInfoBody}" MouseDown="CardHeader_MouseDown">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="File Info" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                    <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Grid>
-                                            <StackPanel x:Name="FileInfoBody" Margin="2,0,2,2">
-                                                <TextBlock x:Name="PlaybackTimecodeLabel" Text="00:00.000 / 00:00.000" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentGreenBrush}" Margin="0,0,0,8"/>
-
-                                                <!-- Detailed File Metadata Grid -->
-                                                <Grid Margin="0,2">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="90"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
-                                                    </Grid.RowDefinitions>
-
-                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Format:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="FileFormatLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
-
-                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Sample Rate:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="FileSampleRateLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
-
-                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Channels:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="FileChannelsLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
-
-                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="File Size:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
-                                                    <TextBlock Grid.Row="3" Grid.Column="1" x:Name="FileSizeLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
-                                                </Grid>
-                                            </StackPanel>
+                            <!-- File Info remains visible while the effects rack scrolls. -->
+                            <Border Grid.Row="1" Style="{StaticResource DawCard}" Margin="0,0,10,10">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,6" Background="Transparent" Cursor="Hand" Tag="{Binding ElementName=FileInfoBody}" MouseDown="CardHeader_MouseDown">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="3" Height="14" Background="{DynamicResource AccentGreenBrush}" Margin="0,0,6,0"/>
+                                            <TextBlock Text="File Info" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                            <TextBlock Text="▾" FontSize="10" Foreground="{DynamicResource SubtleTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                    </Border>
+                                    </Grid>
+                                    <StackPanel x:Name="FileInfoBody" Margin="2,0,2,2">
+                                        <TextBlock x:Name="PlaybackTimecodeLabel" Text="00:00.000 / 00:00.000" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentGreenBrush}" Margin="0,0,0,8"/>
 
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Format:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="FileFormatLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
+
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Sample Rate:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="FileSampleRateLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
+
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Channels:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" x:Name="FileChannelsLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
+
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="File Size:" FontSize="10.5" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="1" x:Name="FileSizeLabel" Text="--" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,2"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Side Cards List -->
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel Margin="0,0,10,0">
                                     <!-- Side Card 2: Fade In / Fade Out (Collapsible Header + Sliding Switch + Sliders) -->
                                     <Border Style="{StaticResource DawCard}" Margin="0,0,0,10">
                                         <StackPanel>

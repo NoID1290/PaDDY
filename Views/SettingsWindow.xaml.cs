@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -101,7 +102,7 @@ namespace PaDDY
             VstSettingsPanel.Visibility = Visibility.Visible;
             Vst3PluginRow.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
             App.DebugModeChanged += OnDebugModeChanged;
-            
+
             PaDDY.Services.SpeechRecognitionService.DownloadProgressUpdated += OnSpeechModelDownloadProgressUpdated;
 
             Loaded += OnLoaded;
@@ -641,7 +642,7 @@ namespace PaDDY
             try
             {
                 string pluginPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "com.paddy.streamDeckPlugin");
-                
+
                 // Extract from embedded resources
                 using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("com.paddy.streamDeckPlugin"))
                 {
@@ -660,7 +661,7 @@ namespace PaDDY
                 }
 
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(pluginPath) { UseShellExecute = true });
-                
+
                 // Poll for installation success
                 string installPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
                 System.Threading.Tasks.Task.Run(async () =>
@@ -726,7 +727,7 @@ namespace PaDDY
                         UninstallModelBtn.Content = $"Remove ({sizeInfo})";
                     else
                         UninstallModelBtn.Content = "Remove";
-                    
+
                     DownloadModelBtn.Visibility = Visibility.Collapsed;
                     UninstallModelBtn.Visibility = Visibility.Visible;
                 }
@@ -780,13 +781,13 @@ namespace PaDDY
         private void UninstallModelBtn_Click(object sender, RoutedEventArgs e)
         {
             if (SpeechModelCombo.SelectedItem is not string model) return;
-            
+
             var res = System.Windows.MessageBox.Show(
                 $"Are you sure you want to uninstall the {model} model?",
                 "PaDDY",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
-                
+
             if (res == MessageBoxResult.Yes)
             {
                 bool deleted = PaDDY.Services.SpeechRecognitionService.DeleteModel(model);
@@ -805,17 +806,17 @@ namespace PaDDY
         {
             if (SpeechModelCombo.SelectedItem is not string model) return;
             if (PaDDY.Services.SpeechRecognitionService.ActiveDownloadingModel != null) return;
-            
+
             DownloadModelBtn.IsEnabled = false;
             SpeechModelCombo.IsEnabled = false;
             ModelDownloadProgress.Visibility = Visibility.Visible;
             ModelDownloadStatusText.Visibility = Visibility.Visible;
             ModelDownloadProgress.IsIndeterminate = true;
             ModelDownloadStatusText.Text = $"Downloading {model} model...";
-            
+
             try
             {
-                var progress = new Progress<(double Percent, string StatusText)>(p => 
+                var progress = new Progress<(double Percent, string StatusText)>(p =>
                 {
                     if (p.Percent < 0)
                     {
@@ -828,9 +829,9 @@ namespace PaDDY
                     }
                     ModelDownloadStatusText.Text = p.StatusText;
                 });
-                
+
                 await PaDDY.Services.SpeechRecognitionService.DownloadModelAsync(model, progress);
-                
+
                 ModelDownloadStatusText.Text = "Download complete!";
                 await System.Threading.Tasks.Task.Delay(2000);
             }
@@ -870,12 +871,40 @@ namespace PaDDY
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "VST2 Plugins (*.dll)|*.dll|All Files (*.*)|*.*",
-                Title = "Select VST2 Plugin"
+                Title = "Import VST2 Plugins",
+                Multiselect = true
             };
 
             if (dlg.ShowDialog(this) == true)
             {
-                VstPluginPathTextBox.Text = dlg.FileName;
+                try
+                {
+                    Directory.CreateDirectory(AppDataPaths.ManagedVst2Folder);
+                    var imported = new List<string>();
+
+                    foreach (string sourcePath in dlg.FileNames)
+                    {
+                        string destinationPath = Path.Combine(
+                            AppDataPaths.ManagedVst2Folder,
+                            Path.GetFileName(sourcePath));
+                        File.Copy(sourcePath, destinationPath, overwrite: true);
+                        imported.Add(destinationPath);
+
+                        if (!_settings.UserVstPluginPaths.Contains(destinationPath, StringComparer.OrdinalIgnoreCase))
+                            _settings.UserVstPluginPaths.Add(destinationPath);
+                    }
+
+                    if (imported.Count > 0)
+                        VstPluginPathTextBox.Text = imported[0];
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(
+                        $"Could not import VST2 plugin:\n{ex.Message}",
+                        "PaDDY",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
             }
         }
 

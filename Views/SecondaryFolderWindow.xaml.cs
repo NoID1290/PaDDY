@@ -45,11 +45,16 @@ namespace PaDDY.Views
             _listenVolume = listenVolume;
             _onDataChanged = onDataChanged;
 
-            Title = Page.IsFavorites ? "★ " + Page.Name : Page.Name;
-            TitleText.Text = Page.IsFavorites ? "★ " + Page.Name : Page.Name;
+            RefreshPageTitle();
             FolderIcon.Text = Page.IsFavorites ? "★" : "📁";
 
             RefreshPads();
+        }
+
+        public void RefreshPageTitle()
+        {
+            Title = Page.IsFavorites ? "★ " + Page.Name : Page.Name;
+            TitleText.Text = Page.IsFavorites ? "★ " + Page.Name : Page.Name;
         }
 
         public void RefreshPads()

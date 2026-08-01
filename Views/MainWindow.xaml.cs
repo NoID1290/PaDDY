@@ -110,7 +110,7 @@ namespace PaDDY
                     var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
 
                     MainLoadingOverlay.ApplyThemeColors(accent, secondary, text);
-                    
+
                     // For MainLoadingOverlay (the solid one in MainWindow), we use a semi-transparent version of the theme background
                     MainLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
                 }
@@ -785,8 +785,7 @@ namespace PaDDY
         }
 
         /// <summary>
-        /// Pauses or resumes all decorative animation rendering:
-        /// meter decay DispatcherTimers and any running XAML Storyboards.
+        /// Pauses or resumes the owned decorative meter timers.
         /// Audio capture and recording are unaffected.
         /// </summary>
         private void SetAnimationsPaused(bool paused)
@@ -806,68 +805,6 @@ namespace PaDDY
                     if (_meterDecayTimer != null) _meterDecayTimer.Start();
                     if (_outputMeterDecayTimer != null) _outputMeterDecayTimer.Start();
                 }
-            }
-
-            // ── XAML Storyboards (glow pulses, hover effects, etc.) ─────────
-            // Walk the visual tree to find and pause/resume all ClockGroups
-            // driven by Storyboards attached to UI elements.
-            var oldTraceLevel = System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level;
-            try
-            {
-                System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level = System.Diagnostics.SourceLevels.Error;
-                PauseResumeStoryboards(this, paused);
-            }
-            finally
-            {
-                System.Diagnostics.PresentationTraceSources.AnimationSource.Switch.Level = oldTraceLevel;
-            }
-        }
-
-        /// <summary>
-        /// Recursively walks the visual tree from <paramref name="root"/> and
-        /// pauses or resumes every active <see cref="System.Windows.Media.Animation.Storyboard"/>
-        /// clock found on each element.
-        /// </summary>
-        private static void PauseResumeStoryboards(System.Windows.DependencyObject root, bool pause)
-        {
-            // Pause/resume Storyboards stored in the element's trigger collection.
-            // Note: GetCurrentState(), Pause(), and Resume() all throw InvalidOperationException
-            // when the storyboard has never been interactively applied to the element (e.g. a
-            // hover animation on an element the user never hovered). A try/catch per-call is the
-            // only safe guard — there is no pre-flight query that avoids the exception.
-            if (root is System.Windows.FrameworkElement fe)
-            {
-                foreach (System.Windows.TriggerBase trigger in fe.Triggers)
-                {
-                    if (trigger is System.Windows.EventTrigger et)
-                    {
-                        foreach (System.Windows.TriggerAction action in et.Actions)
-                        {
-                            if (action is System.Windows.Media.Animation.BeginStoryboard bsb &&
-                                bsb.Storyboard != null)
-                            {
-                                try
-                                {
-                                    if (pause) bsb.Storyboard.Pause(fe);
-                                    else       bsb.Storyboard.Resume(fe);
-                                }
-                                catch (InvalidOperationException) { /* storyboard not yet started on this element */ }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Recurse into children
-            int childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
-            for (int i = 0; i < childCount; i++)
-            {
-                try
-                {
-                    var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
-                    PauseResumeStoryboards(child, pause);
-                }
-                catch { /* child may be in a disconnected or unusual state */ }
             }
         }
 
@@ -1066,10 +1003,9 @@ namespace PaDDY
         private void PadPanel_DragOver(object sender, System.Windows.DragEventArgs e)
             => HandlePanelDragOver(PadPanel, e);
 
-        private DateTime _lastDragOverUpdate = DateTime.MinValue;
         /// <summary>
-        /// Live-preview drag: moves the dragged pad to the hovered slot in real time so the
-        /// user sees it physically slide into place, and keeps the floating ghost under the cursor.
+        /// Updates only the lightweight drag ghost. Reordering the visual tree here causes a
+        /// full panel layout on every drag event, so the actual move is deferred until drop.
         /// </summary>
         private void HandlePanelDragOver(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
         {
@@ -1085,14 +1021,6 @@ namespace PaDDY
             if (pad == null) return;
 
             UpdateDragAdorner(e);
-
-            // Throttle layout-heavy preview moves to prevent UI freeze
-            var now = DateTime.UtcNow;
-            if ((now - _lastDragOverUpdate).TotalMilliseconds < 16) return;
-            _lastDragOverUpdate = now;
-
-            int index = ComputeDropIndex(panel, e, pad);
-            LivePreviewMove(panel, pad, index);
         }
 
         private void FavoritesPanel_Drop(object sender, System.Windows.DragEventArgs e)
@@ -1102,7 +1030,7 @@ namespace PaDDY
                 Window_Drop(sender, e);
                 return;
             }
-            // The pad has already been live-moved into place; commit happens in FinalizePadDrop.
+            CommitPanelDrop(FavoritesPanel, e);
             e.Handled = true;
         }
 
@@ -1113,7 +1041,17 @@ namespace PaDDY
                 Window_Drop(sender, e);
                 return;
             }
+            CommitPanelDrop(PadPanel, e);
             e.Handled = true;
+        }
+
+        private static void CommitPanelDrop(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
+        {
+            var pad = GetDraggedPad(e);
+            if (pad == null) return;
+
+            int index = ComputeDropIndex(panel, e, pad);
+            MovePadOnce(panel, pad, index);
         }
 
         private void UpdateDragAdorner(System.Windows.DragEventArgs e)
@@ -1142,18 +1080,15 @@ namespace PaDDY
             return visibleIndex;
         }
 
-        /// <summary>Moves the dragged pad to <paramref name="targetIndex"/> within <paramref name="target"/> (cross-panel aware).</summary>
-        private static void LivePreviewMove(System.Windows.Controls.Panel target, RecordingPadButton pad, int targetIndex)
+        /// <summary>Commits one visual-tree move at drop time (cross-panel aware).</summary>
+        private static void MovePadOnce(System.Windows.Controls.Panel target, RecordingPadButton pad, int targetIndex)
         {
             var current = pad.Parent as System.Windows.Controls.Panel;
             if (ReferenceEquals(current, target))
             {
                 int cur = target.Children.IndexOf(pad);
                 if (cur < 0) return;
-                // targetIndex was computed ignoring the dragged pad; translate to a real insert index.
-                int insert = targetIndex;
-                if (insert > cur) { /* slots after removal shift left */ }
-                insert = Math.Clamp(insert, 0, target.Children.Count - 1);
+                int insert = Math.Clamp(targetIndex, 0, target.Children.Count - 1);
                 if (insert == cur) return;
                 target.Children.RemoveAt(cur);
                 target.Children.Insert(insert, pad);
@@ -1627,7 +1562,7 @@ namespace PaDDY
             var isKeyBuffer = modeIdx == ModeComboKeyBufferIndex;
             var vadVisibility = isKeyBuffer ? Visibility.Collapsed : Visibility.Visible;
             var bufferVisibility = isKeyBuffer ? Visibility.Visible : Visibility.Collapsed;
-            
+
             SensitivityRow.Visibility = vadVisibility;
             SilenceRow.Visibility = vadVisibility;
             if (BufferDurationRow != null)
@@ -1890,7 +1825,7 @@ namespace PaDDY
                             pad.Entry.TrimStartMs = 0;
                             pad.Entry.TrimEndMs = 0;
                             pad.Entry.GainDb = 0.0;
-                            
+
                             try
                             {
                                 using var reader = AudioReaderFactory.Open(pad.Entry.FilePath);
@@ -2693,6 +2628,14 @@ namespace PaDDY
                 string pageId = page.Id;
                 var currentPage = page;
                 tab.Click += (_, _) => SwitchToPadPage(pageId);
+                tab.PreviewMouseLeftButtonDown += (_, e) =>
+                {
+                    if (e.ClickCount == 2)
+                    {
+                        e.Handled = true;
+                        OpenFolderInSecondaryWindow(currentPage);
+                    }
+                };
                 tab.MouseDown += (s, e) =>
                 {
                     if (e.ChangedButton == System.Windows.Input.MouseButton.Middle)
@@ -2701,6 +2644,24 @@ namespace PaDDY
                         OpenFolderInSecondaryWindow(currentPage);
                     }
                 };
+
+                var contextMenu = new System.Windows.Controls.ContextMenu();
+                var openItem = new System.Windows.Controls.MenuItem { Header = "Open" };
+                openItem.Click += (_, _) => OpenFolderInSecondaryWindow(currentPage);
+                contextMenu.Items.Add(openItem);
+
+                if (!page.IsFavorites)
+                {
+                    var renameItem = new System.Windows.Controls.MenuItem { Header = "Rename" };
+                    renameItem.Click += (_, _) => RenamePadPage(currentPage);
+                    contextMenu.Items.Add(renameItem);
+
+                    var deleteItem = new System.Windows.Controls.MenuItem { Header = "Delete" };
+                    deleteItem.Click += (_, _) => DeletePadPage(currentPage);
+                    contextMenu.Items.Add(deleteItem);
+                }
+
+                tab.ContextMenu = contextMenu;
                 tab.AllowDrop = true;
                 tab.DragOver += (_, ev) =>
                 {
@@ -2904,27 +2865,43 @@ namespace PaDDY
 
         private void RenamePadPageButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_activePadPage == null || _activePadPage.IsFavorites) return;
-            var dlg = new Controls.RenameDialog(_activePadPage.Name) { Owner = this };
+            if (_activePadPage != null)
+                RenamePadPage(_activePadPage);
+        }
+
+        private void RenamePadPage(PadPage page)
+        {
+            if (page.IsFavorites) return;
+            var dlg = new Controls.RenameDialog(page.Name) { Owner = this };
             if (dlg.ShowDialog() != true) return;
             string name = dlg.NewName.Trim();
             if (string.IsNullOrEmpty(name)) return;
 
-            _activePadPage.Name = name;
+            page.Name = name;
             _settings.Save();
             BuildPadPageTabs();
+
+            if (_secondaryFolderWindows.TryGetValue(page.Id, out var window) && window.IsLoaded)
+                window.RefreshPageTitle();
         }
 
         private void DeletePadPageButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_activePadPage == null || _activePadPage.IsFavorites) return;
+            if (_activePadPage != null)
+                DeletePadPage(_activePadPage);
+        }
+
+        private void DeletePadPage(PadPage page)
+        {
+            if (page.IsFavorites) return;
 
             var confirm = System.Windows.MessageBox.Show(
-                $"Delete page \"{_activePadPage.Name}\"? Its pads will move back to Favorites.",
+                $"Delete page \"{page.Name}\"? Its pads will move back to Favorites.",
                 "Delete Pad Page", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm != MessageBoxResult.Yes) return;
 
-            string deletedId = _activePadPage.Id;
+            string deletedId = page.Id;
+            bool wasActive = _activePadPage?.Id == deletedId;
             _recordingStore.ClearPadPage(deletedId);
 
             foreach (var btn in _padCache.Values)
@@ -2935,11 +2912,22 @@ namespace PaDDY
                 }
             }
 
+            if (_secondaryFolderWindows.TryGetValue(deletedId, out var window))
+                window.Close();
+
             _settings.PadPages.RemoveAll(p => p.Id == deletedId);
             var favorites = _settings.EnsurePadPages();
-            _settings.ActivePadPageId = favorites.Id;
-            _settings.Save();
-            SwitchToPadPage(favorites.Id);
+            if (wasActive)
+            {
+                SwitchToPadPage(favorites.Id);
+            }
+            else
+            {
+                _settings.Save();
+                BuildPadPageTabs();
+                ReloadFavoritesPanel();
+                UpdatePadState();
+            }
         }
 
         private async Task PreloadAllPadsAsync()
@@ -3053,7 +3041,7 @@ namespace PaDDY
             FavoriteCountLabel.Text = $" — {favCount}";
             bool hasFavorites = favCount > 0;
             bool hasExtraPages = _settings.PadPages != null && _settings.PadPages.Count > 1;
-            
+
             bool isFavCollapsed = _settings.FavoritesPanelCollapsed;
             bool isRecCollapsed = _settings.RecordingsPanelCollapsed;
 
@@ -3678,10 +3666,10 @@ namespace PaDDY
             }
             if (failedCount > 0)
             {
-                System.Windows.MessageBox.Show(this, 
-                    $"{failedCount} file(s) could not be imported due to unsupported audio encoding.", 
-                    "Import Warning", 
-                    System.Windows.MessageBoxButton.OK, 
+                System.Windows.MessageBox.Show(this,
+                    $"{failedCount} file(s) could not be imported due to unsupported audio encoding.",
+                    "Import Warning",
+                    System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
             }
         }

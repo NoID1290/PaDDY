@@ -40,6 +40,10 @@ internal static class AppDataPaths
 
     public static string PlaybackTempDir => Path.Combine(Path.GetTempPath(), "paddy-tmp");
 
+    public static string ManagedVst2Folder => Path.Combine(AppDataRoot, "Plugins", "VST2");
+
+    public static string ManagedVst3Folder => Path.Combine(AppDataRoot, "Plugins", "VST3");
+
     public static void EnsureAppDataRoot()
     {
         Directory.CreateDirectory(AppDataRoot);

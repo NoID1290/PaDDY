@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -35,8 +37,10 @@ namespace PaDDY
         private IWavePlayer? _player;
         private IUnifiedAudioReader? _reader;
         private System.Windows.Threading.DispatcherTimer? _timecodeTimer;
+        private System.Windows.Threading.DispatcherTimer? _waveformResizeTimer;
         private bool _isPreviewing;
         private bool _isStoppingPreview;
+        private bool _isClipping;
 
         // Tracks the playback start wall-clock time and start position for animation restart on resize
         private DateTime _playbackStartedAt;
@@ -73,6 +77,7 @@ namespace PaDDY
         private ResizeMode _preFullscreenResizeMode;
         private Rect _preFullscreenBounds;
         private double _preFullscreenChromeHeight;
+        private bool _preFullscreenTopmost;
 
         // Stored waveform peaks for gain-responsive re-render
         private (float min, float max)[]? _originalPeaks;
@@ -124,7 +129,7 @@ namespace PaDDY
             bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
         {
             InitializeComponent();
-            
+
             VstSection.Visibility = Visibility.Visible;
             App.DebugModeChanged += OnDebugModeChanged;
 
@@ -143,8 +148,9 @@ namespace PaDDY
             StateChanged += OnStateChanged;
             WaveformGrid.SizeChanged += WaveformGrid_SizeChanged;
             ThemeManager.ThemeChanged += OnThemeChanged;
-            Closed += (_, _) => 
+            Closed += (_, _) =>
             {
+                _waveformResizeTimer?.Stop();
                 StopPreview();
                 App.DebugModeChanged -= OnDebugModeChanged;
                 ThemeManager.ThemeChanged -= OnThemeChanged;
@@ -354,41 +360,60 @@ namespace PaDDY
                 _perClipChain.Add(plugin);
             }
 
-            // Load user-configured plugins (if different from defaults)
+            // Load legacy and managed user plugins (if different from defaults).
             var settings = AppSettings.Load();
-            var userVst2 = VstPluginManager.TryLoadUserPlugin(settings.VstPluginPath);
-            if (userVst2 != null && !IsPluginAlreadyLoaded(userVst2.Name))
+            var userPluginPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(settings.VstPluginPath))
+                userPluginPaths.Add(settings.VstPluginPath);
+            if (!string.IsNullOrWhiteSpace(settings.Vst3PluginPath))
+                userPluginPaths.Add(settings.Vst3PluginPath);
+            foreach (string path in settings.UserVstPluginPaths ?? new List<string>())
             {
-                _vstEffects.Add(userVst2);
-                _perClipChain.Add(userVst2);
-            }
-            else
-            {
-                (userVst2 as IDisposable)?.Dispose();
-            }
-
-            var userVst3 = VstPluginManager.TryLoadUserPlugin(settings.Vst3PluginPath);
-            if (userVst3 != null && !IsPluginAlreadyLoaded(userVst3.Name))
-            {
-                _vstEffects.Add(userVst3);
-                _perClipChain.Add(userVst3);
-            }
-            else
-            {
-                (userVst3 as IDisposable)?.Dispose();
+                if (!string.IsNullOrWhiteSpace(path))
+                    userPluginPaths.Add(path);
             }
 
-            // Update UI
-            if (_vstEffects.Count > 0)
+            foreach (string path in userPluginPaths)
             {
-                var names = new List<string>();
-                foreach (var vst in _vstEffects)
-                    names.Add(vst.Name);
-                VstNameLabel.Text = string.Join(", ", names);
-                ShowVstEditorButton.IsEnabled = true;
+                var plugin = VstPluginManager.TryLoadUserPlugin(path);
+                if (plugin != null && !IsPluginAlreadyLoaded(plugin.Name))
+                {
+                    _vstEffects.Add(plugin);
+                    _perClipChain.Add(plugin);
+                }
+                else
+                {
+                    (plugin as IDisposable)?.Dispose();
+                }
             }
+
+            PopulateVstPluginRack();
 
             AudioEditorLoadingOverlay.Hide(instantly: true);
+        }
+
+        private void PopulateVstPluginRack()
+        {
+            VstPluginRackPanel.Children.Clear();
+            VstNameLabel.Text = _vstEffects.Count == 0
+                ? "No VST Plugin Loaded"
+                : $"{_vstEffects.Count} plugin{(_vstEffects.Count == 1 ? string.Empty : "s")} available";
+            ShowVstEditorButton.IsEnabled = _vstEffects.Count > 0;
+
+            foreach (var plugin in _vstEffects)
+            {
+                var toggle = new System.Windows.Controls.CheckBox
+                {
+                    Content = plugin.Name,
+                    IsChecked = plugin.IsEnabled,
+                    Margin = new Thickness(0, 3, 0, 3),
+                    FontSize = 11,
+                    Foreground = (System.Windows.Media.Brush)FindResource("PrimaryTextBrush")
+                };
+                toggle.Checked += (_, _) => plugin.IsEnabled = true;
+                toggle.Unchecked += (_, _) => plugin.IsEnabled = false;
+                VstPluginRackPanel.Children.Add(toggle);
+            }
         }
 
         private void WaveformGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -397,9 +422,37 @@ namespace PaDDY
                 return;
 
             _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
-            UpdatePeaksForWidth((int)_waveformWidth);
-            RenderWaveformFromPeaks();
+            ScheduleWaveformResizeRender();
+        }
+
+        private void ScheduleWaveformResizeRender()
+        {
+            _waveformResizeTimer ??= new System.Windows.Threading.DispatcherTimer(
+                TimeSpan.FromMilliseconds(75),
+                System.Windows.Threading.DispatcherPriority.Background,
+                (_, _) => RenderWaveformAfterResize(),
+                Dispatcher);
+
+            _waveformResizeTimer.Stop();
+            _waveformResizeTimer.Start();
+        }
+
+        private void RenderWaveformAfterResize()
+        {
+            _waveformResizeTimer?.Stop();
+            _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
+            int width = (int)_waveformWidth;
+            int height = (int)WaveformGrid.ActualHeight;
+            if (width <= 0 || height <= 0) return;
+
+            if (_originalPeaks?.Length != width)
+                UpdatePeaksForWidth(width);
+
+            if (_lastRenderedWaveformWidth != width || _lastRenderedWaveformHeight != height)
+                RenderWaveformFromPeaks();
+
             UpdateHandlePositions();
+            UpdateTimeLabels();
 
             if (_isPreviewing)
             {
@@ -438,6 +491,11 @@ namespace PaDDY
             }
             UpdateWaveformZoom();
             UpdateTimeLabels();
+        }
+
+        private void ResetZoom_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomSlider.Value = 1.0;
         }
 
         private void WaveformScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -542,6 +600,9 @@ namespace PaDDY
         }
 
         private WriteableBitmap? _waveformBmp;
+        private byte[]? _waveformPixels;
+        private int _lastRenderedWaveformWidth;
+        private int _lastRenderedWaveformHeight;
 
         private void RenderWaveformFromPeaks()
         {
@@ -565,51 +626,48 @@ namespace PaDDY
 
             int stride = width * 4;
             int byteCount = stride * height;
-            byte[] pixels = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
+            if (_waveformPixels == null || _waveformPixels.Length < byteCount)
+                _waveformPixels = new byte[byteCount];
+            byte[] pixels = _waveformPixels;
 
-            try
+            Array.Clear(pixels, 0, byteCount);
+            int midY = height / 2;
+
+            // Draw centre line using a dimmed version of the accent color
+            byte centreR = (byte)(aR * 0.22f);
+            byte centreG = (byte)(aG * 0.22f);
+            byte centreB = (byte)(aB * 0.22f);
+            for (int x = 0; x < width; x++)
+                SetPixel(pixels, stride, x, midY, centreR, centreG, centreB, 0xFF);
+
+            // Draw waveform with gain applied
+            int peakLen = _originalPeaks.Length;
+            for (int x = 0; x < width && x < peakLen; x++)
             {
-                Array.Clear(pixels, 0, byteCount);
-                int midY = height / 2;
+                float pMin = Math.Clamp(_originalPeaks[x].min * gainFactor, -1f, 1f);
+                float pMax = Math.Clamp(_originalPeaks[x].max * gainFactor, -1f, 1f);
 
-                // Draw centre line using a dimmed version of the accent color
-                byte centreR = (byte)(aR * 0.22f);
-                byte centreG = (byte)(aG * 0.22f);
-                byte centreB = (byte)(aB * 0.22f);
-                for (int x = 0; x < width; x++)
-                    SetPixel(pixels, stride, x, midY, centreR, centreG, centreB, 0xFF);
+                int yTop = midY - (int)(pMax * midY);
+                int yBot = midY - (int)(pMin * midY);
 
-                // Draw waveform with gain applied
-                int peakLen = _originalPeaks.Length;
-                for (int x = 0; x < width && x < peakLen; x++)
+                yTop = Math.Clamp(yTop, 0, height - 1);
+                yBot = Math.Clamp(yBot, 0, height - 1);
+
+                for (int y = yTop; y <= yBot; y++)
                 {
-                    float pMin = Math.Clamp(_originalPeaks[x].min * gainFactor, -1f, 1f);
-                    float pMax = Math.Clamp(_originalPeaks[x].max * gainFactor, -1f, 1f);
-
-                    int yTop = midY - (int)(pMax * midY);
-                    int yBot = midY - (int)(pMin * midY);
-
-                    yTop = Math.Clamp(yTop, 0, height - 1);
-                    yBot = Math.Clamp(yBot, 0, height - 1);
-
-                    for (int y = yTop; y <= yBot; y++)
-                    {
-                        // Bright near the centre, slightly dimmer at the amplitude peaks
-                        float dist = Math.Abs(y - midY) / (float)midY;
-                        float brightness = 0.92f - dist * 0.38f;
-                        byte r = (byte)Math.Clamp(aR * brightness, 0, 255);
-                        byte g = (byte)Math.Clamp(aG * brightness, 0, 255);
-                        byte b = (byte)Math.Clamp(aB * brightness, 0, 255);
-                        SetPixel(pixels, stride, x, y, r, g, b, 0xFF);
-                    }
+                    // Bright near the centre, slightly dimmer at the amplitude peaks
+                    float dist = Math.Abs(y - midY) / (float)midY;
+                    float brightness = 0.92f - dist * 0.38f;
+                    byte r = (byte)Math.Clamp(aR * brightness, 0, 255);
+                    byte g = (byte)Math.Clamp(aG * brightness, 0, 255);
+                    byte b = (byte)Math.Clamp(aB * brightness, 0, 255);
+                    SetPixel(pixels, stride, x, y, r, g, b, 0xFF);
                 }
+            }
 
-                _waveformBmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
-            }
-            finally
-            {
-                System.Buffers.ArrayPool<byte>.Shared.Return(pixels);
-            }
+            _waveformBmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+            _lastRenderedWaveformWidth = width;
+            _lastRenderedWaveformHeight = height;
         }
 
         /// <summary>
@@ -832,21 +890,35 @@ namespace PaDDY
 
         private void ChromeMaximize_Click(object sender, RoutedEventArgs e)
         {
+            if (_isFullscreen)
+            {
+                ExitFullscreen();
+                return;
+            }
+
             if (WindowState == WindowState.Maximized)
-            {
                 SystemCommands.RestoreWindow(this);
-            }
             else
-            {
                 SystemCommands.MaximizeWindow(this);
-            }
         }
 
         private void OnStateChanged(object? sender, EventArgs e)
         {
+            if (!_isFullscreen)
+            {
+                // CanResize (not NoResize) when maximized: it hides the resize grip while
+                // keeping WS_THICKFRAME, so Windows maximizes to the work area instead of
+                // treating the window as fullscreen (which would cover the taskbar).
+                ResizeMode desiredResizeMode = WindowState == WindowState.Maximized
+                    ? ResizeMode.CanResize
+                    : ResizeMode.CanResizeWithGrip;
+                if (ResizeMode != desiredResizeMode)
+                    ResizeMode = desiredResizeMode;
+            }
+
             if (ChromeMaxIcon != null && ChromeMaxRestoreBtn != null)
             {
-                if (WindowState == WindowState.Maximized)
+                if (_isFullscreen || WindowState == WindowState.Maximized)
                 {
                     ChromeMaxIcon.Text = "\uE923";
                     ChromeMaxRestoreBtn.ToolTip = "Restore";
@@ -857,18 +929,6 @@ namespace PaDDY
                     ChromeMaxRestoreBtn.ToolTip = "Maximize";
                 }
             }
-
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
-            {
-                _waveformWidth = Math.Max(WaveformGrid.ActualWidth, 0);
-                if (_waveformWidth > 0)
-                {
-                    UpdatePeaksForWidth((int)_waveformWidth);
-                    RenderWaveformFromPeaks();
-                    UpdateHandlePositions();
-                    UpdateTimeLabels();
-                }
-            }));
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e) => Close();
@@ -894,6 +954,7 @@ namespace PaDDY
             _preFullscreenWindowStyle = WindowStyle;
             _preFullscreenResizeMode = ResizeMode;
             _preFullscreenBounds = new Rect(Left, Top, Width, Height);
+            _preFullscreenTopmost = Topmost;
 
             var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
             _preFullscreenChromeHeight = chrome?.CaptionHeight ?? 36;
@@ -909,7 +970,10 @@ namespace PaDDY
             if (chrome != null)
                 chrome.CaptionHeight = 0;
 
-            WindowState = WindowState.Maximized;
+            WindowState = WindowState.Normal;
+            if (!TryApplyFullscreenBounds())
+                WindowState = WindowState.Maximized;
+            Topmost = true;
             _isFullscreen = true;
 
             // Update maximize button icon to reflect state
@@ -919,6 +983,8 @@ namespace PaDDY
             // Update fullscreen button
             ChromeFullscreenIcon.Text = "\uE73F"; // Exit fullscreen icon
             ChromeFullscreenBtn.ToolTip = "Exit Fullscreen (F11)";
+
+            ScheduleWaveformResizeRender();
         }
 
         private void ExitFullscreen()
@@ -936,6 +1002,7 @@ namespace PaDDY
             WindowState = WindowState.Normal;
             WindowStyle = _preFullscreenWindowStyle;
             ResizeMode = _preFullscreenResizeMode;
+            Topmost = _preFullscreenTopmost;
 
             // Restore position and size
             Left = _preFullscreenBounds.Left;
@@ -961,6 +1028,104 @@ namespace PaDDY
             // Update fullscreen button
             ChromeFullscreenIcon.Text = "\uE740"; // Enter fullscreen icon
             ChromeFullscreenBtn.ToolTip = "Fullscreen (F11)";
+
+            ScheduleWaveformResizeRender();
+        }
+
+        private bool TryApplyFullscreenBounds()
+        {
+            IntPtr hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero)
+                return false;
+
+            var source = PresentationSource.FromVisual(this);
+            if (source?.CompositionTarget == null)
+                return false;
+
+            var screen = System.Windows.Forms.Screen.FromHandle(hwnd);
+            var bounds = screen.Bounds;
+
+            // Screen.Bounds is in physical pixels; Window Left/Top/Width/Height are DIPs.
+            // Without this conversion the window overshoots the screen on scaled displays.
+            var toDip = source.CompositionTarget.TransformFromDevice;
+            var topLeft = toDip.Transform(new System.Windows.Point(bounds.Left, bounds.Top));
+            var bottomRight = toDip.Transform(new System.Windows.Point(bounds.Right, bounds.Bottom));
+
+            Left = topLeft.X;
+            Top = topLeft.Y;
+            Width = bottomRight.X - topLeft.X;
+            Height = bottomRight.Y - topLeft.Y;
+            return true;
+        }
+
+        // ── Maximize bounds (keep taskbar visible with custom chrome) ─────────
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            var source = (HwndSource?)PresentationSource.FromVisual(this);
+            source?.AddHook(WindowProc);
+        }
+
+        private static IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_GETMINMAXINFO = 0x0024;
+            if (msg == WM_GETMINMAXINFO)
+                ClampMaximizedBoundsToWorkArea(hwnd, lParam);
+            return IntPtr.Zero;
+        }
+
+        // With WindowChrome, WPF maximizes the window larger than the monitor (overhang
+        // by the resize border) and content bleeds offscreen/under the taskbar. Clamp
+        // the maximized size/position to the current monitor's work area instead.
+        private static void ClampMaximizedBoundsToWorkArea(IntPtr hwnd, IntPtr lParam)
+        {
+            const int MONITOR_DEFAULTTONEAREST = 0x0002;
+            IntPtr monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            if (monitor == IntPtr.Zero)
+                return;
+
+            var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+            if (!GetMonitorInfo(monitor, ref mi))
+                return;
+
+            var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+            mmi.ptMaxPosition.X = mi.rcWork.Left - mi.rcMonitor.Left;
+            mmi.ptMaxPosition.Y = mi.rcWork.Top - mi.rcMonitor.Top;
+            mmi.ptMaxSize.X = mi.rcWork.Right - mi.rcWork.Left;
+            mmi.ptMaxSize.Y = mi.rcWork.Bottom - mi.rcWork.Top;
+            Marshal.StructureToPtr(mmi, lParam, true);
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);
+
+        [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativePoint { public int X; public int Y; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeRect { public int Left; public int Top; public int Right; public int Bottom; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MINMAXINFO
+        {
+            public NativePoint ptReserved;
+            public NativePoint ptMaxSize;
+            public NativePoint ptMaxPosition;
+            public NativePoint ptMinTrackSize;
+            public NativePoint ptMaxTrackSize;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MONITORINFO
+        {
+            public int cbSize;
+            public NativeRect rcMonitor;
+            public NativeRect rcWork;
+            public int dwFlags;
         }
 
         protected override void OnKeyDown(System.Windows.Input.KeyEventArgs e)
@@ -1639,6 +1804,11 @@ namespace PaDDY
                 return;
             }
 
+            StartPreview();
+        }
+
+        private void StartPreview()
+        {
             try
             {
                 _reader = AudioReaderFactory.Open(_filePath);
@@ -1699,7 +1869,17 @@ namespace PaDDY
 
         private void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() => StopPreview(false)));
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                bool shouldLoop = e.Exception == null &&
+                                  _isPreviewing &&
+                                  LoopToggle.IsChecked == true;
+
+                StopPreview(false);
+
+                if (shouldLoop && IsLoaded)
+                    StartPreview();
+            }));
         }
 
         private static ISampleProvider BuildPlaybackSource(ISampleProvider source)
@@ -1791,12 +1971,24 @@ namespace PaDDY
             var snapshot = (float[])e.MaxSampleValues.Clone();
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                if (!_isClipping && Array.Exists(snapshot, sample => sample >= 1.0f))
+                {
+                    _isClipping = true;
+                    ClipAlertButton.Visibility = Visibility.Visible;
+                }
+
                 UpdateVertMeter(snapshot);
                 if (snapshot.Length > 0)
                 {
                     MasterSpectrumVisualizer?.SetAudioLevel(snapshot[0]);
                 }
             }));
+        }
+
+        private void ResetClipAlert_Click(object sender, RoutedEventArgs e)
+        {
+            _isClipping = false;
+            ClipAlertButton.Visibility = Visibility.Collapsed;
         }
 
         private void EnsureVertMeterChannels(int channelCount)
