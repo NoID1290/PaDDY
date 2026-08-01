@@ -49,6 +49,7 @@ namespace PaDDY
         public bool AutoScanVstFolders { get; set; } = false;
         public List<string> VstScanFolders { get; set; } = new();
         public List<string> DisabledVstPluginPaths { get; set; } = new();
+        public List<string> PendingDeletedVstPluginPaths { get; set; } = new();
 
         // Sort order for the recordings pad panel
         // 0 = Newest first, 1 = Oldest first, 2 = Name A→Z, 3 = Name Z→A, 4 = Longest, 5 = Shortest
@@ -162,7 +163,11 @@ namespace PaDDY
                 {
                     var bytes = File.ReadAllBytes(AppDataPaths.SettingsPath);
                     var s = MessagePackSerializer.Deserialize<AppSettings>(bytes, SerializerOptions);
-                    if (s != null) return s;
+                    if (s != null)
+                    {
+                        s.MigrateLegacyVstPaths();
+                        return s;
+                    }
                 }
 
                 if (AppDataPaths.TryMigrateLegacyFile(AppDataPaths.LegacySettingsPath, AppDataPaths.SettingsPath) &&
@@ -170,7 +175,11 @@ namespace PaDDY
                 {
                     var bytes = File.ReadAllBytes(AppDataPaths.SettingsPath);
                     var s = MessagePackSerializer.Deserialize<AppSettings>(bytes, SerializerOptions);
-                    if (s != null) return s;
+                    if (s != null)
+                    {
+                        s.MigrateLegacyVstPaths();
+                        return s;
+                    }
                 }
 
                 // Migrate from old %LocalAppData%\PaDDY location.
@@ -179,7 +188,11 @@ namespace PaDDY
                 {
                     var bytes = File.ReadAllBytes(AppDataPaths.SettingsPath);
                     var s = MessagePackSerializer.Deserialize<AppSettings>(bytes, SerializerOptions);
-                    if (s != null) return s;
+                    if (s != null)
+                    {
+                        s.MigrateLegacyVstPaths();
+                        return s;
+                    }
                 }
 
                 // Migrate once from legacy JSON settings if present.
@@ -189,6 +202,7 @@ namespace PaDDY
                     var migrated = JsonSerializer.Deserialize<AppSettings>(json);
                     if (migrated != null)
                     {
+                        migrated.MigrateLegacyVstPaths();
                         migrated.Save();
                         return migrated;
                     }
@@ -208,6 +222,24 @@ namespace PaDDY
                 File.WriteAllBytes(AppDataPaths.SettingsPath, bytes);
             }
             catch { /* non-critical */ }
+        }
+
+        /// <summary>
+        /// Moves the legacy single VST2 path into <see cref="UserVstPluginPaths"/>
+        /// so the settings dialog can manage multiple plugins.
+        /// </summary>
+        private void MigrateLegacyVstPaths()
+        {
+            UserVstPluginPaths ??= new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(VstPluginPath))
+            {
+                if (!UserVstPluginPaths.Contains(VstPluginPath, StringComparer.OrdinalIgnoreCase))
+                    UserVstPluginPaths.Add(VstPluginPath);
+                VstPluginPath = string.Empty;
+            }
+
+            UserVstPluginPaths.RemoveAll(string.IsNullOrWhiteSpace);
         }
 
         /// <summary>

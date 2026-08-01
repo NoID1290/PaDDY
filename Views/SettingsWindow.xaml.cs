@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -89,6 +91,15 @@ namespace PaDDY
         private bool _capturingKey;
         private bool _isChangingNonDestructiveGlobal;
 
+        private readonly ObservableCollection<VstPluginListItem> _vst2PluginItems = new();
+
+        private class VstPluginListItem
+        {
+            public string FullPath { get; set; } = string.Empty;
+            public string Name => System.IO.Path.GetFileName(FullPath);
+            public string SizeText { get; set; } = "--";
+        }
+
         // Win32 ModKey flags
         private const uint MOD_SHIFT = 0x0004;
         private const uint MOD_CONTROL = 0x0002;
@@ -98,6 +109,9 @@ namespace PaDDY
         {
             _settings = settings;
             InitializeComponent();
+
+            Vst2PluginsListBox.ItemsSource = _vst2PluginItems;
+            Vst2PluginsListBox.SelectionChanged += (_, _) => DeleteVst2Button.IsEnabled = Vst2PluginsListBox.SelectedItem != null;
 
             VstSettingsPanel.Visibility = Visibility.Visible;
             Vst3PluginRow.Visibility = App.IsDebugMode ? Visibility.Visible : Visibility.Collapsed;
@@ -151,7 +165,7 @@ namespace PaDDY
             NewRecordingsNonDestructiveCheck.Unchecked += NewRecordingsNonDestructiveCheck_Unchecked;
 
             // VST Plugin path
-            VstPluginPathTextBox.Text = _settings.VstPluginPath;
+            RefreshVst2PluginList();
             Vst3PluginPathTextBox.Text = _settings.Vst3PluginPath;
 
             // Loudness Normalization
@@ -586,7 +600,7 @@ namespace PaDDY
             SelectedAutoInstallUpdates = AutoInstallUpdatesCheck.IsChecked == true;
             SelectedDownloadBetaUpdates = DownloadBetaUpdatesCheck.IsChecked == true;
 
-            _settings.VstPluginPath = VstPluginPathTextBox.Text;
+            _settings.VstPluginPath = string.Empty;
             _settings.Vst3PluginPath = Vst3PluginPathTextBox.Text;
             _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
             _settings.TargetLoudnessLufs = Math.Round(TargetLufsSlider.Value, 1);
@@ -866,7 +880,7 @@ namespace PaDDY
             // Unregister or disconnect immediately if desired, but applied on save
         }
 
-        private void BrowseVstButton_Click(object sender, RoutedEventArgs e)
+        private void AddVst2Button_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
@@ -875,37 +889,219 @@ namespace PaDDY
                 Multiselect = true
             };
 
-            if (dlg.ShowDialog(this) == true)
+            if (dlg.ShowDialog(this) != true)
+                return;
+
+            try
             {
-                try
-                {
-                    Directory.CreateDirectory(AppDataPaths.ManagedVst2Folder);
-                    var imported = new List<string>();
+                Directory.CreateDirectory(AppDataPaths.ManagedVst2Folder);
+                int addedCount = 0;
 
-                    foreach (string sourcePath in dlg.FileNames)
+                foreach (string sourcePath in dlg.FileNames)
+                {
+                    string destinationPath = Path.Combine(
+                        AppDataPaths.ManagedVst2Folder,
+                        Path.GetFileName(sourcePath));
+                    File.Copy(sourcePath, destinationPath, overwrite: true);
+
+                    if (!_settings.UserVstPluginPaths.Contains(destinationPath, StringComparer.OrdinalIgnoreCase))
                     {
-                        string destinationPath = Path.Combine(
-                            AppDataPaths.ManagedVst2Folder,
-                            Path.GetFileName(sourcePath));
-                        File.Copy(sourcePath, destinationPath, overwrite: true);
-                        imported.Add(destinationPath);
-
-                        if (!_settings.UserVstPluginPaths.Contains(destinationPath, StringComparer.OrdinalIgnoreCase))
-                            _settings.UserVstPluginPaths.Add(destinationPath);
+                        _settings.UserVstPluginPaths.Add(destinationPath);
+                        addedCount++;
                     }
-
-                    if (imported.Count > 0)
-                        VstPluginPathTextBox.Text = imported[0];
                 }
-                catch (Exception ex)
+
+                if (addedCount > 0)
                 {
-                    System.Windows.MessageBox.Show(
-                        $"Could not import VST2 plugin:\n{ex.Message}",
-                        "PaDDY",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                    RefreshVst2PluginList();
+                    Vst2PluginsListBox.SelectedIndex = _vst2PluginItems.Count - 1;
                 }
             }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Could not import VST2 plugin:\n{ex.Message}",
+                    "PaDDY",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private void DeleteVst2Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (Vst2PluginsListBox.SelectedItem is not VstPluginListItem item)
+                return;
+
+            var confirmDlg = new PaDDY.Controls.ConfirmDialog(
+                "Delete VST2 Plugin",
+                $"Remove '{item.Name}' from the managed VST plugins?");
+            if (confirmDlg.ShowDialog(this) != true)
+                return;
+
+            bool isManaged = item.FullPath.StartsWith(AppDataPaths.ManagedVst2Folder, StringComparison.OrdinalIgnoreCase);
+            bool deleted = isManaged && TryDeleteVstItem(item.FullPath);
+
+            if (isManaged && !deleted)
+            {
+                var restartDlg = new PaDDY.Controls.RestartRequiredDialog(
+                    "Plugin in use",
+                    $"'{item.Name}' is currently loaded by PaDDY and cannot be deleted right now.");
+                if (restartDlg.ShowDialog(this) != true)
+                    return;
+
+                _settings.PendingDeletedVstPluginPaths ??= new List<string>();
+                if (!_settings.PendingDeletedVstPluginPaths.Contains(item.FullPath, StringComparer.OrdinalIgnoreCase))
+                    _settings.PendingDeletedVstPluginPaths.Add(item.FullPath);
+
+                // Persist immediately so the pending deletion survives a restart or crash.
+                _settings.Save();
+
+                if (restartDlg.Action == PaDDY.Controls.RestartRequiredDialog.RestartAction.RestartNow)
+                    RestartApplication();
+            }
+
+            int idx = _settings.UserVstPluginPaths.FindIndex(
+                p => p.Equals(item.FullPath, StringComparison.OrdinalIgnoreCase));
+            if (idx >= 0)
+                _settings.UserVstPluginPaths.RemoveAt(idx);
+
+            RefreshVst2PluginList();
+        }
+
+        /// <summary>
+        /// Attempts to delete a VST file or bundle directory.
+        /// Returns true on success, false if the item is locked or inaccessible.
+        /// </summary>
+        private static bool TryDeleteVstItem(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    // If we can't open the file with Delete sharing, another process (or PaDDY itself) has it loaded.
+                    if (IsFileLocked(path))
+                        return false;
+
+                    File.Delete(path);
+                    return true;
+                }
+
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, recursive: true);
+                    return true;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool IsFileLocked(string path)
+        {
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Delete);
+                return false;
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private static void RestartApplication()
+        {
+            try
+            {
+                var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                if (string.IsNullOrEmpty(exePath))
+                    exePath = AppContext.BaseDirectory;
+
+                // Published .dll path resolves to the .exe when starting the app.
+                if (exePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    string possibleExe = System.IO.Path.ChangeExtension(exePath, ".exe");
+                    if (File.Exists(possibleExe))
+                        exePath = possibleExe;
+                }
+
+                Process.Start(new ProcessStartInfo(exePath)
+                {
+                    UseShellExecute = true
+                });
+
+                System.Windows.Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                var errDlg = new PaDDY.Controls.InfoDialog(
+                    "Restart PaDDY",
+                    $"Could not restart PaDDY:\n{ex.Message}");
+                errDlg.ShowDialog();
+            }
+        }
+
+        private void RefreshVst2PluginList()
+        {
+            _vst2PluginItems.Clear();
+            long totalBytes = 0;
+
+            foreach (string path in _settings.UserVstPluginPaths?
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Distinct(StringComparer.OrdinalIgnoreCase) ?? Enumerable.Empty<string>())
+            {
+                long size = GetVstItemSize(path);
+                totalBytes += size;
+                _vst2PluginItems.Add(new VstPluginListItem
+                {
+                    FullPath = path,
+                    SizeText = FormatBytes(size)
+                });
+            }
+
+            Vst2TotalSizeText.Text = totalBytes > 0
+                ? $"Total: {FormatBytes(totalBytes)}"
+                : "Total: 0 B";
+            DeleteVst2Button.IsEnabled = Vst2PluginsListBox.SelectedItem != null;
+        }
+
+        private static long GetVstItemSize(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    return new FileInfo(path).Length;
+
+                if (Directory.Exists(path))
+                {
+                    long size = 0;
+                    foreach (string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+                    {
+                        try { size += new FileInfo(file).Length; }
+                        catch { /* ignore locked files */ }
+                    }
+                    return size;
+                }
+            }
+            catch { /* ignore inaccessible paths */ }
+
+            return 0;
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            const long KB = 1024;
+            const long MB = KB * 1024;
+            const long GB = MB * 1024;
+
+            if (bytes >= GB) return $"{bytes / (double)GB:0.00} GB";
+            if (bytes >= MB) return $"{bytes / (double)MB:0.0} MB";
+            if (bytes >= KB) return $"{bytes / (double)KB:0.0} KB";
+            return bytes > 0 ? $"{bytes} B" : "--";
         }
 
         private void BrowseVst3Button_Click(object sender, RoutedEventArgs e)

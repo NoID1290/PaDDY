@@ -211,24 +211,39 @@
                                         <StackPanel x:Name="VstSettingsPanel" Visibility="Visible">
                                             <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
-                                            <!-- VST2 Plugin Path -->
+                                            <!-- VST2 Plugins -->
                                             <Grid Margin="0,6">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto" MinWidth="240"/>
+                                                    <ColumnDefinition Width="Auto" MinWidth="360"/>
                                                 </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                                    <TextBlock Text="VST2 Plugin Path" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                    <TextBlock Text="Select a .dll VST2 plugin to be available in the Audio Editor." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,0,16,0">
+                                                    <TextBlock Text="VST2 Plugins" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                    <TextBlock Text="Imported .dll plugins are copied to the local app folder and become available in the Audio Editor." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                                 </StackPanel>
-                                                <Grid Grid.Column="1" Width="240" VerticalAlignment="Center">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBox x:Name="VstPluginPathTextBox" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Margin="0,0,6,0" IsReadOnly="True" Background="{DynamicResource InputBgBrush}" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource InputBorderBrush}"/>
-                                                    <Button x:Name="BrowseVstButton" Grid.Column="1" Content="..." Width="32" Height="28" Click="BrowseVstButton_Click"/>
-                                                </Grid>
+                                                <StackPanel Grid.Column="1" Width="360" VerticalAlignment="Top">
+                                                    <Border Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4">
+                                                        <ListBox x:Name="Vst2PluginsListBox" Height="120" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                                            <ListBox.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid Margin="2">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{DynamicResource PrimaryTextBrush}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                                        <TextBlock Grid.Column="1" Text="{Binding SizeText}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </ListBox.ItemTemplate>
+                                                        </ListBox>
+                                                    </Border>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+                                                        <Button x:Name="AddVst2Button" Content="Add..." Width="70" Height="28" Margin="0,0,6,0" Click="AddVst2Button_Click"/>
+                                                        <Button x:Name="DeleteVst2Button" Content="Delete" Width="70" Height="28" Click="DeleteVst2Button_Click"/>
+                                                    </StackPanel>
+                                                    <TextBlock x:Name="Vst2TotalSizeText" FontSize="11" Foreground="#FF8080A8" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                                                </StackPanel>
                                             </Grid>
 
                                             <!-- VST3 Plugin Path (Dev Mode Only) -->

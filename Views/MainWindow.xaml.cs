@@ -488,6 +488,32 @@ namespace PaDDY
                 currentSettings.Vst3PluginPath = string.Empty;
                 vstSettingsChanged = true;
             }
+
+            if (currentSettings.PendingDeletedVstPluginPaths is { Count: > 0 } pendingPaths)
+            {
+                foreach (string path in pendingPaths.ToList())
+                {
+                    try
+                    {
+                        if (File.Exists(path))
+                            File.Delete(path);
+                        else if (Directory.Exists(path))
+                            Directory.Delete(path, recursive: true);
+                    }
+                    catch
+                    {
+                        // If still locked, keep it in the pending list for the next run.
+                        continue;
+                    }
+
+                    pendingPaths.Remove(path);
+                }
+
+                currentSettings.UserVstPluginPaths.RemoveAll(
+                    p => !string.IsNullOrWhiteSpace(p) && !File.Exists(p) && !Directory.Exists(p));
+                vstSettingsChanged = true;
+            }
+
             if (vstSettingsChanged) currentSettings.Save();
 
             _captureService.RmsLevelChanged += OnRmsChanged;
