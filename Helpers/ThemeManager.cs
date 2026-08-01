@@ -36,35 +36,62 @@ namespace PaDDY.Helpers
         /// <summary>Display name list for the overall theme selector (key, label).</summary>
         public static readonly IReadOnlyList<(string Key, string Label)> Themes =
         [
-            ("system",     "Follow System"),
-            ("dark",       "Dark"),
-            ("light",      "Light"),
-            ("dark-green", "Dark Green"),
-            ("dark-blue",  "Dark Blue"),
-            ("sepia",      "Sepia"),
-            ("dark-pink",  "Dark Pink"),
-            ("dark-sepia", "Dark Sepia"),
-            ("cyberpunk",  "Cyberpunk"),
-            ("nordic-frost","Nordic Frost"),
-            ("sunset",     "Sunset Glow"),
-            ("dracula",    "Obsidian Purple"),
-            ("vista-aero", "Windows Vista Aero"),
-            ("windows-xp", "Windows XP"),
-            ("windows-98", "Windows 98"),
+            ("system",          "Follow System"),
+            ("dark",            "Dark"),
+            ("light",           "Light"),
+            ("dark-green",      "Dark Green"),
+            ("dark-blue",       "Dark Blue"),
+            ("sepia",           "Sepia"),
+            ("dark-pink",       "Dark Pink"),
+            ("dark-sepia",      "Dark Sepia"),
+            ("cyberpunk",       "Cyberpunk"),
+            ("nordic-frost",    "Nordic Frost"),
+            ("sunset",          "Sunset Glow"),
+            ("deep-teal",       "Deep Teal"),
+            ("dracula",         "Obsidian Purple"),
+            ("vista-aero",      "Windows Vista Aero"),
+            ("windows-xp",      "Windows XP"),
+            ("windows-98",      "Windows 98"),
+            ("midnight-oled",   "Midnight OLED"),
+            ("emerald-matrix",  "Emerald Matrix"),
+            ("amethyst-night",  "Amethyst Night"),
+            ("tokyo-neon",      "Tokyo Neon"),
+            ("solarized-dark",  "Solarized Dark"),
+            ("rose-gold",       "Rose Gold & Charcoal"),
+            ("ocean-abyss",     "Ocean Abyss"),
+            ("crimson-ember",   "Crimson Ember"),
+            ("pastel-dream",    "Pastel Dream"),
+            ("mocha-latte",     "Mocha Latte"),
+            ("acid-cyber",      "Acid Cyber"),
+            ("monochrome-slate","Monochrome Slate"),
+            ("synthwave-80s",   "Synthwave 80s"),
+            ("bioluminescence", "Bioluminescence"),
+            ("arctic-ice",      "Arctic Ice"),
         ];
 
         /// <summary>Display name list for the meter skin selector (key, label).</summary>
         public static readonly IReadOnlyList<(string Key, string Label)> MeterSkins =
         [
-            ("default",    "Default"),
-            ("8bit",       "8-bit"),
-            ("70s",        "70s Look"),
-            ("neon",       "Neon"),
-            ("grayscale",  "Grayscale"),
-            ("inferno",    "Inferno"),
-            ("aurora",     "Aurora"),
+            ("default",     "Default"),
+            ("8bit",        "8-bit"),
+            ("70s",         "70s Look"),
+            ("neon",        "Neon"),
+            ("grayscale",   "Grayscale"),
+            ("inferno",     "Inferno"),
+            ("aurora",      "Aurora"),
             ("cyber-sunset","Cyber Sunset"),
-            ("forest",     "Forest Moss"),
+            ("forest",      "Forest Moss"),
+            ("toxic",       "Toxic"),
+            ("vaporwave",   "Vaporwave"),
+            ("plasma",      "Plasma Fire"),
+            ("matrix",      "Cyber Matrix"),
+            ("solar-flare", "Solar Flare"),
+            ("ocean-wave",  "Ocean Wave"),
+            ("sunset-strip","Synthwave Sunset"),
+            ("vintage-led", "Vintage LED Studio"),
+            ("acid-lime",   "Acid Lime"),
+            ("blood-moon",  "Blood Moon"),
+            ("rainbow",     "Rainbow Spectrum"),
         ];
 
         // resourceKey -> hex colour, per theme.
@@ -457,38 +484,430 @@ namespace PaDDY.Helpers
                 ["MenuHighlightBrush"] = "#FF316AC5",
                 ["MenuSelectedBrush"] = "#FF0055EA",
                 ["DividerBrush"] = "#FFB5C7DE",
-                ["BadgeBgBrush"] = "#FFE1ECF8",
-                ["AccentTitleBrush"] = "#FF0055EA",
-                ["ChromeButtonFgBrush"] = "#FFFFFFFF",
-                ["ScrollThumbBrush"] = "#FF4B87ED",
-            },
-            ["windows-98"] = new()
-            {
-                ["WindowBgBrush"] = "#FFC0C0C0",
-                ["CardBgBrush"] = "#FFC0C0C0",
-                ["CardBorderBrush"] = "#FF808080",
-                ["SubtleTextBrush"] = "#FF555555",
-                ["PrimaryTextBrush"] = "#FF000000",
-                ["SecondaryTextBrush"] = "#FF333333",
-                ["AccentGreenBrush"] = "#FF008000",
-                ["AccentRedBrush"] = "#FFC62828",
-                ["AccentAmberBrush"] = "#FFC08000",
-                ["InputBgBrush"] = "#FFFFFFFF",
-                ["InputBorderBrush"] = "#FF808080",
-                ["WindowEdgeBrush"] = "#FF808080",
-                ["WindowGlowBrush"] = "#FFD4D4D4",
-                ["ControlTextBrush"] = "#FF000000",
-                ["ButtonBgBrush"] = "#FFC0C0C0",
-                ["ButtonHoverBgBrush"] = "#FFD4D4D4",
-                ["ButtonPressedBgBrush"] = "#FFA8A8A8",
-                ["MenuBgBrush"] = "#FFC0C0C0",
-                ["MenuHighlightBrush"] = "#FF000080",
-                ["MenuSelectedBrush"] = "#FF000080",
-                ["DividerBrush"] = "#FF808080",
                 ["BadgeBgBrush"] = "#FFD4D4D4",
                 ["AccentTitleBrush"] = "#FF000080",
                 ["ChromeButtonFgBrush"] = "#FF000000",
                 ["ScrollThumbBrush"] = "#FFC0C0C0",
+            },
+            ["midnight-oled"] = new()
+            {
+                ["WindowBgBrush"] = "#FF000000",
+                ["CardBgBrush"] = "#FF0C0C0E",
+                ["CardBorderBrush"] = "#2CFFB300",
+                ["SubtleTextBrush"] = "#FF808090",
+                ["PrimaryTextBrush"] = "#FFFFFFFF",
+                ["SecondaryTextBrush"] = "#FFD0D0E0",
+                ["AccentGreenBrush"] = "#FF00E676",
+                ["AccentRedBrush"] = "#FFFF3333",
+                ["AccentAmberBrush"] = "#FFFFB300",
+                ["InputBgBrush"] = "#FF060608",
+                ["InputBorderBrush"] = "#2CFFB300",
+                ["WindowEdgeBrush"] = "#2CFFB300",
+                ["WindowGlowBrush"] = "#FF201A00",
+                ["ControlTextBrush"] = "#FFFFE0A0",
+                ["ButtonBgBrush"] = "#FF14141A",
+                ["ButtonHoverBgBrush"] = "#FF242430",
+                ["ButtonPressedBgBrush"] = "#FF0A0A0E",
+                ["MenuBgBrush"] = "#FF08080C",
+                ["MenuHighlightBrush"] = "#FF4A3800",
+                ["MenuSelectedBrush"] = "#FF806000",
+                ["DividerBrush"] = "#1CFFB300",
+                ["BadgeBgBrush"] = "#FF050505",
+                ["AccentTitleBrush"] = "#FFFFC107",
+                ["ChromeButtonFgBrush"] = "#FFD0D0E0",
+                ["ScrollThumbBrush"] = "#FFFFB300",
+            },
+            ["emerald-matrix"] = new()
+            {
+                ["WindowBgBrush"] = "#FF040B06",
+                ["CardBgBrush"] = "#FF09160E",
+                ["CardBorderBrush"] = "#2C00FF66",
+                ["SubtleTextBrush"] = "#FF40A068",
+                ["PrimaryTextBrush"] = "#FFE0FFE8",
+                ["SecondaryTextBrush"] = "#FFA0E6B8",
+                ["AccentGreenBrush"] = "#FF00FF66",
+                ["AccentRedBrush"] = "#FFFF4444",
+                ["AccentAmberBrush"] = "#FFFFC107",
+                ["InputBgBrush"] = "#FF061009",
+                ["InputBorderBrush"] = "#2C00FF66",
+                ["WindowEdgeBrush"] = "#2C00FF66",
+                ["WindowGlowBrush"] = "#FF082814",
+                ["ControlTextBrush"] = "#FFB0F5C8",
+                ["ButtonBgBrush"] = "#FF0E2216",
+                ["ButtonHoverBgBrush"] = "#FF163422",
+                ["ButtonPressedBgBrush"] = "#FF08140C",
+                ["MenuBgBrush"] = "#FF06100A",
+                ["MenuHighlightBrush"] = "#FF144828",
+                ["MenuSelectedBrush"] = "#FF1E703E",
+                ["DividerBrush"] = "#1C00FF66",
+                ["BadgeBgBrush"] = "#FF030804",
+                ["AccentTitleBrush"] = "#FF00FF66",
+                ["ChromeButtonFgBrush"] = "#FFA0E6B8",
+                ["ScrollThumbBrush"] = "#FF00FF66",
+            },
+            ["amethyst-night"] = new()
+            {
+                ["WindowBgBrush"] = "#FF0F0A1A",
+                ["CardBgBrush"] = "#FF181028",
+                ["CardBorderBrush"] = "#2CA855F7",
+                ["SubtleTextBrush"] = "#FF8B6AA8",
+                ["PrimaryTextBrush"] = "#FFF5F0FF",
+                ["SecondaryTextBrush"] = "#FFD8B4FE",
+                ["AccentGreenBrush"] = "#FFA855F7",
+                ["AccentRedBrush"] = "#FFFF4B4B",
+                ["AccentAmberBrush"] = "#FFFFB800",
+                ["InputBgBrush"] = "#FF120C1F",
+                ["InputBorderBrush"] = "#2CA855F7",
+                ["WindowEdgeBrush"] = "#2CA855F7",
+                ["WindowGlowBrush"] = "#FF2C1448",
+                ["ControlTextBrush"] = "#FFE8D5FE",
+                ["ButtonBgBrush"] = "#FF221638",
+                ["ButtonHoverBgBrush"] = "#FF322050",
+                ["ButtonPressedBgBrush"] = "#FF140E22",
+                ["MenuBgBrush"] = "#FF120C20",
+                ["MenuHighlightBrush"] = "#FF4A2478",
+                ["MenuSelectedBrush"] = "#FF7C3AED",
+                ["DividerBrush"] = "#1CA855F7",
+                ["BadgeBgBrush"] = "#FF0B0713",
+                ["AccentTitleBrush"] = "#FFC084FC",
+                ["ChromeButtonFgBrush"] = "#FFD8B4FE",
+                ["ScrollThumbBrush"] = "#FFA855F7",
+            },
+            ["tokyo-neon"] = new()
+            {
+                ["WindowBgBrush"] = "#FF0A0E1A",
+                ["CardBgBrush"] = "#FF121A2D",
+                ["CardBorderBrush"] = "#2CFF007F",
+                ["SubtleTextBrush"] = "#FF5D8AA8",
+                ["PrimaryTextBrush"] = "#FFF0F8FF",
+                ["SecondaryTextBrush"] = "#FFB8E6FF",
+                ["AccentGreenBrush"] = "#FF00F0FF",
+                ["AccentRedBrush"] = "#FFFF007F",
+                ["AccentAmberBrush"] = "#FFFFE600",
+                ["InputBgBrush"] = "#FF0E1424",
+                ["InputBorderBrush"] = "#2C00F0FF",
+                ["WindowEdgeBrush"] = "#2CFF007F",
+                ["WindowGlowBrush"] = "#FF28103A",
+                ["ControlTextBrush"] = "#FFD0F0FF",
+                ["ButtonBgBrush"] = "#FF18243C",
+                ["ButtonHoverBgBrush"] = "#FF243454",
+                ["ButtonPressedBgBrush"] = "#FF101828",
+                ["MenuBgBrush"] = "#FF0E1424",
+                ["MenuHighlightBrush"] = "#FF005580",
+                ["MenuSelectedBrush"] = "#FFCC0066",
+                ["DividerBrush"] = "#1C00F0FF",
+                ["BadgeBgBrush"] = "#FF070B14",
+                ["AccentTitleBrush"] = "#FFFF007F",
+                ["ChromeButtonFgBrush"] = "#FFB8E6FF",
+                ["ScrollThumbBrush"] = "#FF00F0FF",
+            },
+            ["solarized-dark"] = new()
+            {
+                ["WindowBgBrush"] = "#FF002B36",
+                ["CardBgBrush"] = "#FF073642",
+                ["CardBorderBrush"] = "#2C2AA198",
+                ["SubtleTextBrush"] = "#FF586E75",
+                ["PrimaryTextBrush"] = "#FF93A1A1",
+                ["SecondaryTextBrush"] = "#FF839496",
+                ["AccentGreenBrush"] = "#FF2AA198",
+                ["AccentRedBrush"] = "#FFDC322F",
+                ["AccentAmberBrush"] = "#FFB58900",
+                ["InputBgBrush"] = "#FF00212B",
+                ["InputBorderBrush"] = "#2C2AA198",
+                ["WindowEdgeBrush"] = "#2C2AA198",
+                ["WindowGlowBrush"] = "#FF0D4855",
+                ["ControlTextBrush"] = "#FF93A1A1",
+                ["ButtonBgBrush"] = "#FF0A404E",
+                ["ButtonHoverBgBrush"] = "#FF115262",
+                ["ButtonPressedBgBrush"] = "#FF052B34",
+                ["MenuBgBrush"] = "#FF042731",
+                ["MenuHighlightBrush"] = "#FF165E6D",
+                ["MenuSelectedBrush"] = "#FF268BD2",
+                ["DividerBrush"] = "#1C2AA198",
+                ["BadgeBgBrush"] = "#FF001B22",
+                ["AccentTitleBrush"] = "#FF268BD2",
+                ["ChromeButtonFgBrush"] = "#FF839496",
+                ["ScrollThumbBrush"] = "#FF2AA198",
+            },
+            ["rose-gold"] = new()
+            {
+                ["WindowBgBrush"] = "#FF141214",
+                ["CardBgBrush"] = "#FF201C20",
+                ["CardBorderBrush"] = "#2CE0A996",
+                ["SubtleTextBrush"] = "#FFA68A92",
+                ["PrimaryTextBrush"] = "#FFF8F0F2",
+                ["SecondaryTextBrush"] = "#FFE2CFD4",
+                ["AccentGreenBrush"] = "#FFE0A996",
+                ["AccentRedBrush"] = "#FFA64444",
+                ["AccentAmberBrush"] = "#FFE6A15C",
+                ["InputBgBrush"] = "#FF1A171A",
+                ["InputBorderBrush"] = "#2CE0A996",
+                ["WindowEdgeBrush"] = "#2CE0A996",
+                ["WindowGlowBrush"] = "#FF322226",
+                ["ControlTextBrush"] = "#FFEEE0E4",
+                ["ButtonBgBrush"] = "#FF282328",
+                ["ButtonHoverBgBrush"] = "#FF383038",
+                ["ButtonPressedBgBrush"] = "#FF1A171A",
+                ["MenuBgBrush"] = "#FF181518",
+                ["MenuHighlightBrush"] = "#FF503A40",
+                ["MenuSelectedBrush"] = "#FF8C5A66",
+                ["DividerBrush"] = "#1CE0A996",
+                ["BadgeBgBrush"] = "#FF0E0C0E",
+                ["AccentTitleBrush"] = "#FFE0A996",
+                ["ChromeButtonFgBrush"] = "#FFE2CFD4",
+                ["ScrollThumbBrush"] = "#FFE0A996",
+            },
+            ["ocean-abyss"] = new()
+            {
+                ["WindowBgBrush"] = "#FF060D18",
+                ["CardBgBrush"] = "#FF0C182B",
+                ["CardBorderBrush"] = "#2C00D2FF",
+                ["SubtleTextBrush"] = "#FF4682B4",
+                ["PrimaryTextBrush"] = "#FFE6F7FF",
+                ["SecondaryTextBrush"] = "#FF99DDFF",
+                ["AccentGreenBrush"] = "#FF00D2FF",
+                ["AccentRedBrush"] = "#FFFF4848",
+                ["AccentAmberBrush"] = "#FFFFB400",
+                ["InputBgBrush"] = "#FF081220",
+                ["InputBorderBrush"] = "#2C00D2FF",
+                ["WindowEdgeBrush"] = "#2C00D2FF",
+                ["WindowGlowBrush"] = "#FF0A2645",
+                ["ControlTextBrush"] = "#FFC8EEFF",
+                ["ButtonBgBrush"] = "#FF12223B",
+                ["ButtonHoverBgBrush"] = "#FF1A3052",
+                ["ButtonPressedBgBrush"] = "#FF091628",
+                ["MenuBgBrush"] = "#FF081424",
+                ["MenuHighlightBrush"] = "#FF164470",
+                ["MenuSelectedBrush"] = "#FF0077B6",
+                ["DividerBrush"] = "#1C00D2FF",
+                ["BadgeBgBrush"] = "#FF040810",
+                ["AccentTitleBrush"] = "#FF00E5FF",
+                ["ChromeButtonFgBrush"] = "#FF99DDFF",
+                ["ScrollThumbBrush"] = "#FF00D2FF",
+            },
+            ["crimson-ember"] = new()
+            {
+                ["WindowBgBrush"] = "#FF120A0A",
+                ["CardBgBrush"] = "#FF1E1010",
+                ["CardBorderBrush"] = "#2CFF3344",
+                ["SubtleTextBrush"] = "#FFB25959",
+                ["PrimaryTextBrush"] = "#FFFEE6E6",
+                ["SecondaryTextBrush"] = "#FFFAA8A8",
+                ["AccentGreenBrush"] = "#FFFF5500",
+                ["AccentRedBrush"] = "#FFFF3344",
+                ["AccentAmberBrush"] = "#FFFFB300",
+                ["InputBgBrush"] = "#FF160C0C",
+                ["InputBorderBrush"] = "#2CFF3344",
+                ["WindowEdgeBrush"] = "#2CFF3344",
+                ["WindowGlowBrush"] = "#FF3A1014",
+                ["ControlTextBrush"] = "#FFFCD4D4",
+                ["ButtonBgBrush"] = "#FF281515",
+                ["ButtonHoverBgBrush"] = "#FF3A1E1E",
+                ["ButtonPressedBgBrush"] = "#FF160B0B",
+                ["MenuBgBrush"] = "#FF140A0A",
+                ["MenuHighlightBrush"] = "#FF541B1B",
+                ["MenuSelectedBrush"] = "#FF8B1A1A",
+                ["DividerBrush"] = "#1CFF3344",
+                ["BadgeBgBrush"] = "#FF0A0505",
+                ["AccentTitleBrush"] = "#FFFF3344",
+                ["ChromeButtonFgBrush"] = "#FFFAA8A8",
+                ["ScrollThumbBrush"] = "#FFFF3344",
+            },
+            ["pastel-dream"] = new()
+            {
+                ["WindowBgBrush"] = "#FFF9F6FF",
+                ["CardBgBrush"] = "#FFFFFFFF",
+                ["CardBorderBrush"] = "#33D8B4FE",
+                ["SubtleTextBrush"] = "#FF9370DB",
+                ["PrimaryTextBrush"] = "#FF2D1F3F",
+                ["SecondaryTextBrush"] = "#FF5B4575",
+                ["AccentGreenBrush"] = "#FFA855F7",
+                ["AccentRedBrush"] = "#FFF472B6",
+                ["AccentAmberBrush"] = "#FFF59E0B",
+                ["InputBgBrush"] = "#FFF5F0FF",
+                ["InputBorderBrush"] = "#44C084FC",
+                ["WindowEdgeBrush"] = "#33D8B4FE",
+                ["WindowGlowBrush"] = "#FFE9D8FF",
+                ["ControlTextBrush"] = "#FF2D1F3F",
+                ["ButtonBgBrush"] = "#FFFFFFFF",
+                ["ButtonHoverBgBrush"] = "#FFF3E8FF",
+                ["ButtonPressedBgBrush"] = "#FFE9D5FF",
+                ["MenuBgBrush"] = "#FFFFFFFF",
+                ["MenuHighlightBrush"] = "#FFF3E8FF",
+                ["MenuSelectedBrush"] = "#FFE9D5FF",
+                ["DividerBrush"] = "#1CA855F7",
+                ["BadgeBgBrush"] = "#FFF0E6FF",
+                ["AccentTitleBrush"] = "#FFA855F7",
+                ["ChromeButtonFgBrush"] = "#FF5B4575",
+                ["ScrollThumbBrush"] = "#FFC084FC",
+            },
+            ["mocha-latte"] = new()
+            {
+                ["WindowBgBrush"] = "#FF1A1412",
+                ["CardBgBrush"] = "#FF281E1A",
+                ["CardBorderBrush"] = "#2CD4A373",
+                ["SubtleTextBrush"] = "#FFA89280",
+                ["PrimaryTextBrush"] = "#FFFDF8F5",
+                ["SecondaryTextBrush"] = "#FFE6D5C3",
+                ["AccentGreenBrush"] = "#FFD4A373",
+                ["AccentRedBrush"] = "#FFC84B31",
+                ["AccentAmberBrush"] = "#FFE09F3E",
+                ["InputBgBrush"] = "#FF16100E",
+                ["InputBorderBrush"] = "#2CD4A373",
+                ["WindowEdgeBrush"] = "#2CD4A373",
+                ["WindowGlowBrush"] = "#FF3C2A22",
+                ["ControlTextBrush"] = "#FFF5E8DC",
+                ["ButtonBgBrush"] = "#FF322621",
+                ["ButtonHoverBgBrush"] = "#FF44342D",
+                ["ButtonPressedBgBrush"] = "#FF1E1613",
+                ["MenuBgBrush"] = "#FF1C1412",
+                ["MenuHighlightBrush"] = "#FF594237",
+                ["MenuSelectedBrush"] = "#FF8C634F",
+                ["DividerBrush"] = "#1CD4A373",
+                ["BadgeBgBrush"] = "#FF100B09",
+                ["AccentTitleBrush"] = "#FFD4A373",
+                ["ChromeButtonFgBrush"] = "#FFE6D5C3",
+                ["ScrollThumbBrush"] = "#FFD4A373",
+            },
+            ["acid-cyber"] = new()
+            {
+                ["WindowBgBrush"] = "#FF0A0F0D",
+                ["CardBgBrush"] = "#FF121C18",
+                ["CardBorderBrush"] = "#2CCCFF00",
+                ["SubtleTextBrush"] = "#FF458A38",
+                ["PrimaryTextBrush"] = "#FFE8FFD0",
+                ["SecondaryTextBrush"] = "#FFA3FF54",
+                ["AccentGreenBrush"] = "#FFCCFF00",
+                ["AccentRedBrush"] = "#FFFF1744",
+                ["AccentAmberBrush"] = "#FFFFEA00",
+                ["InputBgBrush"] = "#FF0B1411",
+                ["InputBorderBrush"] = "#2CCCFF00",
+                ["WindowEdgeBrush"] = "#2CCCFF00",
+                ["WindowGlowBrush"] = "#FF183020",
+                ["ControlTextBrush"] = "#FFD5FF9E",
+                ["ButtonBgBrush"] = "#FF182822",
+                ["ButtonHoverBgBrush"] = "#FF223A31",
+                ["ButtonPressedBgBrush"] = "#FF0E1814",
+                ["MenuBgBrush"] = "#FF0C1613",
+                ["MenuHighlightBrush"] = "#FF2E541C",
+                ["MenuSelectedBrush"] = "#FF4B8517",
+                ["DividerBrush"] = "#1CCCFF00",
+                ["BadgeBgBrush"] = "#FF060A08",
+                ["AccentTitleBrush"] = "#FFCCFF00",
+                ["ChromeButtonFgBrush"] = "#FFA3FF54",
+                ["ScrollThumbBrush"] = "#FFCCFF00",
+            },
+            ["monochrome-slate"] = new()
+            {
+                ["WindowBgBrush"] = "#FF141619",
+                ["CardBgBrush"] = "#FF1E2228",
+                ["CardBorderBrush"] = "#2C94A1B0",
+                ["SubtleTextBrush"] = "#FF64748B",
+                ["PrimaryTextBrush"] = "#FFF8FAFC",
+                ["SecondaryTextBrush"] = "#FFCBD5E1",
+                ["AccentGreenBrush"] = "#FFE2E8F0",
+                ["AccentRedBrush"] = "#FFEF4444",
+                ["AccentAmberBrush"] = "#FFF59E0B",
+                ["InputBgBrush"] = "#FF101215",
+                ["InputBorderBrush"] = "#2C94A1B0",
+                ["WindowEdgeBrush"] = "#2C94A1B0",
+                ["WindowGlowBrush"] = "#FF2D333B",
+                ["ControlTextBrush"] = "#FFE2E8F0",
+                ["ButtonBgBrush"] = "#FF282E36",
+                ["ButtonHoverBgBrush"] = "#FF363E48",
+                ["ButtonPressedBgBrush"] = "#FF1A1E24",
+                ["MenuBgBrush"] = "#FF161A1F",
+                ["MenuHighlightBrush"] = "#FF3A4452",
+                ["MenuSelectedBrush"] = "#FF475569",
+                ["DividerBrush"] = "#1C94A1B0",
+                ["BadgeBgBrush"] = "#FF0E1012",
+                ["AccentTitleBrush"] = "#FFE2E8F0",
+                ["ChromeButtonFgBrush"] = "#FFCBD5E1",
+                ["ScrollThumbBrush"] = "#FF94A1B0",
+            },
+            ["synthwave-80s"] = new()
+            {
+                ["WindowBgBrush"] = "#FF160924",
+                ["CardBgBrush"] = "#FF241038",
+                ["CardBorderBrush"] = "#2CFF00D6",
+                ["SubtleTextBrush"] = "#FFAA55CC",
+                ["PrimaryTextBrush"] = "#FFFFF0FA",
+                ["SecondaryTextBrush"] = "#FFFAA6EC",
+                ["AccentGreenBrush"] = "#FFFF00D6",
+                ["AccentRedBrush"] = "#FF8A00FF",
+                ["AccentAmberBrush"] = "#FFFFD000",
+                ["InputBgBrush"] = "#FF1A0B2C",
+                ["InputBorderBrush"] = "#2CFF00D6",
+                ["WindowEdgeBrush"] = "#2CFF00D6",
+                ["WindowGlowBrush"] = "#FF401050",
+                ["ControlTextBrush"] = "#FFFCD4F6",
+                ["ButtonBgBrush"] = "#FF30164A",
+                ["ButtonHoverBgBrush"] = "#FF421E66",
+                ["ButtonPressedBgBrush"] = "#FF1D0C30",
+                ["MenuBgBrush"] = "#FF1C0A30",
+                ["MenuHighlightBrush"] = "#FF5E1E78",
+                ["MenuSelectedBrush"] = "#FF9900B3",
+                ["DividerBrush"] = "#1CFF00D6",
+                ["BadgeBgBrush"] = "#FF0F0519",
+                ["AccentTitleBrush"] = "#FF00F5FF",
+                ["ChromeButtonFgBrush"] = "#FFFAA6EC",
+                ["ScrollThumbBrush"] = "#FFFF00D6",
+            },
+            ["bioluminescence"] = new()
+            {
+                ["WindowBgBrush"] = "#FF041214",
+                ["CardBgBrush"] = "#FF0A2024",
+                ["CardBorderBrush"] = "#2C00FFC5",
+                ["SubtleTextBrush"] = "#FF409B8A",
+                ["PrimaryTextBrush"] = "#FFE6FFFF",
+                ["SecondaryTextBrush"] = "#FFA8F5E5",
+                ["AccentGreenBrush"] = "#FF00FFC5",
+                ["AccentRedBrush"] = "#FFFF5252",
+                ["AccentAmberBrush"] = "#FFFFD600",
+                ["InputBgBrush"] = "#FF06181B",
+                ["InputBorderBrush"] = "#2C00FFC5",
+                ["WindowEdgeBrush"] = "#2C00FFC5",
+                ["WindowGlowBrush"] = "#FF0E383F",
+                ["ControlTextBrush"] = "#FFD0FFF6",
+                ["ButtonBgBrush"] = "#FF102D33",
+                ["ButtonHoverBgBrush"] = "#FF183E46",
+                ["ButtonPressedBgBrush"] = "#FF081B1E",
+                ["MenuBgBrush"] = "#FF071D20",
+                ["MenuHighlightBrush"] = "#FF12544F",
+                ["MenuSelectedBrush"] = "#FF008075",
+                ["DividerBrush"] = "#1C00FFC5",
+                ["BadgeBgBrush"] = "#FF020D0E",
+                ["AccentTitleBrush"] = "#FF00FFC5",
+                ["ChromeButtonFgBrush"] = "#FFA8F5E5",
+                ["ScrollThumbBrush"] = "#FF00FFC5",
+            },
+            ["arctic-ice"] = new()
+            {
+                ["WindowBgBrush"] = "#FFF0F6FA",
+                ["CardBgBrush"] = "#FFFFFFFF",
+                ["CardBorderBrush"] = "#3338BDF8",
+                ["SubtleTextBrush"] = "#FF64748B",
+                ["PrimaryTextBrush"] = "#FF0F172A",
+                ["SecondaryTextBrush"] = "#FF334155",
+                ["AccentGreenBrush"] = "#FF0284C7",
+                ["AccentRedBrush"] = "#FFE11D48",
+                ["AccentAmberBrush"] = "#FFF59E0B",
+                ["InputBgBrush"] = "#FFF8FAFC",
+                ["InputBorderBrush"] = "#4438BDF8",
+                ["WindowEdgeBrush"] = "#3338BDF8",
+                ["WindowGlowBrush"] = "#FFE0F2FE",
+                ["ControlTextBrush"] = "#FF0F172A",
+                ["ButtonBgBrush"] = "#FFFFFFFF",
+                ["ButtonHoverBgBrush"] = "#FFE0F2FE",
+                ["ButtonPressedBgBrush"] = "#FFBAE6FD",
+                ["MenuBgBrush"] = "#FFFFFFFF",
+                ["MenuHighlightBrush"] = "#FFE0F2FE",
+                ["MenuSelectedBrush"] = "#FFBAE6FD",
+                ["DividerBrush"] = "#1C0284C7",
+                ["BadgeBgBrush"] = "#FFE2E8F0",
+                ["AccentTitleBrush"] = "#FF0284C7",
+                ["ChromeButtonFgBrush"] = "#FF334155",
+                ["ScrollThumbBrush"] = "#FF38BDF8",
             },
         };
 
@@ -794,16 +1213,26 @@ namespace PaDDY.Helpers
 
             (Brush inB, Brush outB, Brush monB) = CurrentMeterSkin switch
             {
-                "8bit"      => (EightBit(MeterPalette.Green), EightBit(MeterPalette.Blue), EightBit(MeterPalette.Pink)),
-                "70s"       => (Seventies(), Seventies(), Seventies()),
-                "neon"      => (NeonCyan(), NeonMagenta(), NeonYellow()),
-                "grayscale" => (Grayscale(), Grayscale(), Grayscale()),
-                "inferno"   => (Inferno(), Inferno(), Inferno()),
-                "aurora"    => (Aurora(), Aurora(), Aurora()),
-                "cyber-sunset" => (CyberSunset(), CyberSunset(), CyberSunset()),
-                "forest"    => (ForestMoss(), ForestMoss(), ForestMoss()),
-                "toxic"     => (Toxic(), Toxic(), Toxic()),
-                _           => (DefaultIn(), DefaultOut(), DefaultMon()),
+                "8bit"          => (EightBit(MeterPalette.Green), EightBit(MeterPalette.Blue), EightBit(MeterPalette.Pink)),
+                "70s"           => (Seventies(), Seventies(), Seventies()),
+                "neon"          => (NeonCyan(), NeonMagenta(), NeonYellow()),
+                "grayscale"     => (Grayscale(), Grayscale(), Grayscale()),
+                "inferno"       => (Inferno(), Inferno(), Inferno()),
+                "aurora"        => (Aurora(), Aurora(), Aurora()),
+                "cyber-sunset"  => (CyberSunset(), CyberSunset(), CyberSunset()),
+                "forest"        => (ForestMoss(), ForestMoss(), ForestMoss()),
+                "toxic"         => (Toxic(), Toxic(), Toxic()),
+                "vaporwave"     => (Vaporwave(), Vaporwave(), Vaporwave()),
+                "plasma"        => (Plasma(), Plasma(), Plasma()),
+                "matrix"        => (Matrix(), Matrix(), Matrix()),
+                "solar-flare"   => (SolarFlare(), SolarFlare(), SolarFlare()),
+                "ocean-wave"    => (OceanWave(), OceanWave(), OceanWave()),
+                "sunset-strip"  => (SunsetStrip(), SunsetStrip(), SunsetStrip()),
+                "vintage-led"   => (VintageLed(), VintageLed(), VintageLed()),
+                "acid-lime"     => (AcidLime(), AcidLime(), AcidLime()),
+                "blood-moon"    => (BloodMoon(), BloodMoon(), BloodMoon()),
+                "rainbow"       => (Rainbow(), Rainbow(), Rainbow()),
+                _               => (DefaultIn(), DefaultOut(), DefaultMon()),
             };
 
             if (digitalDots && _lastWidth > 0)
@@ -1031,6 +1460,128 @@ namespace PaDDY.Helpers
             b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFD00"), 0.88));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFFF007F"), 0.96));
             b.GradientStops.Add(new GradientStop(ParseColor("#FFFF00CC"), 1.0));
+            return b;
+        }
+
+        // Electric vaporwave neon gradient.
+        private static LinearGradientBrush Vaporwave()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF001020"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00E5FF"), 0.25));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF9D4EDD"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF007F"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF00FF"), 1.0));
+            return b;
+        }
+
+        // Plasma fire energy gradient.
+        private static LinearGradientBrush Plasma()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF0F001A"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF6A00F4"), 0.25));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFD80066"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF5500"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            return b;
+        }
+
+        // Cyber matrix code gradient.
+        private static LinearGradientBrush Matrix()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF001405"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF007A2B"), 0.20));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00FF66"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCFF00"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            return b;
+        }
+
+        // Solar flare sunburst gradient.
+        private static LinearGradientBrush SolarFlare()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF1F0000"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFB30000"), 0.25));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF5500"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFEA00"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFFFFF"), 1.0));
+            return b;
+        }
+
+        // Ocean wave aqua gradient.
+        private static LinearGradientBrush OceanWave()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF001026"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF0055A5"), 0.25));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00D2FF"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00FF99"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFEA00"), 1.0));
+            return b;
+        }
+
+        // Synthwave sunset strip gradient.
+        private static LinearGradientBrush SunsetStrip()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF10002B"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF5C0099"), 0.25));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFE6006C"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF6B4A"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFEA00"), 1.0));
+            return b;
+        }
+
+        // Classic studio LED VU ladder.
+        private static LinearGradientBrush VintageLed()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF0A290A"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF009900"), 0.35));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF33CC00"), 0.70));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFB300"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF0000"), 1.0));
+            return b;
+        }
+
+        // High-voltage acid lime gradient.
+        private static LinearGradientBrush AcidLime()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF051508"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF208000"), 0.25));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF76FF03"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFCCFF00"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF007F"), 1.0));
+            return b;
+        }
+
+        // Deep crimson blood moon gradient.
+        private static LinearGradientBrush BloodMoon()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF100003"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF5B0011"), 0.25));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFD90429"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF5A36"), 0.85));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFE5EC"), 1.0));
+            return b;
+        }
+
+        // Full spectral rainbow gradient.
+        private static LinearGradientBrush Rainbow()
+        {
+            var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 0) };
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF4A00E0"), 0.0));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF0055FF"), 0.20));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00E5FF"), 0.40));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FF00E676"), 0.60));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFFEA00"), 0.78));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFFF3300"), 0.90));
+            b.GradientStops.Add(new GradientStop(ParseColor("#FFCC00FF"), 1.0));
             return b;
         }
 

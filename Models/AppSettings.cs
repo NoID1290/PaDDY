@@ -79,9 +79,9 @@ namespace PaDDY
         // ---- Appearance ----
         // Language code: "en", "fr"
         public string Language { get; set; } = "en";
-        // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula", "vista-aero", "windows-xp", "windows-98"
+        // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula", "vista-aero", "windows-xp", "windows-98", "midnight-oled", "emerald-matrix", "amethyst-night", "tokyo-neon", "solarized-dark", "rose-gold", "ocean-abyss", "crimson-ember", "pastel-dream", "mocha-latte", "acid-cyber", "monochrome-slate", "synthwave-80s", "bioluminescence", "arctic-ice"
         public string Theme { get; set; } = "dark";
-        // Audio meter skin: "default", "8bit", "70s", "neon", "grayscale", "inferno", "aurora", "cyber-sunset", "forest", "toxic"
+        // Audio meter skin: "default", "8bit", "70s", "neon", "grayscale", "inferno", "aurora", "cyber-sunset", "forest", "toxic", "vaporwave", "plasma", "matrix", "solar-flare", "ocean-wave", "sunset-strip", "vintage-led", "acid-lime", "blood-moon", "rainbow"
         public string MeterSkin { get; set; } = "default";
         public bool MeterDigitalDots { get; set; } = false;
         // Performance mode: CPU-only rendering, limited animations
