@@ -4,9 +4,15 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0.0801-Pre-release_1] - 2026-08-01
+
+- 15 new themes, 10 for audio meter
+- theming list vst plugin
+- dialog update
+- vst management list
+
 ## [2.0.0.0731-Pre-release_1] - 2026-07-31
 
-- Dev Updates Test 7
 - Per-Section Reset Icons
 - Fixing Timecode Zoom in Trimming Zone
 - Toggle Switch Updates
