@@ -115,21 +115,27 @@ namespace PaDDY.Controls
             btnStyle.Setters.Add(new Setter(Button.BorderThicknessProperty, new Thickness(1)));
             btnStyle.Setters.Add(new Setter(Button.CursorProperty, System.Windows.Input.Cursors.Hand));
 
-            var row = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Right
-            };
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             panel.Children.Add(row);
 
             var cancelBtn = new Button
             {
                 Content = "Cancel",
                 Style = btnStyle,
-                IsCancel = true,
-                Margin = new Thickness(0, 0, 8, 0)
+                IsCancel = true
             };
             cancelBtn.Click += (_, _) => { Action = RestartAction.Cancel; DialogResult = false; };
+            Grid.SetColumn(cancelBtn, 0);
+
+            var actionRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right
+            };
+            Grid.SetColumn(actionRow, 2);
 
             var onRestartBtn = new Button
             {
@@ -148,8 +154,9 @@ namespace PaDDY.Controls
             restartBtn.Click += (_, _) => { Action = RestartAction.RestartNow; DialogResult = true; };
 
             row.Children.Add(cancelBtn);
-            row.Children.Add(onRestartBtn);
-            row.Children.Add(restartBtn);
+            row.Children.Add(actionRow);
+            actionRow.Children.Add(onRestartBtn);
+            actionRow.Children.Add(restartBtn);
         }
 
         private System.Windows.Media.Brush ResolveBrush(string key, System.Windows.Media.Brush fallback)
