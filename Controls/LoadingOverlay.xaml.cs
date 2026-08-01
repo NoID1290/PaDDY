@@ -83,7 +83,10 @@ namespace PaDDY.Controls
         {
             _hideToken++; // Cancel any pending hides
             LoadingText.Text = message;
-            
+
+            if (Background == null)
+                RefreshTheme();
+
             if (Visibility != Visibility.Visible)
             {
                 Visibility = Visibility.Visible;
@@ -141,6 +144,30 @@ namespace PaDDY.Controls
             ProgressBarContainer.Visibility = Visibility.Collapsed;
             ProgressBarFill.Width = 0;
             ProgressPercentText.Text = "0%";
+        }
+
+        /// <summary>
+        /// Applies the active theme's palette to the overlay, including a semi-transparent background.
+        /// </summary>
+        public void RefreshTheme()
+        {
+            try
+            {
+                var palette = Helpers.ThemeManager.GetPalette(AppSettings.Load().Theme);
+                if (palette == null) return;
+
+                System.Windows.Media.Color Parse(string key) =>
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette[key]);
+
+                var bg = Parse("WindowBgBrush");
+                ApplyThemeColors(Parse("AccentGreenBrush"), Parse("SubtleTextBrush"), Parse("PrimaryTextBrush"));
+                Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
+            }
+            catch
+            {
+                // Fallback gracefully on any conversion/loading error
+            }
         }
 
         /// <summary>

@@ -171,29 +171,7 @@ namespace PaDDY
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            // Show loading overlay
             AudioEditorLoadingOverlay.Show("Loading audio...");
-
-            // Apply theme colors to the loading overlay
-            try
-            {
-                var activeSettings = AppSettings.Load();
-                var palette = ThemeManager.GetPalette(activeSettings.Theme);
-                if (palette != null)
-                {
-                    var accent = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["AccentGreenBrush"]);
-                    var secondary = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["SubtleTextBrush"]);
-                    var text = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["PrimaryTextBrush"]);
-                    var bg = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(palette["WindowBgBrush"]);
-                    AudioEditorLoadingOverlay.ApplyThemeColors(accent, secondary, text);
-                    // Semi-transparent overlay matching theme
-                    AudioEditorLoadingOverlay.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0xCC, bg.R, bg.G, bg.B));
-                }
-            }
-            catch
-            {
-                // Fallback gracefully on any theme loading failure
-            }
 
             string filePath = _filePath;
             double totalDurationSeconds = 0;

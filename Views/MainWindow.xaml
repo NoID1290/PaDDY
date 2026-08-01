@@ -1517,6 +1517,6 @@
             </ScrollViewer>
         </Grid>
         <!-- Loading overlay covering the entire window - direct child of MainRootGrid so RowSpan covers all 4 rows -->
-        <controls:LoadingOverlay x:Name="MainLoadingOverlay" Background="#CC0A0A12" Grid.RowSpan="4" Panel.ZIndex="100"/>
+        <controls:LoadingOverlay x:Name="MainLoadingOverlay" Grid.RowSpan="4" Panel.ZIndex="100"/>
     </Grid>
 </Window>

@@ -219,7 +219,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,0,16,0">
                                                     <TextBlock Text="VST2 Plugins" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                                                    <TextBlock Text="Imported .dll plugins are copied to the local app folder and become available in the Audio Editor." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                                    <TextBlock Text="Imported .dll plugins are copied to the local app folder and become available in the Audio Editor." FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" Width="360" VerticalAlignment="Top">
                                                     <Border Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4">
@@ -242,7 +242,7 @@
                                                         <Button x:Name="AddVst2Button" Content="Add..." Width="70" Height="28" Margin="0,0,6,0" Click="AddVst2Button_Click"/>
                                                         <Button x:Name="DeleteVst2Button" Content="Delete" Width="70" Height="28" Click="DeleteVst2Button_Click"/>
                                                     </StackPanel>
-                                                    <TextBlock x:Name="Vst2TotalSizeText" FontSize="11" Foreground="#FF8080A8" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                                                    <TextBlock x:Name="Vst2TotalSizeText" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" HorizontalAlignment="Right" Margin="0,4,0,0"/>
                                                 </StackPanel>
                                             </Grid>
 
@@ -1218,7 +1218,7 @@
                         </StackPanel>
                     </Border>
                 </Grid>
-                <controls:LoadingOverlay x:Name="SettingsLoadingOverlay" Background="#CC0A0A12" Grid.RowSpan="2" Panel.ZIndex="100"/>
+                <controls:LoadingOverlay x:Name="SettingsLoadingOverlay" Grid.RowSpan="2" Panel.ZIndex="100"/>
             </Grid>
         </Border>
     </Grid>

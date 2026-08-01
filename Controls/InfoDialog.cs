@@ -34,20 +34,34 @@ namespace PaDDY.Controls
             };
             System.Windows.Shell.WindowChrome.SetWindowChrome(this, chrome);
 
-            var root = new Grid();
-            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(36) });
-            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var root = new Grid { Margin = new Thickness(8) };
             Content = root;
+
+            var outerFrame = new Border
+            {
+                Background = ResolveBrush("SecondaryWindowBackgroundBrush", new SolidColorBrush(Color.FromRgb(0x17, 0x18, 0x27))),
+                BorderBrush = ResolveBrush("WindowEdgeBrush", new SolidColorBrush(Color.FromArgb(0x2C, 0xFF, 0xFF, 0xFF))),
+                BorderThickness = new Thickness(1),
+                CornerRadius = (CornerRadius)(FindResource("SecondaryWindowCornerRadius") ?? new CornerRadius(12)),
+                Effect = ResolveEffect("SecondaryWindowShadow"),
+                ClipToBounds = true
+            };
+            root.Children.Add(outerFrame);
+
+            var innerGrid = new Grid();
+            innerGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(36) });
+            innerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            outerFrame.Child = innerGrid;
 
             var titleBar = new Border
             {
                 Background = ResolveBrush("TitleBarGradient", new SolidColorBrush(Color.FromRgb(0x1A, 0x20, 0x30))),
                 BorderBrush = ResolveBrush("DividerBrush", new SolidColorBrush(Color.FromArgb(0x2C, 0xFF, 0xFF, 0xFF))),
                 BorderThickness = new Thickness(0, 0, 0, 1),
-                CornerRadius = new CornerRadius(12, 12, 0, 0)
+                CornerRadius = (CornerRadius)(FindResource("TopWindowCornerRadius") ?? new CornerRadius(12, 12, 0, 0))
             };
             Grid.SetRow(titleBar, 0);
-            root.Children.Add(titleBar);
+            innerGrid.Children.Add(titleBar);
 
             var titleGrid = new Grid();
             titleBar.Child = titleGrid;
@@ -72,16 +86,11 @@ namespace PaDDY.Controls
 
             var body = new Border
             {
-                Margin = new Thickness(10, 0, 10, 10),
                 Padding = new Thickness(16),
-                CornerRadius = new CornerRadius(0, 0, 12, 12),
-                Background = ResolveBrush("SecondaryWindowBackgroundBrush", new SolidColorBrush(Color.FromRgb(0x17, 0x18, 0x27))),
-                BorderBrush = ResolveBrush("WindowEdgeBrush", new SolidColorBrush(Color.FromArgb(0x2C, 0xFF, 0xFF, 0xFF))),
-                BorderThickness = new Thickness(1),
-                Effect = ResolveEffect("SecondaryWindowShadow")
+                Background = Brushes.Transparent
             };
             Grid.SetRow(body, 1);
-            root.Children.Add(body);
+            innerGrid.Children.Add(body);
 
             var panel = new StackPanel();
             body.Child = panel;
@@ -96,8 +105,8 @@ namespace PaDDY.Controls
             });
 
             var btnStyle = new Style(typeof(Button));
-            btnStyle.Setters.Add(new Setter(Button.BackgroundProperty, ResolveBrush("CardBgBrush", new SolidColorBrush(Color.FromRgb(0x1C, 0x1C, 0x2C)))));
-            btnStyle.Setters.Add(new Setter(Button.ForegroundProperty, ResolveBrush("PrimaryTextBrush", Brushes.White)));
+            btnStyle.Setters.Add(new Setter(Button.BackgroundProperty, ResolveBrush("ButtonBgBrush", new SolidColorBrush(Color.FromRgb(0x1C, 0x1C, 0x2C)))));
+            btnStyle.Setters.Add(new Setter(Button.ForegroundProperty, ResolveBrush("ControlTextBrush", Brushes.White)));
             btnStyle.Setters.Add(new Setter(Button.PaddingProperty, new Thickness(16, 6, 16, 6)));
             btnStyle.Setters.Add(new Setter(Button.BorderBrushProperty, ResolveBrush("InputBorderBrush", new SolidColorBrush(Color.FromArgb(0x2A, 0xFF, 0xFF, 0xFF)))));
             btnStyle.Setters.Add(new Setter(Button.BorderThicknessProperty, new Thickness(1)));

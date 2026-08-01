@@ -60,8 +60,8 @@ namespace PaDDY.Controls
             });
 
             var btnStyle = new Style(typeof(Button));
-            btnStyle.Setters.Add(new Setter(Button.BackgroundProperty, ResolveBrush("CardBgBrush", new SolidColorBrush(Color.FromRgb(0x1C, 0x1C, 0x2C)))));
-            btnStyle.Setters.Add(new Setter(Button.ForegroundProperty, ResolveBrush("PrimaryTextBrush", Brushes.White)));
+            btnStyle.Setters.Add(new Setter(Button.BackgroundProperty, ResolveBrush("ButtonBgBrush", new SolidColorBrush(Color.FromRgb(0x1C, 0x1C, 0x2C)))));
+            btnStyle.Setters.Add(new Setter(Button.ForegroundProperty, ResolveBrush("ControlTextBrush", Brushes.White)));
             btnStyle.Setters.Add(new Setter(Button.PaddingProperty, new Thickness(10, 6, 10, 6)));
             btnStyle.Setters.Add(new Setter(Button.BorderBrushProperty, ResolveBrush("InputBorderBrush", new SolidColorBrush(Color.FromArgb(0x2A, 0xFF, 0xFF, 0xFF)))));
             btnStyle.Setters.Add(new Setter(Button.BorderThicknessProperty, new Thickness(1)));

@@ -11,24 +11,17 @@
     <UserControl.Resources>
         <Storyboard x:Key="LoadingAnimation" RepeatBehavior="Forever">
             <!-- Fast inner ring spin (Counter-Clockwise) -->
+            <!-- Linear: easing would decelerate to a full stop at every repeat boundary -->
             <DoubleAnimation 
                 Storyboard.TargetName="InnerRing"
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                From="360" To="0" Duration="0:0:1.5">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseInOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
+                From="360" To="0" Duration="0:0:1.5"/>
                 
             <!-- Slow outer ring spin (Clockwise) -->
             <DoubleAnimation 
                 Storyboard.TargetName="OuterRing"
                 Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                From="0" To="360" Duration="0:0:2.5">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseInOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
+                From="0" To="360" Duration="0:0:2.5"/>
             
             <!-- Pulse the logo glow -->
             <DoubleAnimation 
