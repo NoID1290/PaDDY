@@ -10,7 +10,7 @@ namespace PaDDY.Controls
     {
         private Storyboard _animation;
         private int _hideToken = 0;
-        
+
         private static readonly string[] ReadyMessages = new string[]
         {
             "Ready :)",
@@ -69,7 +69,7 @@ namespace PaDDY.Controls
             "WeeeWooooWeeeWoooo",
             "Hi there, how are you?",
             "Les calipers ses pas garanti?",
-            "BÉÉÉÉTONNNN"          
+            "BÉÉÉÉTONNNN"
         };
         private static Random _random = new Random();
 
@@ -109,12 +109,12 @@ namespace PaDDY.Controls
             HideProgress();
             LoadingText.Text = ReadyMessages[_random.Next(ReadyMessages.Length)];
             int currentToken = ++_hideToken;
-            
+
             if (!instantly)
             {
                 await Task.Delay(2000);
             }
-            
+
             if (instantly || currentToken == _hideToken)
             {
                 if (!Helpers.ThemeManager.PerformanceMode)
