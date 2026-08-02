@@ -4,88 +4,41 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.0.0.0801-Pre-release_1] - 2026-08-01
+## [2.0.0.0802] - 2026-08-02
 
-- 15 new themes, 10 for audio meter
-- theming list vst plugin
-- dialog update
-- vst management list
+### Added
 
-## [2.0.0.0731-Pre-release_1] - 2026-07-31
+- Per-effect reset icons
+- Preload Audio RAM Cache setting
+- VST2 plugins support (64-bit only)
+- VST2 plugins included: mdaDe-esser and mdaDynamics
+- EBU R128 / ITU-R BS.1770-4 loudness computation (LUFS) and peak gain scaling
+- Remaster Rack and Dynamic Pitch Shift audio effects
+- Live mic return/output
+- Fullscreen mode
+- Countdown timers on pads during playback
+- Pad color customization
+- RESX localization system
+- French translation (beta)
+- "Clear All Data" option to the Backup & Restore settings tab, replacing the previous process
+- Import any supported file from Windows into PaDDY, with automatic conversion
+- Z-order layering flexibility
+- Optimized resource usage
+- High-resolution timer for sub-millisecond accuracy
+- 15 new themes, including 10 for the audio meter
+- Updated the system tray UI with a Quick Actions context menu
 
-- Per-Section Reset Icons
-- Fixing Timecode Zoom in Trimming Zone
-- Toggle Switch Updates
-- Settings Window Enhancement
-- Preload Audio RAM Cache Setting
-- Implement Fullscreen For AudioEditorWindow
-- Meter Freeze Fix
+### Fixed
 
-## [2.0.0.0730-Pre-release_2] - 2026-07-30
+- CUDA CPU high usage issue
+- Performance Mode crashing on some systems
+- Incorrect context menu appearing on pads
+- Font type not applying in real time
+- Applied a security update for the StreamDeck plugin
 
-- Dev Updates Test 6
-- Linking theme to audio editor
-- UI final update layout
-- UI Update #3
-- UI update #2
-- UI update # 1
-- Removed the "Delete All Files" button from the main window toolbar.
-- Added a comprehensive "Clear All Data" process inside the Backup & Restore settings tab to replace it.
-- Changed Settings window size from `880x650` to `980x700` (now resizable with grip) to fix text truncation, overlapping controls, and compressed sliders.
-- Changed default Audio Panel state to closed on fresh installs. This state now persists across sessions.
+### Removed
 
-## [2.0.0.0730-Pre-release_1] - 2026-07-30
-
-- Dev Updates Test 5
-- chore: update project dependencies to latest versions
-- Security Update for StreamDeck plugin #2
-- Security Update for the StreamDeck Plugin
-- Fixing restore for version 2
-- Now custom folders only show recordings that are explicitly assigned to them
-- backup fix for secondary windows
-- SQLite's Write-Ahead Log companion file error
-
-## [2.0.0.0729-Pre-release_3] - 2026-07-29
-
-- Dev Updates Test 4
-- Fix backup restore
-
-## [2.0.0.0729-Pre-release_2] - 2026-07-29
-
-- Dev Updates Test 3
-- Credits updates
-- Disable Transparency since it's causing problems with some themes
-- fix Audio Editor that crash PaDDY when saving
-
-## [2.0.0.0729-Pre-release_1] - 2026-07-29
-
-- Discontinued Overlay
-- Fix Performance Mode chrashing on some systems
-- Added high-resolution timer for sub-ms accuracy
-- Smoothing Animation Loading
-- Z-Order Layering Freedom
-- Fix wrong context menu showing on each pad
-- Fix VST2 not loading
-- Fix dynamic files going into the wrong path in local
-
-## [2.0.0.0728-Pre-release_1] - 2026-07-28
-
-- Added import/drag-and-drop support for audio files outside of PaDDY
-- Added EBU R128 / ITU-R BS.1770-4 loudness computation (LUFS) and peak gain scaling
-- Added VST2 and VST3 plugin support
-- Added Remaster Rack and Dynamic Pitch Shift audio effects
-- Added Live Mic Return/Output
-- Added New Themes
-- Added RESX localization system
-- Added French translation
-- Added countdown timers on pads during playback
-- Added pad color customization
-- Added fullscreen mode for the main window
-- Audio editor UI & layout upgrades (added zoom, timecode, and loading screen)
-- Settings UI & layout upgrades (added new settings categories and improved navigation)
-- Updated System Tray UI with Quick Actions context menu
-- Fix font type not being applied in real-time
-- Resource usage optimizations
+- Discontinued the overlay feature
 
 ## [1.8.4.0715-Pre-release_1] - 2026-07-15
 
