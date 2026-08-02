@@ -3278,7 +3278,7 @@ namespace PaDDY
                 }
                 else if (arttsvalue == true)
                 {
-                    string suffix = _settings.UseCudaForSpeech ? " (CUDA)" : "";
+                    string suffix = _settings.UseCudaForSpeech && Helpers.GpuHelper.IsCudaRuntimeAvailable ? " (CUDA)" : "";
                     SetInfoLabel(WhisperStatusLabel, nm, LocalizationManager.Instance["STTEnabled"] + suffix);
                 }
                 else

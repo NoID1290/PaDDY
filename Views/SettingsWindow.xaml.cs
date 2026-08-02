@@ -281,13 +281,20 @@ namespace PaDDY
 
             // CUDA GPU acceleration
             bool nvidiaDetected = Helpers.GpuHelper.IsNvidiaGpuAvailable;
-            UseCudaCheck.IsEnabled = nvidiaDetected;
-            UseCudaCheck.IsChecked = nvidiaDetected && _settings.UseCudaForSpeech;
-            if (nvidiaDetected)
+            bool cudaRuntimeOk = Helpers.GpuHelper.IsCudaRuntimeAvailable;
+            UseCudaCheck.IsEnabled = nvidiaDetected && cudaRuntimeOk;
+            UseCudaCheck.IsChecked = nvidiaDetected && cudaRuntimeOk && _settings.UseCudaForSpeech;
+            if (nvidiaDetected && cudaRuntimeOk)
             {
                 CudaStatusText.Text = "NVIDIA GPU detected — CUDA acceleration available.";
                 CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
                     System.Windows.Media.Color.FromRgb(0x60, 0x90, 0x60));
+            }
+            else if (nvidiaDetected)
+            {
+                CudaStatusText.Text = "NVIDIA GPU detected, but the CUDA runtime libraries (cudart64_13 / cublas64_13) could not be loaded — Whisper would silently run on the CPU. Reinstall PaDDY to restore them.";
+                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xB0, 0x90, 0x50));
             }
             else
             {
@@ -617,6 +624,17 @@ namespace PaDDY
             _settings.GlobalFadeOutDurationMs = SelectedGlobalFadeOutDurationMs;
             SelectedAllowMultiPadPlayback = AllowMultiPadPlaybackCheck.IsChecked == true;
             _settings.AllowMultiPadPlayback = SelectedAllowMultiPadPlayback;
+
+            // Whisper's native runtime is loaded once per process, so switching
+            // between CPU and CUDA only takes effect after a restart.
+            if (SelectedUseCudaForSpeech != _settings.UseCudaForSpeech &&
+                Services.SpeechRecognitionService.RequiresRestartForCudaChange(SelectedUseCudaForSpeech))
+            {
+                new PaDDY.Controls.InfoDialog(
+                    "CUDA acceleration",
+                    "The Whisper speech engine is already loaded, so the CUDA setting will take effect the next time PaDDY starts.")
+                    .ShowDialog(this);
+            }
 
             Confirmed = true;
             Close();

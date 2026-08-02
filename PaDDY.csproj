@@ -104,4 +104,46 @@
   <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish">
     <RemoveDir Directories="$(PublishDir)runtimes\win-arm64;$(PublishDir)runtimes\win-x86" Condition="Exists('$(PublishDir)runtimes')" />
   </Target>
+  <!--
+    NVIDIA CUDA redistributables for Whisper GPU acceleration.
+    ggml-cuda-whisper.dll (Whisper.net.Runtime.Cuda 1.9.1) statically links
+    cublas64_13.dll (which needs cublasLt64_13.dll), and Whisper.net probes
+    cudart64_13.dll next to the exe to detect CUDA devices. None of these ship
+    in the NuGet package, so they are downloaded once from NVIDIA's official
+    redist CDN (SHA-256 verified), cached under bin\cache, and copied into the
+    output. The Inno installer packs the publish dir recursively, so they ship
+    automatically.
+  -->
+  <PropertyGroup>
+    <CudaRedistCacheDir>$(MSBuildProjectDirectory)\bin\cache\cuda-redist\</CudaRedistCacheDir>
+    <CublasArchiveName>libcublas-windows-x86_64-13.0.0.19-archive</CublasArchiveName>
+    <CudartArchiveName>cuda_cudart-windows-x86_64-13.0.48-archive</CudartArchiveName>
+    <CublasZipUrl>https://developer.download.nvidia.com/compute/cuda/redist/libcublas/windows-x86_64/$(CublasArchiveName).zip</CublasZipUrl>
+    <CudartZipUrl>https://developer.download.nvidia.com/compute/cuda/redist/cuda_cudart/windows-x86_64/$(CudartArchiveName).zip</CudartZipUrl>
+    <CublasZipSha256>c8fb12715b9639f51983315cc4b195e272128c675aa3766b13c4f470b892e6c8</CublasZipSha256>
+    <CudartZipSha256>82fb29001895810ce02e88b180cbaa90607b852a7f67a63f18f202079eaa2966</CudartZipSha256>
+    <CublasBinDir>$(CudaRedistCacheDir)$(CublasArchiveName)\bin\x64\</CublasBinDir>
+    <CudartBinDir>$(CudaRedistCacheDir)$(CudartArchiveName)\bin\x64\</CudartBinDir>
+  </PropertyGroup>
+  <Target Name="FetchCudaRedist">
+    <DownloadFile Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') And !Exists('$(CudaRedistCacheDir)$(CublasArchiveName).zip')" SourceUrl="$(CublasZipUrl)" DestinationFolder="$(CudaRedistCacheDir)" Retries="2" ContinueOnError="WarnAndContinue" />
+    <VerifyFileHash Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') And Exists('$(CudaRedistCacheDir)$(CublasArchiveName).zip')" File="$(CudaRedistCacheDir)$(CublasArchiveName).zip" Hash="$(CublasZipSha256)" Algorithm="SHA256" />
+    <Unzip Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') And Exists('$(CudaRedistCacheDir)$(CublasArchiveName).zip')" SourceFiles="$(CudaRedistCacheDir)$(CublasArchiveName).zip" DestinationFolder="$(CudaRedistCacheDir)" OverwriteReadOnlyFiles="true" />
+    <Delete Condition="Exists('$(CublasBinDir)cublasLt64_13.dll')" Files="$(CudaRedistCacheDir)$(CublasArchiveName).zip" />
+    <DownloadFile Condition="!Exists('$(CudartBinDir)cudart64_13.dll') And !Exists('$(CudaRedistCacheDir)$(CudartArchiveName).zip')" SourceUrl="$(CudartZipUrl)" DestinationFolder="$(CudaRedistCacheDir)" Retries="2" ContinueOnError="WarnAndContinue" />
+    <VerifyFileHash Condition="!Exists('$(CudartBinDir)cudart64_13.dll') And Exists('$(CudaRedistCacheDir)$(CudartArchiveName).zip')" File="$(CudaRedistCacheDir)$(CudartArchiveName).zip" Hash="$(CudartZipSha256)" Algorithm="SHA256" />
+    <Unzip Condition="!Exists('$(CudartBinDir)cudart64_13.dll') And Exists('$(CudaRedistCacheDir)$(CudartArchiveName).zip')" SourceFiles="$(CudaRedistCacheDir)$(CudartArchiveName).zip" DestinationFolder="$(CudaRedistCacheDir)" OverwriteReadOnlyFiles="true" />
+    <Delete Condition="Exists('$(CudartBinDir)cudart64_13.dll')" Files="$(CudaRedistCacheDir)$(CudartArchiveName).zip" />
+    <Warning Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') Or !Exists('$(CudartBinDir)cudart64_13.dll')" Text="NVIDIA CUDA redistributables could not be downloaded — Whisper GPU acceleration will be unavailable in this build." />
+  </Target>
+  <Target Name="CopyCudaRedistToOutput" AfterTargets="Build" DependsOnTargets="FetchCudaRedist">
+    <Copy Condition="Exists('$(CublasBinDir)cublasLt64_13.dll')" SourceFiles="$(CublasBinDir)cublas64_13.dll;$(CublasBinDir)cublasLt64_13.dll" DestinationFolder="$(OutputPath)runtimes\cuda\win-x64" SkipUnchangedFiles="true" />
+    <Copy Condition="Exists('$(CudartBinDir)cudart64_13.dll')" SourceFiles="$(CudartBinDir)cudart64_13.dll" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+    <Copy Condition="Exists('$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE')" SourceFiles="$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE" DestinationFiles="$(OutputPath)licenses\NVIDIA-CUDA-LICENSE.txt" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="CopyCudaRedistToPublish" AfterTargets="Publish" DependsOnTargets="FetchCudaRedist">
+    <Copy Condition="Exists('$(CublasBinDir)cublasLt64_13.dll')" SourceFiles="$(CublasBinDir)cublas64_13.dll;$(CublasBinDir)cublasLt64_13.dll" DestinationFolder="$(PublishDir)runtimes\cuda\win-x64" SkipUnchangedFiles="true" />
+    <Copy Condition="Exists('$(CudartBinDir)cudart64_13.dll')" SourceFiles="$(CudartBinDir)cudart64_13.dll" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+    <Copy Condition="Exists('$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE')" SourceFiles="$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE" DestinationFiles="$(PublishDir)licenses\NVIDIA-CUDA-LICENSE.txt" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

@@ -53,7 +53,20 @@
                             <Border.Effect>
                                 <DropShadowEffect x:Name="Glow" ShadowDepth="0" BlurRadius="8" Color="{Binding Path=Background.Color, ElementName=Bd}" Opacity="0"/>
                             </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Text="{TemplateBinding Content}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       FontWeight="{TemplateBinding FontWeight}">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="#FF000000"
+                                                      ShadowDepth="1"
+                                                      BlurRadius="4"
+                                                      Opacity="0.85"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">

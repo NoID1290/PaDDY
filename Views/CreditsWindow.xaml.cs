@@ -33,6 +33,7 @@ namespace PaDDY
             new() { Name = "SQLitePCLRaw", License = "Apache-2.0", Usage = "Native SQLite provider for the recordings database", LicenseFile = "SQLitePCLRaw-LICENSE.txt" },
             new() { Name = "Whisper.net", License = "MIT", Usage = "On-device speech-to-text for auto-renaming", LicenseFile = "Whisper.net-LICENSE.txt" },
             new() { Name = "Whisper.net.Runtime.Cuda", License = "MIT", Usage = "CUDA GPU acceleration for Whisper speech-to-text", LicenseFile = "Whisper.net-LICENSE.txt" },
+            new() { Name = "NVIDIA cuBLAS / CUDA Runtime", License = "NVIDIA CUDA Toolkit EULA", Usage = "Redistributable CUDA libraries required for Whisper GPU acceleration", LicenseFile = "NVIDIA-CUDA-LICENSE.txt" },
             new() { Name = "VST.NET (vstnet)", License = "MIT", Usage = "VST2 plugin hosting support", LicenseFile = "VST.NET-LICENSE.txt" },
             new() { Name = "AudioPlugSharp", License = "MIT", Usage = "VST3 host interface wrapper", LicenseFile = "AudioPlugSharp-LICENSE.txt" },
             new() { Name = "MDA VST Plugins", License = "MIT", Usage = "Default VST2 dynamics and de-esser voice processing plugins", LicenseFile = "MDA-VST-LICENSE.txt" },

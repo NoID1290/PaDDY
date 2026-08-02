@@ -78,7 +78,7 @@ namespace PaDDY.Services
             string fileName = ModelFileName(type);
             string bundledPath = Path.Combine(AppContext.BaseDirectory, "models", fileName);
             string appDataPath = Path.Combine(ModelsFolder, fileName);
-            
+
             string? path = File.Exists(appDataPath) ? appDataPath : (File.Exists(bundledPath) ? bundledPath : null);
             if (path != null)
             {
@@ -95,7 +95,7 @@ namespace PaDDY.Services
             GgmlType type = MapModel(model);
             string fileName = ModelFileName(type);
             string appDataPath = Path.Combine(ModelsFolder, fileName);
-            
+
             // We only delete from appDataPath, we cannot delete bundled models
             if (File.Exists(appDataPath))
             {
@@ -161,12 +161,12 @@ namespace PaDDY.Services
                     if (sw.ElapsedMilliseconds - lastReportTime > 250)
                     {
                         double percent = totalBytes.HasValue ? (double)totalRead / totalBytes.Value : -1;
-                        
+
                         double elapsedSec = (sw.ElapsedMilliseconds - lastReportTime) / 1000.0;
                         double bytesPerSec = elapsedSec > 0 ? (totalRead - lastReportBytes) / elapsedSec : 0;
-                        
-                        string speed = bytesPerSec > 1048576 
-                            ? $"{(bytesPerSec / 1048576):F1} MB/s" 
+
+                        string speed = bytesPerSec > 1048576
+                            ? $"{(bytesPerSec / 1048576):F1} MB/s"
                             : $"{(bytesPerSec / 1024):F1} KB/s";
 
                         string dataInfo = totalBytes.HasValue
@@ -179,7 +179,7 @@ namespace PaDDY.Services
 
                         progress?.Report((percent, statusMsg));
                         DownloadProgressUpdated?.Invoke(model ?? string.Empty, percent, statusMsg);
-                        
+
                         lastReportTime = sw.ElapsedMilliseconds;
                         lastReportBytes = totalRead;
                     }
@@ -267,6 +267,17 @@ namespace PaDDY.Services
             await GetFactoryAsync(model, useCuda, ct).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// The native Whisper runtime is loaded once per process; switching
+        /// between CPU and CUDA afterwards has no effect until restart.
+        /// </summary>
+        public static bool RequiresRestartForCudaChange(bool useCuda)
+        {
+            RuntimeLibrary? loaded = RuntimeOptions.LoadedLibrary;
+            if (loaded == null) return false;
+            return useCuda != (loaded == RuntimeLibrary.Cuda);
+        }
+
         private async Task<WhisperFactory?> GetFactoryAsync(string? model, bool useCuda, CancellationToken ct)
         {
             GgmlType type = MapModel(model);
@@ -324,6 +335,13 @@ namespace PaDDY.Services
                 _factory = WhisperFactory.FromPath(finalModelPath, factoryOptions);
                 _loadedModelKey = key;
                 _loadedUseCuda = useCuda;
+
+                if (useCuda && RuntimeOptions.LoadedLibrary != RuntimeLibrary.Cuda)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Whisper: CUDA requested but '{RuntimeOptions.LoadedLibrary}' runtime loaded (CUDA Toolkit libraries missing?) — running on CPU.");
+                }
+
                 return _factory;
             }
             finally
