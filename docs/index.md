@@ -15,7 +15,7 @@ title: Home
       <a class="btn btn-primary" href="https://github.com/NoID1290/PaDDY/releases">📦 Download Release</a>
       <a class="btn btn-secondary" href="https://github.com/NoID1290/PaDDY">💻 View Source</a>
     </div>
-    <span class="version-badge">v1.8.2.0713</span>
+    <span class="version-badge">v2.0.0.0802</span>
   </div>
 </section>
 
