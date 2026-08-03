@@ -42,31 +42,50 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         }
 
         /// <summary>
-        /// Loads all default vendored VST plugins from the application's Plugins directory.
+        /// Loads all default vendored VST plugins from the application's Plugins directory (AppData or BaseDirectory).
         /// Returns both VST2 (.dll) and VST3 (.vst3) plugins found in Plugins/VST2/ and Plugins/VST3/.
         /// </summary>
         public static List<IVstEffect> LoadDefaultPlugins()
         {
             var plugins = new List<IVstEffect>();
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var loadedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // Ensure embedded VST plugins are extracted if missing from disk
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string appDataPluginsDir = Path.Combine(localAppData, "NoID Softwork", "PaDDY", "Plugins");
+
+            // Ensure embedded VST plugins are extracted if missing from disk (tries AppData first, then BaseDirectory)
+            EnsureEmbeddedPluginsExtracted(appDataPluginsDir);
             EnsureEmbeddedPluginsExtracted(baseDir);
 
-            // Load VST2 plugins from Plugins/VST2/
-            string vst2Dir = Path.Combine(baseDir, "Plugins", "VST2");
-            if (Directory.Exists(vst2Dir))
+            // Candidate directories for VST2 plugins
+            string[] vst2Dirs = new[]
             {
-                foreach (string dllPath in Directory.GetFiles(vst2Dir, "*.dll"))
+                Path.Combine(appDataPluginsDir, "VST2"),
+                Path.Combine(baseDir, "Plugins", "VST2"),
+                Path.Combine(localAppData, "PaDDY", "Plugins", "VST2")
+            };
+
+            foreach (string vst2Dir in vst2Dirs)
+            {
+                if (Directory.Exists(vst2Dir))
                 {
-                    try
+                    foreach (string dllPath in Directory.GetFiles(vst2Dir, "*.dll"))
                     {
-                        var effect = new Vst2Effect(dllPath);
-                        plugins.Add(effect);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to load VST2 plugin '{Path.GetFileName(dllPath)}': {ex.Message}");
+                        string name = Path.GetFileNameWithoutExtension(dllPath);
+                        if (loadedNames.Contains(name))
+                            continue;
+
+                        try
+                        {
+                            var effect = new Vst2Effect(dllPath);
+                            plugins.Add(effect);
+                            loadedNames.Add(name);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to load VST2 plugin '{Path.GetFileName(dllPath)}': {ex.Message}");
+                        }
                     }
                 }
             }
@@ -74,34 +93,53 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             // Load VST3 plugins from Plugins/VST3/ (Dev Mode only)
             if (IsVst3Enabled)
             {
-                string vst3Dir = Path.Combine(baseDir, "Plugins", "VST3");
-                if (Directory.Exists(vst3Dir))
+                string[] vst3Dirs = new[]
                 {
-                    // VST3 bundles are directories ending in .vst3
-                    foreach (string bundleDir in Directory.GetDirectories(vst3Dir, "*.vst3"))
-                    {
-                        try
-                        {
-                            var effect = new Vst3Effect(bundleDir);
-                            plugins.Add(effect);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Failed to load VST3 plugin '{Path.GetFileName(bundleDir)}': {ex.Message}");
-                        }
-                    }
+                    Path.Combine(appDataPluginsDir, "VST3"),
+                    Path.Combine(baseDir, "Plugins", "VST3"),
+                    Path.Combine(localAppData, "PaDDY", "Plugins", "VST3")
+                };
 
-                    // Also check for standalone .vst3 files (some plugins ship as single files)
-                    foreach (string vst3File in Directory.GetFiles(vst3Dir, "*.vst3"))
+                foreach (string vst3Dir in vst3Dirs)
+                {
+                    if (Directory.Exists(vst3Dir))
                     {
-                        try
+                        // VST3 bundles are directories ending in .vst3
+                        foreach (string bundleDir in Directory.GetDirectories(vst3Dir, "*.vst3"))
                         {
-                            var effect = new Vst3Effect(vst3File);
-                            plugins.Add(effect);
+                            string name = Path.GetFileNameWithoutExtension(bundleDir);
+                            if (loadedNames.Contains(name))
+                                continue;
+
+                            try
+                            {
+                                var effect = new Vst3Effect(bundleDir);
+                                plugins.Add(effect);
+                                loadedNames.Add(name);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Failed to load VST3 plugin '{Path.GetFileName(bundleDir)}': {ex.Message}");
+                            }
                         }
-                        catch (Exception ex)
+
+                        // Also check for standalone .vst3 files (some plugins ship as single files)
+                        foreach (string vst3File in Directory.GetFiles(vst3Dir, "*.vst3"))
                         {
-                            Console.WriteLine($"Failed to load VST3 file '{Path.GetFileName(vst3File)}': {ex.Message}");
+                            string name = Path.GetFileNameWithoutExtension(vst3File);
+                            if (loadedNames.Contains(name))
+                                continue;
+
+                            try
+                            {
+                                var effect = new Vst3Effect(vst3File);
+                                plugins.Add(effect);
+                                loadedNames.Add(name);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Failed to load VST3 file '{Path.GetFileName(vst3File)}': {ex.Message}");
+                            }
                         }
                     }
                 }
@@ -146,7 +184,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         /// <summary>
         /// Extracts embedded default VST plugins to disk if they are missing or deleted.
         /// </summary>
-        private static void EnsureEmbeddedPluginsExtracted(string baseDir)
+        private static void EnsureEmbeddedPluginsExtracted(string targetBaseDir)
         {
             var assembly = typeof(VstPluginManager).Assembly;
 
@@ -161,12 +199,11 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             {
                 try
                 {
-                    // Map logical resource name to output disk path (e.g. Plugins/VST2/mdaDe-ess.dll)
                     string fileName = resourceName.Replace("Plugins.VST2.", "");
-                    string targetDir = Path.Combine(baseDir, "Plugins", "VST2");
+                    string targetDir = Path.Combine(targetBaseDir, "Plugins", "VST2");
                     string targetPath = Path.Combine(targetDir, fileName);
 
-                    if (!File.Exists(targetPath))
+                    if (!File.Exists(targetPath) || new FileInfo(targetPath).Length == 0)
                     {
                         Directory.CreateDirectory(targetDir);
                         using var stream = assembly.GetManifestResourceStream(resourceName);
@@ -179,7 +216,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Failed to unpack embedded resource '{resourceName}': {ex.Message}");
+                    Console.WriteLine($"Failed to unpack embedded resource '{resourceName}' to '{targetBaseDir}': {ex.Message}");
                 }
             }
 
@@ -187,11 +224,11 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             // WetReverb ships as a single win-x64 binary inside a .vst3 bundle directory.
             try
             {
-                string vst3TargetDir = Path.Combine(baseDir, "Plugins", "VST3",
+                string vst3TargetDir = Path.Combine(targetBaseDir, "Plugins", "VST3",
                     "WetReverb.vst3", "Contents", "x86_64-win");
                 string vst3TargetPath = Path.Combine(vst3TargetDir, "WetReverb.vst3");
 
-                if (!File.Exists(vst3TargetPath))
+                if (!File.Exists(vst3TargetPath) || new FileInfo(vst3TargetPath).Length == 0)
                 {
                     Directory.CreateDirectory(vst3TargetDir);
                     using var stream = assembly.GetManifestResourceStream("Plugins.VST3.WetReverb.vst3");
@@ -204,7 +241,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to unpack embedded VST3 resource 'WetReverb': {ex.Message}");
+                Console.WriteLine($"Failed to unpack embedded VST3 resource 'WetReverb' to '{targetBaseDir}': {ex.Message}");
             }
         }
     }
