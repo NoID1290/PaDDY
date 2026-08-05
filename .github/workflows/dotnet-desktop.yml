@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: 8.0.x
+  DOTNET_VERSION: 10.0.x
   SOLUTION_PATH: PaDDY.sln
   PROJECT_PATH: PaDDY.csproj
   ARTIFACT_ROOT: bin/artifacts
@@ -30,6 +30,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
+        include-prerelease: true
 
     - name: Restore
       run: dotnet restore $env:SOLUTION_PATH
