@@ -4,6 +4,13 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.1.0.0811] - 2026-08-11
+
+- Added Voice-Only Detector feature linked to Whisper AI speech renaming
+- Stream Deck Plugin Uninstallation and Auto-Update features
+- Optimizing Audio Editor Startup & Loading Performance
+- Fixed folder sync issue when dragging pads between main and secondary windows.
+
 ## [2.0.2.0805] - 2026-08-05
 
 - Security Update
