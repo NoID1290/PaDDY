@@ -1890,6 +1890,7 @@ namespace PaDDY
                 // Detection / speech
                 _settings.DetectionAlgorithm = win.SelectedDetectionAlgorithm;
                 _settings.AutoRenameWithSpeech = win.SelectedAutoRenameWithSpeech;
+                _settings.CancelRecordingIfNoVoice = win.SelectedCancelRecordingIfNoVoice;
                 _settings.SpeechModel = win.SelectedSpeechModel;
                 _settings.SpeechLanguage = win.SelectedSpeechLanguage;
                 _settings.UseCudaForSpeech = win.SelectedUseCudaForSpeech;
@@ -2357,7 +2358,28 @@ namespace PaDDY
 
                 text = SanitizeSpeechName(text);
                 if (string.IsNullOrWhiteSpace(text))
+                {
+                    if (_settings.CancelRecordingIfNoVoice)
+                    {
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            foreach (var btn in FindPadButtons(recordingId))
+                            {
+                                if (btn.Entry != null && !string.IsNullOrEmpty(btn.Entry.RecordingId))
+                                {
+                                    _recordingStore.Delete(btn.Entry.RecordingId);
+                                    _padCache.Remove(btn.Entry.RecordingId);
+                                }
+                                PadPanel.Children.Remove(btn);
+                                FavoritesPanel.Children.Remove(btn);
+                                UpdatePadState();
+                            }
+                            SetStatus("Recording cancelled (No voice detected)", "#FFEE534F");
+                            Forget(RefreshStorageInfoAsync());
+                        });
+                    }
                     return;
+                }
 
                 _recordingStore.SetDisplayName(recordingId, text);
                 entry.DisplayName = text;

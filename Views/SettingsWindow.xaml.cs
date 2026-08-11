@@ -53,6 +53,7 @@ namespace PaDDY
         public bool SelectedRunOnWindowsStartup { get; private set; }
         public int SelectedDetectionAlgorithm { get; private set; }
         public bool SelectedAutoRenameWithSpeech { get; private set; }
+        public bool SelectedCancelRecordingIfNoVoice { get; private set; }
         public string SelectedSpeechModel { get; private set; } = "tiny";
         public string SelectedSpeechLanguage { get; private set; } = "en";
         public bool SelectedUseCudaForSpeech { get; private set; }
@@ -267,6 +268,7 @@ namespace PaDDY
 
             // Speech-to-text
             AutoRenameSpeechCheck.IsChecked = _settings.AutoRenameWithSpeech;
+            CancelRecordingIfNoVoiceCheck.IsChecked = _settings.CancelRecordingIfNoVoice;
             SpeechModelCombo.Items.Clear();
             string[] models = { "tiny", "base", "small", "medium", "large" };
             int modelIdx = 0;
@@ -594,6 +596,7 @@ namespace PaDDY
             SelectedStartMinimizedInTray = StartMinimizedCheck.IsChecked == true;
             SelectedRunOnWindowsStartup = RunOnStartupCheck.IsChecked == true;
             SelectedAutoRenameWithSpeech = AutoRenameSpeechCheck.IsChecked == true;
+            SelectedCancelRecordingIfNoVoice = CancelRecordingIfNoVoiceCheck.IsChecked == true;
             SelectedSpeechModel = SpeechModelCombo.SelectedItem?.ToString() ?? "base";
             SelectedSpeechLanguage = string.IsNullOrWhiteSpace(SpeechLanguageBox.Text) ? "en" : SpeechLanguageBox.Text.Trim();
             SelectedUseCudaForSpeech = UseCudaCheck.IsChecked == true;

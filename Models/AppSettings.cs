@@ -101,8 +101,10 @@ namespace PaDDY
         // 0 = RMS threshold (classic), 1 = Adaptive/spectral VAD (noise-floor calibrating)
         public int DetectionAlgorithm { get; set; } = 0;
 
-        // ---- Speech-to-text auto-rename ----
+        // Whisper speech auto-rename setting
         public bool AutoRenameWithSpeech { get; set; } = false;
+        // If enabled alongside AutoRenameWithSpeech, cancel/discard recording if Whisper detects no spoken voice
+        public bool CancelRecordingIfNoVoice { get; set; } = false;
         // Whisper model size: "tiny", "base", "small", "medium", "large"
         public string SpeechModel { get; set; } = "tiny";
         // Language code (e.g. "en", "auto")

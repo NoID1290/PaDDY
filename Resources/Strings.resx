@@ -179,6 +179,8 @@
   <data name="SpeechGroup" xml:space="preserve"><value>AI SPEECH-TO-TEXT</value></data>
   <data name="AutoRenameSpeechLabel" xml:space="preserve"><value>Auto-Rename via Transcription</value></data>
   <data name="AutoRenameSpeechDesc" xml:space="preserve"><value>Process speech audio with Whisper AI to name files based on spoken content.</value></data>
+  <data name="CancelRecordingIfNoVoiceLabel" xml:space="preserve"><value>Voice-Only Detector (Whisper)</value></data>
+  <data name="CancelRecordingIfNoVoiceDesc" xml:space="preserve"><value>Cancel and discard new recordings if no speech or voice is detected by Whisper AI.</value></data>
   <data name="WhisperModelLabel" xml:space="preserve"><value>Whisper Model Size</value></data>
   <data name="WhisperModelDesc" xml:space="preserve"><value>Select speech recognition model. Larger models are more accurate but use more space and resources.</value></data>
   <data name="WhisperLangLabel" xml:space="preserve"><value>Transcription Language</value></data>
