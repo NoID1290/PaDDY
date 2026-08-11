@@ -773,8 +773,18 @@ namespace PaDDY
                 {
                     try
                     {
+                        string streamDeckPath = null;
                         foreach (var process in System.Diagnostics.Process.GetProcessesByName("StreamDeck"))
                         {
+                            try
+                            {
+                                if (string.IsNullOrEmpty(streamDeckPath))
+                                {
+                                    streamDeckPath = process.MainModule?.FileName;
+                                }
+                            }
+                            catch { }
+
                             try
                             {
                                 process.Kill();
@@ -788,6 +798,43 @@ namespace PaDDY
                         if (System.IO.Directory.Exists(installPath))
                         {
                             System.IO.Directory.Delete(installPath, true);
+                        }
+
+                        if (!string.IsNullOrEmpty(streamDeckPath) && System.IO.File.Exists(streamDeckPath))
+                        {
+                            try
+                            {
+                                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(streamDeckPath) { UseShellExecute = true });
+                            }
+                            catch { }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                string registryPath = null;
+                                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe"))
+                                {
+                                    registryPath = key?.GetValue("")?.ToString();
+                                }
+                                if (string.IsNullOrEmpty(registryPath))
+                                {
+                                    using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe"))
+                                    {
+                                        registryPath = key?.GetValue("")?.ToString();
+                                    }
+                                }
+                                if (string.IsNullOrEmpty(registryPath))
+                                {
+                                    registryPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Elgato", "StreamDeck", "StreamDeck.exe");
+                                }
+
+                                if (System.IO.File.Exists(registryPath))
+                                {
+                                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(registryPath) { UseShellExecute = true });
+                                }
+                            }
+                            catch { }
                         }
 
                         System.Windows.MessageBox.Show("Stream Deck Plugin uninstalled successfully.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Information);

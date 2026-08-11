@@ -164,6 +164,7 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   AppDataPath: string;
   StreamDeckPluginPath: string;
+  StreamDeckPath: string;
   Msg: string;
   Answer: Integer;
   ResultCode: Integer;
@@ -178,9 +179,27 @@ begin
     StreamDeckPluginPath := ExpandConstant('{userappdata}') + '\Elgato\StreamDeck\Plugins\com.paddy.sdPlugin';
     if DirExists(StreamDeckPluginPath) then
     begin
+      // Retrieve Stream Deck path from Registry (App Paths) or fall back to default
+      if not RegQueryStringValue(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe', '', StreamDeckPath) then
+      begin
+        if not RegQueryStringValue(HKLM32, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe', '', StreamDeckPath) then
+        begin
+          if not RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe', '', StreamDeckPath) then
+          begin
+            StreamDeckPath := ExpandConstant('{pf}\Elgato\StreamDeck\StreamDeck.exe');
+          end;
+        end;
+      end;
+
       Exec('taskkill', '/IM StreamDeck.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
       Sleep(500); // Wait a moment for Stream Deck process and its plugin subprocesses to exit
       DelTree(StreamDeckPluginPath, True, True, True);
+
+      // Start Stream Deck again if we found the executable
+      if FileExists(StreamDeckPath) then
+      begin
+        Exec(StreamDeckPath, '', '', SW_SHOWNORMAL, ewNoWait, ResultCode);
+      end;
     end;
   end;
 
