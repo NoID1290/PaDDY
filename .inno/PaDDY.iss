@@ -109,7 +109,7 @@ Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppE
 [Run]
 ; Normal interactive install — launch without special flags
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\com.paddy.streamDeckPlugin"; Description: "Install Stream Deck Plugin"; Tasks: installstreamdeckplugin; Flags: shellexec waituntilidle skipifsilent
+Filename: "{app}\com.paddy.streamDeckPlugin"; Description: "Install/Update Stream Deck Plugin"; Check: ShouldInstallStreamDeckPlugin; Flags: shellexec waituntilidle
 
 ; Silent/update install — launch with --restore-update flag so PaDDY restores the auto-backup
 Filename: "{app}\{#AppExeName}"; Parameters: "--restore-update"; Flags: nowait skipifnotsilent
@@ -136,6 +136,16 @@ Root: HKCR; Subkey: ".PADBACK\OpenWithProgids";                    ValueType: st
 ; ============================================================================
 [Code]
 
+function IsStreamDeckPluginInstalled: Boolean;
+begin
+  Result := DirExists(ExpandConstant('{userappdata}') + '\Elgato\StreamDeck\Plugins\com.paddy.sdPlugin');
+end;
+
+function ShouldInstallStreamDeckPlugin: Boolean;
+begin
+  Result := WizardIsTaskSelected('installstreamdeckplugin') or IsStreamDeckPluginInstalled;
+end;
+
 // Shell notification — tells Explorer to refresh file-type icons immediately
 // dwItem1/dwItem2 are declared as Integer (not PAnsiChar) so we can pass 0
 // when SHCNF_IDLIST is used and both pointers are unused.
@@ -153,6 +163,7 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   AppDataPath: string;
+  StreamDeckPluginPath: string;
   Msg: string;
   Answer: Integer;
   ResultCode: Integer;
@@ -162,6 +173,15 @@ begin
   begin
     // Attempt to gracefully close the application, then force kill if still running
     Exec('taskkill', '/IM ' + ExpandConstant('{#AppExeName}') + ' /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+    // Also stop Stream Deck and clean up Stream Deck plugin if it is installed
+    StreamDeckPluginPath := ExpandConstant('{userappdata}') + '\Elgato\StreamDeck\Plugins\com.paddy.sdPlugin';
+    if DirExists(StreamDeckPluginPath) then
+    begin
+      Exec('taskkill', '/IM StreamDeck.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      Sleep(500); // Wait a moment for Stream Deck process and its plugin subprocesses to exit
+      DelTree(StreamDeckPluginPath, True, True, True);
+    end;
   end;
 
   if CurUninstallStep = usPostUninstall then

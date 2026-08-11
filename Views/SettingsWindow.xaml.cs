@@ -139,14 +139,7 @@ namespace PaDDY
             PopulateVersionAndDependenciesInfo();
 
             // Stream Deck Plugin check
-            string pluginPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
-            if (System.IO.Directory.Exists(pluginPath))
-            {
-                InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
-                InstallStreamDeckBtn.IsEnabled = false;
-                InstallStreamDeckBtn.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF4CAF50"));
-                InstallStreamDeckBtn.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
-            }
+            UpdateStreamDeckButtonState();
 
             // Codec
             _visibleCodecOptions = new List<(string Value, string Label)>(CodecOptions);
@@ -672,7 +665,39 @@ namespace PaDDY
                 GlobalFadeOutValueText.Text = $"{e.NewValue:0} ms";
         }
 
+        private void UpdateStreamDeckButtonState()
+        {
+            string pluginPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
+            if (System.IO.Directory.Exists(pluginPath))
+            {
+                InstallStreamDeckBtn.Content = LocalizationManager.Instance["UninstallStreamDeckBtn"];
+                InstallStreamDeckBtn.IsEnabled = true;
+                InstallStreamDeckBtn.ClearValue(System.Windows.Controls.Button.BackgroundProperty);
+                InstallStreamDeckBtn.ClearValue(System.Windows.Controls.Button.ForegroundProperty);
+            }
+            else
+            {
+                InstallStreamDeckBtn.Content = LocalizationManager.Instance["InstallStreamDeckBtn"];
+                InstallStreamDeckBtn.IsEnabled = true;
+                InstallStreamDeckBtn.ClearValue(System.Windows.Controls.Button.BackgroundProperty);
+                InstallStreamDeckBtn.ClearValue(System.Windows.Controls.Button.ForegroundProperty);
+            }
+        }
+
         private void InstallStreamDeckBtn_Click(object sender, RoutedEventArgs e)
+        {
+            string pluginPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
+            if (System.IO.Directory.Exists(pluginPath))
+            {
+                UninstallStreamDeckPlugin();
+            }
+            else
+            {
+                InstallStreamDeckPlugin();
+            }
+        }
+
+        private void InstallStreamDeckPlugin()
         {
             try
             {
@@ -708,10 +733,7 @@ namespace PaDDY
                         {
                             await Dispatcher.InvokeAsync(() =>
                             {
-                                InstallStreamDeckBtn.Content = "Stream Deck Plugin Installed";
-                                InstallStreamDeckBtn.IsEnabled = false;
-                                InstallStreamDeckBtn.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF4CAF50"));
-                                InstallStreamDeckBtn.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
+                                UpdateStreamDeckButtonState();
                             });
                             break;
                         }
@@ -721,6 +743,65 @@ namespace PaDDY
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"Failed to install plugin:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UninstallStreamDeckPlugin()
+        {
+            string installPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
+            try
+            {
+                if (System.IO.Directory.Exists(installPath))
+                {
+                    System.IO.Directory.Delete(installPath, true);
+                }
+
+                System.Windows.MessageBox.Show("Stream Deck Plugin uninstalled successfully.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateStreamDeckButtonState();
+            }
+            catch (System.IO.IOException)
+            {
+                var result = System.Windows.MessageBox.Show(
+                    "Failed to uninstall plugin because some files are in use.\n" +
+                    "Please close the Elgato Stream Deck software and try again.\n\n" +
+                    "Would you like PaDDY to attempt to close the Stream Deck software and retry?",
+                    "Stream Deck Plugin In Use",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        foreach (var process in System.Diagnostics.Process.GetProcessesByName("StreamDeck"))
+                        {
+                            try
+                            {
+                                process.Kill();
+                                process.WaitForExit(3000);
+                            }
+                            catch { }
+                        }
+
+                        System.Threading.Thread.Sleep(1000);
+
+                        if (System.IO.Directory.Exists(installPath))
+                        {
+                            System.IO.Directory.Delete(installPath, true);
+                        }
+
+                        System.Windows.MessageBox.Show("Stream Deck Plugin uninstalled successfully.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Information);
+                        UpdateStreamDeckButtonState();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show($"Failed to uninstall plugin after closing Stream Deck:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to uninstall plugin:\n{ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

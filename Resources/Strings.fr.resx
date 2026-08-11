@@ -250,6 +250,7 @@
   <data name="StreamDeckLabel" xml:space="preserve"><value>Installer le plugin Elgato</value></data>
   <data name="StreamDeckDesc" xml:space="preserve"><value>Enregistre le plugin personnalisé dans Stream Deck pour la configuration des macros.</value></data>
   <data name="InstallStreamDeckBtn" xml:space="preserve"><value>Installer le plugin Stream Deck</value></data>
+  <data name="UninstallStreamDeckBtn" xml:space="preserve"><value>Désinstaller le plugin Stream Deck</value></data>
   <data name="DiscordGroup" xml:space="preserve"><value>DISCORD RICH PRESENCE</value></data>
   <data name="DiscordLabel" xml:space="preserve"><value>Activer Discord Rich Presence</value></data>
   <data name="DiscordDesc" xml:space="preserve"><value>Affiche le statut et les activités d'enregistrement directement sur Discord.</value></data>
