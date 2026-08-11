@@ -94,7 +94,7 @@ namespace PaDDY.Views
 
             if (Page.IsFavorites)
             {
-                matchingEntries = allEntries.Where(e => e.IsFavorite).ToList();
+                matchingEntries = allEntries.Where(e => e.IsFavorite && (string.IsNullOrEmpty(e.PadPage) || e.PadPage == Page.Id)).ToList();
             }
             else
             {
@@ -167,8 +167,9 @@ namespace PaDDY.Views
                 if (s is not RecordingPadButton b || b.Entry == null || string.IsNullOrEmpty(b.Entry.RecordingId)) return;
                 bool newFav = b.IsFavorite;
                 _store.SetFavorite(b.Entry.RecordingId, newFav);
-                if (!newFav && Page.IsFavorites)
+                if (!newFav)
                 {
+                    b.Entry.IsFavorite = false;
                     b.Entry.PadPage = string.Empty;
                     _store.SetPadPage(b.Entry.RecordingId, string.Empty);
                     FolderPadsPanel.Children.Remove(b);
@@ -225,21 +226,20 @@ namespace PaDDY.Views
 
                     string codec = Path.GetExtension(copyPath).TrimStart('.');
                     string displayName = RecordingNameGenerator.BuildDisplayName(_settings, DateTime.Now, codec);
+                    string targetPage = Page.IsFavorites ? string.Empty : Page.Id;
                     var newEntry = new RecordingEntry
                     {
                         DisplayName = displayName,
                         Duration = duration,
                         CreatedAt = DateTime.Now,
-                        IsFavorite = asFav,
-                        PadPage = Page.IsFavorites ? string.Empty : Page.Id
+                        IsFavorite = true,
+                        PadPage = targetPage
                     };
                     string id = _store.Add(displayName, codec, newEntry.Duration, newEntry.CreatedAt, audioBytes);
                     newEntry.RecordingId = id;
                     newEntry.FilePath = _store.MaterializeToTemp(id, codec);
-                    if (!Page.IsFavorites)
-                    {
-                        _store.SetPadPage(id, Page.Id);
-                    }
+                    _store.SetFavorite(id, true);
+                    _store.SetPadPage(id, targetPage);
 
                     RefreshPads();
                     _onDataChanged?.Invoke();
@@ -283,7 +283,7 @@ namespace PaDDY.Views
 
         private void Window_DragOver(object sender, System.Windows.DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(RecordingPadButton.PadDragFormat))
+            if (RecordingPadButton.GetDraggedPad(e) != null || e.Data.GetDataPresent(RecordingPadButton.PadDragFormat))
             {
                 e.Effects = System.Windows.DragDropEffects.Move;
                 e.Handled = true;
@@ -306,22 +306,21 @@ namespace PaDDY.Views
 
         private async void Window_Drop(object sender, System.Windows.DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(RecordingPadButton.PadDragFormat))
+            var pad = RecordingPadButton.GetDraggedPad(e);
+            if (pad != null && pad.Entry != null)
             {
-                if (e.Data.GetData(RecordingPadButton.PadDragFormat) is RecordingPadButton pad && pad.Entry != null)
-                {
-                    if (Page.IsFavorites)
-                    {
-                        _store.SetFavorite(pad.Entry.RecordingId, true);
-                    }
-                    else
-                    {
-                        _store.SetPadPage(pad.Entry.RecordingId, Page.Id);
-                    }
+                string targetPage = Page.IsFavorites ? string.Empty : Page.Id;
+                _store.SetFavorite(pad.Entry.RecordingId, true);
+                _store.SetPadPage(pad.Entry.RecordingId, targetPage);
 
-                    _onDataChanged?.Invoke();
-                    RefreshPads();
-                }
+                pad.Entry.IsFavorite = true;
+                pad.IsFavorite = true;
+                pad.Entry.PadPage = targetPage;
+
+                // Remove pad from its current visual parent panel if present
+                (pad.Parent as System.Windows.Controls.Panel)?.Children.Remove(pad);
+
+                _onDataChanged?.Invoke();
                 e.Handled = true;
                 return;
             }
@@ -340,14 +339,9 @@ namespace PaDDY.Views
                             if (result.Success && result.AudioData.Length > 0)
                             {
                                 string id = _store.Add(result.DisplayName, result.Codec, result.Duration, DateTime.Now, result.AudioData);
-                                if (Page.IsFavorites)
-                                {
-                                    _store.SetFavorite(id, true);
-                                }
-                                else
-                                {
-                                    _store.SetPadPage(id, Page.Id);
-                                }
+                                string targetPage = Page.IsFavorites ? string.Empty : Page.Id;
+                                _store.SetFavorite(id, true);
+                                _store.SetPadPage(id, targetPage);
                             }
                         }
                         _onDataChanged?.Invoke();

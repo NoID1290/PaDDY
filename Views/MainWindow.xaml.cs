@@ -961,9 +961,7 @@ namespace PaDDY
         private System.Windows.Documents.AdornerLayer? _dragAdornerLayer;
 
         private static RecordingPadButton? GetDraggedPad(System.Windows.DragEventArgs e)
-            => e.Data.GetDataPresent(RecordingPadButton.PadDragFormat)
-                ? e.Data.GetData(RecordingPadButton.PadDragFormat) as RecordingPadButton
-                : null;
+            => RecordingPadButton.GetDraggedPad(e);
 
         /// <summary>Sets up the floating ghost and dims the source pad when a drag begins.</summary>
         private void BeginPadDragVisual(RecordingPadButton pad)
@@ -993,27 +991,21 @@ namespace PaDDY
             var parent = pad.Parent;
             if (ReferenceEquals(parent, FavoritesPanel))
             {
-                if (!pad.IsFavorite)
-                {
-                    pad.IsFavorite = true;
-                    pad.Entry.IsFavorite = true;
-                    _recordingStore.SetFavorite(pad.Entry.RecordingId, true);
-                    string pageId = _activePadPage != null && !_activePadPage.IsFavorites ? _activePadPage.Id : string.Empty;
-                    pad.Entry.PadPage = pageId;
-                    _recordingStore.SetPadPage(pad.Entry.RecordingId, pageId);
-                }
+                string pageId = _activePadPage != null && !_activePadPage.IsFavorites ? _activePadPage.Id : string.Empty;
+                pad.IsFavorite = true;
+                pad.Entry.IsFavorite = true;
+                pad.Entry.PadPage = pageId;
+                _recordingStore.SetFavorite(pad.Entry.RecordingId, true);
+                _recordingStore.SetPadPage(pad.Entry.RecordingId, pageId);
                 PersistFavoritesOrder();
             }
             else if (ReferenceEquals(parent, PadPanel))
             {
-                if (pad.IsFavorite)
-                {
-                    pad.IsFavorite = false;
-                    pad.Entry.IsFavorite = false;
-                    _recordingStore.SetFavorite(pad.Entry.RecordingId, false);
-                    pad.Entry.PadPage = string.Empty;
-                    _recordingStore.SetPadPage(pad.Entry.RecordingId, string.Empty);
-                }
+                pad.IsFavorite = false;
+                pad.Entry.IsFavorite = false;
+                pad.Entry.PadPage = string.Empty;
+                _recordingStore.SetFavorite(pad.Entry.RecordingId, false);
+                _recordingStore.SetPadPage(pad.Entry.RecordingId, string.Empty);
                 SwitchToCustomSort();
                 PersistRecordingsOrder();
                 EnforceMaxRecords();
@@ -1021,6 +1013,7 @@ namespace PaDDY
             // Otherwise the pad was moved to another page (detached) and already committed.
 
             UpdatePadState();
+            RefreshSecondaryFolderWindows();
         }
 
         private void FavoritesPanel_DragOver(object sender, System.Windows.DragEventArgs e)
@@ -1071,13 +1064,48 @@ namespace PaDDY
             e.Handled = true;
         }
 
-        private static void CommitPanelDrop(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
+        private void CommitPanelDrop(System.Windows.Controls.Panel panel, System.Windows.DragEventArgs e)
         {
             var pad = GetDraggedPad(e);
-            if (pad == null) return;
+            if (pad == null || pad.Entry == null) return;
+
+            // Resolve to the main window's cached pad button instance if it exists
+            if (_padCache.TryGetValue(pad.Entry.RecordingId, out var mainBtn) && mainBtn != null && mainBtn.Entry != null)
+            {
+                if (!ReferenceEquals(pad, mainBtn))
+                {
+                    (pad.Parent as System.Windows.Controls.Panel)?.Children.Remove(pad);
+                }
+                pad = mainBtn;
+            }
 
             int index = ComputeDropIndex(panel, e, pad);
             MovePadOnce(panel, pad, index);
+
+            if (ReferenceEquals(panel, FavoritesPanel))
+            {
+                string pageId = _activePadPage != null && !_activePadPage.IsFavorites ? _activePadPage.Id : string.Empty;
+                pad.IsFavorite = true;
+                pad.Entry.IsFavorite = true;
+                pad.Entry.PadPage = pageId;
+                _recordingStore.SetFavorite(pad.Entry.RecordingId, true);
+                _recordingStore.SetPadPage(pad.Entry.RecordingId, pageId);
+                PersistFavoritesOrder();
+            }
+            else if (ReferenceEquals(panel, PadPanel))
+            {
+                pad.IsFavorite = false;
+                pad.Entry.IsFavorite = false;
+                pad.Entry.PadPage = string.Empty;
+                _recordingStore.SetFavorite(pad.Entry.RecordingId, false);
+                _recordingStore.SetPadPage(pad.Entry.RecordingId, string.Empty);
+                SwitchToCustomSort();
+                PersistRecordingsOrder();
+                EnforceMaxRecords();
+            }
+
+            UpdatePadState();
+            RefreshSecondaryFolderWindows();
         }
 
         private void UpdateDragAdorner(System.Windows.DragEventArgs e)
@@ -1134,6 +1162,16 @@ namespace PaDDY
             var page = _settings.PadPages.FirstOrDefault(p => p.Id == pageId);
             bool toFavoritesPage = page != null && page.IsFavorites;
 
+            // Resolve to the main window's cached pad button instance if it exists
+            if (_padCache.TryGetValue(pad.Entry.RecordingId, out var mainBtn) && mainBtn != null && mainBtn.Entry != null)
+            {
+                if (!ReferenceEquals(pad, mainBtn))
+                {
+                    (pad.Parent as System.Windows.Controls.Panel)?.Children.Remove(pad);
+                }
+                pad = mainBtn;
+            }
+
             pad.IsFavorite = true;
             pad.Entry.IsFavorite = true;
             string targetPage = toFavoritesPage ? string.Empty : pageId;
@@ -1150,6 +1188,7 @@ namespace PaDDY
             {
                 ReloadFavoritesPanel();
             }
+            RefreshSecondaryFolderWindows();
         }
 
         private void PersistFavoritesOrder()
@@ -2742,6 +2781,77 @@ namespace PaDDY
             ReloadFavoritesPanel();
         }
 
+        private void EnsurePadCacheSynced()
+        {
+            var records = _recordingStore.GetAll();
+            var recordIds = new HashSet<string>(records.Select(r => r.Id));
+
+            foreach (var rec in records)
+            {
+                if (!_padCache.TryGetValue(rec.Id, out var btn) || btn == null)
+                {
+                    try
+                    {
+                        string tempPath = _settings.PreloadAudioCache
+                            ? _recordingStore.MaterializeToTemp(rec.Id, rec.Codec)
+                            : string.Empty;
+
+                        var entry = new RecordingEntry
+                        {
+                            RecordingId = rec.Id,
+                            FilePath = tempPath,
+                            Codec = rec.Codec,
+                            DisplayName = rec.DisplayName,
+                            Duration = TimeSpan.FromMilliseconds(rec.DurationMs),
+                            CreatedAt = rec.CreatedAt,
+                            IsFavorite = rec.IsFavorite,
+                            PadPage = rec.PadPage,
+                            SortOrder = rec.SortOrder,
+                            IsNonDestructive = rec.IsNonDestructive,
+                            TrimStartMs = rec.TrimStartMs,
+                            TrimEndMs = rec.TrimEndMs,
+                            GainDb = rec.GainDb,
+                            PadColor = rec.PadColor
+                        };
+                        btn = CreatePadButton(entry);
+                        _padCache[rec.Id] = btn;
+                    }
+                    catch { }
+                }
+                else if (btn.Entry != null)
+                {
+                    btn.Entry.IsFavorite = rec.IsFavorite;
+                    btn.IsFavorite = rec.IsFavorite;
+                    btn.Entry.PadPage = rec.PadPage;
+                    btn.Entry.DisplayName = rec.DisplayName;
+                    btn.Entry.SortOrder = rec.SortOrder;
+                    btn.Entry.PadColor = rec.PadColor;
+                    btn.Entry.IsNonDestructive = rec.IsNonDestructive;
+                    btn.Entry.TrimStartMs = rec.TrimStartMs;
+                    btn.Entry.TrimEndMs = rec.TrimEndMs;
+                    btn.Entry.GainDb = rec.GainDb;
+                }
+            }
+
+            var deletedIds = _padCache.Keys.Where(id => !recordIds.Contains(id)).ToList();
+            foreach (var id in deletedIds)
+            {
+                if (_padCache.TryGetValue(id, out var btn))
+                {
+                    (btn.Parent as System.Windows.Controls.Panel)?.Children.Remove(btn);
+                    _padCache.Remove(id);
+                }
+            }
+        }
+
+        private void RefreshSecondaryFolderWindows()
+        {
+            foreach (var win in _secondaryFolderWindows.Values.ToList())
+            {
+                if (win.IsLoaded) win.RefreshPads();
+            }
+        }
+
         private void ReloadFavoritesPanel()
         {
             FavoritesPanel.Children.Clear();
@@ -2749,10 +2859,7 @@ namespace PaDDY
             LoadFavoritesFromStore();
             RecordingPadButton.SuppressEntranceAnimation--;
 
-            foreach (var win in _secondaryFolderWindows.Values.ToList())
-            {
-                if (win.IsLoaded) win.RefreshPads();
-            }
+            RefreshSecondaryFolderWindows();
         }
 
         private readonly Dictionary<string, Views.SecondaryFolderWindow> _secondaryFolderWindows = new();
@@ -2789,7 +2896,9 @@ namespace PaDDY
                 {
                     Dispatcher.InvokeAsync(() =>
                     {
+                        EnsurePadCacheSynced();
                         ReloadFavoritesPanel();
+                        LoadNonFavoritesFromStore();
                         UpdatePadState();
                         Forget(RefreshStorageInfoAsync());
                     });

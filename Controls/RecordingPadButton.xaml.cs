@@ -342,16 +342,20 @@ namespace PaDDY.Controls
                     return;
 
                 _dragInProgress = true;
+                CurrentDraggedPad = this;
                 DragGrabOffset = e.GetPosition(this);
                 try
                 {
                     DragStarting?.Invoke(this);
-                    var data = new System.Windows.DataObject(PadDragFormat, this);
+                    var data = new System.Windows.DataObject();
+                    data.SetData(PadDragFormat, Entry?.RecordingId ?? string.Empty);
+                    data.SetData(typeof(RecordingPadButton), this);
                     System.Windows.DragDrop.DoDragDrop(this, data, System.Windows.DragDropEffects.Move);
                 }
                 catch { }
                 finally
                 {
+                    CurrentDraggedPad = null;
                     DragFinished?.Invoke(this);
                 }
             };
@@ -359,6 +363,19 @@ namespace PaDDY.Controls
 
         /// <summary>DataObject format used when dragging a pad between panels/pages.</summary>
         public const string PadDragFormat = "PaddyRecordingPad";
+
+        /// <summary>Currently active pad being dragged, available across window boundaries.</summary>
+        public static RecordingPadButton? CurrentDraggedPad { get; set; }
+
+        public static RecordingPadButton? GetDraggedPad(System.Windows.DragEventArgs e)
+        {
+            if (CurrentDraggedPad != null) return CurrentDraggedPad;
+            if (e.Data.GetDataPresent(typeof(RecordingPadButton)) && e.Data.GetData(typeof(RecordingPadButton)) is RecordingPadButton pad)
+                return pad;
+            if (e.Data.GetDataPresent(PadDragFormat) && e.Data.GetData(PadDragFormat) is RecordingPadButton padFormat)
+                return padFormat;
+            return null;
+        }
 
         /// <summary>Mouse offset within the pad where the drag began (used to position the drag ghost).</summary>
         public System.Windows.Point DragGrabOffset { get; private set; }
