@@ -197,7 +197,8 @@ namespace PaDDY
 
             try
             {
-                await System.Threading.Tasks.Task.Run(() =>
+                // Parallelize audio decoding and VST/effect loading on background threads
+                var audioLoadTask = System.Threading.Tasks.Task.Run(() =>
                 {
                     using var reader = AudioReaderFactory.Open(filePath);
                     totalDuration = reader.TotalTime;
@@ -224,33 +225,150 @@ namespace PaDDY
                     float blockMin = 0f, blockMax = 0f;
                     int blockCount = 0;
 
-                    while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+                    if (channels == 1)
                     {
-                        int monoRead = read / channels;
-                        for (int i = 0; i < monoRead; i++)
+                        while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
                         {
-                            float sample = 0f;
-                            for (int ch = 0; ch < channels; ch++)
-                                sample += buffer[i * channels + ch];
-                            sample /= channels;
-
-                            if (sample < blockMin) blockMin = sample;
-                            if (sample > blockMax) blockMax = sample;
-                            blockCount++;
-
-                            if (blockCount >= blockSize)
+                            for (int i = 0; i < read; i++)
                             {
-                                dynamicPeaks.Add((blockMin, blockMax));
-                                blockMin = 0f; blockMax = 0f; blockCount = 0;
+                                float sample = buffer[i];
+
+                                if (sample < blockMin) blockMin = sample;
+                                if (sample > blockMax) blockMax = sample;
+                                blockCount++;
+
+                                if (blockCount >= blockSize)
+                                {
+                                    dynamicPeaks.Add((blockMin, blockMax));
+                                    blockMin = 0f; blockMax = 0f; blockCount = 0;
+                                }
                             }
+                            samplesRead += read;
                         }
-                        samplesRead += monoRead;
                     }
+                    else if (channels == 2)
+                    {
+                        while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            int monoRead = read / 2;
+                            for (int i = 0; i < monoRead; i++)
+                            {
+                                float sample = (buffer[i * 2] + buffer[i * 2 + 1]) * 0.5f;
+
+                                if (sample < blockMin) blockMin = sample;
+                                if (sample > blockMax) blockMax = sample;
+                                blockCount++;
+
+                                if (blockCount >= blockSize)
+                                {
+                                    dynamicPeaks.Add((blockMin, blockMax));
+                                    blockMin = 0f; blockMax = 0f; blockCount = 0;
+                                }
+                            }
+                            samplesRead += monoRead;
+                        }
+                    }
+                    else
+                    {
+                        while ((read = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            int monoRead = read / channels;
+                            for (int i = 0; i < monoRead; i++)
+                            {
+                                float sample = 0f;
+                                for (int ch = 0; ch < channels; ch++)
+                                    sample += buffer[i * channels + ch];
+                                sample /= channels;
+
+                                if (sample < blockMin) blockMin = sample;
+                                if (sample > blockMax) blockMax = sample;
+                                blockCount++;
+
+                                if (blockCount >= blockSize)
+                                {
+                                    dynamicPeaks.Add((blockMin, blockMax));
+                                    blockMin = 0f; blockMax = 0f; blockCount = 0;
+                                }
+                            }
+                            samplesRead += monoRead;
+                        }
+                    }
+
                     if (blockCount > 0)
                         dynamicPeaks.Add((blockMin, blockMax));
 
                     _rawBlockPeaks = dynamicPeaks;
                 });
+
+                IEffectChain localPerClipChain = null;
+                var localVstEffects = new List<IVstEffect>();
+                string recordingId = _recordingId;
+
+                var vstLoadTask = System.Threading.Tasks.Task.Run(() =>
+                {
+                    // 1. Create and apply effect config from saved settings
+                    localPerClipChain = EffectChainFactory.CreatePerClip();
+                    var effectSettings = EffectSettingsManager.Load();
+                    if (!string.IsNullOrEmpty(recordingId) &&
+                        effectSettings.PerClipChains.TryGetValue(recordingId!, out var cfg))
+                        EffectSettingsManager.ApplyConfig(localPerClipChain, cfg);
+                    else
+                        EffectSettingsManager.ApplyConfig(localPerClipChain, effectSettings.GlobalChain);
+
+                    // 2. Load all default vendored VST plugins (VST2 + VST3)
+                    var defaultPlugins = VstPluginManager.LoadDefaultPlugins();
+                    foreach (var plugin in defaultPlugins)
+                    {
+                        localVstEffects.Add(plugin);
+                        localPerClipChain.Add(plugin);
+                    }
+
+                    // 3. Load legacy and managed user plugins (if different from defaults).
+                    var appSettings = AppSettings.Load();
+                    var userPluginPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    if (!string.IsNullOrWhiteSpace(appSettings.VstPluginPath))
+                        userPluginPaths.Add(appSettings.VstPluginPath);
+                    if (!string.IsNullOrWhiteSpace(appSettings.Vst3PluginPath))
+                        userPluginPaths.Add(appSettings.Vst3PluginPath);
+                    foreach (string path in appSettings.UserVstPluginPaths ?? new List<string>())
+                    {
+                        if (!string.IsNullOrWhiteSpace(path))
+                            userPluginPaths.Add(path);
+                    }
+
+                    foreach (string path in userPluginPaths)
+                    {
+                        var plugin = VstPluginManager.TryLoadUserPlugin(path);
+                        if (plugin != null)
+                        {
+                            bool alreadyLoaded = false;
+                            foreach (var vst in localVstEffects)
+                            {
+                                if (string.Equals(vst.Name, plugin.Name, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    alreadyLoaded = true;
+                                    break;
+                                }
+                            }
+
+                            if (!alreadyLoaded)
+                            {
+                                localVstEffects.Add(plugin);
+                                localPerClipChain.Add(plugin);
+                            }
+                            else
+                            {
+                                (plugin as IDisposable)?.Dispose();
+                            }
+                        }
+                    }
+                });
+
+                await System.Threading.Tasks.Task.WhenAll(audioLoadTask, vstLoadTask);
+
+                _perClipChain = localPerClipChain;
+                _vstEffects.AddRange(localVstEffects);
+
                 success = true;
             }
             catch (Exception ex)
@@ -311,8 +429,7 @@ namespace PaDDY
 
             GainSlider.Value = _gainDb;
 
-            // Load per-clip effect chain into inline panel
-            _perClipChain = GetOrLoadEffectChain();
+            // Setup effect controls from local per clip chain
             foreach (var effect in _perClipChain.Effects)
             {
                 switch (effect)
@@ -329,42 +446,6 @@ namespace PaDDY
                 }
             }
             LoadEffectValues();
-
-            // Load all default vendored VST plugins (VST2 + VST3)
-            var defaultPlugins = VstPluginManager.LoadDefaultPlugins();
-            foreach (var plugin in defaultPlugins)
-            {
-                _vstEffects.Add(plugin);
-                _perClipChain.Add(plugin);
-            }
-
-            // Load legacy and managed user plugins (if different from defaults).
-            var settings = AppSettings.Load();
-            var userPluginPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (!string.IsNullOrWhiteSpace(settings.VstPluginPath))
-                userPluginPaths.Add(settings.VstPluginPath);
-            if (!string.IsNullOrWhiteSpace(settings.Vst3PluginPath))
-                userPluginPaths.Add(settings.Vst3PluginPath);
-            foreach (string path in settings.UserVstPluginPaths ?? new List<string>())
-            {
-                if (!string.IsNullOrWhiteSpace(path))
-                    userPluginPaths.Add(path);
-            }
-
-            foreach (string path in userPluginPaths)
-            {
-                var plugin = VstPluginManager.TryLoadUserPlugin(path);
-                if (plugin != null && !IsPluginAlreadyLoaded(plugin.Name))
-                {
-                    _vstEffects.Add(plugin);
-                    _perClipChain.Add(plugin);
-                }
-                else
-                {
-                    (plugin as IDisposable)?.Dispose();
-                }
-            }
-
             PopulateVstPluginRack();
 
             AudioEditorLoadingOverlay.Hide(instantly: true);
