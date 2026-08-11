@@ -699,6 +699,49 @@ namespace PaDDY
 
         private void InstallStreamDeckPlugin()
         {
+            // Close Stream Deck if running before installing/updating the plugin
+            string streamDeckPath = null;
+            foreach (var process in System.Diagnostics.Process.GetProcessesByName("StreamDeck"))
+            {
+                try
+                {
+                    streamDeckPath = process.MainModule?.FileName;
+                }
+                catch { }
+            }
+
+            if (!string.IsNullOrEmpty(streamDeckPath) && System.IO.File.Exists(streamDeckPath))
+            {
+                try
+                {
+                    string registryPath = null;
+                    using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe"))
+                    {
+                        registryPath = key?.GetValue("")?.ToString();
+                    }
+                    if (string.IsNullOrEmpty(registryPath))
+                    {
+                        using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe"))
+                        {
+                            registryPath = key?.GetValue("")?.ToString();
+                        }
+                    }
+                    if (string.IsNullOrEmpty(registryPath))
+                    {
+                        registryPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Elgato", "StreamDeck", "StreamDeck.exe");
+                    }
+
+                    if (!string.IsNullOrEmpty(registryPath) && System.IO.File.Exists(registryPath))
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(registryPath) { UseShellExecute = true });
+                    }
+                }
+                catch { }
+            }
+
+            // Give Stream Deck time to fully exit
+            System.Threading.Thread.Sleep(2000);
+
             try
             {
                 string pluginPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "com.paddy.streamDeckPlugin");
