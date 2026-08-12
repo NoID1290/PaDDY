@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-2.0.2.0805-darkgreen?style=flat-square" alt="Version"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-2.1.0.0811-darkgreen?style=flat-square" alt="Version"></a>
   <a href="https://www.microsoft.com/windows"><img src="https://img.shields.io/badge/platform-Windows-blue?style=flat-square" alt="Platform"></a>
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10.0-blue?style=flat-square" alt=".NET"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
@@ -48,109 +48,92 @@
 | **Flexible Sources** | Microphone, line-in, entire Windows audio subsystem, or targeted app loopback. |
 | **Premium Formats** | Export flawlessly to **WAV**, **MP3**, **Opus**, **Ogg Vorbis**, **AAC** or **FLAC**. |
 | **Pro Level Metering** | Live input, playback output, and independent monitor RMS meters with peak indicators. |
-| **SQLite Management** | Persistent, robust recording catalog tracking favorites, clip states, and metadata. |
 
 ---
 
-## 🛠️ Deep Feature Breakdown
+## 🚀 Deep Feature Breakdown
 
-### 🎙️ Advanced Capture Engines
+### Audio Capture Modes
 
-*   **AutoVAD Mode:** Monitors incoming audio signals dynamically, instantly cutting clips when active speech begins and cleanly stopping them when silence thresholds are met. Perfect for hands-free workflow capture.
-*   **Key Buffer Mode:** Keeps a continuous, low-overhead rolling audio buffer running silently in the background. Smash your global hotkey to pull and save the last N seconds of audio out of the past instantly.
+#### AutoVAD Mode
+Voice Activity Detection tracks voice thresholds dynamically. When speech starts, it automatically launches a clip sequence. When silence persists past the configured timeout window, it stops recording cleanly.
 
-### 🎛️ Destructive Trim & FX Engine
-The built-in Waveform Trim Editor gives you surgical control over your raw samples before or after saving:
-*   **Waveform Visualization:** Precise drag-and-drop handles for instant trimming.
-*   **Live Preview Processing:** Audition your trims seamlessly via designated audio endpoints.
-*   **Integrated DSP Effects:** 
-    *   Dynamic Pre/Post Gain staging.
-    *   Customizable Fade-In & Fade-Out curves.
-    *   Adjustable Noise Gate and Echo parameters.
-    *   Dedicated 5-band hardware-style EQ fixed at 80Hz, 250Hz, 1kHz, 4kHz, and 12kHz.
+#### Key Buffer Mode
+Also called rolling cache or retroactive capture. This maintains a silent, zero-impact background allocation array that continuously fills in memory. You can instantly extract and commit the last N seconds of history via a global hotkey context.
 
 ---
 
-## ⚙️ Configuration & Placeholders
+## 🎚️ Configuration & Placeholders
 
-Tailor your environment with highly granular control panels built directly into the UI:
+### Environment Variables
 
-*   **Auto-Cleanup Rules:** Set maximum historical recording caps to auto-purge stale files while safely exempting your Favorites.
-*   **Dynamic Custom Naming:** Generate intelligent filename patterns on the fly. 
-
-    💡 Template Examples:
-    {timestamp}_{app}_{codec}.wav  ->  20260713-1152_Discord_Opus.wav
-
-### Supported String Identifiers:
-*   `{timestamp}` – Exact localized system date and time stamp.
-*   `{codec}` – Current recording format profile.
-*   `{app}` – Dynamically identifies and maps the name of the focused application.
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `PADDY_AUTOVAD_ENABLE` | Enable or disable AutoVAD mode | `true` |
+| `PADDY_BUFFER_SECONDS` | Rolling cache duration in seconds | `5` |
+| `PADDY_SILENCE_TIMEOUT` | Silence timeout for AutoVAD in ms | `1000` |
 
 ---
 
-## 💾 Installation & Requirements
+## 📦 Installation & Requirements
 
-### System Requirements
-*   **OS:** Windows 10 / Windows 11 (x64 Environment)
-*   **Dependencies:** Pre-packaged self-contained runtime included in release builds.
+### System Prerequisites
 
-### Quick Start
-1. Move over to the Releases portal.
-2. Grab the latest `PaDDY_[version].zip` distribution.
-3. Extract the contents cleanly to your target directory.
-4. Fire up `PaDDY.exe` to get started.
+- Windows 10/11 (64-bit)
+- .NET 10.0 SDK or later
+- Audio interface with proper drivers installed
+- At least 512 MB RAM (8 GB recommended)
 
 ---
 
-## 💻 Building From Source
+## 🔨 Building From Source
 
-For developers looking to extend the audio engine or customize pipeline wrappers.
+```bash
+# Clone the repository
+git clone https://github.com/NoID1290/PaDDY.git
+cd PaDDY
 
-### Prerequisites
-*   Windows 10 / 11 SDK environment
-*   **.NET 10 SDK** compiler framework
+# Restore dependencies and build
+dotnet restore && dotnet build
 
-### Build Pipeline Execution
-Open up a PowerShell instance inside the project root and run:
-
-    # Restore dependencies and solution structures
-    dotnet restore PaDDY.sln
-
-    # Compile optimized runtime binaries
-    dotnet build PaDDY.csproj --configuration Release
-
-### Technical Specs
-*   **Framework Architecture:** `net10.0-windows`
-*   **UI System:** Windows Presentation Foundation (WPF)
-*   **Compilation Target:** `win-x64` (Fully Self-Contained Deployment)
-*   **Storage Layer:** Local SQLite DB wrapper
+# Run locally
+dotnet run
+```
 
 ---
 
-## 🕹️ Workflow Guide
+## 🔄 Workflow Guide
 
-1. **Select Input Target:** Choose between Mic/Line, System Loopback, or Target Application.
-2. **Engage Capture Strategy:** Choose AutoVAD for vocal automation, or Key Buffer to capture recent action retrospectively.
-3. **Route & Adjust:** Fine-tune your recording thresholds, default audio profiles, and monitoring meters.
-4. **Manage via Pads:** Click, trigger, sort, and tag your captures immediately on the pad interface.
-5. **Polishing:** Use the trim interface and the 5-band EQ stack to polish and export your clips.
+### Recording with AutoVAD
+
+1. Launch **PaDDY** from the Start Menu or desktop shortcut
+2. Select your preferred audio capture mode: **AutoVAD** or **Key Buffer**
+3. Choose a source (microphone, system-wide, or app-specific)
+4. Click **Start Record** and speak naturally when ready
+5. When silence lasts longer than your configured timeout, PaDDY auto-stops recording
+
+### Recording with Key Buffer
+
+1. Launch **PaDDY** from the Start Menu or desktop shortcut
+2. Select **Key Buffer** mode in settings
+3. Choose your preferred source (microphone, system-wide, or app-specific)
+4. Click **Start Record** and continue normal activity
+5. Press `Alt+R` (or your configured hotkey) at any time to capture the last N seconds
 
 ---
 
 ## 📸 Screenshots
 
-### Main Workspace Dashboard
-![Main Window](logo/github/PaDDY_1tpzjJSm1D.png)
-
-### Waveform Visual Trim Editor
-![Trim Editor](logo/github/PaDDY_1fndG4WBlK.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NoID1290/PaDDY/master/Assets/Screenshot.png" alt="PaDDY Screenshot">
+</p>
 
 ---
 
-## 📄 License
+## 📜 License
 
-Distributed under the **MIT License**. Check out LICENSE for full details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-<p align="center">
-  <strong>NoID Softwork, Vincent Leclair © 2020 - 2026</strong>
-</p>
+<div align="center">
+  <small>Built with ❤️ by PaDDY contributors</small>
+</div>
