@@ -393,6 +393,21 @@
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
+                                        <!-- Live Mic Output Device -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="280"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="Live Microphone Output Device" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="Select audio output device (or virtual audio cable) to stream live microphone audio." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <ComboBox x:Name="LiveMicOutputDeviceCombo" Grid.Column="1" Width="280" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
+
                                         <!-- Live Mic Input Gain -->
                                         <Grid Margin="0,6">
                                             <Grid.ColumnDefinitions>

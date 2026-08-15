@@ -130,8 +130,9 @@ namespace PaDDY
         // ---- Live Mic Modulator & Dual-Bus Routing ----
         public bool LiveMicEnabled { get; set; } = false;
         public int LiveMicDeviceIndex { get; set; } = 0;
+        public int LiveMicOutputDeviceIndex { get; set; } = 0;
         public bool LiveMicFxEnabled { get; set; } = false;
-        public double LiveMicGain { get; set; } = 100.0;
+        public double LiveMicGain { get; set; } = 1.0;
         public bool DualOutputEnabled { get; set; } = false;
         public int SecondaryOutputDeviceIndex { get; set; } = 0;
 

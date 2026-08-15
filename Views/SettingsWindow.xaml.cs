@@ -38,6 +38,7 @@ namespace PaDDY
         public string SelectedDefaultPadTitleTemplate { get; private set; } = "Recording {timestamp}";
         public bool SelectedUseFocusedAppForPadTitle { get; private set; }
         public int SelectedTrimEditorOutputDeviceIndex { get; private set; }
+        public int SelectedLiveMicOutputDeviceIndex { get; private set; }
         public bool SelectedNewRecordingsNonDestructive { get; private set; }
 
         // Appearance / system
@@ -451,6 +452,18 @@ namespace PaDDY
             int selectedLiveMic = Math.Clamp(_settings.LiveMicDeviceIndex + 1, 0, LiveMicDeviceCombo.Items.Count - 1);
             LiveMicDeviceCombo.SelectedIndex = selectedLiveMic;
 
+            LiveMicOutputDeviceCombo.Items.Clear();
+            LiveMicOutputDeviceCombo.Items.Add("Default Output");
+            using (var enumerator = new MMDeviceEnumerator())
+            {
+                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                foreach (var device in devices)
+                    LiveMicOutputDeviceCombo.Items.Add(device.FriendlyName);
+            }
+
+            int selectedLiveMicOutput = Math.Clamp(_settings.LiveMicOutputDeviceIndex, 0, LiveMicOutputDeviceCombo.Items.Count - 1);
+            LiveMicOutputDeviceCombo.SelectedIndex = selectedLiveMicOutput;
+
             LiveMicFxCheck.IsChecked = _settings.LiveMicFxEnabled;
             LiveMicGainSlider.Value = Math.Clamp(_settings.LiveMicGain, 0.0, 2.0);
             if (LiveMicGainValueText != null)
@@ -607,6 +620,8 @@ namespace PaDDY
             _settings.Vst3PluginPath = Vst3PluginPathTextBox.Text;
             _settings.AutoNormalizeOnCapture = AutoNormalizeCheck.IsChecked == true;
             _settings.TargetLoudnessLufs = Math.Round(TargetLufsSlider.Value, 1);
+            SelectedLiveMicOutputDeviceIndex = LiveMicOutputDeviceCombo.SelectedIndex;
+            _settings.LiveMicOutputDeviceIndex = LiveMicOutputDeviceCombo.SelectedIndex;
             _settings.LiveMicDeviceIndex = LiveMicDeviceCombo.SelectedIndex - 1;
             _settings.LiveMicFxEnabled = LiveMicFxCheck.IsChecked == true;
             _settings.LiveMicGain = LiveMicGainSlider.Value;

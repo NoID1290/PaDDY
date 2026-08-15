@@ -1877,6 +1877,7 @@ namespace PaDDY
                 _settings.DefaultPadTitleTemplate = win.SelectedDefaultPadTitleTemplate;
                 _settings.UseFocusedAppForPadTitle = win.SelectedUseFocusedAppForPadTitle;
                 _settings.TrimEditorOutputDeviceIndex = win.SelectedTrimEditorOutputDeviceIndex;
+                _settings.LiveMicOutputDeviceIndex = win.SelectedLiveMicOutputDeviceIndex;
 
                 bool wasND = _settings.NewRecordingsNonDestructive;
                 _settings.NewRecordingsNonDestructive = win.SelectedNewRecordingsNonDestructive;
@@ -1978,6 +1979,14 @@ namespace PaDDY
 
                 // Restart monitoring to apply new format settings
                 RestartMonitoringIfActive();
+                if (_liveMicModulator.IsRunning)
+                {
+                    _liveMicModulator.Gain = (float)_settings.LiveMicGain;
+                    _liveMicModulator.IsFxEnabled = _settings.LiveMicFxEnabled;
+                    int liveMicIn = _settings.LiveMicDeviceIndex;
+                    int liveMicOut = _settings.LiveMicOutputDeviceIndex - 1;
+                    _liveMicModulator.Start(liveMicIn, liveMicOut, _settings.SecondaryOutputDeviceIndex, _settings.DualOutputEnabled);
+                }
                 RefreshOutputFormatInfo();
                 RefreshInputFormatInfo();
                 RefreshPadOutputRouting();
@@ -3835,8 +3844,11 @@ namespace PaDDY
         {
             if (LiveMicBtn.IsChecked == true)
             {
-                _liveMicModulator.Start(_settings.InputDeviceIndex, _settings.OutputDeviceIndex, _settings.SecondaryOutputDeviceIndex, _settings.DualOutputEnabled);
+                int liveMicIn = _settings.LiveMicDeviceIndex;
+                int liveMicOut = _settings.LiveMicOutputDeviceIndex - 1;
+                _liveMicModulator.Gain = (float)_settings.LiveMicGain;
                 _liveMicModulator.IsFxEnabled = _settings.LiveMicFxEnabled;
+                _liveMicModulator.Start(liveMicIn, liveMicOut, _settings.SecondaryOutputDeviceIndex, _settings.DualOutputEnabled);
                 LiveMicBtn.Content = "🎙️ Live Mic ON";
                 SetStatus("Live Mic Modulator active", "#FF4CAF50");
             }
