@@ -47,19 +47,26 @@ public partial class App : WpfApplication
     /// <summary>Maps variant key → (embedded file name, display name).</summary>
     internal static readonly IReadOnlyList<(string Key, string FileName, string DisplayName)> FontVariants =
     [
-        ("regular",           "ari-w9500.ttf",                  "Regular"),
-        ("bold",              "ari-w9500-bold.ttf",             "Bold"),
-        ("condensed",         "ari-w9500-condensed.ttf",        "Condensed"),
-        ("condensed-bold",    "ari-w9500-condensed-bold.ttf",   "Condensed Bold"),
-        ("display",           "ari-w9500-display.ttf",          "Display"),
-        ("condensed-display", "ari-w9500-condensed-display.ttf","Condensed Display"),
+        ("normal",       "ari-w9500-display.ttf",           "Normal"),
+        ("condensed",    "ari-w9500-condensed-display.ttf", "Condensed"),
+        ("general-sans", "GeneralSans-Variable.ttf",        "General Sans"),
     ];
 
     /// <summary>Loads the font for <paramref name="variantKey"/> and sets the app-wide AppFont resource.</summary>
     public static void ApplyFont(string variantKey)
     {
-        var entry = FontVariants.FirstOrDefault(v => v.Key == variantKey);
-        if (entry == default) entry = FontVariants.First(v => v.Key == "condensed-display");
+        var entry = FontVariants.FirstOrDefault(v => string.Equals(v.Key, variantKey, StringComparison.OrdinalIgnoreCase));
+        if (entry == default)
+        {
+            if (string.Equals(variantKey, "display", StringComparison.OrdinalIgnoreCase) || string.Equals(variantKey, "regular", StringComparison.OrdinalIgnoreCase))
+                entry = FontVariants.FirstOrDefault(v => v.Key == "normal");
+            else if (string.Equals(variantKey, "generalsans", StringComparison.OrdinalIgnoreCase) || string.Equals(variantKey, "general_sans", StringComparison.OrdinalIgnoreCase))
+                entry = FontVariants.FirstOrDefault(v => v.Key == "general-sans");
+            else
+                entry = FontVariants.FirstOrDefault(v => v.Key == "condensed");
+
+            if (entry == default) entry = FontVariants.First();
+        }
 
         // Two-argument overload correctly enumerates families from the specific embedded file.
         var appFont = Fonts.GetFontFamilies(

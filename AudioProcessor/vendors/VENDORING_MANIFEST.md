@@ -24,7 +24,7 @@ This folder contains source-vendored dependencies compiled directly into `NoIDSo
 
 ## Licensing
 
-License files are copied into `vendors/licenses/` for attribution and compliance.
+License files are centralized in the root `Licenses/` directory for attribution and compliance.
 
 ## Notes
 

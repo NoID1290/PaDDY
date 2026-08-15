@@ -132,8 +132,18 @@ namespace PaDDY.Services
                 var settings = AppSettings.Load();
                 var variantKey = settings.AppFontVariant;
 
-                var entry = App.FontVariants.FirstOrDefault(v => v.Key == variantKey);
-                if (entry == default) entry = App.FontVariants.First(v => v.Key == "condensed-display");
+                var entry = App.FontVariants.FirstOrDefault(v => string.Equals(v.Key, variantKey, StringComparison.OrdinalIgnoreCase));
+                if (entry == default)
+                {
+                    if (string.Equals(variantKey, "display", StringComparison.OrdinalIgnoreCase) || string.Equals(variantKey, "regular", StringComparison.OrdinalIgnoreCase))
+                        entry = App.FontVariants.FirstOrDefault(v => v.Key == "normal");
+                    else if (string.Equals(variantKey, "generalsans", StringComparison.OrdinalIgnoreCase) || string.Equals(variantKey, "general_sans", StringComparison.OrdinalIgnoreCase))
+                        entry = App.FontVariants.FirstOrDefault(v => v.Key == "general-sans");
+                    else
+                        entry = App.FontVariants.FirstOrDefault(v => v.Key == "condensed");
+
+                    if (entry == default) entry = App.FontVariants.First();
+                }
 
                 var uri = new Uri($"pack://application:,,,/Themes/Fonts/{entry.FileName}");
                 var streamResource = System.Windows.Application.GetResourceStream(uri);

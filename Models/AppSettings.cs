@@ -65,8 +65,8 @@ namespace PaDDY
         public double OutputVolume { get; set; } = 100.0;
         public double PadListenVolume { get; set; } = 100.0;
 
-        // UI font variant: "regular", "bold", "condensed", "condensed-bold", "display", "condensed-display"
-        public string AppFontVariant { get; set; } = "condensed-display";
+        // UI font variant: "normal", "condensed"
+        public string AppFontVariant { get; set; } = "condensed";
 
         // New pad naming
         public string DefaultPadTitleTemplate { get; set; } = "Recording {timestamp}";

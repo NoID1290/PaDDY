@@ -38,6 +38,7 @@ namespace PaDDY
             new() { Name = "AudioPlugSharp", License = "MIT", Usage = "VST3 host interface wrapper", LicenseFile = "AudioPlugSharp-LICENSE.txt" },
             new() { Name = "MDA VST Plugins", License = "MIT", Usage = "Default VST2 dynamics and de-esser voice processing plugins", LicenseFile = "MDA-VST-LICENSE.txt" },
             new() { Name = "WetReverb VST3", License = "MIT", Usage = "Default VST3 reverb environment voice effect", LicenseFile = "WetReverb-LICENSE.txt" },
+            new() { Name = "General Sans Font", License = "Free Font License (FFL)", Usage = "Application UI typography", LicenseFile = "FFL.txt" },
         };
 
         public CreditsWindow()
@@ -129,11 +130,9 @@ namespace PaDDY
             string sourceTree = Path.GetFullPath(Path.Combine(
                 AppContext.BaseDirectory,
                 "..", "..", "..", "..",
-                "AudioProcessor",
-                "vendors",
-                "licenses"));
+                "Licenses"));
 
-            return sourceTree;
+            return Directory.Exists(sourceTree) ? sourceTree : direct;
         }
     }
 }

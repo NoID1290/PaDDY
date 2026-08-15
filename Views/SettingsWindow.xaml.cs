@@ -34,7 +34,7 @@ namespace PaDDY
         public uint SelectedHotKeyModifiers { get; private set; }
         public uint SelectedHotKeyVk { get; private set; }
         public int SelectedMaxRecords { get; private set; }
-        public string SelectedFontVariant { get; private set; } = "condensed-display";
+        public string SelectedFontVariant { get; private set; } = "condensed";
         public string SelectedDefaultPadTitleTemplate { get; private set; } = "Recording {timestamp}";
         public bool SelectedUseFocusedAppForPadTitle { get; private set; }
         public int SelectedTrimEditorOutputDeviceIndex { get; private set; }
@@ -577,7 +577,7 @@ namespace PaDDY
             int fi = FontVariantCombo.SelectedIndex;
             SelectedFontVariant = (fi >= 0 && fi < App.FontVariants.Count)
                 ? App.FontVariants[fi].Key
-                : "condensed-display";
+                : "condensed";
 
             SelectedDefaultPadTitleTemplate = string.IsNullOrWhiteSpace(DefaultPadTitleBox.Text)
                 ? "Recording {timestamp}"

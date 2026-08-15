@@ -60,7 +60,7 @@
     <ApplicationDefinition Remove="EffectProcessor\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AudioProcessor\vendors\licenses\*.txt">
+    <None Include="Licenses\*.txt">
       <Link>licenses\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -74,10 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="PaDDY.ico" />
-    <Resource Include="Themes\Fonts\ari-w9500.ttf" />
-    <Resource Include="Themes\Fonts\ari-w9500-bold.ttf" />
-    <Resource Include="Themes\Fonts\ari-w9500-condensed.ttf" />
-    <Resource Include="Themes\Fonts\ari-w9500-condensed-bold.ttf" />
+    <Resource Include="Themes\Fonts\GeneralSans-Variable.ttf" />
     <Resource Include="Themes\Fonts\ari-w9500-condensed-display.ttf" />
     <Resource Include="Themes\Fonts\ari-w9500-display.ttf" />
   </ItemGroup>
