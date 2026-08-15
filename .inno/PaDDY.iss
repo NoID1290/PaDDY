@@ -152,22 +152,15 @@ end;
 procedure SHChangeNotify(wEventId: Integer; uFlags: Cardinal; dwItem1: Integer; dwItem2: Integer);
   external 'SHChangeNotify@shell32.dll stdcall';
 
-procedure CloseStreamDeckIfRunning: String;
+procedure CloseStreamDeckIfRunning;
+var
+  ResultCode: Integer;
 begin
-  Result := '';
-  
-  // Retrieve Stream Deck path from Registry (App Paths) or fall back to default
-  if not RegQueryStringValue(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe', '', Result) then
-    if not RegQueryStringValue(HKLM32, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe', '', Result) then
-      if not RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\StreamDeck.exe', '', Result) then
-        Result := ExpandConstant('{pf}\Elgato\StreamDeck\StreamDeck.exe');
-  
-  // Kill Stream Deck if found and running
-  if FileExists(Result) then
-  begin
-    Exec(ChangeParamToQuote(Result), '/close', '', SW_HIDE, ewWaitUntilTerminated + ewPromptErr, Result);
-  end;
+  // Terminate Stream Deck process if running so the plugin can be installed/updated cleanly
+  Exec('taskkill', '/IM StreamDeck.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(500);
 end;
+
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
