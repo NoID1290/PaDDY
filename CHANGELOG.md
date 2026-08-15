@@ -4,6 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.0.0815] - 2026-08-15
+
+- Added Application Zoom Controls
+- Added the dedicated Live Microphone Output Device selection
+- Updated fonts
+- Optimizing Voice Detection
+- Shipping Dependency Optimization
+
 ## [2.1.0.0811] - 2026-08-11
 
 - Added Voice-Only Detector feature linked to Whisper AI speech renaming

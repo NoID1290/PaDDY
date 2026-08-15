@@ -9,9 +9,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>2.1.0.0811</Version>
-    <AssemblyVersion>2.1.0.0811</AssemblyVersion>
-    <FileVersion>2.1.0.0811</FileVersion>
+    <Version>2.2.0.0815</Version>
+    <AssemblyVersion>2.2.0.0815</AssemblyVersion>
+    <FileVersion>2.2.0.0815</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
@@ -23,7 +23,7 @@
     <UseAppHost>true</UseAppHost>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <InformationalVersion>2.1.0.0811</InformationalVersion>
+    <InformationalVersion>2.2.0.0815</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
@@ -102,49 +102,13 @@
   -->
   <Target Name="PruneUnusedRuntimeFolders" AfterTargets="Build" Condition="Exists('$(OutputPath)runtimes')">
     <!-- Top-level: remove all non-win-x64 RIDs (Whisper.net.Runtime ships win-arm64 + win-x86) -->
-    <RemoveDir Directories="
-      $(OutputPath)runtimes\win-arm64;
-      $(OutputPath)runtimes\win-x86;
-      $(OutputPath)runtimes\win-arm;
-      $(OutputPath)runtimes\win10-arm;
-      $(OutputPath)runtimes\win10-arm64;
-      $(OutputPath)runtimes\win10-x86;
-      $(OutputPath)runtimes\linux-x64;
-      $(OutputPath)runtimes\linux-arm64;
-      $(OutputPath)runtimes\linux-arm;
-      $(OutputPath)runtimes\osx-x64;
-      $(OutputPath)runtimes\osx-arm64;
-      $(OutputPath)runtimes\maccatalyst-arm64;
-      $(OutputPath)runtimes\android-arm64-v8a;
-      $(OutputPath)runtimes\android-x86" />
+    <RemoveDir Directories="&#xD;&#xA;      $(OutputPath)runtimes\win-arm64;&#xD;&#xA;      $(OutputPath)runtimes\win-x86;&#xD;&#xA;      $(OutputPath)runtimes\win-arm;&#xD;&#xA;      $(OutputPath)runtimes\win10-arm;&#xD;&#xA;      $(OutputPath)runtimes\win10-arm64;&#xD;&#xA;      $(OutputPath)runtimes\win10-x86;&#xD;&#xA;      $(OutputPath)runtimes\linux-x64;&#xD;&#xA;      $(OutputPath)runtimes\linux-arm64;&#xD;&#xA;      $(OutputPath)runtimes\linux-arm;&#xD;&#xA;      $(OutputPath)runtimes\osx-x64;&#xD;&#xA;      $(OutputPath)runtimes\osx-arm64;&#xD;&#xA;      $(OutputPath)runtimes\maccatalyst-arm64;&#xD;&#xA;      $(OutputPath)runtimes\android-arm64-v8a;&#xD;&#xA;      $(OutputPath)runtimes\android-x86" />
     <!-- Inside cuda\: remove non-win-x64 (Whisper.net.Runtime.Cuda.Linux ships cuda\linux-x64) -->
-    <RemoveDir Directories="
-      $(OutputPath)runtimes\cuda\linux-x64;
-      $(OutputPath)runtimes\cuda\linux-arm64;
-      $(OutputPath)runtimes\cuda\osx-arm64;
-      $(OutputPath)runtimes\cuda\osx-x64" />
+    <RemoveDir Directories="&#xD;&#xA;      $(OutputPath)runtimes\cuda\linux-x64;&#xD;&#xA;      $(OutputPath)runtimes\cuda\linux-arm64;&#xD;&#xA;      $(OutputPath)runtimes\cuda\osx-arm64;&#xD;&#xA;      $(OutputPath)runtimes\cuda\osx-x64" />
   </Target>
   <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish" Condition="Exists('$(PublishDir)runtimes')">
-    <RemoveDir Directories="
-      $(PublishDir)runtimes\win-arm64;
-      $(PublishDir)runtimes\win-x86;
-      $(PublishDir)runtimes\win-arm;
-      $(PublishDir)runtimes\win10-arm;
-      $(PublishDir)runtimes\win10-arm64;
-      $(PublishDir)runtimes\win10-x86;
-      $(PublishDir)runtimes\linux-x64;
-      $(PublishDir)runtimes\linux-arm64;
-      $(PublishDir)runtimes\linux-arm;
-      $(PublishDir)runtimes\osx-x64;
-      $(PublishDir)runtimes\osx-arm64;
-      $(PublishDir)runtimes\maccatalyst-arm64;
-      $(PublishDir)runtimes\android-arm64-v8a;
-      $(PublishDir)runtimes\android-x86" />
-    <RemoveDir Directories="
-      $(PublishDir)runtimes\cuda\linux-x64;
-      $(PublishDir)runtimes\cuda\linux-arm64;
-      $(PublishDir)runtimes\cuda\osx-arm64;
-      $(PublishDir)runtimes\cuda\osx-x64" />
+    <RemoveDir Directories="&#xD;&#xA;      $(PublishDir)runtimes\win-arm64;&#xD;&#xA;      $(PublishDir)runtimes\win-x86;&#xD;&#xA;      $(PublishDir)runtimes\win-arm;&#xD;&#xA;      $(PublishDir)runtimes\win10-arm;&#xD;&#xA;      $(PublishDir)runtimes\win10-arm64;&#xD;&#xA;      $(PublishDir)runtimes\win10-x86;&#xD;&#xA;      $(PublishDir)runtimes\linux-x64;&#xD;&#xA;      $(PublishDir)runtimes\linux-arm64;&#xD;&#xA;      $(PublishDir)runtimes\linux-arm;&#xD;&#xA;      $(PublishDir)runtimes\osx-x64;&#xD;&#xA;      $(PublishDir)runtimes\osx-arm64;&#xD;&#xA;      $(PublishDir)runtimes\maccatalyst-arm64;&#xD;&#xA;      $(PublishDir)runtimes\android-arm64-v8a;&#xD;&#xA;      $(PublishDir)runtimes\android-x86" />
+    <RemoveDir Directories="&#xD;&#xA;      $(PublishDir)runtimes\cuda\linux-x64;&#xD;&#xA;      $(PublishDir)runtimes\cuda\linux-arm64;&#xD;&#xA;      $(PublishDir)runtimes\cuda\osx-arm64;&#xD;&#xA;      $(PublishDir)runtimes\cuda\osx-x64" />
   </Target>
   <!--
     NVIDIA CUDA redistributables for Whisper GPU acceleration.
