@@ -35,7 +35,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
     <PackageReference Include="Whisper.net" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime.Cuda.Windows" Version="1.9.1" />
     <PackageReference Include="System.Management" Version="10.0.10" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.8.3" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
@@ -90,16 +90,61 @@
     <Move SourceFiles="$(PublishDir)NoIDSoftwork.Core.exe" DestinationFiles="$(PublishDir)PaDDY.exe" Condition="Exists('$(PublishDir)NoIDSoftwork.Core.exe')" />
   </Target>
   <!--
-    The app only ships for win-x64, but Whisper.net.Runtime drops native DLLs for
-    win-arm64 and win-x86 as well. Whisper.net's loader requires the win-x64
-    natives to stay under runtimes\win-x64\, so we cannot flatten those to the
-    root, but we can prune the unused architecture folders to declutter output.
+    PaDDY ships for win-x64 ONLY.  NuGet packages (Whisper.net.Runtime,
+    Whisper.net.Runtime.Cuda, SQLitePCLRaw, etc.) may copy native binaries for
+    other platforms into runtimes\.  The targets below aggressively prune every
+    non-win-x64 subfolder at both the top level (runtimes\<rid>) and inside
+    nested directories (runtimes\cuda\<rid>), covering:
+      • win-arm64, win-x86, win-arm, win10-arm, win10-arm64, win10-x86
+      • linux-*, osx-*, maccatalyst-*, android-*
+    Whisper.net's loader expects win-x64 natives under runtimes\win-x64\, so
+    that folder (and runtimes\cuda\win-x64\) are kept intact.
   -->
-  <Target Name="PruneUnusedRuntimeFolders" AfterTargets="Build">
-    <RemoveDir Directories="$(OutputPath)runtimes\win-arm64;$(OutputPath)runtimes\win-x86" Condition="Exists('$(OutputPath)runtimes')" />
+  <Target Name="PruneUnusedRuntimeFolders" AfterTargets="Build" Condition="Exists('$(OutputPath)runtimes')">
+    <!-- Top-level: remove all non-win-x64 RIDs (Whisper.net.Runtime ships win-arm64 + win-x86) -->
+    <RemoveDir Directories="
+      $(OutputPath)runtimes\win-arm64;
+      $(OutputPath)runtimes\win-x86;
+      $(OutputPath)runtimes\win-arm;
+      $(OutputPath)runtimes\win10-arm;
+      $(OutputPath)runtimes\win10-arm64;
+      $(OutputPath)runtimes\win10-x86;
+      $(OutputPath)runtimes\linux-x64;
+      $(OutputPath)runtimes\linux-arm64;
+      $(OutputPath)runtimes\linux-arm;
+      $(OutputPath)runtimes\osx-x64;
+      $(OutputPath)runtimes\osx-arm64;
+      $(OutputPath)runtimes\maccatalyst-arm64;
+      $(OutputPath)runtimes\android-arm64-v8a;
+      $(OutputPath)runtimes\android-x86" />
+    <!-- Inside cuda\: remove non-win-x64 (Whisper.net.Runtime.Cuda.Linux ships cuda\linux-x64) -->
+    <RemoveDir Directories="
+      $(OutputPath)runtimes\cuda\linux-x64;
+      $(OutputPath)runtimes\cuda\linux-arm64;
+      $(OutputPath)runtimes\cuda\osx-arm64;
+      $(OutputPath)runtimes\cuda\osx-x64" />
   </Target>
-  <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish">
-    <RemoveDir Directories="$(PublishDir)runtimes\win-arm64;$(PublishDir)runtimes\win-x86" Condition="Exists('$(PublishDir)runtimes')" />
+  <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish" Condition="Exists('$(PublishDir)runtimes')">
+    <RemoveDir Directories="
+      $(PublishDir)runtimes\win-arm64;
+      $(PublishDir)runtimes\win-x86;
+      $(PublishDir)runtimes\win-arm;
+      $(PublishDir)runtimes\win10-arm;
+      $(PublishDir)runtimes\win10-arm64;
+      $(PublishDir)runtimes\win10-x86;
+      $(PublishDir)runtimes\linux-x64;
+      $(PublishDir)runtimes\linux-arm64;
+      $(PublishDir)runtimes\linux-arm;
+      $(PublishDir)runtimes\osx-x64;
+      $(PublishDir)runtimes\osx-arm64;
+      $(PublishDir)runtimes\maccatalyst-arm64;
+      $(PublishDir)runtimes\android-arm64-v8a;
+      $(PublishDir)runtimes\android-x86" />
+    <RemoveDir Directories="
+      $(PublishDir)runtimes\cuda\linux-x64;
+      $(PublishDir)runtimes\cuda\linux-arm64;
+      $(PublishDir)runtimes\cuda\osx-arm64;
+      $(PublishDir)runtimes\cuda\osx-x64" />
   </Target>
   <!--
     NVIDIA CUDA redistributables for Whisper GPU acceleration.
