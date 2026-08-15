@@ -361,6 +361,12 @@
   <data name="DeleteAllPrompt" xml:space="preserve"><value>Are you sure you want to delete all non-favorite recordings? This action cannot be undone.</value></data>
   <data name="ColorPickerTitle" xml:space="preserve"><value>Select Pad Color</value></data>
 
+  <!-- Zoom / UI Scaling -->
+  <data name="ZoomGroup" xml:space="preserve"><value>INTERFACE SCALING &amp; ZOOM</value></data>
+  <data name="UiScaleLabel" xml:space="preserve"><value>UI Zoom / Scale</value></data>
+  <data name="UiScaleDesc" xml:space="preserve"><value>Adjust the overall interface scaling (Shortcuts: Ctrl + / -, Ctrl + Mouse Scroll, Ctrl + 0).</value></data>
+  <data name="ResetZoomBtn" xml:space="preserve"><value>Reset (100%)</value></data>
+
   <!-- System Tray -->
   <data name="TrayOpen" xml:space="preserve"><value>Open PaDDY</value></data>
   <data name="TraySettings" xml:space="preserve"><value>Settings</value></data>

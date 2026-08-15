@@ -359,6 +359,12 @@
   <data name="DeleteAllPrompt" xml:space="preserve"><value>Voulez-vous vraiment supprimer tous les enregistrements non favoris ? Cette action est irréversible.</value></data>
   <data name="ColorPickerTitle" xml:space="preserve"><value>Sélectionner la couleur du pad</value></data>
 
+  <!-- Zoom / UI Scaling -->
+  <data name="ZoomGroup" xml:space="preserve"><value>ZOOM &amp; ÉCHELLE DE L'INTERFACE</value></data>
+  <data name="UiScaleLabel" xml:space="preserve"><value>Zoom / Échelle de l'interface</value></data>
+  <data name="UiScaleDesc" xml:space="preserve"><value>Ajuster la taille globale de l'interface (Raccourcis : Ctrl + / -, Ctrl + Molette, Ctrl + 0).</value></data>
+  <data name="ResetZoomBtn" xml:space="preserve"><value>Réinitialiser (100%)</value></data>
+
   <!-- System Tray -->
   <data name="TrayOpen" xml:space="preserve"><value>Ouvrir PaDDY</value></data>
   <data name="TraySettings" xml:space="preserve"><value>Paramètres</value></data>

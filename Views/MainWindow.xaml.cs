@@ -520,6 +520,7 @@ namespace PaDDY
             _captureService.RecordingCompleted += OnRecordingCompleted;
             _captureService.RecordingStateChanged += OnRecordingStateChanged;
             _captureService.CodecCompatibilityWarning += OnCodecCompatibilityWarning;
+            Helpers.ZoomManager.ScaleChanged += OnZoomScaleChanged;
 
             RefreshOutputFormatInfo();
             RefreshInputFormatInfo();
@@ -1915,6 +1916,7 @@ namespace PaDDY
                 UpdatePadState();
 
                 // Appearance
+                _settings.UiScale = win.SelectedUiScale;
                 _settings.Theme = win.SelectedTheme;
                 _settings.MeterSkin = win.SelectedMeterSkin;
                 _settings.PerformanceMode = win.SelectedPerformanceMode;
@@ -3661,6 +3663,7 @@ namespace PaDDY
             }
 
             CloseOwnedSecondaryWindows();
+            Helpers.ZoomManager.ScaleChanged -= OnZoomScaleChanged;
             _trayIcon?.Dispose();
             _speechService?.Dispose();
             _hotkeyService.Dispose();
@@ -3895,6 +3898,14 @@ namespace PaDDY
 
                 pad.Visibility = match ? Visibility.Visible : Visibility.Collapsed;
             }
+        }
+
+        private void OnZoomScaleChanged(double scale)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                SetStatus($"Zoom: {Math.Round(scale * 100)}%", "#FF00E5FF");
+            });
         }
     }
 }

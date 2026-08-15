@@ -779,6 +779,57 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- Interface Zoom & Scaling Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="{p:Loc ZoomGroup}" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <!-- UI Zoom Slider Row -->
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="340"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <TextBlock Text="{p:Loc UiScaleLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                                <TextBlock Text="{p:Loc UiScaleDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Grid Grid.Column="1" Width="340">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="50"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Slider x:Name="UiZoomSlider" Grid.Column="0"
+                                                        Minimum="50" Maximum="200" Value="100"
+                                                        TickFrequency="5" IsSnapToTickEnabled="True"
+                                                        VerticalAlignment="Center"
+                                                        ValueChanged="UiZoomSlider_ValueChanged"/>
+                                                <TextBlock x:Name="UiZoomValueLabel" Grid.Column="1"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           Text="100%" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                                <Button x:Name="ResetUiZoomBtn" Grid.Column="2"
+                                                        Content="{p:Loc ResetZoomBtn}"
+                                                        Padding="10,0" Height="26" Margin="6,0,0,0"
+                                                        Click="ResetUiZoomBtn_Click"
+                                                        ToolTip="Reset UI zoom to 100% (Ctrl+0)"/>
+                                            </Grid>
+                                        </Grid>
+
+                                        <!-- Quick Presets -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+                                            <Button Content="75%" Height="24" Padding="10,0" Margin="0,0,4,0" FontSize="11" Click="ZoomPreset_Click" Tag="75"/>
+                                            <Button Content="100%" Height="24" Padding="10,0" Margin="0,0,4,0" FontSize="11" Click="ZoomPreset_Click" Tag="100"/>
+                                            <Button Content="125%" Height="24" Padding="10,0" Margin="0,0,4,0" FontSize="11" Click="ZoomPreset_Click" Tag="125"/>
+                                            <Button Content="150%" Height="24" Padding="10,0" Margin="0,0,4,0" FontSize="11" Click="ZoomPreset_Click" Tag="150"/>
+                                            <Button Content="175%" Height="24" Padding="10,0" Margin="0,0,4,0" FontSize="11" Click="ZoomPreset_Click" Tag="175"/>
+                                            <Button Content="200%" Height="24" Padding="10,0" Margin="0,0,0,0" FontSize="11" Click="ZoomPreset_Click" Tag="200"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
                                 <!-- Audio VU Meters & Skins Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">
                                     <Rectangle Style="{StaticResource HeaderAccentBar}"/>

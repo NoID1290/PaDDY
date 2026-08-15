@@ -125,6 +125,7 @@ public partial class App : WpfApplication
         var settings = AppSettings.Load();
         Services.LocalizationManager.Instance.SetCulture(settings.Language);
         ApplyFont(settings.AppFontVariant);
+        Helpers.ZoomManager.Initialize(settings.UiScale);
         Helpers.ThemeManager.ApplyTheme(settings.Theme);
         Helpers.ThemeManager.ApplyMeterSkin(settings.MeterSkin, settings.MeterDigitalDots);
         Helpers.ThemeManager.ApplyPerformanceMode(settings.PerformanceMode);

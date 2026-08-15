@@ -77,6 +77,8 @@ namespace PaDDY
         public bool NewRecordingsNonDestructive { get; set; } = false;
 
         // ---- Appearance ----
+        // UI scaling factor: 0.50 (50%) to 2.00 (200%), default 1.0 (100%)
+        public double UiScale { get; set; } = 1.0;
         // Language code: "en", "fr"
         public string Language { get; set; } = "en";
         // Overall theme: "dark", "light", "dark-green", "dark-blue", "sepia", "dark-pink", "dark-sepia", "cyberpunk", "nordic-frost", "sunset", "deep-teal", "dracula", "vista-aero", "windows-xp", "windows-98", "midnight-oled", "emerald-matrix", "amethyst-night", "tokyo-neon", "solarized-dark", "rose-gold", "ocean-abyss", "crimson-ember", "pastel-dream", "mocha-latte", "acid-cyber", "monochrome-slate", "synthwave-80s", "bioluminescence", "arctic-ice"

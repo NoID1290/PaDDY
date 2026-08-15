@@ -42,6 +42,9 @@ namespace PaDDY
         public bool SelectedNewRecordingsNonDestructive { get; private set; }
 
         // Appearance / system
+        public double SelectedUiScale { get; private set; } = 1.0;
+        private double _originalUiScale = 1.0;
+        private bool _suppressZoomSliderEvents = true;
         public string SelectedLanguage { get; private set; } = "en";
         public string SelectedTheme { get; private set; } = "dark";
         public string SelectedMeterSkin { get; private set; } = "default";
@@ -110,6 +113,9 @@ namespace PaDDY
         public SettingsWindow(AppSettings settings)
         {
             _settings = settings;
+            _originalUiScale = _settings.UiScale;
+            SelectedUiScale = _settings.UiScale;
+            _suppressZoomSliderEvents = true;
             InitializeComponent();
 
             Vst2PluginsListBox.ItemsSource = _vst2PluginItems;
@@ -120,12 +126,18 @@ namespace PaDDY
             App.DebugModeChanged += OnDebugModeChanged;
 
             PaDDY.Services.SpeechRecognitionService.DownloadProgressUpdated += OnSpeechModelDownloadProgressUpdated;
+            ZoomManager.ScaleChanged += OnGlobalZoomScaleChanged;
 
             Loaded += OnLoaded;
             Closed += (_, _) =>
             {
                 App.DebugModeChanged -= OnDebugModeChanged;
                 PaDDY.Services.SpeechRecognitionService.DownloadProgressUpdated -= OnSpeechModelDownloadProgressUpdated;
+                ZoomManager.ScaleChanged -= OnGlobalZoomScaleChanged;
+                if (!Confirmed)
+                {
+                    ZoomManager.SetScale(_originalUiScale, saveSettings: false);
+                }
             };
         }
 
@@ -243,6 +255,13 @@ namespace PaDDY
             MeterSkinCombo.SelectionChanged += MeterSkinCombo_SelectionChanged;
 
             MeterDigitalDotsCheck.IsChecked = _settings.MeterDigitalDots;
+
+            // UI Zoom & Scaling
+            _suppressZoomSliderEvents = true;
+            double zoomPct = Math.Clamp(Math.Round(ZoomManager.CurrentScale * 100.0), 50.0, 200.0);
+            UiZoomSlider.Value = zoomPct;
+            UiZoomValueLabel.Text = $"{(int)zoomPct}%";
+            _suppressZoomSliderEvents = false;
 
             PerformanceModeCheck.IsChecked = _settings.PerformanceMode;
             PauseAnimationsWhenUnfocusedCheck.IsChecked = _settings.PauseAnimationsWhenUnfocused;
@@ -424,6 +443,56 @@ namespace PaDDY
             }
         }
 
+        private void OnGlobalZoomScaleChanged(double newScale)
+        {
+            if (_suppressZoomSliderEvents) return;
+            Dispatcher.InvokeAsync(() =>
+            {
+                _suppressZoomSliderEvents = true;
+                double pct = Math.Clamp(Math.Round(newScale * 100.0), 50.0, 200.0);
+                UiZoomSlider.Value = pct;
+                UiZoomValueLabel.Text = $"{(int)pct}%";
+                SelectedUiScale = newScale;
+                _suppressZoomSliderEvents = false;
+            });
+        }
+
+        private void UiZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_suppressZoomSliderEvents) return;
+            int pct = (int)Math.Round(e.NewValue);
+            if (UiZoomValueLabel != null)
+                UiZoomValueLabel.Text = $"{pct}%";
+
+            double scale = Math.Round(pct / 100.0, 2);
+            SelectedUiScale = scale;
+            ZoomManager.SetScale(scale, saveSettings: false);
+        }
+
+        private void ResetUiZoomBtn_Click(object sender, RoutedEventArgs e)
+        {
+            _suppressZoomSliderEvents = true;
+            UiZoomSlider.Value = 100;
+            UiZoomValueLabel.Text = "100%";
+            SelectedUiScale = 1.0;
+            _suppressZoomSliderEvents = false;
+            ZoomManager.ResetZoom(saveSettings: false);
+        }
+
+        private void ZoomPreset_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement fe && double.TryParse(fe.Tag?.ToString(), out double pct))
+            {
+                _suppressZoomSliderEvents = true;
+                UiZoomSlider.Value = pct;
+                UiZoomValueLabel.Text = $"{(int)pct}%";
+                double scale = Math.Round(pct / 100.0, 2);
+                SelectedUiScale = scale;
+                _suppressZoomSliderEvents = false;
+                ZoomManager.SetScale(scale, saveSettings: false);
+            }
+        }
+
         private void PopulateTrimOutputDevices()
         {
             TrimOutputDeviceCombo.Items.Clear();
@@ -592,6 +661,10 @@ namespace PaDDY
             int si = MeterSkinCombo.SelectedIndex;
             SelectedMeterSkin = (si >= 0 && si < ThemeManager.MeterSkins.Count)
                 ? ThemeManager.MeterSkins[si].Key : "default";
+            SelectedUiScale = Math.Clamp(Math.Round(UiZoomSlider.Value / 100.0, 2), ZoomManager.MinScale, ZoomManager.MaxScale);
+            _settings.UiScale = SelectedUiScale;
+            ZoomManager.SetScale(SelectedUiScale, saveSettings: true);
+
             SelectedPerformanceMode = PerformanceModeCheck.IsChecked == true;
             SelectedPauseAnimationsWhenUnfocused = PauseAnimationsWhenUnfocusedCheck.IsChecked == true;
             SelectedPreloadAudioCache = PreloadAudioCacheCheck.IsChecked == true;
