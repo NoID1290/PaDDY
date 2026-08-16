@@ -73,7 +73,7 @@
                                 <Setter Property="Background"  Value="{DynamicResource AccentRedBrush}"/>
                                 <Setter Property="Content"     Value="{p:Loc StopMonitoring}"/>
                                 <Trigger.EnterActions>
-                                    <BeginStoryboard x:Name="GlowPulse">
+                                    <BeginStoryboard>
                                         <Storyboard>
                                             <DoubleAnimation
                                                 Storyboard.TargetName="Bd"
@@ -89,7 +89,18 @@
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
                                 <Trigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="GlowPulse"/>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="Bd"
+                                                Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                                                To="8" Duration="0:0:0.2"/>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="Bd"
+                                                Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                                                To="0" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
                                 </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -215,7 +226,7 @@
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                 <Trigger.EnterActions>
-                                    <BeginStoryboard x:Name="LiveMicGlowPulse">
+                                    <BeginStoryboard>
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="Glow"
                                                              Storyboard.TargetProperty="Opacity"
@@ -229,7 +240,16 @@
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
                                 <Trigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="LiveMicGlowPulse"/>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Glow"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="0:0:0.2"/>
+                                            <DoubleAnimation Storyboard.TargetName="Glow"
+                                                             Storyboard.TargetProperty="BlurRadius"
+                                                             To="10" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
                                 </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -334,7 +354,7 @@
                                 <Setter TargetName="LogoShell" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
                                 <Setter TargetName="LogoShell" Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                                 <Trigger.EnterActions>
-                                    <BeginStoryboard x:Name="LogoHoverStoryboard">
+                                    <BeginStoryboard>
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
                                                              Storyboard.TargetProperty="BlurRadius"
@@ -412,7 +432,6 @@
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
                                 <Trigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="LogoHoverStoryboard"/>
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
