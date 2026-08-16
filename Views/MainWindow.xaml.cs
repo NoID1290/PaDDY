@@ -2590,12 +2590,12 @@ namespace PaDDY
             return text;
         }
 
-        private IEnumerable<RecordingPadButton> FindPadButtons(string recordingId)
+        private List<RecordingPadButton> FindPadButtons(string recordingId)
         {
-            foreach (var panel in new[] { FavoritesPanel.Children, PadPanel.Children })
-                foreach (var child in panel)
-                    if (child is RecordingPadButton b && b.Entry?.RecordingId == recordingId)
-                        yield return b;
+            return FavoritesPanel.Children.OfType<RecordingPadButton>()
+                .Concat(PadPanel.Children.OfType<RecordingPadButton>())
+                .Where(b => b.Entry?.RecordingId == recordingId)
+                .ToList();
         }
 
         private void OnCodecCompatibilityWarning(string message)
