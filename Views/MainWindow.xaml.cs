@@ -2519,7 +2519,8 @@ namespace PaDDY
                         entry.IsNonDestructive = _settings.NewRecordingsNonDestructive;
                         AddPadButton(entry, toFavorites: false);
                         Forget(RefreshStorageInfoAsync());
-                        if (_settings.AutoRenameWithSpeech) Forget(AutoRenameFromSpeechAsync(entry));
+                        if (_settings.AutoRenameWithSpeech || _settings.CancelRecordingIfNoVoice)
+                            Forget(AutoRenameFromSpeechAsync(entry));
                     }), System.Windows.Threading.DispatcherPriority.Background);
                 }
                 catch { /* Ignore unreadable or short recordings */ }
@@ -2567,19 +2568,24 @@ namespace PaDDY
                     return;
                 }
 
-                _recordingStore.SetDisplayName(recordingId, text);
-                entry.DisplayName = text;
+                if (_settings.AutoRenameWithSpeech)
+                {
+                    _recordingStore.SetDisplayName(recordingId, text);
+                    entry.DisplayName = text;
 
-                foreach (var btn in FindPadButtons(recordingId))
-                    btn.SetEntry(entry);
+                    foreach (var btn in FindPadButtons(recordingId))
+                        btn.SetEntry(entry);
 
-                Forget(RefreshStorageInfoAsync());
+                    Forget(RefreshStorageInfoAsync());
+                }
             }
             catch { /* STT unavailable or failed; keep generated name */ }
         }
 
         private static string SanitizeSpeechName(string text)
         {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            text = Services.SpeechRecognitionService.CleanTranscript(text);
             if (string.IsNullOrWhiteSpace(text)) return string.Empty;
             text = text.Replace('\r', ' ').Replace('\n', ' ').Trim();
             foreach (char c in Path.GetInvalidFileNameChars())

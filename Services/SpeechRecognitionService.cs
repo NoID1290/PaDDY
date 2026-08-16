@@ -223,12 +223,48 @@ namespace PaDDY.Services
                     sb.Append(segment.Text);
                 }
 
-                return sb.ToString().Trim();
+                return CleanTranscript(sb.ToString());
             }
             catch
             {
                 return string.Empty;
             }
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex NonSpeechTokenRegex =
+            new(@"\[.*?\]|\(.*?\)|<.*?>|\*.*?\*|【.*?】|《.*?》|[♪♫♬♩🎵🎶]|(?i)\b(blank[_\s]audio|xbox[_\-\s]sound)\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>
+        /// Cleans Whisper transcription output by removing non-speech annotations
+        /// such as [BLANK_AUDIO], [MUSIC], [XBOX-SOUND], [LAUGHTER], (applause), etc.
+        /// Returns empty string if no actual speech/words remain.
+        /// </summary>
+        public static string CleanTranscript(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            // Remove bracketed tokens, music symbols, sound effect annotations
+            string cleaned = NonSpeechTokenRegex.Replace(text, " ");
+
+            // Normalize whitespace
+            cleaned = string.Join(" ", cleaned.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)).Trim();
+
+            // Check if there are any actual alphanumeric/letter characters (supports all unicode languages)
+            bool hasWordChars = false;
+            foreach (char c in cleaned)
+            {
+                if (char.IsLetterOrDigit(c))
+                {
+                    hasWordChars = true;
+                    break;
+                }
+            }
+
+            if (!hasWordChars)
+                return string.Empty;
+
+            return cleaned;
         }
 
         /// <summary>
