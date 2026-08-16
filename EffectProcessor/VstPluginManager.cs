@@ -42,6 +42,19 @@ namespace NoIDSoftwork.EffectProcessor.Effects
         }
 
         /// <summary>
+        /// Pre-extracts embedded default VST plugins to disk asynchronously or in background.
+        /// </summary>
+        public static void PrewarmEmbeddedPlugins()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string appDataPluginsDir = Path.Combine(localAppData, "NoID Softwork", "PaDDY", "Plugins");
+
+            EnsureEmbeddedPluginsExtracted(appDataPluginsDir);
+            EnsureEmbeddedPluginsExtracted(baseDir);
+        }
+
+        /// <summary>
         /// Loads all default vendored VST plugins from the application's Plugins directory (AppData or BaseDirectory).
         /// Returns both VST2 (.dll) and VST3 (.vst3) plugins found in Plugins/VST2/ and Plugins/VST3/.
         /// </summary>
@@ -55,8 +68,7 @@ namespace NoIDSoftwork.EffectProcessor.Effects
             string appDataPluginsDir = Path.Combine(localAppData, "NoID Softwork", "PaDDY", "Plugins");
 
             // Ensure embedded VST plugins are extracted if missing from disk (tries AppData first, then BaseDirectory)
-            EnsureEmbeddedPluginsExtracted(appDataPluginsDir);
-            EnsureEmbeddedPluginsExtracted(baseDir);
+            PrewarmEmbeddedPlugins();
 
             // Candidate directories for VST2 plugins
             string[] vst2Dirs = new[]

@@ -63,18 +63,24 @@ namespace PaDDY
         {
             Dispatcher.Invoke(() =>
             {
-                _splashWindow?.UpdateMessage(message);
-                MainLoadingOverlay.Show(message);
+                if (_splashWindow != null)
+                {
+                    _splashWindow.UpdateMessage(message);
+                }
+                else
+                {
+                    MainLoadingOverlay.Show(message);
+                }
             });
         }
 
-        public void HideLoadingOverlay()
+        public void HideLoadingOverlay(bool instantly = false)
         {
             Dispatcher.Invoke(() =>
             {
-                MainLoadingOverlay.Hide();
                 if (_splashWindow != null)
                 {
+                    MainLoadingOverlay.Hide(instantly: true);
                     var dispatcher = _splashWindow.Dispatcher;
                     dispatcher.Invoke(() =>
                     {
@@ -93,6 +99,10 @@ namespace PaDDY
                         this.WindowState = WindowState.Normal;
                         this.Activate();
                     }
+                }
+                else
+                {
+                    MainLoadingOverlay.Hide(instantly);
                 }
             });
         }
@@ -448,15 +458,15 @@ namespace PaDDY
             ShowLoadingOverlay("Core starting up");
             await Task.Yield();
 
+            // Run device enumeration & VST pre-warming in parallel
             PopulateCaptureSourceModes();
-            PopulateInputDevices();
-            PopulateLoopbackDevices();
-            PopulateAppLoopbackProcesses();
-            PopulateOutputDevices();
-            PopulateListenOutputDevices();
+            var audioDevicesTask = PopulateAudioDevicesAsync();
+            var vstCleanupAndPrewarmTask = Task.Run(() => CleanStaleVstPathsAndPrewarm());
+
             PopulateRecordingModes();
             PopulateSortOrderCombo();
 
+            await audioDevicesTask;
             ApplySettings();
 
             _configPanelVisible = _settings.AudioPanelVisible;
@@ -464,7 +474,7 @@ namespace PaDDY
             ConfigToggleText.Text = _configPanelVisible ? "▲" : "▼";
 
             _recordingStore.CleanupInternalTempRecordings();
-            _recordingStore.CleanupAllTempFiles();
+            _recordingStore.CleanupOrphanedTempFiles();
 
             InitializePadPages();
             await PreloadAllPadsAsync();
@@ -476,45 +486,8 @@ namespace PaDDY
 
             _globalCaptureChain?.Reset();
 
-            var currentSettings = AppSettings.Load();
-            bool vstSettingsChanged = false;
-            if (!string.IsNullOrEmpty(currentSettings.VstPluginPath) && !File.Exists(currentSettings.VstPluginPath))
-            {
-                currentSettings.VstPluginPath = string.Empty;
-                vstSettingsChanged = true;
-            }
-            if (!string.IsNullOrEmpty(currentSettings.Vst3PluginPath) && !File.Exists(currentSettings.Vst3PluginPath) && !Directory.Exists(currentSettings.Vst3PluginPath))
-            {
-                currentSettings.Vst3PluginPath = string.Empty;
-                vstSettingsChanged = true;
-            }
-
-            if (currentSettings.PendingDeletedVstPluginPaths is { Count: > 0 } pendingPaths)
-            {
-                foreach (string path in pendingPaths.ToList())
-                {
-                    try
-                    {
-                        if (File.Exists(path))
-                            File.Delete(path);
-                        else if (Directory.Exists(path))
-                            Directory.Delete(path, recursive: true);
-                    }
-                    catch
-                    {
-                        // If still locked, keep it in the pending list for the next run.
-                        continue;
-                    }
-
-                    pendingPaths.Remove(path);
-                }
-
-                currentSettings.UserVstPluginPaths.RemoveAll(
-                    p => !string.IsNullOrWhiteSpace(p) && !File.Exists(p) && !Directory.Exists(p));
-                vstSettingsChanged = true;
-            }
-
-            if (vstSettingsChanged) currentSettings.Save();
+            // Await background VST checks before hooking events
+            await vstCleanupAndPrewarmTask;
 
             _captureService.RmsLevelChanged += OnRmsChanged;
             _captureService.RecordingCompleted += OnRecordingCompleted;
@@ -635,15 +608,36 @@ namespace PaDDY
 
             HideLoadingOverlay();
 
-            // Reclaim startup temporary memory and compact SQLite DB WAL
-            try
+            // Pre-warm EffectsWindow XAML & styles in background on idle so opening is instantaneous
+            _ = Dispatcher.BeginInvoke(new Action(() =>
             {
-                _recordingStore.Compact();
-                GC.Collect(2, GCCollectionMode.Aggressive, true, true);
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-            }
-            catch { }
+                try
+                {
+                    var dummyChain = EffectChainFactory.CreateGlobal();
+                    var warmupWin = new EffectsWindow(dummyChain, isPerClip: false);
+                    warmupWin.Opacity = 0;
+                    warmupWin.ShowInTaskbar = false;
+                    warmupWin.WindowStartupLocation = WindowStartupLocation.Manual;
+                    warmupWin.Left = -10000;
+                    warmupWin.Top = -10000;
+                    warmupWin.Width = 740;
+                    warmupWin.Height = 700;
+                    warmupWin.Show();
+                    warmupWin.Close();
+                }
+                catch { }
+            }), System.Windows.Threading.DispatcherPriority.SystemIdle);
+
+            // Reclaim startup temporary memory and compact SQLite DB WAL in background
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    _recordingStore.Compact();
+                    GC.Collect(2, GCCollectionMode.Aggressive, false, false);
+                }
+                catch { }
+            });
 
             // Register global hotkey
             _hotkeyService.Register(this, _settings.BufferHotKeyModifiers, _settings.BufferHotKeyVk);
@@ -1225,6 +1219,146 @@ namespace PaDDY
             _suppressSelectionEvents = true;
             SortOrderCombo.SelectedIndex = customIndex;
             _suppressSelectionEvents = false;
+        }
+
+        private void CleanStaleVstPathsAndPrewarm()
+        {
+            try
+            {
+                NoIDSoftwork.EffectProcessor.Effects.VstPluginManager.PrewarmEmbeddedPlugins();
+
+                var currentSettings = AppSettings.Load();
+                bool vstSettingsChanged = false;
+                if (!string.IsNullOrEmpty(currentSettings.VstPluginPath) && !File.Exists(currentSettings.VstPluginPath))
+                {
+                    currentSettings.VstPluginPath = string.Empty;
+                    vstSettingsChanged = true;
+                }
+                if (!string.IsNullOrEmpty(currentSettings.Vst3PluginPath) && !File.Exists(currentSettings.Vst3PluginPath) && !Directory.Exists(currentSettings.Vst3PluginPath))
+                {
+                    currentSettings.Vst3PluginPath = string.Empty;
+                    vstSettingsChanged = true;
+                }
+
+                if (currentSettings.PendingDeletedVstPluginPaths is { Count: > 0 } pendingPaths)
+                {
+                    foreach (string path in pendingPaths.ToList())
+                    {
+                        try
+                        {
+                            if (File.Exists(path))
+                                File.Delete(path);
+                            else if (Directory.Exists(path))
+                                Directory.Delete(path, recursive: true);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
+                        pendingPaths.Remove(path);
+                    }
+
+                    currentSettings.UserVstPluginPaths.RemoveAll(
+                        p => !string.IsNullOrWhiteSpace(p) && !File.Exists(p) && !Directory.Exists(p));
+                    vstSettingsChanged = true;
+                }
+
+                if (vstSettingsChanged) currentSettings.Save();
+            }
+            catch { }
+        }
+
+        private async Task PopulateAudioDevicesAsync()
+        {
+            var inputTask = Task.Run(() => AudioCaptureService.GetInputDevices());
+            var loopbackTask = Task.Run(() => AudioCaptureService.GetLoopbackDevices());
+            var appProcTask = Task.Run(() => AudioSessionHelper.GetAudioProcesses());
+            var renderEndpointsTask = Task.Run(() =>
+            {
+                var names = new List<string>();
+                try
+                {
+                    using var enumerator = new MMDeviceEnumerator();
+                    var endpoints = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                    foreach (var ep in endpoints)
+                        names.Add(ep.FriendlyName);
+                }
+                catch { }
+                return names;
+            });
+
+            await Task.WhenAll(inputTask, loopbackTask, appProcTask, renderEndpointsTask);
+
+            var inputDevices = await inputTask;
+            var loopbackDevices = await loopbackTask;
+            var appProcesses = await appProcTask;
+            var renderEndpoints = await renderEndpointsTask;
+
+            // Apply Input Devices
+            InputDeviceCombo.Items.Clear();
+            if (inputDevices.Count == 0)
+            {
+                InputDeviceCombo.Items.Add("No microphones found");
+                InputDeviceCombo.SelectedIndex = 0;
+            }
+            else
+            {
+                foreach (var d in inputDevices)
+                    InputDeviceCombo.Items.Add(d.Name);
+                InputDeviceCombo.SelectedIndex = Math.Clamp(_settings.InputDeviceIndex, 0, inputDevices.Count - 1);
+            }
+
+            // Apply Output Devices
+            OutputDeviceCombo.Items.Clear();
+            OutputDeviceCombo.Items.Add("Default Output");
+            foreach (var name in renderEndpoints)
+                OutputDeviceCombo.Items.Add(name);
+            int clampedOut = Math.Clamp(_settings.OutputDeviceIndex, 0, OutputDeviceCombo.Items.Count - 1);
+            OutputDeviceCombo.SelectedIndex = clampedOut;
+            _outputDeviceIndex = clampedOut - 1;
+
+            // Apply Listen Output Devices
+            ListenOutputDeviceCombo.Items.Clear();
+            ListenOutputDeviceCombo.Items.Add("Default Output");
+            foreach (var name in renderEndpoints)
+                ListenOutputDeviceCombo.Items.Add(name);
+            int clampedListen = Math.Clamp(_settings.ListenOutputDeviceIndex, 0, ListenOutputDeviceCombo.Items.Count - 1);
+            ListenOutputDeviceCombo.SelectedIndex = clampedListen;
+            ListenOutputDeviceCombo.IsEnabled = _settings.ListenOutputEnabled;
+            ListenOutputDeviceCombo.Opacity = _settings.ListenOutputEnabled ? 1.0 : 0.4;
+
+            // Apply Loopback Devices
+            _loopbackDevices = loopbackDevices;
+            LoopbackDeviceCombo.Items.Clear();
+            foreach (var d in _loopbackDevices)
+                LoopbackDeviceCombo.Items.Add(d.Name);
+            if (_loopbackDevices.Count > 0)
+            {
+                int idx = _loopbackDevices.FindIndex(d => d.Id == _settings.LoopbackDeviceId);
+                LoopbackDeviceCombo.SelectedIndex = idx >= 0 ? idx : 0;
+            }
+            else
+            {
+                LoopbackDeviceCombo.Items.Add("No output devices found");
+                LoopbackDeviceCombo.SelectedIndex = 0;
+            }
+
+            // Apply App Loopback Processes
+            _appLoopbackProcesses = appProcesses;
+            AppLoopbackCombo.Items.Clear();
+            if (_appLoopbackProcesses.Count == 0)
+            {
+                AppLoopbackCombo.Items.Add("No apps producing audio");
+                AppLoopbackCombo.SelectedIndex = 0;
+            }
+            else
+            {
+                foreach (var p in _appLoopbackProcesses)
+                    AppLoopbackCombo.Items.Add(p.ProcessName);
+                int idx = _appLoopbackProcesses.FindIndex(p => p.ProcessId == _settings.AppLoopbackProcessId);
+                AppLoopbackCombo.SelectedIndex = idx >= 0 ? idx : 0;
+            }
         }
 
         private void PopulateInputDevices()
@@ -3103,20 +3237,35 @@ namespace PaDDY
             _padCache.Clear();
             var records = _recordingStore.GetAll();
             int total = records.Count;
+            if (total == 0) return;
+
+            // Phase 1: Materialize any missing audio cache files safely on a worker thread
+            if (_settings.PreloadAudioCache)
+            {
+                await Task.Run(() =>
+                {
+                    _recordingStore.MaterializeAllMissingToTemp(records, (done, missingTotal) =>
+                    {
+                        Dispatcher.BeginInvoke(() => ShowLoadingOverlay($"Extracting audio ({done} / {missingTotal})..."), System.Windows.Threading.DispatcherPriority.Background);
+                    });
+                });
+            }
+
+            // Phase 2: Create UI elements on Dispatcher in smooth batches without blocking UI
             int count = 0;
             foreach (var rec in records)
             {
                 count++;
-                if (count % 5 == 0 || count == 1 || count == total)
+                if (count % 35 == 0 || count == 1 || count == total)
                 {
-                    ShowLoadingOverlay($"Loading recordings ({count} / {total})...");
-                    await Task.Delay(10);
+                    ShowLoadingOverlay($"Loading pads ({count} / {total})...");
+                    await Task.Yield();
                 }
 
                 try
                 {
                     string tempPath = _settings.PreloadAudioCache
-                        ? _recordingStore.MaterializeToTemp(rec.Id, rec.Codec)
+                        ? Path.Combine(RecordingStore.TempDir, $"{rec.Id}.{rec.Codec}")
                         : string.Empty;
 
                     var entry = new RecordingEntry

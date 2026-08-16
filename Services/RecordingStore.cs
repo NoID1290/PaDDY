@@ -50,6 +50,7 @@ namespace PaDDY.Services
 
         // ── SQLite connection ──────────────────────────────────────────────────
         private readonly SqliteConnection _db;
+        private readonly object _dbLock = new();
         private bool _disposed;
 
         public RecordingStore()
@@ -102,28 +103,31 @@ namespace PaDDY.Services
 
         private void Initialize()
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = """
-                PRAGMA journal_mode=WAL;
-                CREATE TABLE IF NOT EXISTS recordings (
-                    id          TEXT    PRIMARY KEY,
-                    display_name TEXT   NOT NULL,
-                    codec        TEXT   NOT NULL,
-                    duration_ms  INTEGER NOT NULL,
-                    created_at   TEXT   NOT NULL,
-                    is_favorite  INTEGER NOT NULL DEFAULT 0,
-                    audio_data   BLOB   NOT NULL
-                );
-                CREATE INDEX IF NOT EXISTS idx_fav     ON recordings(is_favorite);
-                CREATE INDEX IF NOT EXISTS idx_created ON recordings(created_at DESC);
-                """;
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = """
+                    PRAGMA journal_mode=WAL;
+                    CREATE TABLE IF NOT EXISTS recordings (
+                        id          TEXT    PRIMARY KEY,
+                        display_name TEXT   NOT NULL,
+                        codec        TEXT   NOT NULL,
+                        duration_ms  INTEGER NOT NULL,
+                        created_at   TEXT   NOT NULL,
+                        is_favorite  INTEGER NOT NULL DEFAULT 0,
+                        audio_data   BLOB   NOT NULL
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_fav     ON recordings(is_favorite);
+                    CREATE INDEX IF NOT EXISTS idx_created ON recordings(created_at DESC);
+                    """;
+                cmd.ExecuteNonQuery();
 
-            EnsurePadPageColumn();
-            EnsureSortOrderColumn();
-            EnsureNonDestructiveColumns();
-            EnsurePadColorColumn();
-            EnsureLufsAndSpeechColumns();
+                EnsurePadPageColumn();
+                EnsureSortOrderColumn();
+                EnsureNonDestructiveColumns();
+                EnsurePadColorColumn();
+                EnsureLufsAndSpeechColumns();
+            }
         }
 
         /// <summary>Adds the pad_page column to older databases that predate pad pages.</summary>
@@ -274,219 +278,292 @@ namespace PaDDY.Services
 
         public void UpdateLufs(string id, double lufs)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET lufs_value=@lufs WHERE id=@id";
-            cmd.Parameters.AddWithValue("@lufs", lufs);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET lufs_value=@lufs WHERE id=@id";
+                cmd.Parameters.AddWithValue("@lufs", lufs);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void UpdateTranscription(string id, string transcription, string tags)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET transcription=@tr, tags=@tg WHERE id=@id";
-            cmd.Parameters.AddWithValue("@tr", transcription ?? string.Empty);
-            cmd.Parameters.AddWithValue("@tg", tags ?? string.Empty);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET transcription=@tr, tags=@tg WHERE id=@id";
+                cmd.Parameters.AddWithValue("@tr", transcription ?? string.Empty);
+                cmd.Parameters.AddWithValue("@tg", tags ?? string.Empty);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         // ── Write operations ───────────────────────────────────────────────────
 
         public string Add(string displayName, string codec, TimeSpan duration, DateTime createdAt, byte[] audioData, bool isNonDestructive = false, long trimStartMs = 0, long trimEndMs = 0, double gainDb = 0.0)
         {
-            string id = Guid.NewGuid().ToString("N");
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = """
-                INSERT INTO recordings(id, display_name, codec, duration_ms, created_at, is_favorite, audio_data, is_non_destructive, trim_start_ms, trim_end_ms, gain_db)
-                VALUES(@id, @dn, @codec, @dur, @cat, 0, @data, @nd, @tstart, @tend, @gain)
-                """;
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.Parameters.AddWithValue("@dn", displayName);
-            cmd.Parameters.AddWithValue("@codec", codec);
-            cmd.Parameters.AddWithValue("@dur", (long)duration.TotalMilliseconds);
-            cmd.Parameters.AddWithValue("@cat", createdAt.ToString("O"));
-            cmd.Parameters.AddWithValue("@data", audioData);
-            cmd.Parameters.AddWithValue("@nd", isNonDestructive ? 1L : 0L);
-            cmd.Parameters.AddWithValue("@tstart", trimStartMs);
-            cmd.Parameters.AddWithValue("@tend", trimEndMs);
-            cmd.Parameters.AddWithValue("@gain", gainDb);
-            cmd.ExecuteNonQuery();
-            return id;
+            lock (_dbLock)
+            {
+                string id = Guid.NewGuid().ToString("N");
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = """
+                    INSERT INTO recordings(id, display_name, codec, duration_ms, created_at, is_favorite, audio_data, is_non_destructive, trim_start_ms, trim_end_ms, gain_db)
+                    VALUES(@id, @dn, @codec, @dur, @cat, 0, @data, @nd, @tstart, @tend, @gain)
+                    """;
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@dn", displayName);
+                cmd.Parameters.AddWithValue("@codec", codec);
+                cmd.Parameters.AddWithValue("@dur", (long)duration.TotalMilliseconds);
+                cmd.Parameters.AddWithValue("@cat", createdAt.ToString("O"));
+                cmd.Parameters.AddWithValue("@data", audioData);
+                cmd.Parameters.AddWithValue("@nd", isNonDestructive ? 1L : 0L);
+                cmd.Parameters.AddWithValue("@tstart", trimStartMs);
+                cmd.Parameters.AddWithValue("@tend", trimEndMs);
+                cmd.Parameters.AddWithValue("@gain", gainDb);
+                cmd.ExecuteNonQuery();
+                return id;
+            }
         }
 
         public void UpdateNonDestructiveSettings(string id, bool isNonDestructive, long trimStartMs, long trimEndMs, double gainDb, long durationMs)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = """
-                UPDATE recordings 
-                SET is_non_destructive = @nd, trim_start_ms = @tstart, trim_end_ms = @tend, gain_db = @gain, duration_ms = @dur
-                WHERE id = @id
-                """;
-            cmd.Parameters.AddWithValue("@nd", isNonDestructive ? 1L : 0L);
-            cmd.Parameters.AddWithValue("@tstart", trimStartMs);
-            cmd.Parameters.AddWithValue("@tend", trimEndMs);
-            cmd.Parameters.AddWithValue("@gain", gainDb);
-            cmd.Parameters.AddWithValue("@dur", durationMs);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = """
+                    UPDATE recordings 
+                    SET is_non_destructive = @nd, trim_start_ms = @tstart, trim_end_ms = @tend, gain_db = @gain, duration_ms = @dur
+                    WHERE id = @id
+                    """;
+                cmd.Parameters.AddWithValue("@nd", isNonDestructive ? 1L : 0L);
+                cmd.Parameters.AddWithValue("@tstart", trimStartMs);
+                cmd.Parameters.AddWithValue("@tend", trimEndMs);
+                cmd.Parameters.AddWithValue("@gain", gainDb);
+                cmd.Parameters.AddWithValue("@dur", durationMs);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void UpdateDuration(string id, TimeSpan duration)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET duration_ms = @dur WHERE id = @id";
-            cmd.Parameters.AddWithValue("@dur", (long)duration.TotalMilliseconds);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET duration_ms = @dur WHERE id = @id";
+                cmd.Parameters.AddWithValue("@dur", (long)duration.TotalMilliseconds);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void SetDisplayName(string id, string newDisplayName)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET display_name=@dn WHERE id=@id";
-            cmd.Parameters.AddWithValue("@dn", newDisplayName);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET display_name=@dn WHERE id=@id";
+                cmd.Parameters.AddWithValue("@dn", newDisplayName);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void SetFavorite(string id, bool isFavorite)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET is_favorite=@fav WHERE id=@id";
-            cmd.Parameters.AddWithValue("@fav", isFavorite ? 1L : 0L);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET is_favorite=@fav WHERE id=@id";
+                cmd.Parameters.AddWithValue("@fav", isFavorite ? 1L : 0L);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void SetPadColor(string id, string hexColor)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET pad_color=@pc WHERE id=@id";
-            cmd.Parameters.AddWithValue("@pc", hexColor ?? string.Empty);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET pad_color=@pc WHERE id=@id";
+                cmd.Parameters.AddWithValue("@pc", hexColor ?? string.Empty);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>Assigns the recording to a pad page (empty string clears the assignment).</summary>
         public void SetPadPage(string id, string padPageId)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET pad_page=@pp WHERE id=@id";
-            cmd.Parameters.AddWithValue("@pp", padPageId ?? string.Empty);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET pad_page=@pp WHERE id=@id";
+                cmd.Parameters.AddWithValue("@pp", padPageId ?? string.Empty);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>Clears the pad-page assignment for all recordings pinned to a deleted page.</summary>
         public void ClearPadPage(string padPageId)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET pad_page='' WHERE pad_page=@pp";
-            cmd.Parameters.AddWithValue("@pp", padPageId);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET pad_page='' WHERE pad_page=@pp";
+                cmd.Parameters.AddWithValue("@pp", padPageId);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>Sets the manual sort position for a single recording.</summary>
         public void SetSortOrder(string id, long order)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET sort_order=@so WHERE id=@id";
-            cmd.Parameters.AddWithValue("@so", order);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET sort_order=@so WHERE id=@id";
+                cmd.Parameters.AddWithValue("@so", order);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>Persists manual order for a list of recording ids (index becomes sort_order).</summary>
         public void SetSortOrders(IReadOnlyList<string> orderedIds)
         {
-            using var tx = _db.BeginTransaction();
-            for (int i = 0; i < orderedIds.Count; i++)
+            lock (_dbLock)
             {
-                using var cmd = _db.CreateCommand();
-                cmd.CommandText = "UPDATE recordings SET sort_order=@so WHERE id=@id";
-                cmd.Parameters.AddWithValue("@so", (long)i);
-                cmd.Parameters.AddWithValue("@id", orderedIds[i]);
-                cmd.Transaction = tx;
-                cmd.ExecuteNonQuery();
+                if (_disposed) return;
+                using var tx = _db.BeginTransaction();
+                for (int i = 0; i < orderedIds.Count; i++)
+                {
+                    using var cmd = _db.CreateCommand();
+                    cmd.CommandText = "UPDATE recordings SET sort_order=@so WHERE id=@id";
+                    cmd.Parameters.AddWithValue("@so", (long)i);
+                    cmd.Parameters.AddWithValue("@id", orderedIds[i]);
+                    cmd.Transaction = tx;
+                    cmd.ExecuteNonQuery();
+                }
+                tx.Commit();
             }
-            tx.Commit();
         }
 
         public void UpdateAudioData(string id, byte[] audioData)
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "UPDATE recordings SET audio_data=@data WHERE id=@id";
-            cmd.Parameters.AddWithValue("@data", audioData);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE recordings SET audio_data=@data WHERE id=@id";
+                cmd.Parameters.AddWithValue("@data", audioData);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void Delete(string id)
         {
             CleanupTempFile(id);
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void DeleteAll(IEnumerable<string> ids)
         {
-            using var tx = _db.BeginTransaction();
-            using var cmd = _db.CreateCommand();
-            cmd.Transaction = tx;
-            cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
-            var param = cmd.Parameters.Add("@id", SqliteType.Text);
-
-            foreach (var id in ids)
+            lock (_dbLock)
             {
-                CleanupTempFile(id);
-                param.Value = id;
-                cmd.ExecuteNonQuery();
+                if (_disposed) return;
+                using var tx = _db.BeginTransaction();
+                using var cmd = _db.CreateCommand();
+                cmd.Transaction = tx;
+                cmd.CommandText = "DELETE FROM recordings WHERE id=@id";
+                var param = cmd.Parameters.Add("@id", SqliteType.Text);
+
+                foreach (var id in ids)
+                {
+                    CleanupTempFile(id);
+                    param.Value = id;
+                    cmd.ExecuteNonQuery();
+                }
+                tx.Commit();
             }
-            tx.Commit();
         }
 
         // ── Read operations ────────────────────────────────────────────────────
 
         public List<RecordingRecord> GetAll()
         {
-            var list = new List<RecordingRecord>();
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = """
-                SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db, pad_color, lufs_value, transcription, tags
-                FROM recordings
-                ORDER BY created_at DESC
-                """;
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            lock (_dbLock)
             {
-                list.Add(new RecordingRecord
+                var list = new List<RecordingRecord>();
+                if (_disposed) return list;
+
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = """
+                    SELECT id, display_name, codec, duration_ms, created_at, is_favorite, pad_page, sort_order, is_non_destructive, trim_start_ms, trim_end_ms, gain_db, pad_color, lufs_value, transcription, tags
+                    FROM recordings
+                    ORDER BY created_at DESC
+                    """;
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    Id = reader.GetString(0),
-                    DisplayName = reader.GetString(1),
-                    Codec = reader.GetString(2),
-                    DurationMs = reader.GetInt64(3),
-                    CreatedAt = DateTime.Parse(reader.GetString(4)),
-                    IsFavorite = reader.GetInt64(5) != 0,
-                    PadPage = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
-                    SortOrder = reader.IsDBNull(7) ? 0 : reader.GetInt64(7),
-                    IsNonDestructive = reader.IsDBNull(8) ? false : (reader.GetInt64(8) != 0),
-                    TrimStartMs = reader.IsDBNull(9) ? 0 : reader.GetInt64(9),
-                    TrimEndMs = reader.IsDBNull(10) ? 0 : reader.GetInt64(10),
-                    GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11),
-                    PadColor = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-                    LufsValue = reader.IsDBNull(13) ? null : reader.GetDouble(13),
-                    Transcription = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
-                    Tags = reader.IsDBNull(15) ? string.Empty : reader.GetString(15)
-                });
+                    list.Add(new RecordingRecord
+                    {
+                        Id = reader.GetString(0),
+                        DisplayName = reader.GetString(1),
+                        Codec = reader.GetString(2),
+                        DurationMs = reader.GetInt64(3),
+                        CreatedAt = DateTime.Parse(reader.GetString(4)),
+                        IsFavorite = reader.GetInt64(5) != 0,
+                        PadPage = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+                        SortOrder = reader.IsDBNull(7) ? 0 : reader.GetInt64(7),
+                        IsNonDestructive = reader.IsDBNull(8) ? false : (reader.GetInt64(8) != 0),
+                        TrimStartMs = reader.IsDBNull(9) ? 0 : reader.GetInt64(9),
+                        TrimEndMs = reader.IsDBNull(10) ? 0 : reader.GetInt64(10),
+                        GainDb = reader.IsDBNull(11) ? 0.0 : reader.GetDouble(11),
+                        PadColor = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+                        LufsValue = reader.IsDBNull(13) ? null : reader.GetDouble(13),
+                        Transcription = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+                        Tags = reader.IsDBNull(15) ? string.Empty : reader.GetString(15)
+                    });
+                }
+                return list;
             }
-            return list;
         }
 
         public byte[]? GetBytes(string id)
         {
+            lock (_dbLock)
+            {
+                return GetBytesInternal(id);
+            }
+        }
+
+        private byte[]? GetBytesInternal(string id)
+        {
+            if (_disposed) return null;
             using var cmd = _db.CreateCommand();
             cmd.CommandText = "SELECT audio_data FROM recordings WHERE id=@id";
             cmd.Parameters.AddWithValue("@id", id);
@@ -514,6 +591,52 @@ namespace PaDDY.Services
             return tempPath;
         }
 
+        /// <summary>
+        /// Ensures all recordings in the list have their audio files extracted to TempDir.
+        /// Checks disk first to skip existing files, then extracts any missing ones from DB in a thread-safe pass.
+        /// </summary>
+        public void MaterializeAllMissingToTemp(IReadOnlyList<RecordingRecord> records, Action<int, int>? onProgress = null)
+        {
+            Directory.CreateDirectory(TempDir);
+
+            var missing = new List<(string Id, string Codec, string TempPath)>();
+            foreach (var r in records)
+            {
+                string tempPath = Path.Combine(TempDir, $"{r.Id}.{r.Codec}");
+                if (!File.Exists(tempPath))
+                {
+                    missing.Add((r.Id, r.Codec, tempPath));
+                }
+            }
+
+            if (missing.Count == 0) return;
+
+            int total = missing.Count;
+            int done = 0;
+
+            lock (_dbLock)
+            {
+                foreach (var (id, codec, tempPath) in missing)
+                {
+                    try
+                    {
+                        var bytes = GetBytesInternal(id);
+                        if (bytes != null)
+                        {
+                            File.WriteAllBytes(tempPath, bytes);
+                        }
+                    }
+                    catch { }
+
+                    done++;
+                    if (done % 15 == 0 || done == total)
+                    {
+                        onProgress?.Invoke(done, total);
+                    }
+                }
+            }
+        }
+
         private void CleanupTempFile(string id)
         {
             if (!Directory.Exists(TempDir)) return;
@@ -530,6 +653,44 @@ namespace PaDDY.Services
         {
             if (!Directory.Exists(TempDir)) return;
             try { Directory.Delete(TempDir, recursive: true); } catch { }
+        }
+
+        /// <summary>
+        /// Deletes only orphaned temp files (those whose recording no longer exists in the DB).
+        /// Keeps valid cached temp files so they don't need to be re-extracted from SQLite on
+        /// every startup. Much faster than <see cref="CleanupAllTempFiles"/> for large libraries.
+        /// </summary>
+        public void CleanupOrphanedTempFiles()
+        {
+            if (!Directory.Exists(TempDir)) return;
+
+            // Build a set of all valid recording IDs
+            var validIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                using (var cmd = _db.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT id FROM recordings";
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                        validIds.Add(reader.GetString(0));
+                }
+            }
+
+            // Delete temp files whose base name (recording ID) is not in the DB
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(TempDir))
+                {
+                    string baseName = Path.GetFileNameWithoutExtension(file);
+                    if (!validIds.Contains(baseName))
+                    {
+                        try { File.Delete(file); } catch { }
+                    }
+                }
+            }
+            catch { /* best-effort orphan cleanup */ }
         }
 
         // Delete the folder used for in-progress recordings, which may contain orphaned temp files if the app crashed during recording. Call on startup and shutdown.
@@ -549,9 +710,13 @@ namespace PaDDY.Services
 
         public int GetCount()
         {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM recordings";
-            return Convert.ToInt32(cmd.ExecuteScalar());
+            lock (_dbLock)
+            {
+                if (_disposed) return 0;
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "SELECT COUNT(*) FROM recordings";
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
         }
 
         /// <summary>
@@ -560,27 +725,34 @@ namespace PaDDY.Services
         /// </summary>
         public void Compact()
         {
-            try
+            lock (_dbLock)
             {
-                using var chk = _db.CreateCommand();
-                chk.CommandText = "PRAGMA wal_checkpoint(TRUNCATE)";
-                chk.ExecuteNonQuery();
+                if (_disposed) return;
+                try
+                {
+                    using var chk = _db.CreateCommand();
+                    chk.CommandText = "PRAGMA wal_checkpoint(TRUNCATE)";
+                    chk.ExecuteNonQuery();
 
-                using var vac = _db.CreateCommand();
-                vac.CommandText = "VACUUM";
-                vac.ExecuteNonQuery();
+                    using var vac = _db.CreateCommand();
+                    vac.CommandText = "VACUUM";
+                    vac.ExecuteNonQuery();
+                }
+                catch { /* best-effort; don't surface compaction errors to callers */ }
             }
-            catch { /* best-effort; don't surface compaction errors to callers */ }
         }
 
         // ── Dispose ────────────────────────────────────────────────────────────
 
         public void Dispose()
         {
-            if (_disposed) return;
-            _disposed = true;
-            _db.Close();
-            _db.Dispose();
+            lock (_dbLock)
+            {
+                if (_disposed) return;
+                _disposed = true;
+                try { _db?.Close(); } catch { }
+                try { _db?.Dispose(); } catch { }
+            }
         }
     }
 }

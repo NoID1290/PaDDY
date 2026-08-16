@@ -84,9 +84,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <Target Name="RenameExeAfterBuild" AfterTargets="Build">
+    <Delete Files="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)NoIDSoftwork.Core.exe') And Exists('$(OutputPath)PaDDY.exe')" />
     <Move SourceFiles="$(OutputPath)NoIDSoftwork.Core.exe" DestinationFiles="$(OutputPath)PaDDY.exe" Condition="Exists('$(OutputPath)NoIDSoftwork.Core.exe')" />
   </Target>
   <Target Name="RenameExeAfterPublish" AfterTargets="Publish">
+    <Delete Files="$(PublishDir)PaDDY.exe" Condition="Exists('$(PublishDir)NoIDSoftwork.Core.exe') And Exists('$(PublishDir)PaDDY.exe')" />
     <Move SourceFiles="$(PublishDir)NoIDSoftwork.Core.exe" DestinationFiles="$(PublishDir)PaDDY.exe" Condition="Exists('$(PublishDir)NoIDSoftwork.Core.exe')" />
   </Target>
   <!--
