@@ -4,6 +4,16 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.2.0816-Pre-release_1] - 2026-08-16
+
+- Testing updated and push corruption
+- Remove Sensitivity UI Controls
+- Debugging WPF Storyboard Exception
+- Fix Non-Speech & Artifact Token Stripping
+- Fix System.InvalidOperationException when cancelling a recording with no voice detected
+- Disable Unimplemented UI Features
+- Startup Loading Optimization
+
 ## [2.2.1.0815] - 2026-08-15
 
 - Installer fix
