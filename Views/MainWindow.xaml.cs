@@ -1758,19 +1758,26 @@ namespace PaDDY
             RefreshOutputFormatInfo();
         }
 
-        // Sensitivity and Silence only apply to AutoVAD/Adaptive VAD detection.
+        // Sensitivity and meter threshold marker only apply to threshold-based Auto VAD.
+        // Silence timeout applies to both Auto VAD and Adaptive VAD.
         private void UpdateVadSettingsVisibility(int modeIdx)
         {
+            var isAutoVad = modeIdx == 0;
             var isKeyBuffer = modeIdx == ModeComboKeyBufferIndex;
-            var vadVisibility = isKeyBuffer ? Visibility.Collapsed : Visibility.Visible;
+            var silenceVisibility = isKeyBuffer ? Visibility.Collapsed : Visibility.Visible;
             var bufferVisibility = isKeyBuffer ? Visibility.Visible : Visibility.Collapsed;
+            var sensitivityVisibility = isAutoVad ? Visibility.Visible : Visibility.Collapsed;
 
-            SensitivityRow.Visibility = vadVisibility;
-            SilenceRow.Visibility = vadVisibility;
+            SensitivityRow.Visibility = sensitivityVisibility;
+            SilenceRow.Visibility = silenceVisibility;
             if (BufferDurationRow != null)
             {
                 BufferDurationRow.Visibility = bufferVisibility;
             }
+
+            var markerVisibility = isAutoVad ? Visibility.Visible : Visibility.Collapsed;
+            if (ThresholdLine != null) ThresholdLine.Visibility = markerVisibility;
+            if (ThresholdLineR != null) ThresholdLineR.Visibility = markerVisibility;
         }
 
         // ── Monitoring toggle ──────────────────────────────────────────────────
