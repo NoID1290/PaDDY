@@ -537,6 +537,8 @@ namespace PaDDY
                             MainLoadingOverlay.HideProgress();
                         });
 
+                        updateService.UninstallPluginAndCloseStreamDeck();
+
                         ShowLoadingOverlay("Backing up your data...");
                         bool backupOk = updateService.CreatePreUpdateBackup();
 

@@ -232,6 +232,80 @@ namespace PaDDY.Services
             }
         }
 
+        // ── Stream Deck Plugin Cleanup ──────────────────────────────────────────
+
+        private static string StreamDeckPluginPath =>
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Elgato", "StreamDeck", "Plugins", "com.paddy.sdPlugin");
+
+        /// <summary>
+        /// Uninstalls the Stream Deck plugin (if present) before closing any running Stream Deck processes.
+        /// </summary>
+        public void UninstallPluginAndCloseStreamDeck()
+        {
+            try
+            {
+                string pluginPath = StreamDeckPluginPath;
+
+                // 1. Attempt to uninstall the plugin directory before closing Stream Deck
+                if (Directory.Exists(pluginPath))
+                {
+                    StatusChanged?.Invoke("Uninstalling Stream Deck plugin...");
+                    try
+                    {
+                        Directory.Delete(pluginPath, true);
+                        Console.WriteLine("[UpdateService] Stream Deck plugin uninstalled successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[UpdateService] Plugin folder deletion before closing Stream Deck failed (will retry after): {ex.Message}");
+                    }
+                }
+
+                // 2. Close Stream Deck if running
+                var streamDeckProcesses = Process.GetProcessesByName("StreamDeck");
+                if (streamDeckProcesses.Length > 0)
+                {
+                    StatusChanged?.Invoke("Closing Stream Deck...");
+                    foreach (var process in streamDeckProcesses)
+                    {
+                        try
+                        {
+                            process.Kill();
+                            process.WaitForExit(3000);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[UpdateService] Error closing Stream Deck process: {ex.Message}");
+                        }
+                        finally
+                        {
+                            process.Dispose();
+                        }
+                    }
+
+                    Thread.Sleep(500);
+                }
+
+                // 3. If plugin folder still exists (e.g. was locked while Stream Deck was running), delete it now
+                if (Directory.Exists(pluginPath))
+                {
+                    try
+                    {
+                        Directory.Delete(pluginPath, true);
+                        Console.WriteLine("[UpdateService] Stream Deck plugin deleted after closing Stream Deck.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[UpdateService] Failed to delete plugin folder after closing Stream Deck: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UpdateService] UninstallPluginAndCloseStreamDeck error: {ex.Message}");
+            }
+        }
+
         // ── Install ──────────────────────────────────────────────────────────────
 
         /// <summary>

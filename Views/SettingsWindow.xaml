@@ -426,8 +426,8 @@
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
-                                        <!-- Live Mic FX Modulation Toggle -->
-                                        <Grid Margin="0,6">
+                                        <!-- Live Mic FX Modulation Toggle (Unimplemented) -->
+                                        <Grid Margin="0,6" IsEnabled="False" Opacity="0.5">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
