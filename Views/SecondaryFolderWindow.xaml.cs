@@ -333,19 +333,32 @@ namespace PaDDY.Views
                     if (supportedFiles.Count > 0)
                     {
                         e.Handled = true;
-                        foreach (var file in supportedFiles)
+
+                        var importWindow = new AudioImportWindow(supportedFiles)
                         {
-                            var result = await AudioImportService.ImportFileAsync(file);
-                            if (result.Success && result.AudioData.Length > 0)
+                            Owner = this
+                        };
+
+                        bool? dialogResult = importWindow.ShowDialog();
+                        if (dialogResult == true && importWindow.ConvertedResults.Count > 0)
+                        {
+                            foreach (var result in importWindow.ConvertedResults)
                             {
-                                string id = _store.Add(result.DisplayName, result.Codec, result.Duration, DateTime.Now, result.AudioData);
-                                string targetPage = Page.IsFavorites ? string.Empty : Page.Id;
-                                _store.SetFavorite(id, true);
-                                _store.SetPadPage(id, targetPage);
+                                if (result.Success && result.AudioData.Length > 0)
+                                {
+                                    string id = _store.Add(result.DisplayName, result.Codec, result.Duration, DateTime.Now, result.AudioData);
+                                    if (!string.IsNullOrEmpty(result.PadColor))
+                                    {
+                                        _store.SetPadColor(id, result.PadColor);
+                                    }
+                                    string targetPage = Page.IsFavorites ? string.Empty : Page.Id;
+                                    _store.SetFavorite(id, true);
+                                    _store.SetPadPage(id, targetPage);
+                                }
                             }
+                            _onDataChanged?.Invoke();
+                            RefreshPads();
                         }
-                        _onDataChanged?.Invoke();
-                        RefreshPads();
                     }
                 }
             }

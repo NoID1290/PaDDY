@@ -60,6 +60,9 @@ namespace NoIDSoftwork.AudioProcessor
                 _resampler = new WdlResamplingSampleProvider(_resamplerInput.ToSampleProvider(), _encodeRate);
             }
 
+            // Ensure native libmp3lame DLL is loaded
+            LameDLL.LoadNativeDLL();
+
             // Feed LAME a conservative format for maximum driver/loopback compatibility.
             _writerFormat = new WaveFormat(_encodeRate, 16, _encodeChannels);
             _writer = new LameMP3FileWriter(filePath, _writerFormat, LAMEPreset.STANDARD);

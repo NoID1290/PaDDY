@@ -68,6 +68,10 @@
       <Link>licenses\VENDORING_MANIFEST.md</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="AudioProcessor\vendors\NAudio.Lame\NAudio.Lame\libmp3lame.64.dll">
+      <Link>libmp3lame.64.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <EmbeddedResource Include=".inno\com.paddy.streamDeckPlugin">
       <LogicalName>com.paddy.streamDeckPlugin</LogicalName>
     </EmbeddedResource>

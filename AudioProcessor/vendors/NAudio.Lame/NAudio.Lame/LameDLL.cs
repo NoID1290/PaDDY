@@ -83,7 +83,8 @@ namespace NAudio.Lame
 				try
 				{
 					var asm = typeof(LameDLL).Assembly;
-					using var stream = asm.GetManifestResourceStream(dllname);
+					var resName = asm.GetManifestResourceNames().FirstOrDefault(n => n.EndsWith(dllname, StringComparison.OrdinalIgnoreCase)) ?? dllname;
+					using var stream = asm.GetManifestResourceStream(resName);
 					if (stream != null)
 					{
 						string extractDir = Path.Combine(

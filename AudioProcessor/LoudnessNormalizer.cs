@@ -199,6 +199,10 @@ namespace NoIDSoftwork.AudioProcessor
             if (!File.Exists(sourceWavPath))
                 return false;
 
+            string ext = Path.GetExtension(sourceWavPath).ToLowerInvariant();
+            if (ext != ".wav")
+                return false;
+
             double measuredLufs = MeasureIntegratedLoudness(sourceWavPath);
             if (measuredLufs <= -69.0)
             {
@@ -218,12 +222,33 @@ namespace NoIDSoftwork.AudioProcessor
             float[] samples;
             int read;
 
-            using (AudioFileReader reader = new AudioFileReader(sourceWavPath))
+            try
             {
-                format = reader.WaveFormat;
-                int sampleCount = (int)(reader.Length / (format.BitsPerSample / 8));
-                samples = new float[sampleCount];
-                read = reader.Read(samples, 0, sampleCount);
+                using (var reader = new AudioFileReader(sourceWavPath))
+                {
+                    format = reader.WaveFormat;
+                    int sampleCount = (int)(reader.Length / (format.BitsPerSample / 8));
+                    samples = new float[sampleCount];
+                    read = reader.Read(samples, 0, sampleCount);
+                }
+            }
+            catch
+            {
+                try
+                {
+                    using (var reader = new WaveFileReader(sourceWavPath))
+                    {
+                        var sampleProv = reader.ToSampleProvider();
+                        format = reader.WaveFormat;
+                        int sampleCount = (int)(reader.Length / (format.BitsPerSample / 8));
+                        samples = new float[sampleCount];
+                        read = sampleProv.Read(samples, 0, sampleCount);
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
             }
 
             float maxPeakLinear = 0f;

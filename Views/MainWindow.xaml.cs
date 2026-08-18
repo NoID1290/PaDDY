@@ -3912,17 +3912,20 @@ namespace PaDDY
             var filesList = AudioImportService.ExpandAudioFiles(filePaths);
             if (filesList.Count == 0) return;
 
-            ShowLoadingOverlay($"Importing {filesList.Count} audio file(s)...");
-            await Task.Delay(50); // Yield UI thread to ensure LoadingOverlay renders
+            var importWindow = new AudioImportWindow(filesList)
+            {
+                Owner = this
+            };
+
+            bool? dialogResult = importWindow.ShowDialog();
+            if (dialogResult != true || importWindow.ConvertedResults.Count == 0)
+                return;
 
             int importedCount = 0;
             int failedCount = 0;
 
-            foreach (var file in filesList)
+            foreach (var result in importWindow.ConvertedResults)
             {
-                ShowLoadingOverlay($"Verifying & converting: {System.IO.Path.GetFileName(file)}");
-                var result = await AudioImportService.ImportFileAsync(file);
-
                 if (result.Success && result.AudioData.Length > 0)
                 {
                     try
@@ -3930,6 +3933,7 @@ namespace PaDDY
                         var entry = new RecordingEntry
                         {
                             DisplayName = result.DisplayName,
+                            PadColor = result.PadColor,
                             Duration = result.Duration,
                             CreatedAt = DateTime.Now,
                             IsFavorite = false
@@ -3937,13 +3941,20 @@ namespace PaDDY
 
                         string id = _recordingStore.Add(result.DisplayName, result.Codec, entry.Duration, entry.CreatedAt, result.AudioData);
                         entry.RecordingId = id;
+                        if (!string.IsNullOrEmpty(result.PadColor))
+                        {
+                            _recordingStore.SetPadColor(id, result.PadColor);
+                        }
                         entry.FilePath = _recordingStore.MaterializeToTemp(id, result.Codec);
 
                         if (_settings.AutoNormalizeOnCapture && File.Exists(entry.FilePath))
                         {
                             try
                             {
-                                LoudnessNormalizer.NormalizeWavFile(entry.FilePath, entry.FilePath, _settings.TargetLoudnessLufs);
+                                if (string.Equals(entry.Codec, "wav", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    LoudnessNormalizer.NormalizeWavFile(entry.FilePath, entry.FilePath, _settings.TargetLoudnessLufs);
+                                }
                                 double newLufs = LoudnessNormalizer.MeasureIntegratedLoudness(entry.FilePath);
                                 entry.LufsValue = newLufs;
                                 _recordingStore.UpdateLufs(id, newLufs);
@@ -3991,7 +4002,6 @@ namespace PaDDY
             }
 
             Forget(RefreshStorageInfoAsync());
-            HideLoadingOverlay();
 
             if (importedCount > 0)
             {
@@ -4000,7 +4010,7 @@ namespace PaDDY
             if (failedCount > 0)
             {
                 System.Windows.MessageBox.Show(this,
-                    $"{failedCount} file(s) could not be imported due to unsupported audio encoding.",
+                    $"{failedCount} file(s) could not be saved to library.",
                     "Import Warning",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
