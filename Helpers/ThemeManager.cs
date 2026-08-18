@@ -1245,6 +1245,20 @@ namespace PaDDY.Helpers
             res["MeterInBrush"] = inB;
             res["MeterOutBrush"] = outB;
             res["MeterMonBrush"] = monB;
+
+            if (inB is LinearGradientBrush inLgb)
+            {
+                var vertB = new LinearGradientBrush
+                {
+                    StartPoint = new Point(0, 1),
+                    EndPoint = new Point(0, 0)
+                };
+                foreach (var gs in inLgb.GradientStops)
+                {
+                    vertB.GradientStops.Add(new GradientStop(gs.Color, gs.Offset));
+                }
+                res["MeterVerticalBrush"] = vertB;
+            }
         }
 
         public static void UpdateMeterSkinSize(double width)

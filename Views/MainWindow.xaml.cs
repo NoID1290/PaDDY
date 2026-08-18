@@ -277,9 +277,11 @@ namespace PaDDY
             this.PreviewKeyDown += OnPadHotKey;
             PadMonitorMeterHostL.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
             PadMonitorMeterHostR.SizeChanged += (_, _) => UpdateMonitorMeterOverlaysLayout();
+            LiveMicMeterContainer.SizeChanged += (_, _) => { if (LiveMicBtn.IsChecked != true) ResetLiveMicMeter(); };
 
             RecordingPadButton.GlobalPlaybackRmsChanged += UpdateOutputMeter;
             RecordingPadButton.GlobalListenPlaybackRmsChanged += UpdatePadMonitorMeter;
+            _liveMicModulator.PeakLevelUpdated += OnLiveMicPeakLevelUpdated;
         }
 
         // ── Custom Window Chrome ───────────────────────────────────────────────
@@ -4017,6 +4019,9 @@ namespace PaDDY
             }
         }
 
+        private DateTime _lastLiveMicMeterTick;
+        private double _lastLiveMicPeak;
+
         private void LiveMicBtn_CheckedChanged(object sender, RoutedEventArgs e)
         {
             if (LiveMicBtn.IsChecked == true)
@@ -4027,13 +4032,65 @@ namespace PaDDY
                 _liveMicModulator.IsFxEnabled = _settings.LiveMicFxEnabled;
                 _liveMicModulator.Start(liveMicIn, liveMicOut, _settings.SecondaryOutputDeviceIndex, _settings.DualOutputEnabled);
                 LiveMicBtn.Content = "🎙️ Live Mic ON";
+                if (LiveMicMeterContainer != null) LiveMicMeterContainer.Opacity = 1.0;
                 SetStatus("Live Mic Modulator active", "#FF4CAF50");
             }
             else
             {
                 _liveMicModulator.Stop();
                 LiveMicBtn.Content = "🎙️ Live Mic";
+                if (LiveMicMeterContainer != null) LiveMicMeterContainer.Opacity = 0.35;
+                ResetLiveMicMeter();
                 SetStatus("Live Mic Modulator stopped", "#FF9090A0");
+            }
+        }
+
+        private void OnLiveMicPeakLevelUpdated(object? sender, float peak)
+        {
+            _lastLiveMicPeak = peak;
+            var now = DateTime.UtcNow;
+            if ((now - _lastLiveMicMeterTick).TotalMilliseconds < 25)
+                return;
+            _lastLiveMicMeterTick = now;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (LiveMicBtn.IsChecked != true) return;
+                UpdateLiveMicMeter(peak);
+            }), System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+        private void UpdateLiveMicMeter(double peak)
+        {
+            if (LiveMicMeterContainer == null || LiveMicMeterOverlay == null) return;
+            double meterHeight = LiveMicMeterContainer.ActualHeight > 0 ? LiveMicMeterContainer.ActualHeight : 72;
+            // Perceptually scaled response: square-root curve provides natural VU dynamics
+            double fraction = Math.Clamp(Math.Sqrt(peak), 0.0, 1.0);
+            double filledHeight = fraction * meterHeight;
+            LiveMicMeterOverlay.Height = Math.Max(0, meterHeight - filledHeight);
+
+            if (LiveMicDbLabel != null)
+            {
+                if (peak > 0.0001)
+                {
+                    double db = 20.0 * Math.Log10(peak);
+                    LiveMicDbLabel.Text = $"{db:0}";
+                }
+                else
+                {
+                    LiveMicDbLabel.Text = "-∞";
+                }
+            }
+        }
+
+        private void ResetLiveMicMeter()
+        {
+            if (LiveMicMeterContainer == null || LiveMicMeterOverlay == null) return;
+            double meterHeight = LiveMicMeterContainer.ActualHeight > 0 ? LiveMicMeterContainer.ActualHeight : 72;
+            LiveMicMeterOverlay.Height = meterHeight;
+            if (LiveMicDbLabel != null)
+            {
+                LiveMicDbLabel.Text = "-∞";
             }
         }
 

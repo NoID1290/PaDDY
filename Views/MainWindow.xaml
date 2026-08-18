@@ -876,7 +876,8 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>      <!-- Audio Meters Card -->
-                    <ColumnDefinition Width="Auto"/>   <!-- Status -->
+                    <ColumnDefinition Width="Auto"/>   <!-- Live Mic Meter Card -->
+                    <ColumnDefinition Width="Auto"/>   <!-- Runtime Status / Info Panel -->
                 </Grid.ColumnDefinitions>
 
                 <!-- Audio Meters Card -->
@@ -886,7 +887,7 @@
                         BorderBrush="{DynamicResource InputBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="8"
-                        Margin="0,0,8,0"
+                        Margin="0,0,0,0"
                         VerticalAlignment="Center">
                     <Border.Effect>
                         <DropShadowEffect ShadowDepth="1" Direction="270" BlurRadius="6" Color="#FF000000" Opacity="0.25"/>
@@ -1241,9 +1242,73 @@
                     </Grid>
                 </Border>
 
-                <!-- Runtime status panel -->
+                <!-- Live Mic Vertical Meter Card -->
                 <Border Grid.Column="1"
-                        Margin="16,0,0,0"
+                        Padding="10,12"
+                        Background="{DynamicResource BadgeBgBrush}"
+                        BorderBrush="{DynamicResource InputBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        ToolTip="Live Mic Level">
+                    <Border.Effect>
+                        <DropShadowEffect ShadowDepth="1" Direction="270" BlurRadius="6" Color="#FF000000" Opacity="0.25"/>
+                    </Border.Effect>
+                    <Grid Width="38" HorizontalAlignment="Center">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Label -->
+                        <Label Content="MIC"
+                               Foreground="#FFFF5252"
+                               FontSize="9.5"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               VerticalContentAlignment="Center"
+                               Padding="0"
+                               Margin="0,0,0,5"/>
+
+                        <!-- Vertical Meter Bar -->
+                        <Border x:Name="LiveMicMeterContainer"
+                                Grid.Row="1"
+                                Width="10"
+                                Height="72"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource InputBgBrush}"
+                                BorderBrush="{DynamicResource InputBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                ClipToBounds="True"
+                                Opacity="0.35">
+                            <Grid x:Name="LiveMicMeterGrid" ClipToBounds="True">
+                                <Rectangle Fill="{DynamicResource MeterVerticalBrush}"/>
+                                <Rectangle x:Name="LiveMicMeterOverlay"
+                                           Fill="{DynamicResource InputBgBrush}"
+                                           VerticalAlignment="Top"
+                                           Height="72"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- dB / Level readout -->
+                        <TextBlock x:Name="LiveMicDbLabel"
+                                   Grid.Row="2"
+                                   Text="-∞"
+                                   FontSize="9.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleTextBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,5,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- Runtime status panel -->
+                <Border Grid.Column="2"
+                        Margin="8,0,0,0"
                         Padding="14,10"
                         Background="{DynamicResource BadgeBgBrush}"
                         BorderBrush="{DynamicResource InputBorderBrush}"

@@ -106,8 +106,9 @@ namespace PaDDY.Services
                 sampleBuffer[i] = f;
             }
 
-            PeakLevel = maxAbs;
-            PeakLevelUpdated?.Invoke(this, maxAbs);
+            float effectivePeak = _isMuted ? 0f : Math.Min(1.0f, maxAbs * _gain);
+            PeakLevel = effectivePeak;
+            PeakLevelUpdated?.Invoke(this, effectivePeak);
 
             if (_isMuted)
             {

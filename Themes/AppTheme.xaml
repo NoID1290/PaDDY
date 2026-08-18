@@ -71,6 +71,16 @@
         <GradientStop Color="#FFD50000" Offset="1.0"/>
     </LinearGradientBrush>
 
+    <LinearGradientBrush x:Key="MeterVerticalBrush" StartPoint="0,1" EndPoint="0,0">
+        <GradientStop Color="#FF000000" Offset="0.0"/>
+        <GradientStop Color="#FF2E7D32" Offset="0.015"/>
+        <GradientStop Color="#FF4CAF50" Offset="0.35"/>
+        <GradientStop Color="#FFFDD835" Offset="0.70"/>
+        <GradientStop Color="#FFFF9800" Offset="0.85"/>
+        <GradientStop Color="#FFF44336" Offset="0.95"/>
+        <GradientStop Color="#FFD50000" Offset="1.0"/>
+    </LinearGradientBrush>
+
     <LinearGradientBrush x:Key="MeterOutBrush" StartPoint="0,0" EndPoint="1,0">
         <GradientStop Color="#FF000000" Offset="0.0"/>
         <GradientStop Color="#FF1565C0" Offset="0.015"/>
