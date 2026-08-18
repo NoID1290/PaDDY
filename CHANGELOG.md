@@ -4,15 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.2.2.0816-Pre-release_1] - 2026-08-16
+## [2.3.0.0818] - 2026-08-18
 
-- Testing updated and push corruption
-- Remove Sensitivity UI Controls
-- Debugging WPF Storyboard Exception
-- Fix Non-Speech & Artifact Token Stripping
-- Fix System.InvalidOperationException when cancelling a recording with no voice detected
-- Disable Unimplemented UI Features
-- Startup Loading Optimization
+- Added dedicated real-time vertical VU level meter for the Live Mic feature.
+- Added a dedicated Audio Import & Converter. Customize the pad name, select a pad color, choose an audio format (WAV, MP3, OGG, FLAC, OPUS, AAC), and transcode.
+- Startup Loading Optimization.
+- Fix Non-Speech & Artifact Token Stripping.
+- Fix System.InvalidOperationException when cancelling a recording with no voice detected.
+- Disable Unimplemented UI Features.
 
 ## [2.2.1.0815] - 2026-08-15
 
