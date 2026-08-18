@@ -185,6 +185,13 @@
   <data name="WhisperLangDesc" xml:space="preserve"><value>Précisez le code de langue Whisper (ex. 'en', 'fr', 'de') ou définissez sur 'auto'.</value></data>
   <data name="CudaLabel" xml:space="preserve"><value>Accélération GPU CUDA</value></data>
   <data name="CudaDesc" xml:space="preserve"><value>Exploite le matériel NVIDIA CUDA pour accélérer l'exécution du modèle vocal.</value></data>
+  <data name="DownloadCudaPack" xml:space="preserve"><value>Télécharger le pack CUDA (~270 Mo)</value></data>
+  <data name="RemoveCudaPack" xml:space="preserve"><value>Supprimer le pack CUDA</value></data>
+  <data name="CudaPackInstalled" xml:space="preserve"><value>GPU NVIDIA détecté — le pack d'accélération CUDA est installé et prêt.</value></data>
+  <data name="CudaPackNotInstalled" xml:space="preserve"><value>GPU NVIDIA détecté. Téléchargez le pack CUDA pour activer l'accélération GPU (~270 Mo de téléchargement, ~670 Mo sur le disque).</value></data>
+  <data name="CudaNotAvailable" xml:space="preserve"><value>Aucun GPU NVIDIA détecté — accélération CUDA non disponible.</value></data>
+  <data name="ConfirmDeleteCudaTitle" xml:space="preserve"><value>Supprimer le pack CUDA</value></data>
+  <data name="ConfirmDeleteCudaPrompt" xml:space="preserve"><value>Êtes-vous sûr de vouloir supprimer le pack d'accélération CUDA ? Cela libérera environ 670 Mo d'espace disque. La reconnaissance vocale basculera sur le processeur (CPU).</value></data>
 
   <!-- Settings Audio Devices -->
   <data name="AudioDevicesHeader" xml:space="preserve"><value>Paramètres de lecture</value></data>

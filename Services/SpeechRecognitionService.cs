@@ -352,6 +352,7 @@ namespace PaDDY.Services
                 // Configure CUDA runtime preference before creating the factory
                 if (useCuda)
                 {
+                    CudaManager.InitializeCudaRuntimeEnvironment();
                     RuntimeOptions.RuntimeLibraryOrder = new List<RuntimeLibrary>
                     {
                         RuntimeLibrary.Cuda,

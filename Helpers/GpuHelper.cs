@@ -15,7 +15,6 @@ namespace PaDDY.Helpers
     internal static class GpuHelper
     {
         private static bool? _isNvidiaAvailable;
-        private static bool? _isCudaRuntimeAvailable;
 
         /// <summary>
         /// Returns <c>true</c> when at least one NVIDIA video adapter is
@@ -31,20 +30,20 @@ namespace PaDDY.Helpers
         }
 
         /// <summary>
-        /// Returns <c>true</c> when the Whisper CUDA native runtime can actually
-        /// be loaded. ggml-cuda-whisper.dll links cublas64_13.dll (which needs
-        /// cublasLt64_13.dll), and Whisper.net additionally probes cudart64_13.dll
-        /// next to the exe to detect CUDA devices. These redistributables are
-        /// shipped with the app; when any is missing, Whisper silently falls back
-        /// to the CPU runtime even though an NVIDIA GPU is present.
+        /// Returns <c>true</c> when the Whisper CUDA native runtime is present
+        /// and can be loaded.
         /// </summary>
         public static bool IsCudaRuntimeAvailable
         {
             get
             {
-                _isCudaRuntimeAvailable ??= DetectCudaRuntime();
-                return _isCudaRuntimeAvailable.Value;
+                return DetectCudaRuntime();
             }
+        }
+
+        public static void InvalidateCudaCache()
+        {
+            // DetectCudaRuntime checks dynamically each time
         }
 
         private static bool DetectCudaRuntime()
@@ -52,16 +51,17 @@ namespace PaDDY.Helpers
             if (!IsNvidiaGpuAvailable)
                 return false;
 
+            if (!Services.CudaManager.IsCudaPackInstalled())
+                return false;
+
             try
             {
-                // Whisper.net's CUDA gate: cudart64_13.dll resolvable by name.
-                IntPtr cudart = LoadLibraryExW("cudart64_13.dll", IntPtr.Zero, 0);
-                if (cudart == IntPtr.Zero)
-                    return false;
-                FreeLibrary(cudart);
+                Services.CudaManager.InitializeCudaRuntimeEnvironment();
 
-                string dll = Path.Combine(
-                    AppContext.BaseDirectory, "runtimes", "cuda", "win-x64", "ggml-cuda-whisper.dll");
+                string dll = File.Exists(Path.Combine(Services.CudaManager.CudaWinX64Dir, "ggml-cuda-whisper.dll"))
+                    ? Path.Combine(Services.CudaManager.CudaWinX64Dir, "ggml-cuda-whisper.dll")
+                    : Path.Combine(Services.CudaManager.AppBundledCudaDir, "ggml-cuda-whisper.dll");
+
                 if (!File.Exists(dll))
                     return false;
 

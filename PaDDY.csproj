@@ -35,7 +35,6 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
     <PackageReference Include="Whisper.net" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime.Cuda.Windows" Version="1.9.1" />
     <PackageReference Include="System.Management" Version="10.0.10" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.8.3" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
@@ -97,65 +96,41 @@
   </Target>
   <!--
     PaDDY ships for win-x64 ONLY.  NuGet packages (Whisper.net.Runtime,
-    Whisper.net.Runtime.Cuda, SQLitePCLRaw, etc.) may copy native binaries for
-    other platforms into runtimes\.  The targets below aggressively prune every
-    non-win-x64 subfolder at both the top level (runtimes\<rid>) and inside
-    nested directories (runtimes\cuda\<rid>), covering:
-      • win-arm64, win-x86, win-arm, win10-arm, win10-arm64, win10-x86
-      • linux-*, osx-*, maccatalyst-*, android-*
-    Whisper.net's loader expects win-x64 natives under runtimes\win-x64\, so
-    that folder (and runtimes\cuda\win-x64\) are kept intact.
+    SQLitePCLRaw, etc.) may copy native binaries for other platforms into
+    runtimes\. The targets below aggressively prune every non-win-x64 subfolder.
   -->
   <Target Name="PruneUnusedRuntimeFolders" AfterTargets="Build" Condition="Exists('$(OutputPath)runtimes')">
-    <!-- Top-level: remove all non-win-x64 RIDs (Whisper.net.Runtime ships win-arm64 + win-x86) -->
-    <RemoveDir Directories="&#xD;&#xA;      $(OutputPath)runtimes\win-arm64;&#xD;&#xA;      $(OutputPath)runtimes\win-x86;&#xD;&#xA;      $(OutputPath)runtimes\win-arm;&#xD;&#xA;      $(OutputPath)runtimes\win10-arm;&#xD;&#xA;      $(OutputPath)runtimes\win10-arm64;&#xD;&#xA;      $(OutputPath)runtimes\win10-x86;&#xD;&#xA;      $(OutputPath)runtimes\linux-x64;&#xD;&#xA;      $(OutputPath)runtimes\linux-arm64;&#xD;&#xA;      $(OutputPath)runtimes\linux-arm;&#xD;&#xA;      $(OutputPath)runtimes\osx-x64;&#xD;&#xA;      $(OutputPath)runtimes\osx-arm64;&#xD;&#xA;      $(OutputPath)runtimes\maccatalyst-arm64;&#xD;&#xA;      $(OutputPath)runtimes\android-arm64-v8a;&#xD;&#xA;      $(OutputPath)runtimes\android-x86" />
-    <!-- Inside cuda\: remove non-win-x64 (Whisper.net.Runtime.Cuda.Linux ships cuda\linux-x64) -->
-    <RemoveDir Directories="&#xD;&#xA;      $(OutputPath)runtimes\cuda\linux-x64;&#xD;&#xA;      $(OutputPath)runtimes\cuda\linux-arm64;&#xD;&#xA;      $(OutputPath)runtimes\cuda\osx-arm64;&#xD;&#xA;      $(OutputPath)runtimes\cuda\osx-x64" />
+    <RemoveDir Directories="
+      $(OutputPath)runtimes\win-arm64;
+      $(OutputPath)runtimes\win-x86;
+      $(OutputPath)runtimes\win-arm;
+      $(OutputPath)runtimes\win10-arm;
+      $(OutputPath)runtimes\win10-arm64;
+      $(OutputPath)runtimes\win10-x86;
+      $(OutputPath)runtimes\linux-x64;
+      $(OutputPath)runtimes\linux-arm64;
+      $(OutputPath)runtimes\linux-arm;
+      $(OutputPath)runtimes\osx-x64;
+      $(OutputPath)runtimes\osx-arm64;
+      $(OutputPath)runtimes\maccatalyst-arm64;
+      $(OutputPath)runtimes\android-arm64-v8a;
+      $(OutputPath)runtimes\android-x86" />
   </Target>
   <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish" Condition="Exists('$(PublishDir)runtimes')">
-    <RemoveDir Directories="&#xD;&#xA;      $(PublishDir)runtimes\win-arm64;&#xD;&#xA;      $(PublishDir)runtimes\win-x86;&#xD;&#xA;      $(PublishDir)runtimes\win-arm;&#xD;&#xA;      $(PublishDir)runtimes\win10-arm;&#xD;&#xA;      $(PublishDir)runtimes\win10-arm64;&#xD;&#xA;      $(PublishDir)runtimes\win10-x86;&#xD;&#xA;      $(PublishDir)runtimes\linux-x64;&#xD;&#xA;      $(PublishDir)runtimes\linux-arm64;&#xD;&#xA;      $(PublishDir)runtimes\linux-arm;&#xD;&#xA;      $(PublishDir)runtimes\osx-x64;&#xD;&#xA;      $(PublishDir)runtimes\osx-arm64;&#xD;&#xA;      $(PublishDir)runtimes\maccatalyst-arm64;&#xD;&#xA;      $(PublishDir)runtimes\android-arm64-v8a;&#xD;&#xA;      $(PublishDir)runtimes\android-x86" />
-    <RemoveDir Directories="&#xD;&#xA;      $(PublishDir)runtimes\cuda\linux-x64;&#xD;&#xA;      $(PublishDir)runtimes\cuda\linux-arm64;&#xD;&#xA;      $(PublishDir)runtimes\cuda\osx-arm64;&#xD;&#xA;      $(PublishDir)runtimes\cuda\osx-x64" />
-  </Target>
-  <!--
-    NVIDIA CUDA redistributables for Whisper GPU acceleration.
-    ggml-cuda-whisper.dll (Whisper.net.Runtime.Cuda 1.9.1) statically links
-    cublas64_13.dll (which needs cublasLt64_13.dll), and Whisper.net probes
-    cudart64_13.dll next to the exe to detect CUDA devices. None of these ship
-    in the NuGet package, so they are downloaded once from NVIDIA's official
-    redist CDN (SHA-256 verified), cached under bin\cache, and copied into the
-    output. The Inno installer packs the publish dir recursively, so they ship
-    automatically.
-  -->
-  <PropertyGroup>
-    <CudaRedistCacheDir>$(MSBuildProjectDirectory)\bin\cache\cuda-redist\</CudaRedistCacheDir>
-    <CublasArchiveName>libcublas-windows-x86_64-13.0.0.19-archive</CublasArchiveName>
-    <CudartArchiveName>cuda_cudart-windows-x86_64-13.0.48-archive</CudartArchiveName>
-    <CublasZipUrl>https://developer.download.nvidia.com/compute/cuda/redist/libcublas/windows-x86_64/$(CublasArchiveName).zip</CublasZipUrl>
-    <CudartZipUrl>https://developer.download.nvidia.com/compute/cuda/redist/cuda_cudart/windows-x86_64/$(CudartArchiveName).zip</CudartZipUrl>
-    <CublasZipSha256>c8fb12715b9639f51983315cc4b195e272128c675aa3766b13c4f470b892e6c8</CublasZipSha256>
-    <CudartZipSha256>82fb29001895810ce02e88b180cbaa90607b852a7f67a63f18f202079eaa2966</CudartZipSha256>
-    <CublasBinDir>$(CudaRedistCacheDir)$(CublasArchiveName)\bin\x64\</CublasBinDir>
-    <CudartBinDir>$(CudaRedistCacheDir)$(CudartArchiveName)\bin\x64\</CudartBinDir>
-  </PropertyGroup>
-  <Target Name="FetchCudaRedist">
-    <DownloadFile Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') And !Exists('$(CudaRedistCacheDir)$(CublasArchiveName).zip')" SourceUrl="$(CublasZipUrl)" DestinationFolder="$(CudaRedistCacheDir)" Retries="2" ContinueOnError="WarnAndContinue" />
-    <VerifyFileHash Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') And Exists('$(CudaRedistCacheDir)$(CublasArchiveName).zip')" File="$(CudaRedistCacheDir)$(CublasArchiveName).zip" Hash="$(CublasZipSha256)" Algorithm="SHA256" />
-    <Unzip Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') And Exists('$(CudaRedistCacheDir)$(CublasArchiveName).zip')" SourceFiles="$(CudaRedistCacheDir)$(CublasArchiveName).zip" DestinationFolder="$(CudaRedistCacheDir)" OverwriteReadOnlyFiles="true" />
-    <Delete Condition="Exists('$(CublasBinDir)cublasLt64_13.dll')" Files="$(CudaRedistCacheDir)$(CublasArchiveName).zip" />
-    <DownloadFile Condition="!Exists('$(CudartBinDir)cudart64_13.dll') And !Exists('$(CudaRedistCacheDir)$(CudartArchiveName).zip')" SourceUrl="$(CudartZipUrl)" DestinationFolder="$(CudaRedistCacheDir)" Retries="2" ContinueOnError="WarnAndContinue" />
-    <VerifyFileHash Condition="!Exists('$(CudartBinDir)cudart64_13.dll') And Exists('$(CudaRedistCacheDir)$(CudartArchiveName).zip')" File="$(CudaRedistCacheDir)$(CudartArchiveName).zip" Hash="$(CudartZipSha256)" Algorithm="SHA256" />
-    <Unzip Condition="!Exists('$(CudartBinDir)cudart64_13.dll') And Exists('$(CudaRedistCacheDir)$(CudartArchiveName).zip')" SourceFiles="$(CudaRedistCacheDir)$(CudartArchiveName).zip" DestinationFolder="$(CudaRedistCacheDir)" OverwriteReadOnlyFiles="true" />
-    <Delete Condition="Exists('$(CudartBinDir)cudart64_13.dll')" Files="$(CudaRedistCacheDir)$(CudartArchiveName).zip" />
-    <Warning Condition="!Exists('$(CublasBinDir)cublasLt64_13.dll') Or !Exists('$(CudartBinDir)cudart64_13.dll')" Text="NVIDIA CUDA redistributables could not be downloaded — Whisper GPU acceleration will be unavailable in this build." />
-  </Target>
-  <Target Name="CopyCudaRedistToOutput" AfterTargets="Build" DependsOnTargets="FetchCudaRedist">
-    <Copy Condition="Exists('$(CublasBinDir)cublasLt64_13.dll')" SourceFiles="$(CublasBinDir)cublas64_13.dll;$(CublasBinDir)cublasLt64_13.dll" DestinationFolder="$(OutputPath)runtimes\cuda\win-x64" SkipUnchangedFiles="true" />
-    <Copy Condition="Exists('$(CudartBinDir)cudart64_13.dll')" SourceFiles="$(CudartBinDir)cudart64_13.dll" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
-    <Copy Condition="Exists('$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE')" SourceFiles="$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE" DestinationFiles="$(OutputPath)licenses\NVIDIA-CUDA-LICENSE.txt" SkipUnchangedFiles="true" />
-  </Target>
-  <Target Name="CopyCudaRedistToPublish" AfterTargets="Publish" DependsOnTargets="FetchCudaRedist">
-    <Copy Condition="Exists('$(CublasBinDir)cublasLt64_13.dll')" SourceFiles="$(CublasBinDir)cublas64_13.dll;$(CublasBinDir)cublasLt64_13.dll" DestinationFolder="$(PublishDir)runtimes\cuda\win-x64" SkipUnchangedFiles="true" />
-    <Copy Condition="Exists('$(CudartBinDir)cudart64_13.dll')" SourceFiles="$(CudartBinDir)cudart64_13.dll" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
-    <Copy Condition="Exists('$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE')" SourceFiles="$(CudaRedistCacheDir)$(CublasArchiveName)\LICENSE" DestinationFiles="$(PublishDir)licenses\NVIDIA-CUDA-LICENSE.txt" SkipUnchangedFiles="true" />
+    <RemoveDir Directories="
+      $(PublishDir)runtimes\win-arm64;
+      $(PublishDir)runtimes\win-x86;
+      $(PublishDir)runtimes\win-arm;
+      $(PublishDir)runtimes\win10-arm;
+      $(PublishDir)runtimes\win10-arm64;
+      $(PublishDir)runtimes\win10-x86;
+      $(PublishDir)runtimes\linux-x64;
+      $(PublishDir)runtimes\linux-arm64;
+      $(PublishDir)runtimes\linux-arm;
+      $(PublishDir)runtimes\osx-x64;
+      $(PublishDir)runtimes\osx-arm64;
+      $(PublishDir)runtimes\maccatalyst-arm64;
+      $(PublishDir)runtimes\android-arm64-v8a;
+      $(PublishDir)runtimes\android-x86" />
   </Target>
 </Project>

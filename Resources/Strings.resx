@@ -187,6 +187,13 @@
   <data name="WhisperLangDesc" xml:space="preserve"><value>Specify Whisper language code (e.g. 'en', 'fr', 'de') or set to 'auto'.</value></data>
   <data name="CudaLabel" xml:space="preserve"><value>CUDA GPU Acceleration</value></data>
   <data name="CudaDesc" xml:space="preserve"><value>Leverage NVIDIA CUDA hardware to speed up speech model execution.</value></data>
+  <data name="DownloadCudaPack" xml:space="preserve"><value>Download CUDA Pack (~270 MB)</value></data>
+  <data name="RemoveCudaPack" xml:space="preserve"><value>Remove CUDA Pack</value></data>
+  <data name="CudaPackInstalled" xml:space="preserve"><value>NVIDIA GPU detected — CUDA acceleration pack is installed and ready.</value></data>
+  <data name="CudaPackNotInstalled" xml:space="preserve"><value>NVIDIA GPU detected. Download the CUDA Pack to enable GPU acceleration (~270 MB download, ~670 MB on disk).</value></data>
+  <data name="CudaNotAvailable" xml:space="preserve"><value>No NVIDIA GPU detected — CUDA acceleration unavailable.</value></data>
+  <data name="ConfirmDeleteCudaTitle" xml:space="preserve"><value>Remove CUDA Pack</value></data>
+  <data name="ConfirmDeleteCudaPrompt" xml:space="preserve"><value>Are you sure you want to remove the CUDA Acceleration Pack? This will free ~670 MB of disk space. Speech recognition will use CPU.</value></data>
 
   <!-- Settings Audio Devices -->
   <data name="AudioDevicesHeader" xml:space="preserve"><value>Audio Devices &amp; Loudness Normalization</value></data>

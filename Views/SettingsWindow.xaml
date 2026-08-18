@@ -982,9 +982,25 @@
                                                 <TextBlock Text="{p:Loc CudaLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="{p:Loc CudaDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <CheckBox x:Name="UseCudaCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}"/>
+                                            <CheckBox x:Name="UseCudaCheck" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource RackPowerSwitch}" Click="UseCudaCheck_Click"/>
                                         </Grid>
-                                        <TextBlock x:Name="CudaStatusText" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0"/>
+
+                                        <!-- CUDA Actions & Status -->
+                                        <Grid Margin="0,4,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock x:Name="CudaStatusText" Grid.Column="0" TextWrapping="Wrap" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button x:Name="DownloadCudaBtn" Content="{p:Loc DownloadCudaPack}" Padding="12,0" Height="28" Click="DownloadCudaBtn_Click" Visibility="Collapsed" VerticalAlignment="Center"/>
+                                                <Button x:Name="RemoveCudaBtn" Content="{p:Loc RemoveCudaPack}" Padding="12,0" Height="28" Click="RemoveCudaBtn_Click" Visibility="Collapsed" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- CUDA Download Progress Bar -->
+                                        <ProgressBar x:Name="CudaDownloadProgress" Height="6" Margin="0,8,0,4" Visibility="Collapsed" Minimum="0" Maximum="100"/>
+                                        <TextBlock x:Name="CudaDownloadStatusText" FontSize="11" Margin="0,0,0,4" Visibility="Collapsed" Foreground="{DynamicResource AccentAmberBrush}"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

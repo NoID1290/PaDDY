@@ -126,6 +126,7 @@ namespace PaDDY
             App.DebugModeChanged += OnDebugModeChanged;
 
             PaDDY.Services.SpeechRecognitionService.DownloadProgressUpdated += OnSpeechModelDownloadProgressUpdated;
+            PaDDY.Services.CudaManager.DownloadProgressUpdated += OnCudaDownloadProgressUpdated;
             ZoomManager.ScaleChanged += OnGlobalZoomScaleChanged;
 
             Loaded += OnLoaded;
@@ -133,6 +134,7 @@ namespace PaDDY
             {
                 App.DebugModeChanged -= OnDebugModeChanged;
                 PaDDY.Services.SpeechRecognitionService.DownloadProgressUpdated -= OnSpeechModelDownloadProgressUpdated;
+                PaDDY.Services.CudaManager.DownloadProgressUpdated -= OnCudaDownloadProgressUpdated;
                 ZoomManager.ScaleChanged -= OnGlobalZoomScaleChanged;
                 if (!Confirmed)
                 {
@@ -295,28 +297,7 @@ namespace PaDDY
             UpdateDownloadButtonState();
 
             // CUDA GPU acceleration
-            bool nvidiaDetected = Helpers.GpuHelper.IsNvidiaGpuAvailable;
-            bool cudaRuntimeOk = Helpers.GpuHelper.IsCudaRuntimeAvailable;
-            UseCudaCheck.IsEnabled = nvidiaDetected && cudaRuntimeOk;
-            UseCudaCheck.IsChecked = nvidiaDetected && cudaRuntimeOk && _settings.UseCudaForSpeech;
-            if (nvidiaDetected && cudaRuntimeOk)
-            {
-                CudaStatusText.Text = "NVIDIA GPU detected — CUDA acceleration available.";
-                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x60, 0x90, 0x60));
-            }
-            else if (nvidiaDetected)
-            {
-                CudaStatusText.Text = "NVIDIA GPU detected, but the CUDA runtime libraries (cudart64_13 / cublas64_13) could not be loaded — Whisper would silently run on the CPU. Reinstall PaDDY to restore them.";
-                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0xB0, 0x90, 0x50));
-            }
-            else
-            {
-                CudaStatusText.Text = "No NVIDIA GPU detected — CUDA acceleration unavailable.";
-                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x90));
-            }
+            UpdateCudaStatusAndButtons();
 
             // Discord Integration
             DiscordRichPresenceCheck.IsChecked = _settings.DiscordRichPresenceEnabled;
@@ -1140,6 +1121,194 @@ namespace PaDDY
                 ModelDownloadStatusText.Visibility = Visibility.Collapsed;
                 SpeechModelCombo.IsEnabled = true;
                 UpdateDownloadButtonState();
+            }
+        }
+
+        private void UpdateCudaStatusAndButtons()
+        {
+            if (PaDDY.Services.CudaManager.IsDownloading)
+            {
+                UseCudaCheck.IsEnabled = false;
+                DownloadCudaBtn.IsEnabled = false;
+                RemoveCudaBtn.IsEnabled = false;
+                CudaDownloadProgress.Visibility = Visibility.Visible;
+                CudaDownloadStatusText.Visibility = Visibility.Visible;
+                if (PaDDY.Services.CudaManager.ActiveDownloadPercent < 0)
+                {
+                    CudaDownloadProgress.IsIndeterminate = true;
+                }
+                else
+                {
+                    CudaDownloadProgress.IsIndeterminate = false;
+                    CudaDownloadProgress.Value = PaDDY.Services.CudaManager.ActiveDownloadPercent * 100;
+                }
+                CudaDownloadStatusText.Text = PaDDY.Services.CudaManager.ActiveStatusText;
+                return;
+            }
+
+            CudaDownloadProgress.Visibility = Visibility.Collapsed;
+            CudaDownloadStatusText.Visibility = Visibility.Collapsed;
+            DownloadCudaBtn.IsEnabled = true;
+            RemoveCudaBtn.IsEnabled = true;
+
+            bool nvidiaDetected = Helpers.GpuHelper.IsNvidiaGpuAvailable;
+            bool cudaInstalled = PaDDY.Services.CudaManager.IsCudaPackInstalled();
+            bool cudaRuntimeOk = Helpers.GpuHelper.IsCudaRuntimeAvailable;
+
+            if (!nvidiaDetected)
+            {
+                UseCudaCheck.IsEnabled = false;
+                UseCudaCheck.IsChecked = false;
+                CudaStatusText.Text = LocalizationManager.Instance["CudaNotAvailable"];
+                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x60, 0x60, 0x90));
+                DownloadCudaBtn.Visibility = Visibility.Collapsed;
+                RemoveCudaBtn.Visibility = Visibility.Collapsed;
+            }
+            else if (cudaInstalled && cudaRuntimeOk)
+            {
+                UseCudaCheck.IsEnabled = true;
+                UseCudaCheck.IsChecked = _settings.UseCudaForSpeech;
+                CudaStatusText.Text = LocalizationManager.Instance["CudaPackInstalled"];
+                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x60, 0x90, 0x60));
+                DownloadCudaBtn.Visibility = Visibility.Collapsed;
+                RemoveCudaBtn.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UseCudaCheck.IsEnabled = true;
+                UseCudaCheck.IsChecked = false;
+                CudaStatusText.Text = LocalizationManager.Instance["CudaPackNotInstalled"];
+                CudaStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xB0, 0x90, 0x50));
+                DownloadCudaBtn.Visibility = Visibility.Visible;
+                RemoveCudaBtn.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnCudaDownloadProgressUpdated(double percent, string statusText)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (percent >= 0)
+                {
+                    CudaDownloadProgress.IsIndeterminate = false;
+                    CudaDownloadProgress.Value = percent * 100;
+                    CudaDownloadProgress.Visibility = Visibility.Visible;
+                    CudaDownloadStatusText.Visibility = Visibility.Visible;
+                    CudaDownloadStatusText.Text = statusText;
+                    DownloadCudaBtn.IsEnabled = false;
+                    RemoveCudaBtn.IsEnabled = false;
+                    UseCudaCheck.IsEnabled = false;
+                }
+                else if (percent == -1 && !string.IsNullOrEmpty(statusText))
+                {
+                    CudaDownloadProgress.IsIndeterminate = true;
+                    CudaDownloadProgress.Visibility = Visibility.Visible;
+                    CudaDownloadStatusText.Visibility = Visibility.Visible;
+                    CudaDownloadStatusText.Text = statusText;
+                    DownloadCudaBtn.IsEnabled = false;
+                    RemoveCudaBtn.IsEnabled = false;
+                    UseCudaCheck.IsEnabled = false;
+                }
+                else
+                {
+                    UpdateCudaStatusAndButtons();
+                }
+            });
+        }
+
+        private async void UseCudaCheck_Click(object sender, RoutedEventArgs e)
+        {
+            if (UseCudaCheck.IsChecked == true && !PaDDY.Services.CudaManager.IsCudaPackInstalled())
+            {
+                var res = System.Windows.MessageBox.Show(
+                    LocalizationManager.Instance["CudaPackNotInstalled"] + "\n\nWould you like to download it now?",
+                    "PaDDY",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (res == MessageBoxResult.Yes)
+                {
+                    UseCudaCheck.IsChecked = false;
+                    await StartCudaDownloadAsync();
+                }
+                else
+                {
+                    UseCudaCheck.IsChecked = false;
+                }
+            }
+        }
+
+        private async void DownloadCudaBtn_Click(object sender, RoutedEventArgs e)
+        {
+            await StartCudaDownloadAsync();
+        }
+
+        private async Task StartCudaDownloadAsync()
+        {
+            if (PaDDY.Services.CudaManager.IsDownloading) return;
+
+            DownloadCudaBtn.IsEnabled = false;
+            RemoveCudaBtn.IsEnabled = false;
+            UseCudaCheck.IsEnabled = false;
+            CudaDownloadProgress.Visibility = Visibility.Visible;
+            CudaDownloadStatusText.Visibility = Visibility.Visible;
+            CudaDownloadProgress.IsIndeterminate = true;
+            CudaDownloadStatusText.Text = "Initializing CUDA download...";
+
+            try
+            {
+                var progress = new Progress<(double Percent, string StatusText)>(p =>
+                {
+                    if (p.Percent < 0)
+                    {
+                        CudaDownloadProgress.IsIndeterminate = true;
+                    }
+                    else
+                    {
+                        CudaDownloadProgress.IsIndeterminate = false;
+                        CudaDownloadProgress.Value = p.Percent * 100;
+                    }
+                    CudaDownloadStatusText.Text = p.StatusText;
+                });
+
+                await PaDDY.Services.CudaManager.DownloadCudaPackAsync(progress);
+                Helpers.GpuHelper.InvalidateCudaCache();
+                UseCudaCheck.IsChecked = true;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"CUDA download failed: {ex.Message}", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                UpdateCudaStatusAndButtons();
+            }
+        }
+
+        private void RemoveCudaBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var res = System.Windows.MessageBox.Show(
+                LocalizationManager.Instance["ConfirmDeleteCudaPrompt"],
+                LocalizationManager.Instance["ConfirmDeleteCudaTitle"],
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (res == MessageBoxResult.Yes)
+            {
+                bool deleted = PaDDY.Services.CudaManager.DeleteCudaPack();
+                Helpers.GpuHelper.InvalidateCudaCache();
+                if (deleted)
+                {
+                    UseCudaCheck.IsChecked = false;
+                    UpdateCudaStatusAndButtons();
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Could not completely delete the CUDA pack. Some files may be currently in use. Please restart PaDDY and try again.", "PaDDY", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
         }
 
