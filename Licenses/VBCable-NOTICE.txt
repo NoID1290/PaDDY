@@ -1,0 +1,8 @@
+VB-Audio Virtual Cable (VB-CABLE)
+Copyright (c) Vincent Burel / VB-Audio Software (2010-2024). All rights reserved.
+
+VB-CABLE is donationware developed by Vincent Burel / VB-Audio Software.
+Official website: https://vb-audio.com
+Licensing information: https://vb-audio.com/Services/licensing.htm
+
+PaDDY facilitates on-demand downloading of the official, unmodified driver package directly from VB-Audio servers upon user request. All participations and donations to VB-Audio Software are welcome at https://vb-audio.com/.

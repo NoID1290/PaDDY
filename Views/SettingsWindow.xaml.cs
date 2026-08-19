@@ -1743,11 +1743,9 @@ namespace PaDDY
                 bool isMicInstalled = VirtualAudioDriverService.IsMicInstalled();
                 bool isFullyReady = isSpeakerInstalled && isMicInstalled;
                 bool isPartiallyReady = isSpeakerInstalled || isMicInstalled;
-                int pnpErrorCode = VirtualAudioDriverService.GetDriverProblemErrorCode();
 
                 if (isFullyReady)
                 {
-                    VirtualDriverTestSigningCard.Visibility = Visibility.Collapsed;
                     VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0x4C, 0xAF, 0x50));
                     VirtualDriverStatusBadgeText.Foreground = (System.Windows.Media.Brush)FindResource("AccentGreenBrush");
                     VirtualDriverStatusBadgeText.Text = "Installed & Ready";
@@ -1756,21 +1754,8 @@ namespace PaDDY
                     RouteSoundboardPresetBtn.IsEnabled = true;
                     RouteLiveMicPresetBtn.IsEnabled = true;
                 }
-                else if (pnpErrorCode == 52)
-                {
-                    // Code 52: CM_PROB_UNSIGNED_DRIVER - Windows blocked kernel driver loading
-                    VirtualDriverTestSigningCard.Visibility = Visibility.Visible;
-                    VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0xFF, 0xC1, 0x07));
-                    VirtualDriverStatusBadgeText.Foreground = (System.Windows.Media.Brush)FindResource("AccentAmberBrush");
-                    VirtualDriverStatusBadgeText.Text = "Signature Blocked (Code 52)";
-                    VirtualDriverInstallBtn.Content = "Reinstall Driver";
-                    VirtualDriverUninstallBtn.IsEnabled = true;
-                    RouteSoundboardPresetBtn.IsEnabled = false;
-                    RouteLiveMicPresetBtn.IsEnabled = false;
-                }
                 else if (isPartiallyReady)
                 {
-                    VirtualDriverTestSigningCard.Visibility = Visibility.Collapsed;
                     VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0xFF, 0xC1, 0x07));
                     VirtualDriverStatusBadgeText.Foreground = (System.Windows.Media.Brush)FindResource("AccentAmberBrush");
                     VirtualDriverStatusBadgeText.Text = "Partially Installed";
@@ -1781,7 +1766,6 @@ namespace PaDDY
                 }
                 else
                 {
-                    VirtualDriverTestSigningCard.Visibility = Visibility.Collapsed;
                     VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0xFF, 0x70, 0x70));
                     VirtualDriverStatusBadgeText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0x70, 0x70));
                     VirtualDriverStatusBadgeText.Text = "Not Installed";
@@ -1794,52 +1778,36 @@ namespace PaDDY
             catch { }
         }
 
-        private async void EnableTestSigningBtn_Click(object sender, RoutedEventArgs e)
+        private void OpenVbAudioNotice_Click(object sender, RoutedEventArgs e)
         {
-            EnableTestSigningBtn.IsEnabled = false;
-            try
+            var dialog = new VbCableNoticeDialog { Owner = this };
+            if (dialog.ShowDialog() == true)
             {
-                var (success, msg) = await VirtualAudioDriverService.EnableTestSigningAsync();
-                System.Windows.MessageBox.Show(
-                    this,
-                    msg,
-                    success ? "Test-Signing Configured — PaDDY" : "Test-Signing Notice — PaDDY",
-                    MessageBoxButton.OK,
-                    success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                VirtualDriverInstallBtn_Click(sender, e);
             }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show(this, $"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                EnableTestSigningBtn.IsEnabled = true;
-            }
-        }
-
-        private void CopyBcdeditCmdBtn_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                System.Windows.Clipboard.SetText("bcdedit /set testsigning on");
-                System.Windows.MessageBox.Show(
-                    this,
-                    "Command copied to clipboard:\n\nbcdedit /set testsigning on\n\nRun this in Command Prompt as Administrator, then restart your PC.",
-                    "Copied to Clipboard",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-            catch { }
         }
 
         private async void VirtualDriverInstallBtn_Click(object sender, RoutedEventArgs e)
         {
+            // If invoked directly from the Install button, show the confirmation & credit dialog first
+            if (sender == VirtualDriverInstallBtn)
+            {
+                var dialog = new VbCableNoticeDialog { Owner = this };
+                if (dialog.ShowDialog() != true)
+                    return;
+            }
+
             VirtualDriverInstallBtn.IsEnabled = false;
-            VirtualDriverInstallBtn.Content = "Installing...";
+            VirtualDriverInstallBtn.Content = "Starting...";
 
             try
             {
-                var (success, msg) = await VirtualAudioDriverService.InstallDriverAsync();
+                var progress = new Progress<string>(status =>
+                {
+                    VirtualDriverInstallBtn.Content = status;
+                });
+
+                var (success, msg) = await VirtualAudioDriverService.InstallDriverAsync(progress);
 
                 // Allow audio endpoint manager a moment to register newly initialized endpoints
                 await Task.Delay(1000);
@@ -1852,10 +1820,10 @@ namespace PaDDY
                 {
                     System.Windows.MessageBox.Show(
                         this,
-                        "Virtual Audio Driver has been installed successfully!\n\n" +
+                        "VB-Audio Virtual Cable (WHQL Signed) has been installed successfully!\n\n" +
                         "New endpoints available:\n" +
-                        "• Output: 'Virtual Audio Driver by MTT' (Speaker)\n" +
-                        "• Input: 'Virtual Mic Driver by MTT' (Microphone)\n\n" +
+                        "• Output: 'CABLE Input (VB-Audio Virtual Cable)' (Speaker)\n" +
+                        "• Input: 'CABLE Output (VB-Audio Virtual Cable)' (Microphone)\n\n" +
                         "You can now route PaDDY's soundboard and live voice modulator into Discord, OBS, or games!",
                         "Driver Installed — PaDDY",
                         MessageBoxButton.OK,
@@ -1891,8 +1859,8 @@ namespace PaDDY
         {
             var res = System.Windows.MessageBox.Show(
                 this,
-                "Are you sure you want to uninstall the Virtual Audio Driver from Windows?\n\n" +
-                "This will remove the Virtual Audio Driver and Virtual Mic Driver devices.",
+                "Are you sure you want to uninstall the VB-Audio Virtual Cable from Windows?\n\n" +
+                "This will remove the CABLE Input and CABLE Output virtual audio devices.",
                 "Uninstall Driver — PaDDY",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -1948,10 +1916,10 @@ namespace PaDDY
                 System.Windows.MessageBox.Show(
                     this,
                     "✔ Soundboard Routing Configured!\n\n" +
-                    "PaDDY pad clips will now play through your primary headset AND stream directly into the Virtual Audio Driver.\n\n" +
+                    "PaDDY pad clips will now play through your primary headset AND stream directly into the VB-Audio Virtual Cable.\n\n" +
                     "Next step:\n" +
                     "In Discord / OBS / Zoom / Game Settings, set your Input Device (Microphone) to:\n" +
-                    "👉 'Virtual Mic Driver by MTT'",
+                    "👉 'CABLE Output (VB-Audio Virtual Cable)'",
                     "Soundboard Route Preset Applied",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -1960,7 +1928,7 @@ namespace PaDDY
             {
                 System.Windows.MessageBox.Show(
                     this,
-                    "Virtual Audio Driver output device was not found.\nPlease install the driver first.",
+                    "VB-Audio Virtual Cable output device was not found.\nPlease install the driver first.",
                     "Virtual Driver Required",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
@@ -1979,10 +1947,10 @@ namespace PaDDY
                 System.Windows.MessageBox.Show(
                     this,
                     "✔ Live Voice Modulator Routing Configured!\n\n" +
-                    "Live mic audio with DSP effects is now set to stream into the Virtual Audio Driver.\n\n" +
+                    "Live mic audio with DSP effects is now set to stream into the VB-Audio Virtual Cable.\n\n" +
                     "Next step:\n" +
                     "In Discord / OBS / Zoom / Game Settings, set your Input Device (Microphone) to:\n" +
-                    "👉 'Virtual Mic Driver by MTT'",
+                    "👉 'CABLE Output (VB-Audio Virtual Cable)'",
                     "Voice Modulator Route Preset Applied",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -1991,7 +1959,7 @@ namespace PaDDY
             {
                 System.Windows.MessageBox.Show(
                     this,
-                    "Virtual Audio Driver output device was not found.\nPlease install the driver first.",
+                    "VB-Audio Virtual Cable output device was not found.\nPlease install the driver first.",
                     "Virtual Driver Required",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);

@@ -103,22 +103,17 @@ public partial class App : WpfApplication
 
         if (e.Args.Length > 0 && e.Args[0] == "--install-virtual-driver")
         {
-            string? infPath = Services.VirtualAudioDriverService.GetDriverInfPath();
-            if (string.IsNullOrEmpty(infPath))
-            {
-                System.Environment.Exit(1);
-                return;
-            }
-            var (success, _) = Services.VirtualAudioDriverService.CreateAndInstallRootDevice(infPath);
-            System.Environment.Exit(success ? 0 : 2);
+            var installTask = Task.Run(async () => await Services.VirtualAudioDriverService.InstallDriverAsync());
+            installTask.Wait(60000);
+            System.Environment.Exit(installTask.Result.Success ? 0 : 2);
             return;
         }
 
         if (e.Args.Length > 0 && e.Args[0] == "--uninstall-virtual-driver")
         {
-            var (success, _) = Services.VirtualAudioDriverService.RemoveRootDevice();
-            Services.VirtualAudioDriverService.UninstallDriverFromStore();
-            System.Environment.Exit(success ? 0 : 2);
+            var uninstallTask = Task.Run(async () => await Services.VirtualAudioDriverService.UninstallDriverAsync());
+            uninstallTask.Wait(45000);
+            System.Environment.Exit(uninstallTask.Result.Success ? 0 : 2);
             return;
         }
 

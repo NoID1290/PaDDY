@@ -1,35 +1,36 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Management;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
+using PaDDY.Helpers;
 
 namespace PaDDY.Services
 {
     /// <summary>
-    /// Manages detection, SetupAPI root device creation, 1-click installation,
-    /// uninstallation, and status inspection for the bundled open-source MIT Virtual Audio Driver
-    /// (VirtualDrivers/Virtual-Audio-Driver by MikeTheTech).
+    /// Manages detection, automated installation, uninstallation, routing preset discovery,
+    /// and status inspection for the Microsoft WHQL-certified VB-Audio Virtual Cable (VB-CABLE).
     /// </summary>
     public static class VirtualAudioDriverService
     {
-        public const string VirtualSpeakerKeyword = "Virtual Audio Driver";
-        public const string VirtualMicKeyword = "Virtual Mic Driver";
-        public const string HardwareId = "ROOT\\VirtualAudioDriver";
-        public const string InfFileName = "VirtualAudioDriver.inf";
+        public const string DefaultSpeakerKeyword = "CABLE Input";
+        public const string DefaultMicKeyword = "CABLE Output";
+        public const string VbCableBrandKeyword = "VB-Audio Virtual Cable";
 
-        #region Native SetupAPI / NewDev P/Invoke
+        private static readonly string[] SpeakerKeywords = { "CABLE Input", "VB-Audio Virtual Cable", "Virtual Audio Driver" };
+        private static readonly string[] MicKeywords = { "CABLE Output", "VB-Audio Virtual Cable", "Virtual Mic Driver" };
 
-        private const uint DICD_GENERATE_ID = 0x00000001;
-        private const uint SPDRP_HARDWAREID = 0x00000001;
-        private const uint DIF_REGISTERDEVICE = 0x00000019;
+        #region Native SetupAPI / P/Invoke for cleanup & fallback
+
         private const uint DIF_REMOVE = 0x00000005;
-        private const uint INSTALLFLAG_FORCE = 0x00000001;
+        private const uint SPDRP_HARDWAREID = 0x00000001;
         private const uint DIGCF_ALLCLASSES = 0x00000004;
 
         [StructLayout(LayoutKind.Sequential)]
@@ -41,47 +42,7 @@ namespace PaDDY.Services
             public IntPtr Reserved;
         }
 
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool SetupDiGetINFClass(
-            string InfName,
-            out Guid ClassGuid,
-            StringBuilder ClassName,
-            uint ClassNameSize,
-            out uint RequiredSize);
-
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern IntPtr SetupDiCreateDeviceInfoList(
-            ref Guid ClassGuid,
-            IntPtr hwndParent);
-
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool SetupDiCreateDeviceInfo(
-            IntPtr DeviceInfoSet,
-            string DeviceName,
-            ref Guid ClassGuid,
-            string? DeviceDescription,
-            IntPtr hwndParent,
-            uint CreationFlags,
-            ref SP_DEVINFO_DATA DeviceInfoData);
-
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool SetupDiSetDeviceRegistryProperty(
-            IntPtr DeviceInfoSet,
-            ref SP_DEVINFO_DATA DeviceInfoData,
-            uint Property,
-            byte[] PropertyBuffer,
-            uint PropertyBufferSize);
-
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool SetupDiCallClassInstaller(
-            uint InstallFunction,
-            IntPtr DeviceInfoSet,
-            ref SP_DEVINFO_DATA DeviceInfoData);
-
         [DllImport("setupapi.dll", SetLastError = true)]
-        private static extern bool SetupDiDestroyDeviceInfoList(IntPtr DeviceInfoSet);
-
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern IntPtr SetupDiGetClassDevs(
             IntPtr ClassGuid,
             string? Enumerator,
@@ -104,13 +65,14 @@ namespace PaDDY.Services
             uint PropertyBufferSize,
             out uint RequiredSize);
 
-        [DllImport("newdev.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool UpdateDriverForPlugAndPlayDevices(
-            IntPtr hwndParent,
-            string HardwareId,
-            string FullInfPath,
-            uint InstallFlags,
-            out bool bRebootRequired);
+        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern bool SetupDiCallClassInstaller(
+            uint InstallFunction,
+            IntPtr DeviceInfoSet,
+            ref SP_DEVINFO_DATA DeviceInfoData);
+
+        [DllImport("setupapi.dll", SetLastError = true)]
+        private static extern bool SetupDiDestroyDeviceInfoList(IntPtr DeviceInfoSet);
 
         #endregion
 
@@ -132,7 +94,7 @@ namespace PaDDY.Services
         }
 
         /// <summary>
-        /// Gets whether the Virtual Audio Driver (playback endpoint) is detected and active.
+        /// Gets whether the Virtual Audio Cable (playback endpoint e.g. "CABLE Input") is active.
         /// </summary>
         public static bool IsSpeakerInstalled()
         {
@@ -140,7 +102,7 @@ namespace PaDDY.Services
             {
                 using var enumerator = new MMDeviceEnumerator();
                 var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-                return devices.Any(d => d.FriendlyName.Contains(VirtualSpeakerKeyword, StringComparison.OrdinalIgnoreCase));
+                return devices.Any(d => SpeakerKeywords.Any(k => d.FriendlyName.Contains(k, StringComparison.OrdinalIgnoreCase)));
             }
             catch
             {
@@ -149,7 +111,7 @@ namespace PaDDY.Services
         }
 
         /// <summary>
-        /// Gets whether the Virtual Microphone Driver (capture endpoint) is detected and active.
+        /// Gets whether the Virtual Audio Cable (capture endpoint e.g. "CABLE Output") is active.
         /// </summary>
         public static bool IsMicInstalled()
         {
@@ -157,7 +119,7 @@ namespace PaDDY.Services
             {
                 using var enumerator = new MMDeviceEnumerator();
                 var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
-                return devices.Any(d => d.FriendlyName.Contains(VirtualMicKeyword, StringComparison.OrdinalIgnoreCase));
+                return devices.Any(d => MicKeywords.Any(k => d.FriendlyName.Contains(k, StringComparison.OrdinalIgnoreCase)));
             }
             catch
             {
@@ -176,23 +138,29 @@ namespace PaDDY.Services
         public static bool IsFullyOperational() => IsSpeakerInstalled() && IsMicInstalled();
 
         /// <summary>
-        /// Inspects PnP status for the Virtual Audio Driver via WMI.
-        /// Returns 52 (CM_PROB_UNSIGNED_DRIVER) if signature enforcement is blocking the driver,
-        /// 0 if working normally, or -1 if no device found.
+        /// Inspects PnP status for VB-Audio Virtual Cable or other virtual devices via WMI.
+        /// Returns 0 if working normally, 52 if signature enforcement is blocking (e.g. legacy unsigned driver),
+        /// or -1 if no device found.
         /// </summary>
         public static int GetDriverProblemErrorCode()
         {
             try
             {
                 using var searcher = new ManagementObjectSearcher(
-                    "SELECT Name, ConfigManagerErrorCode FROM Win32_PnPEntity WHERE Name LIKE '%Virtual Audio Driver%' OR DeviceID LIKE '%VirtualAudioDriver%'");
-                
+                    "SELECT Name, ConfigManagerErrorCode FROM Win32_PnPEntity WHERE Name LIKE '%VB-Audio%' OR Name LIKE '%CABLE%' OR DeviceID LIKE '%VBCABLE%'");
+
                 foreach (ManagementObject obj in searcher.Get())
                 {
-                    if (obj["ConfigManagerErrorCode"] is uint uCode)
+                    if (obj["ConfigManagerErrorCode"] is uint uCode && uCode != 0)
                         return (int)uCode;
-                    if (obj["ConfigManagerErrorCode"] is int iCode)
+                    if (obj["ConfigManagerErrorCode"] is int iCode && iCode != 0)
                         return iCode;
+                }
+
+                // If any matching device exists with code 0, return 0
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    return 0;
                 }
             }
             catch { }
@@ -200,7 +168,7 @@ namespace PaDDY.Services
         }
 
         /// <summary>
-        /// Resolves the 1-based index (where 0 = Default, 1..N = Render devices) for the Virtual Speaker.
+        /// Resolves the 1-based index (where 0 = Default, 1..N = Render devices) for the Virtual Speaker (CABLE Input).
         /// Returns -1 if not found.
         /// </summary>
         public static int FindVirtualSpeakerIndex()
@@ -209,11 +177,22 @@ namespace PaDDY.Services
             {
                 using var enumerator = new MMDeviceEnumerator();
                 var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                
+                // Prioritize exact CABLE Input match first
                 for (int i = 0; i < devices.Count; i++)
                 {
-                    if (devices[i].FriendlyName.Contains(VirtualSpeakerKeyword, StringComparison.OrdinalIgnoreCase))
+                    if (devices[i].FriendlyName.Contains(DefaultSpeakerKeyword, StringComparison.OrdinalIgnoreCase))
                     {
                         return i + 1; // 1-based index (0 = default)
+                    }
+                }
+
+                // Fall back to any matching speaker keyword
+                for (int i = 0; i < devices.Count; i++)
+                {
+                    if (SpeakerKeywords.Any(k => devices[i].FriendlyName.Contains(k, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        return i + 1;
                     }
                 }
             }
@@ -221,17 +200,83 @@ namespace PaDDY.Services
             return -1;
         }
 
+        public const string VbCablePackageUrl = "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip";
+
         /// <summary>
-        /// Resolves the absolute path to the bundled Virtual Audio Driver INF file.
+        /// Local directory in AppData where the official driver pack is cached.
         /// </summary>
-        public static string? GetDriverInfPath()
+        public static string DriverCacheDir => Path.Combine(AppDataPaths.AppDataRoot, "drivers", "VBCable");
+
+        /// <summary>
+        /// Ensures the official VB-CABLE driver package is downloaded from vb-audio.com and extracted to AppData.
+        /// Returns the path to VBCABLE_Setup_x64.exe (or VBCABLE_Setup.exe for 32-bit).
+        /// </summary>
+        public static async Task<string?> EnsureDriverDownloadedAsync(IProgress<string>? progress = null)
+        {
+            string is64 = Environment.Is64BitOperatingSystem ? "VBCABLE_Setup_x64.exe" : "VBCABLE_Setup.exe";
+            string targetExe = Path.Combine(DriverCacheDir, is64);
+
+            if (File.Exists(targetExe))
+                return targetExe;
+
+            Directory.CreateDirectory(DriverCacheDir);
+            string tempZip = Path.Combine(DriverCacheDir, "VBCABLE_Driver_Pack.zip");
+
+            try
+            {
+                progress?.Report("Connecting to VB-Audio server...");
+                using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "PaDDY-Downloader/1.0 (Windows NT 10.0; Win64; x64)");
+
+                progress?.Report("Downloading official driver pack (~1.3 MB)...");
+                using (var response = await httpClient.GetAsync(VbCablePackageUrl, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+                    using var sourceStream = await response.Content.ReadAsStreamAsync();
+                    using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await sourceStream.CopyToAsync(fileStream);
+                }
+
+                progress?.Report("Extracting driver archive...");
+                ZipFile.ExtractToDirectory(tempZip, DriverCacheDir, overwriteFiles: true);
+
+                if (File.Exists(targetExe))
+                    return targetExe;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[VirtualAudioDriverService] Download error: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(tempZip))
+                        File.Delete(tempZip);
+                }
+                catch { }
+            }
+
+            return File.Exists(targetExe) ? targetExe : null;
+        }
+
+        /// <summary>
+        /// Resolves the absolute path to the cached or local VB-CABLE setup executable (VBCABLE_Setup_x64.exe or VBCABLE_Setup.exe).
+        /// </summary>
+        public static string? GetInstallerExePath()
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string is64 = Environment.Is64BitOperatingSystem ? "VBCABLE_Setup_x64.exe" : "VBCABLE_Setup.exe";
+
             string[] candidatePaths =
             {
-                Path.Combine(baseDir, "drivers", "VirtualAudioDriver", InfFileName),
-                Path.Combine(baseDir, "Resources", "Drivers", "VirtualAudioDriver", InfFileName),
-                Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Drivers", "VirtualAudioDriver", InfFileName)
+                Path.Combine(DriverCacheDir, is64),
+                Path.Combine(DriverCacheDir, "VBCABLE_Setup_x64.exe"),
+                Path.Combine(DriverCacheDir, "VBCABLE_Setup.exe"),
+                Path.Combine(baseDir, "drivers", "VBCable", is64),
+                Path.Combine(baseDir, "drivers", "VBCable", "VBCABLE_Setup_x64.exe"),
+                Path.Combine(baseDir, "drivers", "VBCable", "VBCABLE_Setup.exe")
             };
 
             foreach (var path in candidatePaths)
@@ -244,120 +289,44 @@ namespace PaDDY.Services
         }
 
         /// <summary>
-        /// Low-level SetupAPI routine that cleans duplicates, creates the ROOT\VirtualAudioDriver device node,
-        /// and installs the driver via UpdateDriverForPlugAndPlayDevices.
-        /// Requires Administrator privileges.
+        /// Resolves the absolute path to the VB-CABLE INF file.
         /// </summary>
-        public static (bool Success, string Message) CreateAndInstallRootDevice(string infPath)
+        public static string? GetDriverInfPath()
         {
-            try
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string infName = "vbMmeCable64_win10.inf";
+
+            string[] candidatePaths =
             {
-                if (!File.Exists(infPath))
-                    return (false, $"Driver INF file not found at: {infPath}");
+                Path.Combine(DriverCacheDir, infName),
+                Path.Combine(baseDir, "drivers", "VBCable", infName)
+            };
 
-                string fullInfPath = Path.GetFullPath(infPath);
-
-                // Clean up any stale/duplicate root instances first
-                RemoveRootDevice();
-
-                // Pre-stage in driver store with pnputil to ensure certificate and packages are registered
-                try
-                {
-                    var pnpProcess = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "pnputil.exe",
-                        Arguments = $"/add-driver \"{fullInfPath}\" /install",
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    });
-                    pnpProcess?.WaitForExit(30000);
-                }
-                catch { }
-
-                // 1. Resolve Class GUID and Class Name from INF
-                var classNameBuilder = new StringBuilder(256);
-                if (!SetupDiGetINFClass(fullInfPath, out Guid classGuid, classNameBuilder, (uint)classNameBuilder.Capacity, out _))
-                {
-                    classGuid = new Guid("{4d36e96c-e325-11ce-bfc1-08002be10318}");
-                    classNameBuilder.Clear().Append("MEDIA");
-                }
-                string className = classNameBuilder.ToString();
-
-                // 2. Create Device Info Set
-                IntPtr devInfoSet = SetupDiCreateDeviceInfoList(ref classGuid, IntPtr.Zero);
-                if (devInfoSet == (IntPtr)(-1) || devInfoSet == IntPtr.Zero)
-                {
-                    int err = Marshal.GetLastWin32Error();
-                    return (false, $"SetupDiCreateDeviceInfoList failed (Error 0x{err:X8}).");
-                }
-
-                try
-                {
-                    // 3. Create Device Info Element
-                    var devInfoData = new SP_DEVINFO_DATA();
-                    devInfoData.cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>();
-
-                    if (!SetupDiCreateDeviceInfo(devInfoSet, className, ref classGuid, "Virtual Audio Driver by MTT", IntPtr.Zero, DICD_GENERATE_ID, ref devInfoData))
-                    {
-                        int err = Marshal.GetLastWin32Error();
-                        return (false, $"SetupDiCreateDeviceInfo failed (Error 0x{err:X8}).");
-                    }
-
-                    // 4. Set SPDRP_HARDWAREID (double-null-terminated Unicode string for REG_MULTI_SZ)
-                    byte[] hwidBytes = Encoding.Unicode.GetBytes(HardwareId + "\0\0");
-                    if (!SetupDiSetDeviceRegistryProperty(devInfoSet, ref devInfoData, SPDRP_HARDWAREID, hwidBytes, (uint)hwidBytes.Length))
-                    {
-                        int err = Marshal.GetLastWin32Error();
-                        return (false, $"SetupDiSetDeviceRegistryProperty failed (Error 0x{err:X8}).");
-                    }
-
-                    // 5. Register Device in system
-                    if (!SetupDiCallClassInstaller(DIF_REGISTERDEVICE, devInfoSet, ref devInfoData))
-                    {
-                        int err = Marshal.GetLastWin32Error();
-                        return (false, $"SetupDiCallClassInstaller(DIF_REGISTERDEVICE) failed (Error 0x{err:X8}).");
-                    }
-
-                    // 6. Bind & Update Driver for the newly registered root device
-                    bool rebootRequired;
-                    if (!UpdateDriverForPlugAndPlayDevices(IntPtr.Zero, HardwareId, fullInfPath, INSTALLFLAG_FORCE, out rebootRequired))
-                    {
-                        int err = Marshal.GetLastWin32Error();
-                        return (false, $"UpdateDriverForPlugAndPlayDevices failed (Error 0x{err:X8}).");
-                    }
-
-                    return (true, "Virtual Audio Driver device node created and driver started successfully.");
-                }
-                finally
-                {
-                    SetupDiDestroyDeviceInfoList(devInfoSet);
-                }
-            }
-            catch (Exception ex)
+            foreach (var path in candidatePaths)
             {
-                return (false, $"Exception during root device creation: {ex.Message}");
+                if (File.Exists(path))
+                    return Path.GetFullPath(path);
             }
+
+            return null;
         }
 
         /// <summary>
-        /// Removes any ROOT\VirtualAudioDriver device instances from Windows.
+        /// Removes legacy unsigned MikeTheTech driver device nodes if present on the machine.
         /// </summary>
-        public static (bool Success, string Message) RemoveRootDevice()
+        public static void RemoveLegacyMikeTheTechDevice()
         {
             try
             {
                 IntPtr devInfoSet = SetupDiGetClassDevs(IntPtr.Zero, null, IntPtr.Zero, DIGCF_ALLCLASSES);
                 if (devInfoSet == (IntPtr)(-1) || devInfoSet == IntPtr.Zero)
-                {
-                    return (false, "Could not enumerate devices.");
-                }
+                    return;
 
                 try
                 {
                     var devInfoData = new SP_DEVINFO_DATA();
                     devInfoData.cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>();
                     uint memberIndex = 0;
-                    int removedCount = 0;
 
                     while (SetupDiEnumDeviceInfo(devInfoSet, memberIndex, ref devInfoData))
                     {
@@ -369,105 +338,83 @@ namespace PaDDY.Services
                             {
                                 if (SetupDiCallClassInstaller(DIF_REMOVE, devInfoSet, ref devInfoData))
                                 {
-                                    removedCount++;
-                                    continue; // Do not increment memberIndex
+                                    continue;
                                 }
                             }
                         }
-
                         memberIndex++;
                     }
-
-                    return (true, $"Removed {removedCount} device instance(s).");
                 }
                 finally
                 {
                     SetupDiDestroyDeviceInfoList(devInfoSet);
                 }
             }
-            catch (Exception ex)
-            {
-                return (false, $"Error removing root device: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Cleans up published driver package from Driver Store.
-        /// </summary>
-        public static void UninstallDriverFromStore()
-        {
-            try
-            {
-                var process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = "-NoProfile -Command \"Get-WindowsDriver -Online -All | Where-Object { $_.OriginalFileName -like '*VirtualAudioDriver.inf*' } | ForEach-Object { pnputil /delete-driver $_.Driver /uninstall /force }\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                });
-                process?.WaitForExit(30000);
-            }
             catch { }
         }
 
         /// <summary>
-        /// Installs the bundled Virtual Audio Driver. If not elevated, requests UAC elevation.
+        /// Installs the Microsoft WHQL-certified VB-Audio Virtual Cable.
+        /// Downloads the official package on-demand if not already cached.
         /// </summary>
-        public static async Task<(bool Success, string Message)> InstallDriverAsync()
+        public static async Task<(bool Success, string Message)> InstallDriverAsync(IProgress<string>? progress = null)
         {
-            string? infPath = GetDriverInfPath();
-            if (string.IsNullOrEmpty(infPath) || !File.Exists(infPath))
+            // Clean up any legacy unsigned driver first
+            RemoveLegacyMikeTheTechDevice();
+
+            string? setupExe = GetInstallerExePath();
+            if (string.IsNullOrEmpty(setupExe) || !File.Exists(setupExe))
             {
-                return (false, "Driver package files (VirtualAudioDriver.inf) could not be located in application bundle.");
+                try
+                {
+                    setupExe = await EnsureDriverDownloadedAsync(progress);
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Failed to download VB-CABLE driver pack from official website: {ex.Message}");
+                }
+            }
+
+            if (string.IsNullOrEmpty(setupExe) || !File.Exists(setupExe))
+            {
+                return (false, "VB-CABLE installer could not be retrieved from official server.");
             }
 
             return await Task.Run(() =>
             {
-                if (IsAdministrator())
-                {
-                    return CreateAndInstallRootDevice(infPath);
-                }
-
                 try
                 {
-                    string exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "PaDDY.exe";
+                    progress?.Report("Installing driver package...");
                     var startInfo = new ProcessStartInfo
                     {
-                        FileName = exePath,
-                        Arguments = "--install-virtual-driver",
+                        FileName = setupExe,
+                        Arguments = "-i -h", // Silent install flag
                         UseShellExecute = true,
-                        Verb = "runas",
-                        WindowStyle = ProcessWindowStyle.Normal
+                        Verb = IsAdministrator() ? "" : "runas",
+                        WindowStyle = ProcessWindowStyle.Hidden
                     };
 
                     using var process = Process.Start(startInfo);
                     if (process == null)
-                        return (false, "Failed to launch elevated installer process.");
+                        return (false, "Failed to launch VB-CABLE installer process.");
 
                     process.WaitForExit(60000);
 
-                    // Check actual device status after installation
-                    int pnpError = GetDriverProblemErrorCode();
-                    if (IsFullyOperational())
+                    // Give Windows audio endpoint builder a moment to enumerate the new endpoints
+                    System.Threading.Thread.Sleep(1500);
+
+                    if (IsFullyOperational() || IsSpeakerInstalled())
                     {
-                        return (true, "Virtual Audio Driver was successfully installed and is active.");
+                        return (true, "VB-Audio Virtual Cable (WHQL Signed) installed successfully!");
                     }
 
-                    if (pnpError == 52)
-                    {
-                        return (false, "Driver installed, but Windows blocked the kernel module (Code 52 - CM_PROB_UNSIGNED_DRIVER).\n\n" +
-                                       "Because this open-source driver is not WHQL attestation signed by Microsoft, Windows requires Test-Signing mode:\n" +
-                                       "1. Open Command Prompt as Administrator\n" +
-                                       "2. Run: bcdedit /set testsigning on\n" +
-                                       "3. Restart your computer.");
-                    }
-
+                    // If silent flag finished, check status
                     if (process.ExitCode == 0)
                     {
-                        return (true, "Virtual Audio Driver was registered.");
+                        return (true, "VB-Audio Virtual Cable was registered in Windows.");
                     }
 
-                    return (false, $"Driver installation completed with exit code: {process.ExitCode}");
+                    return (false, $"VB-CABLE installer completed with code: {process.ExitCode}. A system restart may be required.");
                 }
                 catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
                 {
@@ -481,51 +428,66 @@ namespace PaDDY.Services
         }
 
         /// <summary>
-        /// Uninstalls the Virtual Audio Driver. If not elevated, requests UAC elevation.
+        /// Uninstalls the VB-Audio Virtual Cable. If not elevated, requests UAC elevation.
         /// </summary>
         public static async Task<(bool Success, string Message)> UninstallDriverAsync()
         {
             return await Task.Run(() =>
             {
-                if (IsAdministrator())
+                string? setupExe = GetInstallerExePath();
+                if (!string.IsNullOrEmpty(setupExe) && File.Exists(setupExe))
                 {
-                    var removeRes = RemoveRootDevice();
-                    UninstallDriverFromStore();
-                    return removeRes;
+                    try
+                    {
+                        var startInfo = new ProcessStartInfo
+                        {
+                            FileName = setupExe,
+                            Arguments = "-u -h", // Silent uninstall flag
+                            UseShellExecute = true,
+                            Verb = IsAdministrator() ? "" : "runas",
+                            WindowStyle = ProcessWindowStyle.Hidden
+                        };
+
+                        using var process = Process.Start(startInfo);
+                        if (process == null)
+                            return (false, "Failed to launch VB-CABLE uninstaller process.");
+
+                        process.WaitForExit(45000);
+                        return (true, "VB-Audio Virtual Cable removal completed.");
+                    }
+                    catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+                    {
+                        return (false, "Driver uninstallation was cancelled by the user (UAC elevation declined).");
+                    }
+                    catch (Exception ex)
+                    {
+                        return (false, $"Driver uninstallation error: {ex.Message}");
+                    }
                 }
 
+                // Fallback: Driver store cleanup via pnputil
                 try
                 {
-                    string exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "PaDDY.exe";
-                    var startInfo = new ProcessStartInfo
+                    var process = Process.Start(new ProcessStartInfo
                     {
-                        FileName = exePath,
-                        Arguments = "--uninstall-virtual-driver",
+                        FileName = "powershell.exe",
+                        Arguments = "-NoProfile -Command \"Get-WindowsDriver -Online -All | Where-Object { $_.OriginalFileName -like '*vbMmeCable*' -or $_.OriginalFileName -like '*VirtualAudioDriver*' } | ForEach-Object { pnputil /delete-driver $_.Driver /uninstall /force }\"",
                         UseShellExecute = true,
-                        Verb = "runas",
-                        WindowStyle = ProcessWindowStyle.Normal
-                    };
-
-                    using var process = Process.Start(startInfo);
-                    if (process == null)
-                        return (false, "Failed to launch elevated uninstaller process.");
-
-                    process.WaitForExit(45000);
-                    return (true, "Virtual Audio Driver removal completed.");
-                }
-                catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
-                {
-                    return (false, "Driver uninstallation was cancelled by the user (UAC elevation declined).");
+                        Verb = IsAdministrator() ? "" : "runas",
+                        CreateNoWindow = true
+                    });
+                    process?.WaitForExit(30000);
+                    return (true, "Virtual audio driver packages removed from driver store.");
                 }
                 catch (Exception ex)
                 {
-                    return (false, $"Driver uninstallation error: {ex.Message}");
+                    return (false, $"Error removing driver: {ex.Message}");
                 }
             });
         }
 
         /// <summary>
-        /// Enables Windows Test-Signing mode via elevated bcdedit.exe.
+        /// Enables Windows Test-Signing mode via elevated bcdedit.exe (retained as diagnostic utility).
         /// </summary>
         public static async Task<(bool Success, string Message)> EnableTestSigningAsync()
         {
@@ -550,11 +512,10 @@ namespace PaDDY.Services
 
                     if (process.ExitCode == 0)
                     {
-                        return (true, "Windows Test-Signing mode has been enabled successfully in BCD!\n\n" +
-                                       "Please RESTART your computer now to allow Windows to load the Virtual Audio Driver.");
+                        return (true, "Windows Test-Signing mode has been enabled in BCD.\nPlease RESTART your computer.");
                     }
 
-                    return (false, $"bcdedit exited with code {process.ExitCode}. If Secure Boot is enabled in your UEFI/BIOS, Windows may block testsigning until Secure Boot is disabled.");
+                    return (false, $"bcdedit exited with code {process.ExitCode}.");
                 }
                 catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
                 {

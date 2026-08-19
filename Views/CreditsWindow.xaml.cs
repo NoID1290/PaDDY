@@ -38,7 +38,7 @@ namespace PaDDY
             new() { Name = "AudioPlugSharp", License = "MIT", Usage = "VST3 host interface wrapper", LicenseFile = "AudioPlugSharp-LICENSE.txt" },
             new() { Name = "MDA VST Plugins", License = "MIT", Usage = "Default VST2 dynamics and de-esser voice processing plugins", LicenseFile = "MDA-VST-LICENSE.txt" },
             new() { Name = "WetReverb VST3", License = "MIT", Usage = "Default VST3 reverb environment voice effect", LicenseFile = "WetReverb-LICENSE.txt" },
-            new() { Name = "Virtual Audio Driver (MikeTheTech)", License = "MIT", Usage = "Virtual speaker and microphone driver for routing soundboard and voice modulator to Discord/OBS", LicenseFile = "VirtualAudioDriver-LICENSE.txt" },
+            new() { Name = "VB-Audio Virtual Cable (VB-CABLE)", License = "Donationware", Usage = "Microsoft WHQL-signed virtual speaker and microphone driver for routing soundboard and voice modulator to Discord/OBS (downloaded on-demand from official VB-Audio servers)", LicenseFile = "VBCable-NOTICE.txt" },
             new() { Name = "General Sans Font", License = "Free Font License (FFL)", Usage = "Application UI typography", LicenseFile = "FFL.txt" },
         };
 

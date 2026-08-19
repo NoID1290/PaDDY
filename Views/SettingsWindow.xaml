@@ -456,38 +456,21 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="Virtual Audio Driver (MikeTheTech - MIT)" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="VB-Audio Virtual Cable (WHQL Signed)" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                                                     <Border x:Name="VirtualDriverStatusBadge" Margin="10,0,0,0" Padding="8,2" CornerRadius="4" Background="#264CAF50" VerticalAlignment="Center">
                                                         <TextBlock x:Name="VirtualDriverStatusBadgeText" Text="Installed &amp; Ready" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource AccentGreenBrush}"/>
                                                     </Border>
                                                 </StackPanel>
                                                 <TextBlock x:Name="VirtualDriverDescriptionText"
-                                                           Text="Provides open-source virtual playback ('Virtual Audio Driver') and microphone ('Virtual Mic Driver') endpoints to pipe soundboard clips and live voice modulator into Discord, OBS, Zoom, Teams, and games."
+                                                           Text="VB-CABLE is high-performance donationware developed by Vincent Burel / VB-Audio Software. It provides Microsoft WHQL-certified virtual playback ('CABLE Input') and microphone ('CABLE Output') endpoints to route soundboard clips and live voice modulator into Discord, OBS, Zoom, Teams, and games without requiring Test-Signing mode."
                                                            FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                             </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Button x:Name="VirtualDriverInstallBtn" Content="Install Driver" Width="120" Height="30" Margin="0,0,8,0" Click="VirtualDriverInstallBtn_Click"/>
-                                                <Button x:Name="VirtualDriverUninstallBtn" Content="Uninstall" Width="90" Height="30" Click="VirtualDriverUninstallBtn_Click"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <Button Content="About VB-Audio" MinWidth="110" Height="32" Padding="12,0" Margin="0,0,8,0" Click="OpenVbAudioNotice_Click"/>
+                                                <Button x:Name="VirtualDriverInstallBtn" Content="Install Driver" MinWidth="130" Height="32" Padding="16,0" Margin="0,0,8,0" Click="VirtualDriverInstallBtn_Click"/>
+                                                <Button x:Name="VirtualDriverUninstallBtn" Content="Uninstall" MinWidth="95" Height="32" Padding="14,0" Click="VirtualDriverUninstallBtn_Click"/>
                                             </StackPanel>
                                         </Grid>
-
-                                        <!-- Test Signing Notice Banner (Visible when Code 52 is detected) -->
-                                        <Border x:Name="VirtualDriverTestSigningCard" Visibility="Collapsed" Background="#26FFC107" BorderBrush="#80FFC107" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,4,0,8">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                    <TextBlock Text="⚠ Windows Kernel Driver Signature Enforcement (Code 52)" FontWeight="Bold" Foreground="{DynamicResource AccentAmberBrush}" FontSize="12"/>
-                                                    <TextBlock Text="Because this open-source driver is not WHQL attestation signed by Microsoft, Windows requires Test-Signing mode to load the kernel module. Click 'Enable Test-Signing' and restart your PC." FontSize="11" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <Button x:Name="EnableTestSigningBtn" Content="Enable Test-Signing" Width="140" Height="28" Margin="0,0,8,0" Click="EnableTestSigningBtn_Click"/>
-                                                    <Button x:Name="CopyBcdeditCmdBtn" Content="Copy Command" Width="100" Height="28" Click="CopyBcdeditCmdBtn_Click"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
 
                                         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,8"/>
 
@@ -501,9 +484,9 @@
                                                 <TextBlock Text="1-Click Routing Presets" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="Quickly configure PaDDY to route soundboard clips or live voice effects straight to your virtual mic." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Button x:Name="RouteSoundboardPresetBtn" Content="Route Soundboard to Discord" Width="180" Height="30" Margin="0,0,8,0" Click="RouteSoundboardPresetBtn_Click"/>
-                                                <Button x:Name="RouteLiveMicPresetBtn" Content="Route Voice Modulator" Width="150" Height="30" Click="RouteLiveMicPresetBtn_Click"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <Button x:Name="RouteSoundboardPresetBtn" Content="Route Soundboard to Discord" MinWidth="200" Height="32" Padding="14,0" Margin="0,0,8,0" Click="RouteSoundboardPresetBtn_Click"/>
+                                                <Button x:Name="RouteLiveMicPresetBtn" Content="Route Voice Modulator" MinWidth="170" Height="32" Padding="14,0" Click="RouteLiveMicPresetBtn_Click"/>
                                             </StackPanel>
                                         </Grid>
 
@@ -519,9 +502,9 @@
                                                 <TextBlock Text="Windows Sound Diagnostics" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
                                                 <TextBlock Text="Open Windows Sound settings or Control Panel to inspect audio endpoint levels and properties." FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Button Content="Sound Settings" Width="110" Height="28" Margin="0,0,8,0" Click="OpenSoundSettings_Click"/>
-                                                <Button Content="Classic Control Panel" Width="140" Height="28" Click="OpenClassicSoundPanel_Click"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <Button Content="Sound Settings" MinWidth="130" Height="30" Padding="14,0" Margin="0,0,8,0" Click="OpenSoundSettings_Click"/>
+                                                <Button Content="Classic Control Panel" MinWidth="160" Height="30" Padding="14,0" Click="OpenClassicSoundPanel_Click"/>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>

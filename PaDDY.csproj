@@ -71,10 +71,6 @@
       <Link>libmp3lame.64.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Resources\Drivers\**">
-      <Link>drivers\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <EmbeddedResource Include=".inno\com.paddy.streamDeckPlugin">
       <LogicalName>com.paddy.streamDeckPlugin</LogicalName>
     </EmbeddedResource>
