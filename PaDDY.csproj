@@ -23,6 +23,7 @@
     <UseAppHost>true</UseAppHost>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <SatelliteResourceLanguages>en;fr</SatelliteResourceLanguages>
     <InformationalVersion>2.3.0.0818</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>

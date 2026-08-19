@@ -1273,7 +1273,12 @@ namespace PaDDY
             catch { }
         }
 
-        private async Task PopulateAudioDevicesAsync()
+        public async Task RefreshAudioDevicesAsync()
+        {
+            await PopulateAudioDevicesAsync();
+        }
+
+        public async Task PopulateAudioDevicesAsync()
         {
             var inputTask = Task.Run(() => AudioCaptureService.GetInputDevices());
             var loopbackTask = Task.Run(() => AudioCaptureService.GetLoopbackDevices());
@@ -3764,6 +3769,7 @@ namespace PaDDY
             {
                 isRecording = _isRecording,
                 isMonitoring = MonitorToggle.IsChecked == true,
+                isLiveMic = LiveMicBtn.IsChecked == true,
                 mode = _settings.RecordingMode
             };
             string json = JsonSerializer.Serialize(state);
@@ -3783,6 +3789,10 @@ namespace PaDDY
                         if (command == "ToggleRecord")
                         {
                             MonitorToggle.IsChecked = MonitorToggle.IsChecked != true;
+                        }
+                        else if (command == "ToggleLiveMic")
+                        {
+                            LiveMicBtn.IsChecked = LiveMicBtn.IsChecked != true;
                         }
                         else if (command == "TriggerKeyBuffer")
                         {
@@ -4043,6 +4053,7 @@ namespace PaDDY
                 ResetLiveMicMeter();
                 SetStatus("Live Mic Modulator stopped", "#FF9090A0");
             }
+            BroadcastIpcState();
         }
 
         private void OnLiveMicPeakLevelUpdated(object? sender, float peak)

@@ -37,6 +37,18 @@
       "SupportedInMultiActions": true,
       "Tooltip": "Play a specific Pad",
       "UUID": "com.paddy.play"
+    },
+    {
+      "Icon": "icon",
+      "Name": "Live Mic",
+      "States": [
+        {
+          "Image": "icon"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Toggle PaDDY Live Mic Modulator",
+      "UUID": "com.paddy.livemic"
     }
   ],
   "Author": "NoID Softwork",

@@ -354,7 +354,7 @@
                                 <Setter TargetName="LogoShell" Property="Background" Value="{DynamicResource ButtonHoverBgBrush}"/>
                                 <Setter TargetName="LogoShell" Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                                 <Trigger.EnterActions>
-                                    <BeginStoryboard>
+                                    <BeginStoryboard x:Name="LogoHoverStoryboard">
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
                                                              Storyboard.TargetProperty="BlurRadius"
@@ -432,6 +432,7 @@
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
                                 <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="LogoHoverStoryboard"/>
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <DoubleAnimation Storyboard.TargetName="LogoGlow"
@@ -466,6 +467,22 @@
                                                     <CubicEase EasingMode="EaseIn"/>
                                                 </DoubleAnimation.EasingFunction>
                                             </DoubleAnimation>
+                                            <!-- Restore Dot scales and opacities -->
+                                            <DoubleAnimation Storyboard.TargetName="DotTL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotTL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotTL" Storyboard.TargetProperty="Opacity" To="0.5" Duration="0:0:0.16"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="DotTR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotTR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotTR" Storyboard.TargetProperty="Opacity" To="0.75" Duration="0:0:0.16"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="DotBR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotBR" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotBR" Storyboard.TargetProperty="Opacity" To="1.0" Duration="0:0:0.16"/>
+
+                                            <DoubleAnimation Storyboard.TargetName="DotBL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotBL" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.16"/>
+                                            <DoubleAnimation Storyboard.TargetName="DotBL" Storyboard.TargetProperty="Opacity" To="0.75" Duration="0:0:0.16"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>

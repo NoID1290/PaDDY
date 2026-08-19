@@ -5,6 +5,7 @@ const logger = streamDeck.logger.createScope("PaDDY");
 
 let client = null;
 let isRecording = false;
+let isLiveMic = false;
 
 function connectToPaDDY() {
     if (client) return;
@@ -23,13 +24,21 @@ function connectToPaDDY() {
                 const state = JSON.parse(line);
                 if (state.type === "padsList") {
                     streamDeck.ui.sendToPropertyInspector({ type: "padsList", pads: state.pads }).catch(e => logger.error("Failed to send to PI", e));
-                } else if (state.isRecording !== undefined) {
-                    isRecording = state.isRecording;
+                } else {
+                    if (state.isRecording !== undefined) {
+                        isRecording = state.isRecording;
+                    }
+                    if (state.isLiveMic !== undefined) {
+                        isLiveMic = state.isLiveMic;
+                    }
+                    for (const action of activeActions.values()) {
+                        if (action.manifestId === "com.paddy.record" && state.isRecording !== undefined) {
+                            action.setState(state.isRecording ? 1 : 0).catch(() => {});
+                        } else if (action.manifestId === "com.paddy.livemic" && state.isLiveMic !== undefined) {
+                            action.setState(state.isLiveMic ? 1 : 0).catch(() => {});
+                        }
+                    }
                 }
-                
-                // Update record action states if possible, but the API doesn't expose a global way to find instances.
-                // We'll just rely on onWillAppear for new instances. 
-                // A complete plugin would track instances of actions.
             } catch (e) {
                 logger.error("Error parsing IPC data", e);
             }
@@ -66,6 +75,8 @@ const activeActions = new Map();
 streamDeck.actions.onKeyDown((ev) => {
     if (ev.action.manifestId === "com.paddy.record") {
         sendCommand("ToggleRecord", {}, ev.action);
+    } else if (ev.action.manifestId === "com.paddy.livemic") {
+        sendCommand("ToggleLiveMic", {}, ev.action);
     } else if (ev.action.manifestId === "com.paddy.buffer") {
         sendCommand("TriggerKeyBuffer", {}, ev.action);
     } else if (ev.action.manifestId === "com.paddy.play") {
@@ -81,7 +92,9 @@ streamDeck.actions.onKeyDown((ev) => {
 streamDeck.actions.onWillAppear((ev) => {
     activeActions.set(ev.action.id, ev.action);
     if (ev.action.manifestId === "com.paddy.record") {
-        ev.action.setState(isRecording ? 1 : 0);
+        ev.action.setState(isRecording ? 1 : 0).catch(() => {});
+    } else if (ev.action.manifestId === "com.paddy.livemic") {
+        ev.action.setState(isLiveMic ? 1 : 0).catch(() => {});
     }
 });
 

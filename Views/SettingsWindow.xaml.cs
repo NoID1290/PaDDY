@@ -1816,18 +1816,29 @@ namespace PaDDY
                 PopulateLiveMicDevices();
                 RefreshVirtualDriverStatus();
 
+                if (System.Windows.Application.Current?.MainWindow is MainWindow mainWin)
+                {
+                    _ = mainWin.RefreshAudioDevicesAsync();
+                }
+
                 if (success && VirtualAudioDriverService.IsFullyOperational())
                 {
-                    System.Windows.MessageBox.Show(
+                    var result = System.Windows.MessageBox.Show(
                         this,
                         "VB-Audio Virtual Cable (WHQL Signed) has been installed successfully!\n\n" +
+                        "Audio devices have been refreshed in PaDDY.\n\n" +
                         "New endpoints available:\n" +
                         "• Output: 'CABLE Input (VB-Audio Virtual Cable)' (Speaker)\n" +
                         "• Input: 'CABLE Output (VB-Audio Virtual Cable)' (Microphone)\n\n" +
-                        "You can now route PaDDY's soundboard and live voice modulator into Discord, OBS, or games!",
+                        "Would you like to restart PaDDY now to ensure full system audio driver synchronization?",
                         "Driver Installed — PaDDY",
-                        MessageBoxButton.OK,
+                        MessageBoxButton.YesNo,
                         MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        RestartApplication();
+                    }
                 }
                 else
                 {
@@ -1879,6 +1890,11 @@ namespace PaDDY
                 PopulateTrimOutputDevices();
                 PopulateLiveMicDevices();
                 RefreshVirtualDriverStatus();
+
+                if (System.Windows.Application.Current?.MainWindow is MainWindow mainWin)
+                {
+                    _ = mainWin.RefreshAudioDevicesAsync();
+                }
 
                 System.Windows.MessageBox.Show(
                     this,
