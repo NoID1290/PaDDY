@@ -224,6 +224,7 @@ namespace PaDDY
             // Trim editor output & Live Mic
             PopulateTrimOutputDevices();
             PopulateLiveMicDevices();
+            RefreshVirtualDriverStatus();
 
             // Appearance: language + theme + meter skin
             SelectedLanguage = _settings.Language;
@@ -1731,5 +1732,282 @@ namespace PaDDY
                 }
             }
         }
+
+        #region Virtual Audio Driver Integration
+
+        private void RefreshVirtualDriverStatus()
+        {
+            try
+            {
+                bool isSpeakerInstalled = VirtualAudioDriverService.IsSpeakerInstalled();
+                bool isMicInstalled = VirtualAudioDriverService.IsMicInstalled();
+                bool isFullyReady = isSpeakerInstalled && isMicInstalled;
+                bool isPartiallyReady = isSpeakerInstalled || isMicInstalled;
+                int pnpErrorCode = VirtualAudioDriverService.GetDriverProblemErrorCode();
+
+                if (isFullyReady)
+                {
+                    VirtualDriverTestSigningCard.Visibility = Visibility.Collapsed;
+                    VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0x4C, 0xAF, 0x50));
+                    VirtualDriverStatusBadgeText.Foreground = (System.Windows.Media.Brush)FindResource("AccentGreenBrush");
+                    VirtualDriverStatusBadgeText.Text = "Installed & Ready";
+                    VirtualDriverInstallBtn.Content = "Reinstall Driver";
+                    VirtualDriverUninstallBtn.IsEnabled = true;
+                    RouteSoundboardPresetBtn.IsEnabled = true;
+                    RouteLiveMicPresetBtn.IsEnabled = true;
+                }
+                else if (pnpErrorCode == 52)
+                {
+                    // Code 52: CM_PROB_UNSIGNED_DRIVER - Windows blocked kernel driver loading
+                    VirtualDriverTestSigningCard.Visibility = Visibility.Visible;
+                    VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0xFF, 0xC1, 0x07));
+                    VirtualDriverStatusBadgeText.Foreground = (System.Windows.Media.Brush)FindResource("AccentAmberBrush");
+                    VirtualDriverStatusBadgeText.Text = "Signature Blocked (Code 52)";
+                    VirtualDriverInstallBtn.Content = "Reinstall Driver";
+                    VirtualDriverUninstallBtn.IsEnabled = true;
+                    RouteSoundboardPresetBtn.IsEnabled = false;
+                    RouteLiveMicPresetBtn.IsEnabled = false;
+                }
+                else if (isPartiallyReady)
+                {
+                    VirtualDriverTestSigningCard.Visibility = Visibility.Collapsed;
+                    VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0xFF, 0xC1, 0x07));
+                    VirtualDriverStatusBadgeText.Foreground = (System.Windows.Media.Brush)FindResource("AccentAmberBrush");
+                    VirtualDriverStatusBadgeText.Text = "Partially Installed";
+                    VirtualDriverInstallBtn.Content = "Repair / Reinstall";
+                    VirtualDriverUninstallBtn.IsEnabled = true;
+                    RouteSoundboardPresetBtn.IsEnabled = true;
+                    RouteLiveMicPresetBtn.IsEnabled = true;
+                }
+                else
+                {
+                    VirtualDriverTestSigningCard.Visibility = Visibility.Collapsed;
+                    VirtualDriverStatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x26, 0xFF, 0x70, 0x70));
+                    VirtualDriverStatusBadgeText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0x70, 0x70));
+                    VirtualDriverStatusBadgeText.Text = "Not Installed";
+                    VirtualDriverInstallBtn.Content = "Install Driver";
+                    VirtualDriverUninstallBtn.IsEnabled = false;
+                    RouteSoundboardPresetBtn.IsEnabled = false;
+                    RouteLiveMicPresetBtn.IsEnabled = false;
+                }
+            }
+            catch { }
+        }
+
+        private async void EnableTestSigningBtn_Click(object sender, RoutedEventArgs e)
+        {
+            EnableTestSigningBtn.IsEnabled = false;
+            try
+            {
+                var (success, msg) = await VirtualAudioDriverService.EnableTestSigningAsync();
+                System.Windows.MessageBox.Show(
+                    this,
+                    msg,
+                    success ? "Test-Signing Configured — PaDDY" : "Test-Signing Notice — PaDDY",
+                    MessageBoxButton.OK,
+                    success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(this, $"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                EnableTestSigningBtn.IsEnabled = true;
+            }
+        }
+
+        private void CopyBcdeditCmdBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Windows.Clipboard.SetText("bcdedit /set testsigning on");
+                System.Windows.MessageBox.Show(
+                    this,
+                    "Command copied to clipboard:\n\nbcdedit /set testsigning on\n\nRun this in Command Prompt as Administrator, then restart your PC.",
+                    "Copied to Clipboard",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch { }
+        }
+
+        private async void VirtualDriverInstallBtn_Click(object sender, RoutedEventArgs e)
+        {
+            VirtualDriverInstallBtn.IsEnabled = false;
+            VirtualDriverInstallBtn.Content = "Installing...";
+
+            try
+            {
+                var (success, msg) = await VirtualAudioDriverService.InstallDriverAsync();
+
+                // Allow audio endpoint manager a moment to register newly initialized endpoints
+                await Task.Delay(1000);
+
+                PopulateTrimOutputDevices();
+                PopulateLiveMicDevices();
+                RefreshVirtualDriverStatus();
+
+                if (success && VirtualAudioDriverService.IsFullyOperational())
+                {
+                    System.Windows.MessageBox.Show(
+                        this,
+                        "Virtual Audio Driver has been installed successfully!\n\n" +
+                        "New endpoints available:\n" +
+                        "• Output: 'Virtual Audio Driver by MTT' (Speaker)\n" +
+                        "• Input: 'Virtual Mic Driver by MTT' (Microphone)\n\n" +
+                        "You can now route PaDDY's soundboard and live voice modulator into Discord, OBS, or games!",
+                        "Driver Installed — PaDDY",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show(
+                        this,
+                        msg,
+                        "Driver Installation Status",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    this,
+                    $"Failed to install driver: {ex.Message}",
+                    "Installation Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                RefreshVirtualDriverStatus();
+                VirtualDriverInstallBtn.IsEnabled = true;
+            }
+        }
+
+        private async void VirtualDriverUninstallBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var res = System.Windows.MessageBox.Show(
+                this,
+                "Are you sure you want to uninstall the Virtual Audio Driver from Windows?\n\n" +
+                "This will remove the Virtual Audio Driver and Virtual Mic Driver devices.",
+                "Uninstall Driver — PaDDY",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (res != MessageBoxResult.Yes)
+                return;
+
+            VirtualDriverUninstallBtn.IsEnabled = false;
+            VirtualDriverUninstallBtn.Content = "Removing...";
+
+            try
+            {
+                var (success, msg) = await VirtualAudioDriverService.UninstallDriverAsync();
+                await Task.Delay(1000);
+
+                PopulateTrimOutputDevices();
+                PopulateLiveMicDevices();
+                RefreshVirtualDriverStatus();
+
+                System.Windows.MessageBox.Show(
+                    this,
+                    $"Driver uninstallation result:\n{msg}",
+                    "Driver Uninstalled — PaDDY",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    this,
+                    $"Failed to uninstall driver: {ex.Message}",
+                    "Uninstall Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                RefreshVirtualDriverStatus();
+                VirtualDriverUninstallBtn.IsEnabled = true;
+                VirtualDriverUninstallBtn.Content = "Uninstall";
+            }
+        }
+
+        private void RouteSoundboardPresetBtn_Click(object sender, RoutedEventArgs e)
+        {
+            int speakerIdx = VirtualAudioDriverService.FindVirtualSpeakerIndex();
+            if (speakerIdx >= 0)
+            {
+                _settings.ListenOutputEnabled = true;
+                _settings.ListenOutputDeviceIndex = speakerIdx;
+                _settings.Save();
+
+                System.Windows.MessageBox.Show(
+                    this,
+                    "✔ Soundboard Routing Configured!\n\n" +
+                    "PaDDY pad clips will now play through your primary headset AND stream directly into the Virtual Audio Driver.\n\n" +
+                    "Next step:\n" +
+                    "In Discord / OBS / Zoom / Game Settings, set your Input Device (Microphone) to:\n" +
+                    "👉 'Virtual Mic Driver by MTT'",
+                    "Soundboard Route Preset Applied",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    this,
+                    "Virtual Audio Driver output device was not found.\nPlease install the driver first.",
+                    "Virtual Driver Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private void RouteLiveMicPresetBtn_Click(object sender, RoutedEventArgs e)
+        {
+            int speakerIdx = VirtualAudioDriverService.FindVirtualSpeakerIndex();
+            if (speakerIdx >= 0 && speakerIdx < LiveMicOutputDeviceCombo.Items.Count)
+            {
+                LiveMicOutputDeviceCombo.SelectedIndex = speakerIdx;
+                _settings.LiveMicOutputDeviceIndex = speakerIdx;
+                _settings.LiveMicEnabled = true;
+
+                System.Windows.MessageBox.Show(
+                    this,
+                    "✔ Live Voice Modulator Routing Configured!\n\n" +
+                    "Live mic audio with DSP effects is now set to stream into the Virtual Audio Driver.\n\n" +
+                    "Next step:\n" +
+                    "In Discord / OBS / Zoom / Game Settings, set your Input Device (Microphone) to:\n" +
+                    "👉 'Virtual Mic Driver by MTT'",
+                    "Voice Modulator Route Preset Applied",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    this,
+                    "Virtual Audio Driver output device was not found.\nPlease install the driver first.",
+                    "Virtual Driver Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private void OpenSoundSettings_Click(object sender, RoutedEventArgs e)
+        {
+            VirtualAudioDriverService.OpenSoundSettings();
+        }
+
+        private void OpenClassicSoundPanel_Click(object sender, RoutedEventArgs e)
+        {
+            VirtualAudioDriverService.OpenSoundControlPanel();
+        }
+
+        #endregion
     }
 }

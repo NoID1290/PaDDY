@@ -101,6 +101,27 @@ public partial class App : WpfApplication
             return;
         }
 
+        if (e.Args.Length > 0 && e.Args[0] == "--install-virtual-driver")
+        {
+            string? infPath = Services.VirtualAudioDriverService.GetDriverInfPath();
+            if (string.IsNullOrEmpty(infPath))
+            {
+                System.Environment.Exit(1);
+                return;
+            }
+            var (success, _) = Services.VirtualAudioDriverService.CreateAndInstallRootDevice(infPath);
+            System.Environment.Exit(success ? 0 : 2);
+            return;
+        }
+
+        if (e.Args.Length > 0 && e.Args[0] == "--uninstall-virtual-driver")
+        {
+            var (success, _) = Services.VirtualAudioDriverService.RemoveRootDevice();
+            Services.VirtualAudioDriverService.UninstallDriverFromStore();
+            System.Environment.Exit(success ? 0 : 2);
+            return;
+        }
+
         _instanceMutex = new Mutex(true, "PaDDY_SingleInstance", out bool isNewInstance);
         if (!isNewInstance)
         {

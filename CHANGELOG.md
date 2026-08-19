@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to PaDDY will be documented in this file.
 
@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [2.3.0.0818] - 2026-08-18
 
+- Integrated the open-source MIT Virtual Audio Driver (by MikeTheTech, release 25.7.14) for seamless soundboard and live voice routing into Discord, OBS, Zoom, Teams, and games.
+- Added 1-click driver installer & uninstaller management directly in Settings -> Audio Devices.
+- Added 1-click routing presets: "Route Soundboard to Discord" and "Route Voice Modulator".
+- Added optional Virtual Audio Driver component to Inno Setup installer.
 - Added dedicated real-time vertical VU level meter for the Live Mic feature.
 - Added a dedicated Audio Import & Converter. Customize the pad name, select a pad color, choose an audio format (WAV, MP3, OGG, FLAC, OPUS, AAC), and transcode.
 - Startup Loading Optimization.
