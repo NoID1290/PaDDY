@@ -9,9 +9,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NoIDSoftwork.Core</AssemblyName>
     <RootNamespace>PaDDY</RootNamespace>
-    <Version>2.3.0.0818</Version>
-    <AssemblyVersion>2.3.0.0818</AssemblyVersion>
-    <FileVersion>2.3.0.0818</FileVersion>
+    <Version>2.3.1.0819</Version>
+    <AssemblyVersion>2.3.1.0819</AssemblyVersion>
+    <FileVersion>2.3.1.0819</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>PaDDY.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
@@ -24,7 +24,7 @@
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <SatelliteResourceLanguages>en;fr</SatelliteResourceLanguages>
-    <InformationalVersion>2.3.0.0818</InformationalVersion>
+    <InformationalVersion>2.3.1.0819</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="AudioProcessor\AudioProcessor.csproj" />
@@ -101,37 +101,9 @@
     runtimes\. The targets below aggressively prune every non-win-x64 subfolder.
   -->
   <Target Name="PruneUnusedRuntimeFolders" AfterTargets="Build" Condition="Exists('$(OutputPath)runtimes')">
-    <RemoveDir Directories="
-      $(OutputPath)runtimes\win-arm64;
-      $(OutputPath)runtimes\win-x86;
-      $(OutputPath)runtimes\win-arm;
-      $(OutputPath)runtimes\win10-arm;
-      $(OutputPath)runtimes\win10-arm64;
-      $(OutputPath)runtimes\win10-x86;
-      $(OutputPath)runtimes\linux-x64;
-      $(OutputPath)runtimes\linux-arm64;
-      $(OutputPath)runtimes\linux-arm;
-      $(OutputPath)runtimes\osx-x64;
-      $(OutputPath)runtimes\osx-arm64;
-      $(OutputPath)runtimes\maccatalyst-arm64;
-      $(OutputPath)runtimes\android-arm64-v8a;
-      $(OutputPath)runtimes\android-x86" />
+    <RemoveDir Directories="&#xD;&#xA;      $(OutputPath)runtimes\win-arm64;&#xD;&#xA;      $(OutputPath)runtimes\win-x86;&#xD;&#xA;      $(OutputPath)runtimes\win-arm;&#xD;&#xA;      $(OutputPath)runtimes\win10-arm;&#xD;&#xA;      $(OutputPath)runtimes\win10-arm64;&#xD;&#xA;      $(OutputPath)runtimes\win10-x86;&#xD;&#xA;      $(OutputPath)runtimes\linux-x64;&#xD;&#xA;      $(OutputPath)runtimes\linux-arm64;&#xD;&#xA;      $(OutputPath)runtimes\linux-arm;&#xD;&#xA;      $(OutputPath)runtimes\osx-x64;&#xD;&#xA;      $(OutputPath)runtimes\osx-arm64;&#xD;&#xA;      $(OutputPath)runtimes\maccatalyst-arm64;&#xD;&#xA;      $(OutputPath)runtimes\android-arm64-v8a;&#xD;&#xA;      $(OutputPath)runtimes\android-x86" />
   </Target>
   <Target Name="PruneUnusedRuntimeFoldersPublish" AfterTargets="Publish" Condition="Exists('$(PublishDir)runtimes')">
-    <RemoveDir Directories="
-      $(PublishDir)runtimes\win-arm64;
-      $(PublishDir)runtimes\win-x86;
-      $(PublishDir)runtimes\win-arm;
-      $(PublishDir)runtimes\win10-arm;
-      $(PublishDir)runtimes\win10-arm64;
-      $(PublishDir)runtimes\win10-x86;
-      $(PublishDir)runtimes\linux-x64;
-      $(PublishDir)runtimes\linux-arm64;
-      $(PublishDir)runtimes\linux-arm;
-      $(PublishDir)runtimes\osx-x64;
-      $(PublishDir)runtimes\osx-arm64;
-      $(PublishDir)runtimes\maccatalyst-arm64;
-      $(PublishDir)runtimes\android-arm64-v8a;
-      $(PublishDir)runtimes\android-x86" />
+    <RemoveDir Directories="&#xD;&#xA;      $(PublishDir)runtimes\win-arm64;&#xD;&#xA;      $(PublishDir)runtimes\win-x86;&#xD;&#xA;      $(PublishDir)runtimes\win-arm;&#xD;&#xA;      $(PublishDir)runtimes\win10-arm;&#xD;&#xA;      $(PublishDir)runtimes\win10-arm64;&#xD;&#xA;      $(PublishDir)runtimes\win10-x86;&#xD;&#xA;      $(PublishDir)runtimes\linux-x64;&#xD;&#xA;      $(PublishDir)runtimes\linux-arm64;&#xD;&#xA;      $(PublishDir)runtimes\linux-arm;&#xD;&#xA;      $(PublishDir)runtimes\osx-x64;&#xD;&#xA;      $(PublishDir)runtimes\osx-arm64;&#xD;&#xA;      $(PublishDir)runtimes\maccatalyst-arm64;&#xD;&#xA;      $(PublishDir)runtimes\android-arm64-v8a;&#xD;&#xA;      $(PublishDir)runtimes\android-x86" />
   </Target>
 </Project>
