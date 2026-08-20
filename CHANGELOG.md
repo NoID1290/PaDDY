@@ -4,8 +4,9 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.3.2.0820-Pre-release_1] - 2026-08-20
+## [2.3.3.0820-Pre-release_1] - 2026-08-20
 
+- Embed .NET test
 - Added ManagedBass (BASS Engine) alongside with N.Audio
 - Resolving Screen Blurriness DPI
 - Multi-Monitor Window Position & State Persistence
