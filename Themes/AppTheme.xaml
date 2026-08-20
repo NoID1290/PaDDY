@@ -117,11 +117,31 @@
          BASE CONTROL STYLES (implicit / no x:Key = apply to all)
     ═══════════════════════════════════════════════════════════════ -->
 
+    <!-- Window Defaults -->
+    <Style TargetType="Window">
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="TextOptions.TextHintingMode" Value="Auto"/>
+        <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled"/>
+        <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+    </Style>
+
     <!-- TextBlock -->
     <Style TargetType="TextBlock">
         <Setter Property="FontFamily"        Value="{DynamicResource AppFont}"/>
         <Setter Property="Foreground"        Value="{DynamicResource ControlTextBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+        <Setter Property="TextOptions.TextRenderingMode"  Value="ClearType"/>
+        <Setter Property="TextOptions.TextHintingMode"    Value="Auto"/>
+    </Style>
+
+    <!-- Image Defaults -->
+    <Style TargetType="Image">
+        <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
     <!-- Label -->

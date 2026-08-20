@@ -336,14 +336,12 @@
                                                FontSize="19"
                                                FontWeight="ExtraBold"
                                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                               TextOptions.TextFormattingMode="Display"
                                                TextOptions.TextRenderingMode="ClearType"
                                                VerticalAlignment="Center"/>
                                     <TextBlock Text="DDY"
                                                FontSize="19"
                                                FontWeight="ExtraBold"
                                                Foreground="{DynamicResource AccentGreenBrush}"
-                                               TextOptions.TextFormattingMode="Display"
                                                TextOptions.TextRenderingMode="ClearType"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>

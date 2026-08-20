@@ -137,9 +137,36 @@ namespace PaDDY.Helpers
         {
             if (window == null) return;
 
+            // Ensure window-level rendering options remain crisp and avoid subpixel blur
+            window.UseLayoutRounding = true;
+            window.SnapsToDevicePixels = true;
+            RenderOptions.SetClearTypeHint(window, ClearTypeHint.Enabled);
+            RenderOptions.SetBitmapScalingMode(window, BitmapScalingMode.HighQuality);
+            RenderOptions.SetEdgeMode(window, EdgeMode.Unspecified);
+            TextOptions.SetTextFormattingMode(window, TextFormattingMode.Ideal);
+            TextOptions.SetTextRenderingMode(window, TextRenderingMode.ClearType);
+            TextOptions.SetTextHintingMode(window, TextHintingMode.Auto);
+
             if (window.Content is FrameworkElement fe)
             {
-                if (fe.LayoutTransform is ScaleTransform st)
+                fe.UseLayoutRounding = true;
+                fe.SnapsToDevicePixels = true;
+
+                // When scaling is applied, WPF defaults to disabling ClearType on transformed content
+                // and bitmap scaling defaults to LowQuality. Explicitly forcing ClearTypeHint, Ideal
+                // text formatting, and HighQuality bitmap scaling ensures sharp text and crisp icons.
+                RenderOptions.SetClearTypeHint(fe, ClearTypeHint.Enabled);
+                RenderOptions.SetBitmapScalingMode(fe, BitmapScalingMode.HighQuality);
+                RenderOptions.SetEdgeMode(fe, EdgeMode.Unspecified);
+                TextOptions.SetTextFormattingMode(fe, TextFormattingMode.Ideal);
+                TextOptions.SetTextRenderingMode(fe, TextRenderingMode.ClearType);
+                TextOptions.SetTextHintingMode(fe, TextHintingMode.Auto);
+
+                if (Math.Abs(_currentScale - DefaultScale) < 0.001)
+                {
+                    fe.LayoutTransform = Transform.Identity;
+                }
+                else if (fe.LayoutTransform is ScaleTransform st)
                 {
                     st.ScaleX = _currentScale;
                     st.ScaleY = _currentScale;
