@@ -6,7 +6,7 @@
         xmlns:p="clr-namespace:PaDDY.Helpers"
         Title="{p:Loc SettingsTitle}"
         Icon="/PaDDY.ico"
-        Width="1120"
+        Width="1150"
         Height="760"
         MinWidth="980"
         MinHeight="680"
@@ -350,6 +350,25 @@
                                 <!-- Header -->
                                 <TextBlock Text="{p:Loc AudioDevicesHeader}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,4"/>
                                 <TextBlock Text="{p:Loc AudioDevicesSubtitle}" FontSize="11.5" Foreground="#FF8080A8" Margin="0,0,0,18"/>
+
+                                <!-- Audio Engine Selection Group -->
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Rectangle Style="{StaticResource HeaderAccentBar}"/>
+                                    <TextBlock Text="{p:Loc AudioEngineGroup}" Style="{StaticResource HeaderText}"/>
+                                </StackPanel>
+                                <Border Style="{StaticResource GlassCard}" Margin="0,0,0,16">
+                                    <Grid Margin="0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto" MinWidth="280"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{p:Loc AudioEngineLabel}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                            <TextBlock Text="{p:Loc AudioEngineDesc}" FontSize="11" Foreground="#FF8080A8" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="AudioEngineCombo" Grid.Column="1" Width="280" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
 
                                 <!-- Trim Editor Output Group -->
                                 <StackPanel Style="{StaticResource GroupHeader}">

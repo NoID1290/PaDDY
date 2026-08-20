@@ -58,9 +58,15 @@
     <EmbeddedResource Include="vendors/NAudio.Lame/NAudio.Lame/libmp3lame.64.dll">
       <LogicalName>libmp3lame.64.dll</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="vendors/BASS/x64/bass.dll">
+      <LogicalName>bass.dll</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <!-- Keep upstream vendored sources untouched while limiting warning noise to app-owned code. -->
     <Compile Update="vendors/**/*.cs" NoWarn="CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625;CS8765;CS8767;CS8769" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ManagedBass" Version="4.0.2" />
   </ItemGroup>
 </Project>

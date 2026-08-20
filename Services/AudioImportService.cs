@@ -136,7 +136,7 @@ namespace PaDDY.Services
             {
                 try
                 {
-                    using var mfReader = new MediaFoundationReader(filePath);
+                    using var mfReader = new MediaFoundationReader(filePath, new MediaFoundationReader.MediaFoundationReaderSettings { SingleReaderObject = true });
                     info.Duration = mfReader.TotalTime;
                     info.SampleRate = mfReader.WaveFormat.SampleRate;
                     info.Channels = mfReader.WaveFormat.Channels;
@@ -336,7 +336,7 @@ namespace PaDDY.Services
             }
             catch
             {
-                return new MediaFoundationReader(filePath);
+                return new MediaFoundationReader(filePath, new MediaFoundationReader.MediaFoundationReaderSettings { SingleReaderObject = true });
             }
         }
     }

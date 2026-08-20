@@ -1903,7 +1903,7 @@ namespace PaDDY
                 EnsureVertMeterChannels(_meterProvider.WaveFormat.Channels);
                 ResetVertMeter();
 
-                _player = AudioOutputDeviceResolver.CreateWasapiPlayer(_outputDeviceIndex, 100);
+                _player = AudioOutputDeviceResolver.CreatePlayer(_outputDeviceIndex, 100);
                 _player.PlaybackStopped += Player_PlaybackStopped;
                 _player.Init(BuildPlaybackSource(_meterProvider).ToWaveProvider16());
                 _player.Play();

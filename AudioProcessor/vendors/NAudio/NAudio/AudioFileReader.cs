@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NAudio.Wave.SampleProviders;
 
 // ReSharper disable once CheckNamespace
@@ -55,10 +55,22 @@ namespace NAudio.Wave
             }
             else if (fileName.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
             {
-                if (Environment.OSVersion.Version.Major < 6)
+                try
+                {
                     readerStream = new Mp3FileReader(fileName);
-                else // make MediaFoundationReader the default for MP3 going forwards
-                    readerStream = new MediaFoundationReader(fileName);
+                }
+                catch
+                {
+                    if (NoIDSoftwork.AudioProcessor.BassEngineManager.IsAvailable)
+                    {
+                        try { readerStream = new NoIDSoftwork.AudioProcessor.BassReaderStream(fileName); }
+                        catch { readerStream = new MediaFoundationReader(fileName, new MediaFoundationReader.MediaFoundationReaderSettings { SingleReaderObject = true }); }
+                    }
+                    else
+                    {
+                        readerStream = new MediaFoundationReader(fileName, new MediaFoundationReader.MediaFoundationReaderSettings { SingleReaderObject = true });
+                    }
+                }
             }
             else if (fileName.EndsWith(".aiff", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith(".aif", StringComparison.OrdinalIgnoreCase))
             {
@@ -66,8 +78,15 @@ namespace NAudio.Wave
             }
             else
             {
-                // fall back to media foundation reader, see if that can play it
-                readerStream = new MediaFoundationReader(fileName);
+                if (NoIDSoftwork.AudioProcessor.BassEngineManager.IsAvailable)
+                {
+                    try { readerStream = new NoIDSoftwork.AudioProcessor.BassReaderStream(fileName); }
+                    catch { readerStream = new MediaFoundationReader(fileName, new MediaFoundationReader.MediaFoundationReaderSettings { SingleReaderObject = true }); }
+                }
+                else
+                {
+                    readerStream = new MediaFoundationReader(fileName, new MediaFoundationReader.MediaFoundationReaderSettings { SingleReaderObject = true });
+                }
             }
         }
         /// <summary>

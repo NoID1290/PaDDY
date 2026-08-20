@@ -39,6 +39,7 @@ namespace NoIDSoftwork.AudioProcessor
             if (read <= 0) return read;
 
             bool isStereo = _channels >= 2;
+            int samplesPerChunk = Math.Max(64, (WaveFormat.SampleRate * _channels * (int)FireIntervalMs) / 1000);
 
             for (int i = 0; i < read; i++)
             {
@@ -49,25 +50,35 @@ namespace NoIDSoftwork.AudioProcessor
                     else { _sumR += s * s; _samplesR++; }
                 }
                 else { _sumL += s * s; _samplesL++; }
+
+                if (_samplesL >= samplesPerChunk)
+                {
+                    FireRms(isStereo);
+                }
             }
 
             long now = _sw.ElapsedMilliseconds;
-            if (now - _lastFireMs >= FireIntervalMs)
+            if (now - _lastFireMs >= FireIntervalMs && _samplesL > 0)
             {
-                double rmsL = _samplesL > 0 ? Math.Sqrt(_sumL / _samplesL) : 0;
-                double rmsR = isStereo ? (_samplesR > 0 ? Math.Sqrt(_sumR / _samplesR) : 0) : rmsL;
-
-                double normL = Math.Min(100.0, rmsL * 500.0);
-                double normR = Math.Min(100.0, rmsR * 500.0);
-
-                _sumL = 0; _sumR = 0;
-                _samplesL = 0; _samplesR = 0;
-                _lastFireMs = now;
-
-                RmsLevelChanged?.Invoke(normL, normR);
+                FireRms(isStereo);
             }
 
             return read;
+        }
+
+        private void FireRms(bool isStereo)
+        {
+            double rmsL = _samplesL > 0 ? Math.Sqrt(_sumL / _samplesL) : 0;
+            double rmsR = isStereo ? (_samplesR > 0 ? Math.Sqrt(_sumR / _samplesR) : 0) : rmsL;
+
+            double normL = Math.Min(100.0, rmsL * 500.0);
+            double normR = Math.Min(100.0, rmsR * 500.0);
+
+            _sumL = 0; _sumR = 0;
+            _samplesL = 0; _samplesR = 0;
+            _lastFireMs = _sw.ElapsedMilliseconds;
+
+            RmsLevelChanged?.Invoke(normL, normR);
         }
     }
 }

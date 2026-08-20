@@ -381,4 +381,9 @@
   <data name="TrayPadMonitorOff" xml:space="preserve"><value>Écoute pad : Désactivée</value></data>
   <data name="TrayExit" xml:space="preserve"><value>Quitter</value></data>
   <data name="TrayStatus" xml:space="preserve"><value>PaDDY s'exécute en arrière-plan</value></data>
+  <data name="AudioEngineGroup" xml:space="preserve"><value>Moteur Audio de Lecture</value></data>
+  <data name="AudioEngineLabel" xml:space="preserve"><value>Moteur Audio sous-jacent</value></data>
+  <data name="AudioEngineDesc" xml:space="preserve"><value>Sélectionnez le moteur audio pour la lecture des pads et l'éditeur audio (NAudio WASAPI ou ManagedBass).</value></data>
+  <data name="AudioEngineNAudio" xml:space="preserve"><value>NAudio (Moteur WASAPI)</value></data>
+  <data name="AudioEngineBass" xml:space="preserve"><value>ManagedBass (Moteur BASS)</value></data>
 </root>

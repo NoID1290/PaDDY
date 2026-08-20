@@ -36,6 +36,7 @@ namespace NAudio.Wave
             public MediaFoundationReaderSettings()
             {
                 RepositionInRead = true;
+                SingleReaderObject = true;
             }
 
             /// <summary>
@@ -47,7 +48,7 @@ namespace NAudio.Wave
             /// Should only be set to true if you are working entirely on an STA thread, or 
             /// entirely with MTA threads.
             /// </summary>
-            public bool SingleReaderObject { get; set; }
+            public bool SingleReaderObject { get; set; } = true;
             /// <summary>
             /// If true, the reposition does not happen immediately, but waits until the
             /// next call to read to be processed.
@@ -231,6 +232,7 @@ namespace NAudio.Wave
         {
             if (pReader == null)
             {
+                MediaFoundationApi.Startup();
                 pReader = CreateReader(settings);
             }
             if (repositionTo != -1)

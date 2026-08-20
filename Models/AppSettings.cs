@@ -4,12 +4,14 @@ using System.IO;
 using System.Text.Json;
 using MessagePack;
 using MessagePack.Resolvers;
+using NoIDSoftwork.AudioProcessor;
 using PaDDY.Helpers;
 
 namespace PaDDY
 {
     public class AppSettings
     {
+        public AudioEngineType AudioEngine { get; set; } = AudioEngineType.NAudio;
         public int InputDeviceIndex { get; set; } = 0;
         public int CaptureSourceMode { get; set; } = 0; // 0 = microphone, 1 = output loopback, 2 = app loopback
         public string LoopbackDeviceId { get; set; } = string.Empty;

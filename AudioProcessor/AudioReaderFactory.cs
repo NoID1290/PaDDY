@@ -5,10 +5,12 @@ using Concentus.Enums;
 using Concentus.Oggfile;
 using CUETools.Codecs;
 using CUETools.Codecs.FLAKE;
+using ManagedBass;
 using NAudio.Flac;
 using NAudio.Vorbis;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using WaveFormat = NAudio.Wave.WaveFormat;
 
 namespace NoIDSoftwork.AudioProcessor
 {
@@ -20,15 +22,34 @@ namespace NoIDSoftwork.AudioProcessor
         public static IUnifiedAudioReader Open(string filePath)
         {
             string ext = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
-            return ext switch
+
+            // When BASS is loaded, route MP3/AAC/M4A/WMA directly through BASS
+            // to completely eliminate Windows Media Foundation COM apartment restrictions
+            if (BassEngineManager.IsAvailable && (ext == "mp3" || ext == "m4a" || ext == "aac" || ext == "wma"))
             {
-                "ogg" => new VorbisReaderAdapter(filePath),
-                "opus" => new OpusReaderAdapter(filePath),
-                "flac" => new FlacReaderAdapter(filePath),
-                "m4a" => new AacReaderAdapter(filePath),
-                "aac" => new AacReaderAdapter(filePath),
-                _ => new WavMp3ReaderAdapter(filePath)   // wav, mp3
-            };
+                try
+                {
+                    return new BassReaderAdapter(filePath);
+                }
+                catch { }
+            }
+
+            try
+            {
+                return ext switch
+                {
+                    "ogg" => new VorbisReaderAdapter(filePath),
+                    "opus" => new OpusReaderAdapter(filePath),
+                    "flac" => new FlacReaderAdapter(filePath),
+                    "m4a" => BassEngineManager.IsAvailable ? new BassReaderAdapter(filePath) : new AacReaderAdapter(filePath),
+                    "aac" => BassEngineManager.IsAvailable ? new BassReaderAdapter(filePath) : new AacReaderAdapter(filePath),
+                    _ => new WavMp3ReaderAdapter(filePath)   // wav, mp3
+                };
+            }
+            catch (Exception) when (BassEngineManager.IsAvailable)
+            {
+                return new BassReaderAdapter(filePath);
+            }
         }
     }
 
@@ -36,19 +57,42 @@ namespace NoIDSoftwork.AudioProcessor
 
     internal sealed class WavMp3ReaderAdapter : IUnifiedAudioReader
     {
-        private readonly AudioFileReader _reader;
+        private readonly AudioFileReader? _reader;
+        private readonly IUnifiedAudioReader? _fallback;
 
-        public WavMp3ReaderAdapter(string filePath) => _reader = new AudioFileReader(filePath);
+        public WavMp3ReaderAdapter(string filePath)
+        {
+            try
+            {
+                _reader = new AudioFileReader(filePath);
+            }
+            catch (Exception) when (BassEngineManager.IsAvailable)
+            {
+                _fallback = new BassReaderAdapter(filePath);
+            }
+        }
 
-        public WaveFormat WaveFormat => _reader.WaveFormat;
-        public TimeSpan TotalTime => _reader.TotalTime;
-        public TimeSpan CurrentTime { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
+        public WaveFormat WaveFormat => _reader?.WaveFormat ?? _fallback!.WaveFormat;
+        public TimeSpan TotalTime => _reader?.TotalTime ?? _fallback!.TotalTime;
+        public TimeSpan CurrentTime
+        {
+            get => _reader?.CurrentTime ?? _fallback!.CurrentTime;
+            set
+            {
+                if (_reader != null) _reader.CurrentTime = value;
+                else if (_fallback != null) _fallback.CurrentTime = value;
+            }
+        }
 
-        public IWaveProvider AsWaveProvider() => _reader;
-        public ISampleProvider AsSampleProvider() => _reader;
-        public int Read(byte[] buffer, int offset, int count) => _reader.Read(buffer, offset, count);
+        public IWaveProvider AsWaveProvider() => _reader != null ? _reader : _fallback!.AsWaveProvider();
+        public ISampleProvider AsSampleProvider() => _reader != null ? _reader : _fallback!.AsSampleProvider();
+        public int Read(byte[] buffer, int offset, int count) => _reader?.Read(buffer, offset, count) ?? _fallback!.Read(buffer, offset, count);
 
-        public void Dispose() => _reader.Dispose();
+        public void Dispose()
+        {
+            _reader?.Dispose();
+            _fallback?.Dispose();
+        }
     }
 
     // ── FLAC ──────────────────────────────────────────────────────────────────
@@ -399,18 +443,186 @@ namespace NoIDSoftwork.AudioProcessor
 
     internal sealed class AacReaderAdapter : IUnifiedAudioReader
     {
-        private readonly MediaFoundationReader _reader;
+        private readonly MediaFoundationReader? _reader;
+        private readonly IUnifiedAudioReader? _fallback;
 
-        public AacReaderAdapter(string filePath) => _reader = new MediaFoundationReader(filePath);
+        public AacReaderAdapter(string filePath)
+        {
+            try
+            {
+                _reader = new MediaFoundationReader(filePath, new MediaFoundationReader.MediaFoundationReaderSettings { SingleReaderObject = true });
+            }
+            catch (Exception) when (BassEngineManager.IsAvailable)
+            {
+                _fallback = new BassReaderAdapter(filePath);
+            }
+        }
 
-        public WaveFormat WaveFormat => _reader.WaveFormat;
-        public TimeSpan TotalTime => _reader.TotalTime;
-        public TimeSpan CurrentTime { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
+        public WaveFormat WaveFormat => _reader?.WaveFormat ?? _fallback!.WaveFormat;
+        public TimeSpan TotalTime => _reader?.TotalTime ?? _fallback!.TotalTime;
+        public TimeSpan CurrentTime
+        {
+            get => _reader?.CurrentTime ?? _fallback!.CurrentTime;
+            set
+            {
+                if (_reader != null) _reader.CurrentTime = value;
+                else if (_fallback != null) _fallback.CurrentTime = value;
+            }
+        }
 
-        public IWaveProvider AsWaveProvider() => _reader;
-        public ISampleProvider AsSampleProvider() => _reader.ToSampleProvider();
-        public int Read(byte[] buffer, int offset, int count) => _reader.Read(buffer, offset, count);
+        public IWaveProvider AsWaveProvider() => _reader != null ? _reader : _fallback!.AsWaveProvider();
+        public ISampleProvider AsSampleProvider() => _reader != null ? _reader.ToSampleProvider() : _fallback!.AsSampleProvider();
+        public int Read(byte[] buffer, int offset, int count) => _reader?.Read(buffer, offset, count) ?? _fallback!.Read(buffer, offset, count);
 
-        public void Dispose() => _reader.Dispose();
+        public void Dispose()
+        {
+            _reader?.Dispose();
+            _fallback?.Dispose();
+        }
+    }
+
+    // ── BASS DECODER (Universal Fallback / Standalone) ──────────────────────────
+
+    /// <summary>
+    /// BASS-backed audio decoder for robust decoding of MP3, AAC, M4A, WAV, etc.
+    /// without relying on Windows Media Foundation COM objects.
+    /// </summary>
+    internal sealed class BassReaderAdapter : IUnifiedAudioReader, IWaveProvider, ISampleProvider
+    {
+        private readonly int _streamHandle;
+        private readonly WaveFormat _waveFormat;
+        private readonly TimeSpan _totalTime;
+        private readonly string _filePath;
+        private bool _disposed;
+        private readonly object _lock = new();
+
+        public BassReaderAdapter(string filePath)
+        {
+            _filePath = filePath;
+            BassEngineManager.EnsureNativeLibraryLoaded();
+            BassEngineManager.EnsureDeviceInitialized(0);
+
+            // Create a decode stream with 32-bit float samples
+            _streamHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode | BassFlags.Float);
+            if (_streamHandle == 0)
+            {
+                // Fallback to 16-bit integer PCM decode stream
+                _streamHandle = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
+            }
+
+            if (_streamHandle == 0)
+            {
+                var err = Bass.LastError;
+                throw new InvalidOperationException($"BASS failed to open audio file '{Path.GetFileName(filePath)}': {err}");
+            }
+
+            var info = Bass.ChannelGetInfo(_streamHandle);
+            bool isFloat = (info.Flags & BassFlags.Float) != 0;
+            _waveFormat = isFloat
+                ? WaveFormat.CreateIeeeFloatWaveFormat(info.Frequency, info.Channels)
+                : new WaveFormat(info.Frequency, 16, info.Channels);
+
+            long lengthBytes = Bass.ChannelGetLength(_streamHandle, PositionFlags.Bytes);
+            double totalSecs = Bass.ChannelBytes2Seconds(_streamHandle, lengthBytes);
+            _totalTime = totalSecs > 0 ? TimeSpan.FromSeconds(totalSecs) : TimeSpan.Zero;
+        }
+
+        public WaveFormat WaveFormat => _waveFormat;
+        public TimeSpan TotalTime => _totalTime;
+
+        public TimeSpan CurrentTime
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    if (_disposed || _streamHandle == 0) return TimeSpan.Zero;
+                    long posBytes = Bass.ChannelGetPosition(_streamHandle, PositionFlags.Bytes);
+                    double secs = Bass.ChannelBytes2Seconds(_streamHandle, posBytes);
+                    return secs > 0 ? TimeSpan.FromSeconds(secs) : TimeSpan.Zero;
+                }
+            }
+            set
+            {
+                lock (_lock)
+                {
+                    if (_disposed || _streamHandle == 0) return;
+                    long posBytes = Bass.ChannelSeconds2Bytes(_streamHandle, value.TotalSeconds);
+                    Bass.ChannelSetPosition(_streamHandle, posBytes, PositionFlags.Bytes);
+                }
+            }
+        }
+
+        public IWaveProvider AsWaveProvider() => this;
+        public ISampleProvider AsSampleProvider()
+        {
+            if (_waveFormat.Encoding == WaveFormatEncoding.IeeeFloat)
+                return this;
+            return this.ToSampleProvider();
+        }
+
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            lock (_lock)
+            {
+                if (_disposed || _streamHandle == 0) return 0;
+                if (offset == 0)
+                {
+                    int bytesRead = Bass.ChannelGetData(_streamHandle, buffer, count);
+                    return Math.Max(0, bytesRead);
+                }
+                else
+                {
+                    byte[] temp = new byte[count];
+                    int bytesRead = Bass.ChannelGetData(_streamHandle, temp, count);
+                    if (bytesRead > 0)
+                    {
+                        Buffer.BlockCopy(temp, 0, buffer, offset, bytesRead);
+                    }
+                    return Math.Max(0, bytesRead);
+                }
+            }
+        }
+
+        public int Read(float[] buffer, int offset, int count)
+        {
+            lock (_lock)
+            {
+                if (_disposed || _streamHandle == 0) return 0;
+                int bytesRequired = count * 4;
+                if (offset == 0)
+                {
+                    int bytesRead = Bass.ChannelGetData(_streamHandle, buffer, bytesRequired);
+                    return bytesRead > 0 ? bytesRead / 4 : 0;
+                }
+                else
+                {
+                    float[] temp = new float[count];
+                    int bytesRead = Bass.ChannelGetData(_streamHandle, temp, bytesRequired);
+                    if (bytesRead > 0)
+                    {
+                        int floatsRead = bytesRead / 4;
+                        Array.Copy(temp, 0, buffer, offset, floatsRead);
+                        return floatsRead;
+                    }
+                    return 0;
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (_lock)
+            {
+                if (!_disposed)
+                {
+                    _disposed = true;
+                    if (_streamHandle != 0)
+                    {
+                        Bass.StreamFree(_streamHandle);
+                    }
+                }
+            }
+        }
     }
 }

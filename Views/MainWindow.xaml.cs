@@ -230,6 +230,7 @@ namespace PaDDY
         public MainWindow()
         {
             Instance = this;
+            AudioOutputDeviceResolver.ActiveAudioEngine = _settings.AudioEngine;
             // Decide up-front whether we should start hidden in the tray. When we do,
             // open the window minimized, non-activated and off the taskbar BEFORE the
             // first paint so the OS never flashes a black/unpainted window on screen.
@@ -1598,6 +1599,7 @@ namespace PaDDY
 
         private void ApplySettings()
         {
+            AudioOutputDeviceResolver.ActiveAudioEngine = _settings.AudioEngine;
             RecordingPadButton.AllowMultiPadPlayback = _settings.AllowMultiPadPlayback;
             var requestedMode = (CaptureSourceMode)Math.Clamp(_settings.CaptureSourceMode, 0, 2);
             if (!_captureSourceModes.Contains(requestedMode))

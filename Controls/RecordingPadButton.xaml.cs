@@ -553,7 +553,25 @@ namespace PaDDY.Controls
         {
             if (IsOverlayButton(e.OriginalSource as FrameworkElement ?? this)) return;
             e.Handled = true;
-            StartPlaybackListenOnly();
+            ToggleListenPlay();
+        }
+
+        public void ToggleListenPlay()
+        {
+            if (Entry == null || string.IsNullOrEmpty(Entry.RecordingId)) return;
+
+            if (_isPlaying || IsRecordingPlaying(Entry.RecordingId))
+            {
+                StopRecordingPlayback(Entry.RecordingId);
+            }
+            else
+            {
+                if (!AllowMultiPadPlayback)
+                {
+                    StopAllPlayback();
+                }
+                StartPlaybackListenOnly();
+            }
         }
 
         // â”€â”€ Playback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -755,7 +773,7 @@ namespace PaDDY.Controls
                     PlaybackRmsChanged?.Invoke(l, r);
                     BroadcastGlobalRms();
                 };
-                _player = AudioOutputDeviceResolver.CreateWasapiPlayer(OutputDeviceIndex, 100);
+                _player = AudioOutputDeviceResolver.CreatePlayer(OutputDeviceIndex, 100);
                 _player.Init(_meterProvider.ToWaveProvider16());
                 _player.Volume = 1.0f;
                 _player.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
@@ -781,7 +799,7 @@ namespace PaDDY.Controls
                         ListenPlaybackRmsChanged?.Invoke(l, r);
                         BroadcastGlobalRms();
                     };
-                    _listenPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(ListenDeviceIndex, 120);
+                    _listenPlayer = AudioOutputDeviceResolver.CreatePlayer(ListenDeviceIndex, 120);
                     _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
                     _listenPlayer.Volume = 1.0f;
                     _listenPlayer.Play();
@@ -829,7 +847,7 @@ namespace PaDDY.Controls
                     ListenPlaybackRmsChanged?.Invoke(l, r);
                     BroadcastGlobalRms();
                 };
-                _listenPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(ListenDeviceIndex, 120);
+                _listenPlayer = AudioOutputDeviceResolver.CreatePlayer(ListenDeviceIndex, 120);
                 _listenPlayer.Init(_listenMeterProvider.ToWaveProvider16());
                 _listenPlayer.Volume = 1.0f;
                 _listenPlayer.PlaybackStopped += (_, _) => Dispatcher.Invoke(StopPlayback);
@@ -1183,7 +1201,8 @@ namespace PaDDY.Controls
         private void OnPadMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (Entry == null) return;
-            StartPlaybackListenOnly();
+            if (IsOverlayButton(e.OriginalSource as FrameworkElement ?? this)) return;
+            ToggleListenPlay();
             e.Handled = true;
         }
 

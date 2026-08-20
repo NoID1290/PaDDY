@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
+using NoIDSoftwork.AudioProcessor;
 using PaDDY.Helpers;
 using PaDDY.Services;
 
@@ -38,6 +39,7 @@ namespace PaDDY
         public string SelectedDefaultPadTitleTemplate { get; private set; } = "Recording {timestamp}";
         public bool SelectedUseFocusedAppForPadTitle { get; private set; }
         public int SelectedTrimEditorOutputDeviceIndex { get; private set; }
+        public AudioEngineType SelectedAudioEngine { get; private set; } = AudioEngineType.NAudio;
         public int SelectedLiveMicOutputDeviceIndex { get; private set; }
         public bool SelectedNewRecordingsNonDestructive { get; private set; }
 
@@ -221,7 +223,8 @@ namespace PaDDY
                 : _settings.DefaultPadTitleTemplate;
             UseFocusedAppNameCheck.IsChecked = _settings.UseFocusedAppForPadTitle;
 
-            // Trim editor output & Live Mic
+            // Audio Engine & Trim editor output & Live Mic
+            PopulateAudioEngines();
             PopulateTrimOutputDevices();
             PopulateLiveMicDevices();
             RefreshVirtualDriverStatus();
@@ -475,6 +478,14 @@ namespace PaDDY
             }
         }
 
+        private void PopulateAudioEngines()
+        {
+            AudioEngineCombo.Items.Clear();
+            AudioEngineCombo.Items.Add(LocalizationManager.Instance.GetString("AudioEngineNAudio"));
+            AudioEngineCombo.Items.Add(LocalizationManager.Instance.GetString("AudioEngineBass"));
+            AudioEngineCombo.SelectedIndex = _settings.AudioEngine == AudioEngineType.ManagedBass ? 1 : 0;
+        }
+
         private void PopulateTrimOutputDevices()
         {
             TrimOutputDeviceCombo.Items.Clear();
@@ -634,6 +645,9 @@ namespace PaDDY
                 ? "Recording {timestamp}"
                 : DefaultPadTitleBox.Text.Trim();
             SelectedUseFocusedAppForPadTitle = UseFocusedAppNameCheck.IsChecked == true;
+            SelectedAudioEngine = AudioEngineCombo.SelectedIndex == 1 ? AudioEngineType.ManagedBass : AudioEngineType.NAudio;
+            _settings.AudioEngine = SelectedAudioEngine;
+            AudioOutputDeviceResolver.ActiveAudioEngine = SelectedAudioEngine;
             SelectedTrimEditorOutputDeviceIndex = TrimOutputDeviceCombo.SelectedIndex;
             SelectedNewRecordingsNonDestructive = NewRecordingsNonDestructiveCheck.IsChecked == true;
 

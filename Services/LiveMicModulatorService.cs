@@ -55,15 +55,17 @@ namespace PaDDY.Services
 
                 _inputBuffer = new BufferedWaveProvider(waveFormat)
                 {
-                    DiscardOnBufferOverflow = true
+                    DiscardOnBufferOverflow = true,
+                    ReadFully = true
                 };
 
                 _primaryBuffer = new BufferedWaveProvider(waveFormat)
                 {
-                    DiscardOnBufferOverflow = true
+                    DiscardOnBufferOverflow = true,
+                    ReadFully = true
                 };
 
-                _primaryPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(primaryOutputDeviceIndex, 40);
+                _primaryPlayer = AudioOutputDeviceResolver.CreatePlayer(primaryOutputDeviceIndex, 40);
                 _primaryPlayer.Init(_primaryBuffer);
                 _primaryPlayer.Play();
 
@@ -71,9 +73,10 @@ namespace PaDDY.Services
                 {
                     _secondaryBuffer = new BufferedWaveProvider(waveFormat)
                     {
-                        DiscardOnBufferOverflow = true
+                        DiscardOnBufferOverflow = true,
+                        ReadFully = true
                     };
-                    _secondaryPlayer = AudioOutputDeviceResolver.CreateWasapiPlayer(secondaryOutputDeviceIndex - 1, 40);
+                    _secondaryPlayer = AudioOutputDeviceResolver.CreatePlayer(secondaryOutputDeviceIndex - 1, 40);
                     _secondaryPlayer.Init(_secondaryBuffer);
                     _secondaryPlayer.Play();
                 }

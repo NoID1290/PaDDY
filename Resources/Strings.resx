@@ -383,4 +383,9 @@
   <data name="TrayPadMonitorOff" xml:space="preserve"><value>Pad Monitor: Off</value></data>
   <data name="TrayExit" xml:space="preserve"><value>Exit</value></data>
   <data name="TrayStatus" xml:space="preserve"><value>PaDDY is running in background</value></data>
+  <data name="AudioEngineGroup" xml:space="preserve"><value>Audio Playback Engine</value></data>
+  <data name="AudioEngineLabel" xml:space="preserve"><value>Playback Engine Backend</value></data>
+  <data name="AudioEngineDesc" xml:space="preserve"><value>Select the audio engine backend for pad playback and audio editor (NAudio WASAPI or ManagedBass).</value></data>
+  <data name="AudioEngineNAudio" xml:space="preserve"><value>NAudio (WASAPI Engine)</value></data>
+  <data name="AudioEngineBass" xml:space="preserve"><value>ManagedBass (BASS Engine)</value></data>
 </root>
