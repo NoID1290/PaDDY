@@ -99,6 +99,13 @@ namespace PaDDY
         public bool MinimizeToTray { get; set; } = false;
         public bool CloseToTray { get; set; } = false;
 
+        // ---- Window Position & State ----
+        public double WindowLeft { get; set; } = double.NaN;
+        public double WindowTop { get; set; } = double.NaN;
+        public double WindowWidth { get; set; } = 1380.0;
+        public double WindowHeight { get; set; } = 740.0;
+        public int WindowState { get; set; } = 0; // 0 = Normal, 2 = Maximized
+
         // ---- Detection ----
         // 0 = RMS threshold (classic), 1 = Adaptive/spectral VAD (noise-floor calibrating)
         public int DetectionAlgorithm { get; set; } = 0;

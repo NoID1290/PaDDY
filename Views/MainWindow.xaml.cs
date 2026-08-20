@@ -96,7 +96,18 @@ namespace PaDDY
                     if (!_startHiddenInTray)
                     {
                         this.Show();
-                        this.WindowState = WindowState.Normal;
+                        if (_settings.WindowState == (int)WindowState.Maximized)
+                        {
+                            this.WindowState = WindowState.Maximized;
+                            ChromeMaxIcon.Text = "\uE923";
+                            ChromeMaxRestoreBtn.ToolTip = "Restore";
+                        }
+                        else
+                        {
+                            this.WindowState = WindowState.Normal;
+                            ChromeMaxIcon.Text = "\uE922";
+                            ChromeMaxRestoreBtn.ToolTip = "Maximize";
+                        }
                         this.Activate();
                     }
                 }
@@ -255,10 +266,13 @@ namespace PaDDY
             }
 
             InitializeComponent();
+            RestoreWindowPlacement();
             LiveMicBtn.Visibility = Visibility.Visible;
             UpdateLoadingOverlayTheme();
             Closing += MainWindow_Closing;
             StateChanged += MainWindow_StateChanged;
+            LocationChanged += (_, _) => OnWindowBoundsChanged();
+            SizeChanged += (_, _) => OnWindowBoundsChanged();
             Activated += OnWindowActivated;
             Deactivated += OnWindowDeactivated;
 
@@ -284,6 +298,111 @@ namespace PaDDY
             _liveMicModulator.PeakLevelUpdated += OnLiveMicPeakLevelUpdated;
         }
 
+        private void RestoreWindowPlacement()
+        {
+            if (double.IsNaN(_settings.WindowLeft) || double.IsNaN(_settings.WindowTop))
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                return;
+            }
+
+            double w = _settings.WindowWidth > 0 ? _settings.WindowWidth : 1380.0;
+            double h = _settings.WindowHeight > 0 ? _settings.WindowHeight : 740.0;
+            if (w < MinWidth) w = MinWidth;
+            if (h < MinHeight) h = MinHeight;
+
+            double left = _settings.WindowLeft;
+            double top = _settings.WindowTop;
+
+            bool isVisible = false;
+            var targetRect = new System.Drawing.Rectangle((int)left, (int)top, (int)w, (int)h);
+
+            try
+            {
+                foreach (var screen in System.Windows.Forms.Screen.AllScreens)
+                {
+                    var intersection = System.Drawing.Rectangle.Intersect(screen.WorkingArea, targetRect);
+                    if (intersection.Width >= 50 && intersection.Height >= 50)
+                    {
+                        isVisible = true;
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                var virtualRect = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+                                           SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+                var winRect = new Rect(left, top, w, h);
+                isVisible = virtualRect.IntersectsWith(winRect);
+            }
+
+            if (isVisible)
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Left = left;
+                Top = top;
+                Width = w;
+                Height = h;
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                Width = w;
+                Height = h;
+            }
+        }
+
+        private void SaveWindowPlacement()
+        {
+            if (_isFullscreen) return;
+
+            if (WindowState == WindowState.Minimized)
+            {
+                if (!RestoreBounds.IsEmpty)
+                {
+                    _settings.WindowLeft = RestoreBounds.Left;
+                    _settings.WindowTop = RestoreBounds.Top;
+                    _settings.WindowWidth = RestoreBounds.Width;
+                    _settings.WindowHeight = RestoreBounds.Height;
+                }
+            }
+            else if (WindowState == WindowState.Maximized)
+            {
+                _settings.WindowState = (int)WindowState.Maximized;
+                if (!RestoreBounds.IsEmpty)
+                {
+                    _settings.WindowLeft = RestoreBounds.Left;
+                    _settings.WindowTop = RestoreBounds.Top;
+                    _settings.WindowWidth = RestoreBounds.Width;
+                    _settings.WindowHeight = RestoreBounds.Height;
+                }
+            }
+            else
+            {
+                _settings.WindowState = (int)WindowState.Normal;
+                _settings.WindowLeft = Left;
+                _settings.WindowTop = Top;
+                _settings.WindowWidth = Width;
+                _settings.WindowHeight = Height;
+            }
+
+            _settings.Save();
+        }
+
+        private void OnWindowBoundsChanged()
+        {
+            if (_isFullscreen) return;
+            if (WindowState == WindowState.Normal && IsLoaded)
+            {
+                _settings.WindowLeft = Left;
+                _settings.WindowTop = Top;
+                _settings.WindowWidth = Width;
+                _settings.WindowHeight = Height;
+                _settings.WindowState = (int)WindowState.Normal;
+            }
+        }
+
         // ── Custom Window Chrome ───────────────────────────────────────────────
         private void ChromeMinimize_Click(object sender, RoutedEventArgs e)
             => SystemCommands.MinimizeWindow(this);
@@ -302,6 +421,7 @@ namespace PaDDY
                 ChromeMaxIcon.Text = "\uE923"; // Restore (Segoe MDL2 Assets)
                 ChromeMaxRestoreBtn.ToolTip = "Restore";
             }
+            SaveWindowPlacement();
         }
 
         private void ChromeClose_Click(object sender, RoutedEventArgs e)
@@ -769,15 +889,28 @@ namespace PaDDY
         private void RestoreFromTray()
         {
             ShowInTaskbar = true;
-            WindowState = WindowState.Normal;
+            Show();
+            if (_settings.WindowState == (int)WindowState.Maximized)
+            {
+                WindowState = WindowState.Maximized;
+                ChromeMaxIcon.Text = "\uE923"; // Restore icon
+                ChromeMaxRestoreBtn.ToolTip = "Restore";
+            }
+            else
+            {
+                WindowState = WindowState.Normal;
+                ChromeMaxIcon.Text = "\uE922"; // Maximize icon
+                ChromeMaxRestoreBtn.ToolTip = "Maximize";
+            }
             Activate();
             Topmost = true;
             Topmost = false;
-            Show();
         }
 
         private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
+            SaveWindowPlacement();
+
             if (WindowState == WindowState.Minimized)
             {
                 // Don't collapse the initial tray-start minimize into the tray; keep it
@@ -3831,6 +3964,8 @@ namespace PaDDY
         // ── Shutdown ───────────────────────────────────────────────────────────
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+            SaveWindowPlacement();
+
             if (_settings.CloseToTray && !_forceExit)
             {
                 e.Cancel = true;

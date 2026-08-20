@@ -91,7 +91,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon";    Description: "{cm:CreateDesktopIcon}";                                      GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "startmenuicon";  Description: "Create Start Menu shortcut";                                  GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
 Name: "installstreamdeckplugin"; Description: "Install Elgato Stream Deck Plugin"; GroupDescription: "Integrations"; Flags: unchecked
-Name: "installvirtualaudiodriver"; Description: "Install VB-Audio Virtual Cable (enables Discord / OBS / Game routing)"; GroupDescription: "Integrations"; Flags: unchecked
 
 ; ============================================================================
 [Files]
@@ -111,7 +110,6 @@ Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppE
 ; Normal interactive install — launch without special flags
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\com.paddy.streamDeckPlugin"; Description: "Install/Update Stream Deck Plugin"; Check: ShouldInstallStreamDeckPlugin; Flags: shellexec waituntilidle; BeforeInstall: CloseStreamDeckIfRunning
-Filename: "{app}\{#AppExeName}"; Parameters: "--install-virtual-driver"; StatusMsg: "Installing VB-Audio Virtual Cable (WHQL Signed)..."; Tasks: installvirtualaudiodriver; Flags: runhidden
 
 ; Silent/update install — launch with --restore-update flag so PaDDY restores the auto-backup
 Filename: "{app}\{#AppExeName}"; Parameters: "--restore-update"; Flags: nowait skipifnotsilent
