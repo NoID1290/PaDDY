@@ -4,6 +4,12 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.3.2.0820-Pre-release_1] - 2026-08-20
+
+- Added ManagedBass (BASS Engine) alongside with N.Audio
+- Resolving Screen Blurriness DPI
+- Multi-Monitor Window Position & State Persistence
+
 ## [2.3.1.0819-Pre-release_1] - 2026-08-19
 
 - Added Stream Deck Live Mic Trigger

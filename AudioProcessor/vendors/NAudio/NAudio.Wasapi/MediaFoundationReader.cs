@@ -260,7 +260,7 @@ namespace NAudio.Wave
                 {
                     waveFormat = GetCurrentWaveFormat(pReader);
                     OnWaveFormatChanged();
-                    // carry on, but user must handle the change of format
+                    // carry on, but user must handle the change of formatn
                 }
                 else if (dwFlags != 0)
                 {

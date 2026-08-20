@@ -1481,14 +1481,11 @@ namespace PaDDY
         {
             try
             {
-                var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                if (string.IsNullOrEmpty(exePath))
-                    exePath = AppContext.BaseDirectory;
-
-                // Published .dll path resolves to the .exe when starting the app.
-                if (exePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                var exePath = Environment.ProcessPath;
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
                 {
-                    string possibleExe = System.IO.Path.ChangeExtension(exePath, ".exe");
+                    exePath = AppContext.BaseDirectory;
+                    string possibleExe = System.IO.Path.Combine(exePath, "PaDDY.exe");
                     if (File.Exists(possibleExe))
                         exePath = possibleExe;
                 }
