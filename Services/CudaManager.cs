@@ -57,6 +57,7 @@ namespace PaDDY.Services
 
         const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
         const uint LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
+        const uint LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200;
 
         /// <summary>
         /// Checks if all necessary CUDA binaries are installed (either in AppData or bundled).
@@ -135,7 +136,7 @@ namespace PaDDY.Services
             {
                 try
                 {
-                    SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS);
+                    SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS | LOAD_LIBRARY_SEARCH_APPLICATION_DIR);
                     AddDllDirectory(targetDir);
                     if (Directory.Exists(CudaBaseDir))
                     {
