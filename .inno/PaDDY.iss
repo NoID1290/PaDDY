@@ -93,10 +93,17 @@ Name: "startmenuicon";  Description: "Create Start Menu shortcut";              
 Name: "installstreamdeckplugin"; Description: "Install Elgato Stream Deck Plugin"; GroupDescription: "Integrations"; Flags: unchecked
 
 ; ============================================================================
+[InstallDelete]
+; Wipe loose DLLs and native runtime folders so no orphans survive
+; a .NET or NuGet package update.  Runs BEFORE [Files] copies the new content.
+Type: filesandordirs; Name: "{app}\runtimes"
+Type: files;          Name: "{app}\*.dll"
+
+; ============================================================================
 [Files]
 ; All files from the self-contained publish directory
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "*.dll.config"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\StreamDeckPlugin\com.paddy.streamDeckPlugin"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\StreamDeckPlugin\com.paddy.streamDeckPlugin"; DestDir: "{localappdata}\NoID Softwork\PaDDY\Plugins\Discord"; Flags: ignoreversion
 Source: "ggml-tiny.bin"; DestDir: "{localappdata}\NoID Softwork\PaDDY\models"; Flags: ignoreversion
 
 ; ============================================================================
@@ -109,7 +116,7 @@ Name: "{commondesktop}\{#AppName}";                      Filename: "{app}\{#AppE
 [Run]
 ; Normal interactive install — launch without special flags
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\com.paddy.streamDeckPlugin"; Description: "Install/Update Stream Deck Plugin"; Check: ShouldInstallStreamDeckPlugin; Flags: shellexec waituntilidle; BeforeInstall: CloseStreamDeckIfRunning
+Filename: "{localappdata}\NoID Softwork\PaDDY\Plugins\Discord\com.paddy.streamDeckPlugin"; Description: "Install/Update Stream Deck Plugin"; Check: ShouldInstallStreamDeckPlugin; Flags: shellexec waituntilidle; BeforeInstall: CloseStreamDeckIfRunning
 
 ; Silent/update install — launch with --restore-update flag so PaDDY restores the auto-backup
 Filename: "{app}\{#AppExeName}"; Parameters: "--restore-update"; Flags: nowait skipifnotsilent
