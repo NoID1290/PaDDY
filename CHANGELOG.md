@@ -4,15 +4,14 @@ All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.3.3.0820-Pre-release_1] - 2026-08-20
+## [2.4.0.0828-Pre-release_1] - 2026-08-28
 
+- Updating Emebed.net DLL Files
+- Fix  (stack buffer overrun / security cookie failure) in ucrtbase
 - Embed .NET test
-- Added ManagedBass (BASS Engine) alongside with N.Audio
+- Added ManagedBass Audio Engine
 - Resolving Screen Blurriness DPI
 - Multi-Monitor Window Position & State Persistence
-
-## [2.3.1.0819-Pre-release_1] - 2026-08-19
-
 - Added Stream Deck Live Mic Trigger
 - On-Demand VB-Audio Virtual Cable (VB-CABLE).
 - On-Demand Whisper CUDA (GPU Acceleration).
