@@ -94,9 +94,11 @@ Name: "installstreamdeckplugin"; Description: "Install Elgato Stream Deck Plugin
 
 ; ============================================================================
 [InstallDelete]
-; Wipe loose DLLs and native runtime folders so no orphans survive
-; a .NET or NuGet package update.  Runs BEFORE [Files] copies the new content.
+; Wipe loose DLLs, native runtime folders, and stale Plugins directory so no
+; orphans survive a .NET or NuGet package update.  Runs BEFORE [Files] copies
+; the new content.
 Type: filesandordirs; Name: "{app}\runtimes"
+Type: filesandordirs; Name: "{app}\Plugins"
 Type: files;          Name: "{app}\*.dll"
 
 ; ============================================================================
