@@ -13,10 +13,10 @@
     <Product>NoIDSoftwork.AudioProcessor</Product>
     <Company>NoID Softwork</Company>
     <Copyright>Copyright (c) NoID Softwork 2020-2026. All rights reserved.</Copyright>
-    <Version>2.4.0.0828</Version>
-    <AssemblyVersion>2.4.0.0828</AssemblyVersion>
-    <FileVersion>2.4.0.0828</FileVersion>
-    <InformationalVersion>2.4.0.0828-Pre-release_1</InformationalVersion>
+    <Version>2.4.0.0829</Version>
+    <AssemblyVersion>2.4.0.0829</AssemblyVersion>
+    <FileVersion>2.4.0.0829</FileVersion>
+    <InformationalVersion>2.4.0.0829</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <PlatformTarget>x64</PlatformTarget>

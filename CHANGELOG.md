@@ -1,21 +1,29 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to PaDDY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.4.0.0828-Pre-release_1] - 2026-08-28
+## [2.4.0.0829] - 2026-08-29
 
-- Updating Emebed.net DLL Files
-- Fix  (stack buffer overrun / security cookie failure) in ucrtbase
-- Embed .NET test
-- Added ManagedBass Audio Engine
-- Resolving Screen Blurriness DPI
-- Multi-Monitor Window Position & State Persistence
-- Added Stream Deck Live Mic Trigger
-- On-Demand VB-Audio Virtual Cable (VB-CABLE).
-- On-Demand Whisper CUDA (GPU Acceleration).
-- Reduce PaDDY's distribution footprint and installer.
+### Added
+
+- **ManagedBass Audio Engine** — Added ManagedBass for improved stability, lower latency, and broader format compatibility.
+- **Stream Deck Live Mic Trigger** — Stream Deck buttons can now toggle the Live Mic feature directly during a session.
+- **On-Demand VB-Audio Virtual Cable (VB-CABLE)** — VB-CABLE is now installed on demand.
+- **On-Demand Whisper CUDA (GPU Acceleration)** — The Whisper CUDA runtime is downloaded on demand, significantly reducing installer and distribution size.
+- **Multi-Monitor Window Position & State Persistence** — PaDDY now remembers its position and window state independently for each monitor configuration across restarts.
+
+### Fixed
+
+- **"Pause Animations When Unfocused" not applying** — The setting now correctly suspends UI animations when the application loses focus.
+- **Stack buffer overrun / security cookie failure (ucrtbase)** — Resolved a native heap corruption issue that triggered a `__security_check_cookie` abort in the C runtime on certain systems.
+- **Screen blurriness on high-DPI displays** — DPI awareness is now correctly enforced per-monitor, eliminating blurry rendering on scaled or mixed-DPI setups.
+
+### Changed
+
+- **Reduced distribution footprint** — Heavy optional runtime (Whisper CUDA) are no longer bundled in the installer; they are fetched on demand, resulting in a substantially smaller download.
+- **Embedded .NET runtime validation** — Added a bundled self-test to verify .NET runtime integrity at startup, surfacing misconfigured environments early with a clear diagnostic message.
 
 ## [2.3.0.0818] - 2026-08-18
 
