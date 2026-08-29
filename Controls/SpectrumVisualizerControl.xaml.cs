@@ -67,6 +67,7 @@ namespace PaDDY.Controls
 
         private void OnCompositionRendering(object? sender, EventArgs e)
         {
+            if (Helpers.ThemeManager.AnimationsPaused) return;
             StepAnimation();
         }
 
@@ -158,6 +159,7 @@ namespace PaDDY.Controls
 
         private void AnimTimer_Tick(object? sender, EventArgs e)
         {
+            if (Helpers.ThemeManager.AnimationsPaused) return;
             StepAnimation();
         }
 

@@ -143,6 +143,7 @@ namespace PaDDY
         }
         private bool _performanceMode;
         private bool _pauseAnimationsWhenUnfocused;
+        private bool _areAnimationsPaused;
         private DateTime _lastInputMeterTick;
         private DateTime _lastOutputMeterTick;
         private DateTime _lastMonitorMeterTick;
@@ -914,6 +915,9 @@ namespace PaDDY
 
             if (WindowState == WindowState.Minimized)
             {
+                if (_pauseAnimationsWhenUnfocused)
+                    SetAnimationsPaused(true);
+
                 // Don't collapse the initial tray-start minimize into the tray; keep it
                 // visible in the taskbar so the user can see the app is running.
                 if (_initialTrayMinimize)
@@ -926,6 +930,11 @@ namespace PaDDY
                 {
                     Hide();
                 }
+            }
+            else
+            {
+                if (_pauseAnimationsWhenUnfocused && IsActive)
+                    SetAnimationsPaused(false);
             }
         }
 
@@ -944,25 +953,66 @@ namespace PaDDY
         }
 
         /// <summary>
-        /// Pauses or resumes the owned decorative meter timers.
-        /// Audio capture and recording are unaffected.
+        /// Pauses or resumes visual animations and live UI meter updates.
+        /// Audio capture, VAD detection, and recording remain fully active in the background.
         /// </summary>
         private void SetAnimationsPaused(bool paused)
         {
+            _areAnimationsPaused = paused;
+            Helpers.ThemeManager.SetAnimationsPaused(paused);
+
             // ── Meter decay timers ──────────────────────────────────────────
             if (paused)
             {
                 _meterDecayTimer?.Stop();
                 _outputMeterDecayTimer?.Stop();
                 _inputMeterResetTimer?.Stop();
+
+                // Visually freeze/clear meter active overlays so animations are visibly halted
+                MeterOverlayL.Width = 10000;
+                MeterOverlayR.Width = 10000;
+                OutputMeterOverlayL.Width = 10000;
+                OutputMeterOverlayR.Width = 10000;
+                PadMonitorMeterOverlayL.Width = 10000;
+                PadMonitorMeterOverlayR.Width = 10000;
+                if (LiveMicMeterContainer != null && LiveMicMeterOverlay != null)
+                {
+                    LiveMicMeterOverlay.Height = LiveMicMeterContainer.ActualHeight > 0 ? LiveMicMeterContainer.ActualHeight : 72;
+                }
+                PeakIndicatorL.Background = PeakColdBrush;
+                PeakIndicatorR.Background = PeakColdBrush;
+                OutputPeakIndicatorL.Background = PeakColdBrush;
+                OutputPeakIndicatorR.Background = PeakColdBrush;
+                MonitorPeakIndicatorL.Background = PeakColdBrush;
+                MonitorPeakIndicatorR.Background = PeakColdBrush;
             }
             else
             {
-                // Only restart timers that were actually running (i.e. metering is active)
-                if (_inputMeterUpdatesEnabled)
+                // Immediately refresh all meters with current live values upon returning to focus
+                if (_inputMeterUpdatesEnabled && MonitorToggle.IsChecked == true)
                 {
+                    UpdateInputMeterOverlaysLayout();
                     if (_meterDecayTimer != null) _meterDecayTimer.Start();
-                    if (_outputMeterDecayTimer != null) _outputMeterDecayTimer.Start();
+                }
+                else if (MonitorToggle.IsChecked != true)
+                {
+                    ForceResetInputMeter();
+                }
+
+                UpdateOutputMeterOverlaysLayout();
+                if (_outputMeterDecayTimer != null && (_lastOutputRmsL <= 0 && _lastOutputRmsR <= 0))
+                {
+                    _outputMeterDecayTimer.Start();
+                }
+
+                if (_settings.ListenOutputEnabled)
+                {
+                    UpdateMonitorMeterOverlaysLayout();
+                }
+
+                if (LiveMicBtn.IsChecked == true)
+                {
+                    UpdateLiveMicMeter(_lastLiveMicPeak);
                 }
             }
         }
@@ -1645,6 +1695,10 @@ namespace PaDDY
 
             _performanceMode = _settings.PerformanceMode;
             _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
+            if (_pauseAnimationsWhenUnfocused && (!IsActive || WindowState == WindowState.Minimized || Visibility != Visibility.Visible))
+            {
+                SetAnimationsPaused(true);
+            }
 
             // Apply saved global effect config to the live chain and assign to capture service
             EffectSettingsManager.ApplyConfig(_globalCaptureChain, _effectSettings.GlobalChain);
@@ -2256,6 +2310,17 @@ namespace PaDDY
                 _captureService.DetectionAlgorithm = _settings.DetectionAlgorithm;
                 _performanceMode = _settings.PerformanceMode;
                 _pauseAnimationsWhenUnfocused = _settings.PauseAnimationsWhenUnfocused;
+                if (_pauseAnimationsWhenUnfocused)
+                {
+                    if (!IsActive || WindowState == WindowState.Minimized || Visibility != Visibility.Visible)
+                        SetAnimationsPaused(true);
+                    else
+                        SetAnimationsPaused(false);
+                }
+                else
+                {
+                    SetAnimationsPaused(false);
+                }
 
                 _captureService.RecordCodec = win.SelectedCodec;
                 _captureService.PastBufferDurationMs = win.SelectedBufferDurationMs;
@@ -2344,6 +2409,9 @@ namespace PaDDY
             _lastRmsL = left;
             _lastRmsR = right;
 
+            if (_areAnimationsPaused)
+                return;
+
             // Throttle OUTSIDE the Dispatcher call to avoid flooding the UI message queue
             var now = DateTime.UtcNow;
             if ((now - _lastInputMeterTick).TotalMilliseconds < 30)
@@ -2352,7 +2420,7 @@ namespace PaDDY
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (!_inputMeterUpdatesEnabled || MonitorToggle.IsChecked != true) return;
+                if (_areAnimationsPaused || !_inputMeterUpdatesEnabled || MonitorToggle.IsChecked != true) return;
 
                 // Cancel any running decay animation — we have live data
                 _meterDecayTimer?.Stop();
@@ -2427,6 +2495,9 @@ namespace PaDDY
             _lastOutputRmsL = left;
             _lastOutputRmsR = right;
 
+            if (_areAnimationsPaused)
+                return;
+
             var now = DateTime.UtcNow;
             if ((now - _lastOutputMeterTick).TotalMilliseconds < 30)
                 return;
@@ -2434,6 +2505,8 @@ namespace PaDDY
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                if (_areAnimationsPaused) return;
+
                 _outputMeterDecayTimer?.Stop();
 
                 double dbL = LinearToDb(left);
@@ -2505,6 +2578,9 @@ namespace PaDDY
             _lastMonitorRmsL = left;
             _lastMonitorRmsR = right;
 
+            if (_areAnimationsPaused)
+                return;
+
             var now = DateTime.UtcNow;
             if ((now - _lastMonitorMeterTick).TotalMilliseconds < 30)
                 return;
@@ -2512,6 +2588,7 @@ namespace PaDDY
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                if (_areAnimationsPaused) return;
                 if (!_settings.ListenOutputEnabled) { ResetPadMonitorMeter(); return; }
 
                 double dbL = LinearToDb(left);
@@ -4196,6 +4273,10 @@ namespace PaDDY
         private void OnLiveMicPeakLevelUpdated(object? sender, float peak)
         {
             _lastLiveMicPeak = peak;
+
+            if (_areAnimationsPaused)
+                return;
+
             var now = DateTime.UtcNow;
             if ((now - _lastLiveMicMeterTick).TotalMilliseconds < 25)
                 return;
@@ -4203,7 +4284,7 @@ namespace PaDDY
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (LiveMicBtn.IsChecked != true) return;
+                if (_areAnimationsPaused || LiveMicBtn.IsChecked != true) return;
                 UpdateLiveMicMeter(peak);
             }), System.Windows.Threading.DispatcherPriority.Render);
         }

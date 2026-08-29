@@ -26,9 +26,13 @@ namespace PaDDY.Helpers
         public const string DefaultMeterSkin = "default";
 
         public static bool PerformanceMode { get; private set; }
+        public static bool AnimationsPaused { get; private set; }
         public static string CurrentMeterSkin { get; private set; } = "default";
         public static bool MeterDigitalDots { get; private set; } = false;
         private static double _lastWidth = 0;
+
+        /// <summary>Fired when background animations are paused or resumed.</summary>
+        public static event Action? AnimationsPausedChanged;
 
         /// <summary>Fired when the application theme is changed/reapplied.</summary>
         public static event Action? ThemeChanged;
@@ -1213,26 +1217,26 @@ namespace PaDDY.Helpers
 
             (Brush inB, Brush outB, Brush monB) = CurrentMeterSkin switch
             {
-                "8bit"          => (EightBit(MeterPalette.Green), EightBit(MeterPalette.Blue), EightBit(MeterPalette.Pink)),
-                "70s"           => (Seventies(), Seventies(), Seventies()),
-                "neon"          => (NeonCyan(), NeonMagenta(), NeonYellow()),
-                "grayscale"     => (Grayscale(), Grayscale(), Grayscale()),
-                "inferno"       => (Inferno(), Inferno(), Inferno()),
-                "aurora"        => (Aurora(), Aurora(), Aurora()),
-                "cyber-sunset"  => (CyberSunset(), CyberSunset(), CyberSunset()),
-                "forest"        => (ForestMoss(), ForestMoss(), ForestMoss()),
-                "toxic"         => (Toxic(), Toxic(), Toxic()),
-                "vaporwave"     => (Vaporwave(), Vaporwave(), Vaporwave()),
-                "plasma"        => (Plasma(), Plasma(), Plasma()),
-                "matrix"        => (Matrix(), Matrix(), Matrix()),
-                "solar-flare"   => (SolarFlare(), SolarFlare(), SolarFlare()),
-                "ocean-wave"    => (OceanWave(), OceanWave(), OceanWave()),
-                "sunset-strip"  => (SunsetStrip(), SunsetStrip(), SunsetStrip()),
-                "vintage-led"   => (VintageLed(), VintageLed(), VintageLed()),
-                "acid-lime"     => (AcidLime(), AcidLime(), AcidLime()),
-                "blood-moon"    => (BloodMoon(), BloodMoon(), BloodMoon()),
-                "rainbow"       => (Rainbow(), Rainbow(), Rainbow()),
-                _               => (DefaultIn(), DefaultOut(), DefaultMon()),
+                "8bit" => (EightBit(MeterPalette.Green), EightBit(MeterPalette.Blue), EightBit(MeterPalette.Pink)),
+                "70s" => (Seventies(), Seventies(), Seventies()),
+                "neon" => (NeonCyan(), NeonMagenta(), NeonYellow()),
+                "grayscale" => (Grayscale(), Grayscale(), Grayscale()),
+                "inferno" => (Inferno(), Inferno(), Inferno()),
+                "aurora" => (Aurora(), Aurora(), Aurora()),
+                "cyber-sunset" => (CyberSunset(), CyberSunset(), CyberSunset()),
+                "forest" => (ForestMoss(), ForestMoss(), ForestMoss()),
+                "toxic" => (Toxic(), Toxic(), Toxic()),
+                "vaporwave" => (Vaporwave(), Vaporwave(), Vaporwave()),
+                "plasma" => (Plasma(), Plasma(), Plasma()),
+                "matrix" => (Matrix(), Matrix(), Matrix()),
+                "solar-flare" => (SolarFlare(), SolarFlare(), SolarFlare()),
+                "ocean-wave" => (OceanWave(), OceanWave(), OceanWave()),
+                "sunset-strip" => (SunsetStrip(), SunsetStrip(), SunsetStrip()),
+                "vintage-led" => (VintageLed(), VintageLed(), VintageLed()),
+                "acid-lime" => (AcidLime(), AcidLime(), AcidLime()),
+                "blood-moon" => (BloodMoon(), BloodMoon(), BloodMoon()),
+                "rainbow" => (Rainbow(), Rainbow(), Rainbow()),
+                _ => (DefaultIn(), DefaultOut(), DefaultMon()),
             };
 
             if (digitalDots && _lastWidth > 0)
@@ -1275,6 +1279,14 @@ namespace PaDDY.Helpers
         {
             PerformanceMode = enabled;
             RenderOptions.ProcessRenderMode = enabled ? RenderMode.SoftwareOnly : RenderMode.Default;
+        }
+
+        /// <summary>Updates the global animation pause state for background/unfocused windows.</summary>
+        public static void SetAnimationsPaused(bool paused)
+        {
+            if (AnimationsPaused == paused) return;
+            AnimationsPaused = paused;
+            AnimationsPausedChanged?.Invoke();
         }
 
         // ── meter gradient factories ─────────────────────────────────────────
@@ -1625,26 +1637,26 @@ namespace PaDDY.Helpers
             }
 
             var drawingGroup = new DrawingGroup();
-            
+
             // Solid black background to cover the gaps and remaining space
             drawingGroup.Children.Add(new GeometryDrawing(
-                new SolidColorBrush(ParseColor("#FF000000")), 
-                null, 
+                new SolidColorBrush(ParseColor("#FF000000")),
+                null,
                 new RectangleGeometry(new Rect(0, 0, width, 100))));
 
             for (int i = 0; i < numBlocks; i++)
             {
                 int startP = i * blockWidth;
                 int ledEndP = startP + (int)Math.Round(blockWidth * (1 - gapRatio));
-                
+
                 double centerT = (startP + ledEndP) * 0.5 / width;
                 Color c = GetColor(centerT);
-                
+
                 var rect = new Rect(startP, 0, ledEndP - startP, 100);
                 var drawing = new GeometryDrawing(new SolidColorBrush(c), null, new RectangleGeometry(rect));
                 drawingGroup.Children.Add(drawing);
             }
-            
+
             var brush = new DrawingBrush(drawingGroup)
             {
                 Stretch = Stretch.None,
@@ -1654,7 +1666,7 @@ namespace PaDDY.Helpers
                 Viewport = new Rect(0, 0, width, 100),
                 ViewportUnits = BrushMappingMode.Absolute
             };
-            
+
             RenderOptions.SetEdgeMode(brush, EdgeMode.Aliased);
             return brush;
         }

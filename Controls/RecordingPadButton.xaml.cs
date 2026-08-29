@@ -221,7 +221,7 @@ namespace PaDDY.Controls
             {
                 _isFavorite = value;
                 FavBtn.Content = value ? "★" : "☆";
-                
+
                 if (value)
                     FavBtn.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "AccentAmberBrush");
                 else
@@ -1009,8 +1009,8 @@ namespace PaDDY.Controls
 
                     // If background is dark, force light text colors for perfect readability
                     System.Windows.Media.Brush textBrush = brightness < 128 ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Black;
-                    System.Windows.Media.Brush subtleBrush = brightness < 128 
-                        ? new SolidColorBrush(Color.FromRgb(0xBB, 0xCC, 0xEE)) 
+                    System.Windows.Media.Brush subtleBrush = brightness < 128
+                        ? new SolidColorBrush(Color.FromRgb(0xBB, 0xCC, 0xEE))
                         : new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x55));
 
                     NameLabel.Foreground = textBrush;
@@ -1096,6 +1096,8 @@ namespace PaDDY.Controls
 
         private void OnCountdownTick(object? sender, EventArgs e)
         {
+            if (Helpers.ThemeManager.AnimationsPaused) return;
+
             if (_playbackStopwatch == null || Entry == null)
             {
                 StopCountdownTimer();

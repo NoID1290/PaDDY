@@ -920,11 +920,13 @@ namespace PaDDY
 
         private void OnCompositionRendering(object? sender, EventArgs e)
         {
+            if (Helpers.ThemeManager.AnimationsPaused) return;
             UpdatePlaybackTimecodeTick();
         }
 
         private void TimecodeTimer_Tick(object? sender, EventArgs e)
         {
+            if (Helpers.ThemeManager.AnimationsPaused) return;
             UpdatePlaybackTimecodeTick();
         }
 
